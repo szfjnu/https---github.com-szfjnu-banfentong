@@ -1,0 +1,107 @@
+<!--pages/join/confirm/confirm.wxml-->
+<view class="container">
+  <!-- 学生信息填写 -->
+  <view class="form-section" wx:if="{{role === 'parent'}}">
+    <view class="section-title">学生信息</view>
+
+    <!-- 已有学生 -->
+    <view class="student-info-card" wx:if="{{!addNew && studentInfo}}">
+      <view class="info-row">
+        <text class="info-label">学生姓名</text>
+        <text class="info-value">{{studentInfo.name}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">学号</text>
+        <text class="info-value">{{studentInfo.student_id}}</text>
+      </view>
+    </view>
+
+    <!-- 新增学生 -->
+    <view class="form-card" wx:if="{{addNew}}">
+      <view class="form-item required">
+        <text class="form-label">学生姓名</text>
+        <input
+          class="form-input"
+          placeholder="请输入学生姓名"
+          value="{{formData.student_name}}"
+          bindinput="onInputChange"
+          data-field="student_name"
+        />
+      </view>
+      <view class="form-item required">
+        <text class="form-label">学号</text>
+        <input
+          class="form-input"
+          placeholder="请输入学号"
+          value="{{formData.student_id}}"
+          bindinput="onInputChange"
+          data-field="student_id"
+        />
+      </view>
+    </view>
+
+    <!-- 关系选择 -->
+    <view class="relation-section">
+      <view class="relation-label">我是学生的</view>
+      <view class="relation-list">
+        <view
+          class="relation-item {{selectedRelation === item ? 'active' : ''}}"
+          wx:for="{{relations}}"
+          wx:key="*this"
+          wx:item="item"
+          bindtap="onSelectRelation"
+          data-relation="{{item}}"
+        >
+          <text>{{item}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 老师信息填写 -->
+  <view class="form-section" wx:if="{{role === 'teacher'}}">
+    <view class="section-title">老师信息</view>
+    <view class="form-card">
+      <view class="form-item required">
+        <text class="form-label">姓名</text>
+        <input
+          class="form-input"
+          placeholder="请输入您的姓名"
+          value="{{formData.teacher_name}}"
+          bindinput="onInputChange"
+          data-field="teacher_name"
+        />
+      </view>
+      <view class="form-item">
+        <text class="form-label">任教科目</text>
+        <picker mode="selector" range="{{subjects}}" value="{{subjectIndex}}" bindchange="onSubjectChange">
+          <view class="picker-value">
+            <text>{{subjects[subjectIndex] || '请选择'}}</text>
+            <text class="arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+    </view>
+  </view>
+
+  <!-- 隐私协议 -->
+  <view class="agreement-section">
+    <checkbox checked="{{agreed}}" bindtap="onToggleAgreement" color="#1890ff" />
+    <text class="agreement-text">我已阅读</text>
+    <text class="agreement-link" bindtap="onShowPrivacy">《班分通数据安全和隐私保障规则》</text>
+    <text class="agreement-text">《班分通用户服务协议》</text>
+  </view>
+
+  <!-- 确认按钮 -->
+  <view class="action-section">
+    <button class="btn-confirm" bindtap="onConfirm" disabled="{{!canConfirm}}">
+      确认
+    </button>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-icon"></view>
+    <view class="loading-text">处理中...</view>
+  </view>
+</view>

@@ -1,0 +1,330 @@
+/* pages/attendance/fullstats/fullstats.wxss */
+
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding-bottom: 40rpx;
+}
+
+/* 页面标题 */
+.page-header {
+  padding: 40rpx 30rpx 30rpx;
+  text-align: center;
+  color: #fff;
+}
+
+.page-title {
+  display: block;
+  font-size: 44rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.page-subtitle {
+  display: block;
+  font-size: 28rpx;
+  opacity: 0.9;
+}
+
+/* 统计类型选择 */
+.type-selector {
+  margin: 0 30rpx 20rpx;
+}
+
+.selector-content {
+  display: inline-flex;
+  align-items: center;
+  padding: 15rpx 30rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 30rpx;
+  color: #fff;
+}
+
+.selector-text {
+  font-size: 28rpx;
+  margin-right: 10rpx;
+}
+
+.selector-icon {
+  font-size: 20rpx;
+}
+
+/* 时间导航 */
+.period-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 30rpx 30rpx;
+  padding: 20rpx;
+  background: #fff;
+  border-radius: 16rpx;
+}
+
+.nav-btn {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f7fa;
+  border-radius: 50%;
+}
+
+.nav-icon {
+  font-size: 36rpx;
+  color: #667eea;
+}
+
+.period-title {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+/* 统计卡片 */
+.stats-cards {
+  display: flex;
+  margin: 0 30rpx 30rpx;
+  gap: 15rpx;
+}
+
+.stats-card {
+  flex: 1;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 25rpx 20rpx;
+  display: flex;
+  align-items: center;
+}
+
+.card-icon {
+  font-size: 40rpx;
+  margin-right: 15rpx;
+}
+
+.card-info {
+  flex: 1;
+}
+
+.card-value {
+  display: block;
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.stats-card.full .card-value {
+  color: #52c41a;
+}
+
+.stats-card.rate .card-value {
+  color: #667eea;
+}
+
+.card-label {
+  display: block;
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 5rpx;
+}
+
+/* 学生区域 */
+.student-section {
+  margin: 0 30rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.export-btn {
+  padding: 10rpx 24rpx;
+  background: #f5f7fa;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  color: #667eea;
+}
+
+/* 分类标题 */
+.category-title {
+  display: flex;
+  align-items: center;
+  margin: 25rpx 0 20rpx;
+  padding-bottom: 15rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.title-icon {
+  font-size: 28rpx;
+  margin-right: 10rpx;
+}
+
+.title-text {
+  font-size: 28rpx;
+  color: #666;
+}
+
+/* 学生网格（全勤学生） */
+.student-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15rpx;
+}
+
+.student-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20rpx 10rpx;
+  background: #f6ffed;
+  border-radius: 12rpx;
+}
+
+.student-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10rpx;
+}
+
+.avatar-text {
+  font-size: 32rpx;
+  color: #fff;
+  font-weight: bold;
+}
+
+.student-name {
+  font-size: 26rpx;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.full-badge {
+  padding: 4rpx 12rpx;
+  background: #52c41a;
+  color: #fff;
+  border-radius: 8rpx;
+  font-size: 20rpx;
+}
+
+/* 学生列表（非全勤学生） */
+.student-list {
+  margin-top: 10rpx;
+}
+
+.student-detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx;
+  background: #fff1f0;
+  border-radius: 12rpx;
+  margin-bottom: 15rpx;
+}
+
+.student-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.student-detail-item .student-avatar {
+  background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
+}
+
+.student-info {
+  margin-left: 15rpx;
+  flex: 1;
+}
+
+.absence-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-top: 8rpx;
+}
+
+.absence-tag {
+  padding: 4rpx 10rpx;
+  border-radius: 6rpx;
+  font-size: 22rpx;
+}
+
+.absence-tag.sick {
+  background: #f6ffed;
+  color: #52c41a;
+}
+
+.absence-tag.personal {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.absence-tag.absent {
+  background: #fff1f0;
+  color: #ff4d4f;
+}
+
+.student-right {
+  flex-shrink: 0;
+}
+
+.late-early {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 加载状态 */
+.loading-state {
+  text-align: center;
+  padding: 60rpx 0;
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #fff;
+  opacity: 0.8;
+}
+
+/* 说明区域 */
+.notice-section {
+  margin: 30rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+}
+
+.notice-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.notice-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.notice-text {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.6;
+}

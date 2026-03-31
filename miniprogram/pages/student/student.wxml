@@ -1,0 +1,126 @@
+<!--pages/student/student.wxml-->
+<view class="container">
+  <!-- 搜索和筛选栏 -->
+  <view class="filter-section">
+    <!-- 搜索栏 -->
+    <view class="search-bar">
+      <view class="search-input">
+        <image class="search-icon" src="/images/icons/search.png" mode="aspectFit"></image>
+        <input
+          type="text"
+          placeholder="搜索学号或姓名"
+          value="{{searchKeyword}}"
+          bindconfirm="onSearch"
+          bindinput="onSearchInput"
+        />
+        <image
+          class="clear-icon"
+          wx:if="{{searchKeyword}}"
+          src="/images/icons/clear.png"
+          mode="aspectFit"
+          bindtap="onClearSearch"
+        ></image>
+      </view>
+    </view>
+
+    <!-- 筛选栏 -->
+    <view class="filter-bar">
+      <view class="filter-item">
+        <picker mode="selector" range="{{classOptions}}" range-key="label" bindchange="onClassChange">
+          <view class="picker">
+            <text>{{selectedClassLabel}}</text>
+            <text class="arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="filter-item">
+        <picker mode="selector" range="{{boardingOptions}}" range-key="label" bindchange="onBoardingChange">
+          <view class="picker">
+            <text>{{selectedBoardingLabel}}</text>
+            <text class="arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="filter-item">
+        <picker mode="selector" range="{{positionOptions}}" range-key="label" bindchange="onPositionChange">
+          <view class="picker">
+            <text>{{selectedPositionLabel}}</text>
+            <text class="arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+    </view>
+  </view>
+
+  <!-- 学生列表 -->
+  <view class="student-list" wx:if="{{!loading && students.length > 0}}">
+    <view
+      class="student-item"
+      wx:for="{{students}}"
+      wx:key="_id"
+    >
+      <view class="student-main" bindtap="onViewDetail" bindlongpress="onLongPressStudent" data-id="{{item.student_id}}" data-name="{{item.name}}">
+        <view class="student-avatar">
+          <image src="/images/icons/default-avatar.png" mode="aspectFill"></image>
+        </view>
+        <view class="student-info">
+          <view class="student-header">
+            <view class="student-name">{{item.name}}</view>
+            <view class="student-badges">
+              <view class="badge badge-position" wx:if="{{item.position}}">{{item.position}}</view>
+              <view class="badge badge-boarding" wx:if="{{item.is_boarding}}">住宿</view>
+              <view class="badge badge-group" wx:if="{{item.group_id}}">已分组</view>
+            </view>
+          </view>
+          <view class="student-meta">
+            <text class="meta-item">{{item.student_id}}</text>
+            <text class="meta-item" wx:if="{{item.class_name}}">{{item.class_name}}</text>
+          </view>
+          <view class="student-score">
+            <view class="score-left">
+              <text class="score-label">积分</text>
+              <text class="score-value" style="color: {{item.scoreColor}}">
+                {{item.current_score || 100}}
+              </text>
+            </view>
+            <view class="score-right">
+              <text class="score-level">{{item.scoreLevel}}</text>
+            </view>
+          </view>
+        </view>
+        <view class="student-arrow">›</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty" wx:if="{{!loading && students.length === 0}}">
+    <image class="empty-icon" src="/images/icons/empty.png" mode="aspectFit"></image>
+    <view class="empty-text">暂无学生数据</view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-icon"></view>
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <!-- 添加按钮 -->
+  <view class="fab-button" wx:if="{{showAddButton}}" bindtap="onAddStudent">
+    <image src="/images/icons/add.png" mode="aspectFit"></image>
+  </view>
+
+  <!-- 批量导入按钮 -->
+  <view class="import-button" wx:if="{{showAddButton}}" bindtap="onImportStudents">
+    <text class="import-icon">📥</text>
+    <text class="import-text">批量导入</text>
+  </view>
+
+  <!-- 积分重置按钮 -->
+  <view class="reset-button" wx:if="{{showAddButton}}" bindtap="onResetScores">
+    <text class="reset-icon">🔄</text>
+    <text class="reset-text">积分重置</text>
+  </view>
+</view>

@@ -1,0 +1,394 @@
+/* pages/class/add/add.wxss */
+.container {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding-bottom: 120rpx;
+}
+
+/* 表单头部 */
+.form-header {
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  padding: 40rpx 30rpx;
+  color: #fff;
+}
+
+.form-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 600;
+  margin-bottom: 10rpx;
+}
+
+.form-subtitle {
+  display: block;
+  font-size: 26rpx;
+  opacity: 0.8;
+}
+
+/* 表单卡片 */
+.form-card {
+  background: #fff;
+  margin: 20rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  background: #fafafa;
+}
+
+.title-icon {
+  font-size: 32rpx;
+  margin-right: 16rpx;
+}
+
+.title-text {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+/* 表单项 */
+.form-item {
+  padding: 24rpx 30rpx;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.form-item:last-child {
+  border-bottom: none;
+}
+
+.form-item.required .form-label::before {
+  content: '*';
+  color: #ff4d4f;
+  margin-right: 8rpx;
+}
+
+.form-label {
+  display: block;
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 16rpx;
+  font-weight: 500;
+}
+
+.form-input {
+  width: 100%;
+  height: 80rpx;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.form-input::placeholder {
+  color: #bfbfbf;
+}
+
+/* 删除区域样式 */
+.delete-section {
+  margin: 20rpx;
+  padding: 30rpx;
+  background: #fafafa;
+  border-radius: 16rpx;
+  border: 1rpx dashed #d9d9d9;
+}
+
+.delete-warning {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+  padding: 16rpx 20rpx;
+  background: #fffbe6;
+  border-radius: 8rpx;
+}
+
+.warning-icon {
+  font-size: 28rpx;
+  margin-right: 12rpx;
+}
+
+.warning-text {
+  font-size: 24rpx;
+  color: #faad14;
+  flex: 1;
+}
+
+.btn-delete {
+  width: 100%;
+  height: 80rpx;
+  line-height: 80rpx;
+  background: #fff;
+  color: #ff4d4f;
+  font-size: 28rpx;
+  border-radius: 12rpx;
+  border: 1rpx solid #ffccc7;
+}
+
+.btn-delete::after {
+  border: none;
+}
+
+/* 操作按钮 */
+.form-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  padding: 20rpx 30rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  background: #fff;
+  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.05);
+  gap: 20rpx;
+}
+
+.btn-cancel {
+  flex: 1;
+  height: 88rpx;
+  line-height: 88rpx;
+  background: #f5f5f5;
+  color: #666;
+  font-size: 30rpx;
+  border-radius: 12rpx;
+  border: none;
+}
+
+.btn-cancel::after {
+  border: none;
+}
+
+.btn-submit {
+  flex: 2;
+  height: 88rpx;
+  line-height: 88rpx;
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  color: #fff;
+  font-size: 30rpx;
+  border-radius: 12rpx;
+  border: none;
+}
+
+.btn-submit::after {
+  border: none;
+}
+
+/* 帮助链接 */
+.help-link {
+  text-align: center;
+  padding: 40rpx 0;
+  color: #1890ff;
+  font-size: 26rpx;
+}
+
+/* 创建成功弹窗 */
+.success-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.modal-content {
+  position: relative;
+  width: 600rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 60rpx 40rpx 40rpx;
+  text-align: center;
+}
+
+.modal-icon {
+  font-size: 100rpx;
+  margin-bottom: 30rpx;
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+
+.modal-desc {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 40rpx;
+}
+
+.class-info-card {
+  background: #f5f7fa;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 40rpx;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx 0;
+}
+
+.info-row:not(:last-child) {
+  border-bottom: 1rpx solid #e8e8e8;
+}
+
+.info-label {
+  font-size: 28rpx;
+  color: #999;
+}
+
+.info-value {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.code-row {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.code-box {
+  width: 100%;
+  margin-top: 16rpx;
+  padding: 20rpx;
+  background: white;
+  border-radius: 12rpx;
+  text-align: center;
+}
+
+.code-value {
+  display: block;
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #1890ff;
+  letter-spacing: 8rpx;
+  margin-bottom: 8rpx;
+}
+
+.code-tip {
+  display: block;
+  font-size: 22rpx;
+  color: #999;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 20rpx;
+}
+
+.btn-back {
+  flex: 1;
+  height: 80rpx;
+  line-height: 80rpx;
+  background: #f5f5f5;
+  color: #666;
+  font-size: 28rpx;
+  border-radius: 40rpx;
+  border: none;
+}
+
+.btn-back::after {
+  border: none;
+}
+
+.btn-enter {
+  flex: 1;
+  height: 80rpx;
+  line-height: 80rpx;
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  color: #fff;
+  font-size: 28rpx;
+  border-radius: 40rpx;
+  border: none;
+}
+
+.btn-enter::after {
+  border: none;
+}
+
+/* 升级提示弹窗 */
+.upgrade-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upgrade-content {
+  width: 600rpx;
+}
+
+.upgrade-features {
+  background: #f6ffed;
+  border-radius: 16rpx;
+  padding: 24rpx 30rpx;
+  margin-bottom: 40rpx;
+  text-align: left;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 0;
+}
+
+.feature-icon {
+  width: 40rpx;
+  height: 40rpx;
+  line-height: 40rpx;
+  text-align: center;
+  background: #52c41a;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 24rpx;
+  margin-right: 16rpx;
+}
+
+.feature-text {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.btn-upgrade {
+  flex: 1;
+  height: 80rpx;
+  line-height: 80rpx;
+  background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+  color: #fff;
+  font-size: 28rpx;
+  border-radius: 40rpx;
+  border: none;
+}
+
+.btn-upgrade::after {
+  border: none;
+}

@@ -1,0 +1,211 @@
+<!--pages/attendance/leave/leave.wxml-->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="page-title">请假审批记录</text>
+    <text class="page-subtitle">查看和管理学生的请假审批记录</text>
+  </view>
+
+  <!-- 筛选栏 -->
+  <view class="filter-bar">
+    <view class="filter-item {{filterStatus === 'all' ? 'active' : ''}}" bindtap="onFilterStatus" data-status="all">
+      <text>全部</text>
+    </view>
+    <view class="filter-item {{filterStatus === 'approved' ? 'active' : ''}}" bindtap="onFilterStatus" data-status="approved">
+      <text>已通过</text>
+    </view>
+    <view class="filter-item {{filterStatus === 'rejected' ? 'active' : ''}}" bindtap="onFilterStatus" data-status="rejected">
+      <text>已拒绝</text>
+    </view>
+    <view class="filter-item {{filterStatus === 'cancelled' ? 'active' : ''}}" bindtap="onFilterStatus" data-status="cancelled">
+      <text>已取消</text>
+    </view>
+  </view>
+
+  <!-- 添加按钮 -->
+  <view class="add-section" wx:if="{{isAdmin}}">
+    <button class="add-btn" bindtap="onShowAddModal">
+      <text class="add-icon">+</text>
+      <text class="add-text">添加请假记录</text>
+    </button>
+  </view>
+
+  <!-- 记录列表 -->
+  <view class="record-list">
+    <view class="record-item" wx:for="{{records}}" wx:key="_id">
+      <view class="record-header">
+        <view class="student-info">
+          <text class="student-name">{{item.student_name}}</text>
+          <view class="leave-type-badge" style="background: {{item.leave_type === '病假' ? '#f6ffed' : '#e6f7ff'}}; color: {{item.leave_type === '病假' ? '#52c41a' : '#1890ff'}}">
+            {{item.leave_type}}
+          </view>
+        </view>
+        <view class="status-badge" style="background: {{item.status_color}}20; color: {{item.status_color}}">
+          {{item.status_text}}
+        </view>
+      </view>
+      
+      <view class="record-body">
+        <view class="info-row">
+          <text class="info-label">请假日期</text>
+          <text class="info-value">{{item.date_range}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">请假天数</text>
+          <text class="info-value">{{item.duration_days}}天</text>
+        </view>
+        <view class="info-row" wx:if="{{item.reason}}">
+          <text class="info-label">请假原因</text>
+          <text class="info-value">{{item.reason}}</text>
+        </view>
+        <view class="info-row" wx:if="{{item.proof_images.length > 0}}">
+          <text class="info-label">审批凭证</text>
+          <view class="proof-images">
+            <image class="proof-img" 
+                   wx:for="{{item.proof_images}}" wx:for-item="img" wx:key="*this"
+                   src="{{img}}" 
+                   mode="aspectFill"
+                   bindtap="onPreviewImage"
+                   data-url="{{img}}"/>
+          </view>
+        </view>
+      </view>
+      
+      <view class="record-footer">
+        <text class="creator">创建人：{{item.creator_name}}</text>
+        <view class="action-btns">
+          <view class="action-btn" bindtap="onViewDetail" data-record="{{item}}">详情</view>
+          <view class="action-btn delete" bindtap="onDeleteRecord" data-record="{{item}}" wx:if="{{isAdmin}}">删除</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && records.length === 0}}">
+    <text class="empty-icon">📄</text>
+    <text class="empty-text">暂无请假记录</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-state" wx:if="{{loading}}">
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 加载更多 -->
+  <view class="load-more" wx:if="{{hasMore && records.length > 0}}">
+    <text class="load-more-text">上拉加载更多</text>
+  </view>
+
+  <!-- 没有更多 -->
+  <view class="no-more" wx:if="{{!hasMore && records.length > 0}}">
+    <text class="no-more-text">没有更多了</text>
+  </view>
+</view>
+
+<!-- 添加请假记录弹窗 -->
+<view class="modal" wx:if="{{showAddModal}}">
+  <view class="modal-mask" bindtap="onCloseModal"></view>
+  <view class="modal-content">
+    <view class="modal-header">
+      <text class="modal-title">添加请假记录</text>
+      <view class="modal-close" bindtap="onCloseModal">✕</view>
+    </view>
+
+    <scroll-view scroll-y class="modal-body">
+      <!-- 选择学生 -->
+      <view class="form-item">
+        <text class="form-label">选择学生</text>
+        <picker mode="selector" range="{{students}}" range-key="name" bindchange="onSelectStudent">
+          <view class="form-picker">
+            <text class="{{leaveForm.student_name ? '' : 'placeholder'}}">
+              {{leaveForm.student_name || '请选择学生'}}
+            </text>
+            <text class="picker-icon">▼</text>
+          </view>
+        </picker>
+      </view>
+
+      <!-- 请假类型 -->
+      <view class="form-item">
+        <text class="form-label">请假类型</text>
+        <picker mode="selector" range="{{leaveTypes}}" bindchange="onSelectLeaveType">
+          <view class="form-picker">
+            <text>{{leaveForm.leave_type}}</text>
+            <text class="picker-icon">▼</text>
+          </view>
+        </picker>
+      </view>
+
+      <!-- 开始日期 -->
+      <view class="form-item">
+        <text class="form-label">开始日期</text>
+        <picker mode="date" value="{{leaveForm.start_date}}" start="{{minDate}}" end="{{maxDate}}" bindchange="onSelectStartDate">
+          <view class="form-picker">
+            <text>{{leaveForm.start_date}}</text>
+            <text class="picker-icon">▼</text>
+          </view>
+        </picker>
+      </view>
+
+      <!-- 结束日期 -->
+      <view class="form-item">
+        <text class="form-label">结束日期</text>
+        <picker mode="date" value="{{leaveForm.end_date}}" start="{{minDate}}" end="{{maxDate}}" bindchange="onSelectEndDate">
+          <view class="form-picker">
+            <text>{{leaveForm.end_date}}</text>
+            <text class="picker-icon">▼</text>
+          </view>
+        </picker>
+      </view>
+
+      <!-- 请假原因 -->
+      <view class="form-item">
+        <text class="form-label">请假原因</text>
+        <textarea class="form-textarea"
+                  placeholder="请输入请假原因（选填）"
+                  value="{{leaveForm.reason}}"
+                  bindinput="onReasonInput"
+                  maxlength="200"/>
+      </view>
+
+      <!-- 审批单号 -->
+      <view class="form-item">
+        <text class="form-label">审批单号</text>
+        <input class="form-input"
+               placeholder="学校审批单号（选填）"
+               value="{{leaveForm.approval_number}}"
+               bindinput="onApprovalNumberInput"/>
+      </view>
+
+      <!-- 上传凭证 -->
+      <view class="form-item">
+        <text class="form-label">上传凭证</text>
+        <view class="proof-upload">
+          <view class="proof-list">
+            <view class="proof-item" wx:for="{{leaveForm.proof_images}}" wx:key="*this">
+              <image class="proof-preview" src="{{item}}" mode="aspectFill"/>
+              <view class="proof-delete" bindtap="onDeleteProof" data-index="{{index}}">✕</view>
+            </view>
+            <view class="proof-add" bindtap="onUploadProof" wx:if="{{leaveForm.proof_images.length < 3}}">
+              <text class="proof-add-icon">+</text>
+              <text class="proof-add-text">上传</text>
+            </view>
+          </view>
+          <text class="form-tip">最多上传3张凭证图片</text>
+        </view>
+      </view>
+
+      <!-- 说明 -->
+      <view class="form-notice">
+        <text class="notice-icon">💡</text>
+        <text class="notice-text">保存后将自动生成对应日期的考勤记录</text>
+      </view>
+    </scroll-view>
+
+    <view class="modal-footer">
+      <button class="cancel-btn" bindtap="onCloseModal">取消</button>
+      <button class="confirm-btn" bindtap="onSaveLeave" loading="{{saving}}">保存</button>
+    </view>
+  </view>
+</view>

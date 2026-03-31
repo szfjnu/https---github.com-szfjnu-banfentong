@@ -1,0 +1,9 @@
+{
+  "name": "debugStudents",
+  "version": "1.0.0",
+  "description": "调试students集合数据",
+  "main": "index.js",
+  "scripts": {},
+  "author": "",
+  "license": "ISC"
+}

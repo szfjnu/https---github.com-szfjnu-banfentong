@@ -1,0 +1,227 @@
+<!--pages/index/index.wxml-->
+<view class="container">
+  <!-- 用户信息卡片 -->
+  <view class="user-card card" wx:if="{{userInfo}}">
+    <view class="user-main">
+      <view class="user-info">
+        <image class="avatar avatar-large" src="{{userInfo.avatarUrl || '/images/icons/default-avatar.png'}}" mode="aspectFill"></image>
+        <view class="user-detail">
+          <view class="user-name">{{userInfo.nickName || '未设置昵称'}}</view>
+          <view class="user-role">
+            <text class="tag tag-primary">{{roleLabel}}</text>
+            <text class="semester" wx:if="{{currentSemester}}">{{currentSemester.name}}</text>
+          </view>
+        </view>
+      </view>
+      <!-- 天气信息 -->
+      <view class="weather-section" wx:if="{{weather}}">
+        <view class="weather-main">
+          <text class="weather-temp">{{weather.temp}}°</text>
+          <text class="weather-desc">{{weather.weather}}</text>
+        </view>
+        <view class="weather-detail">
+          <text class="weather-wind">{{weather.wind}}</text>
+          <text class="weather-humidity">湿度 {{weather.humidity}}%</text>
+        </view>
+      </view>
+    </view>
+    <view class="weather-tips" wx:if="{{weather && weather.tips}}">
+      <text class="tips-icon">💡</text>
+      <text class="tips-text">{{weather.tips}}</text>
+    </view>
+  </view>
+
+  <!-- 统计数据卡片 -->
+  <view class="stats-section" wx:if="{{!loading}}">
+    <!-- 管理员/教师视图 -->
+    <block wx:if="{{role === 'admin' || role === 'head_teacher' || role === 'subject_teacher'}}">
+      <view class="stat-card">
+        <view class="stat-title">班级概况</view>
+        <!-- 四个数据项一行 -->
+        <view class="stat-grid-compact">
+          <view class="stat-item-compact">
+            <view class="stat-value-compact">{{statistics.studentCount || 0}}</view>
+            <view class="stat-label-compact">学生总数</view>
+          </view>
+          <view class="stat-item-compact">
+            <view class="stat-value-compact">{{statistics.avgScore || 100}}</view>
+            <view class="stat-label-compact">平均积分</view>
+          </view>
+          <view class="stat-item-compact">
+            <view class="stat-value-compact">{{statistics.attendanceRate || 100}}%</view>
+            <view class="stat-label-compact">考勤率</view>
+          </view>
+          <view class="stat-item-compact">
+            <view class="stat-value-compact text-warning">{{statistics.pendingApprovals || 0}}</view>
+            <view class="stat-label-compact">待审批</view>
+          </view>
+        </view>
+        
+        <!-- 本月TOP5积分排行榜 -->
+        <view class="ranking-section">
+          <view class="ranking-header">
+            <text class="ranking-title">🏆 本月TOP5积分榜</text>
+            <text class="ranking-more" bindtap="goToRanking">更多 ></text>
+          </view>
+          <view class="ranking-list" wx:if="{{!rankingLoading && scoreRanking.length > 0}}">
+            <view class="ranking-item" wx:for="{{scoreRanking}}" wx:key="student_id">
+              <view class="ranking-left">
+                <text class="ranking-badge">{{item.badge || item.rank}}</text>
+                <image class="ranking-avatar" src="{{item.avatar || '/images/icons/default-avatar.png'}}" mode="aspectFill"></image>
+                <text class="ranking-name">{{item.name}}</text>
+              </view>
+              <view class="ranking-right">
+                <text class="ranking-score">+{{item.monthlyScore}}</text>
+                <text class="ranking-label">本月</text>
+              </view>
+            </view>
+          </view>
+          <view class="ranking-empty" wx:if="{{!rankingLoading && scoreRanking.length === 0}}">
+            <text>暂无排行数据</text>
+          </view>
+          <view class="ranking-loading" wx:if="{{rankingLoading}}">
+            <text>加载中...</text>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 学生视图 -->
+    <block wx:if="{{role === 'student'}}">
+      <view class="stat-card">
+        <view class="stat-title">我的数据</view>
+        <view class="stat-grid">
+          <view class="stat-item">
+            <view class="stat-value">{{statistics.myScore || 100}}</view>
+            <view class="stat-label">德育积分</view>
+          </view>
+          <view class="stat-item">
+            <view class="stat-value">{{statistics.scoreLevel || '良好'}}</view>
+            <view class="stat-label">积分等级</view>
+          </view>
+          <view class="stat-item">
+            <view class="stat-value">{{statistics.attendanceCount || 0}}</view>
+            <view class="stat-label">考勤记录</view>
+          </view>
+          <view class="stat-item">
+            <view class="stat-value">{{statistics.volunteerHours || 0}}h</view>
+            <view class="stat-label">志愿时长</view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 家长视图 -->
+    <block wx:if="{{role === 'parent'}}">
+      <view class="stat-card">
+        <view class="stat-title">孩子数据</view>
+        <view class="stat-grid">
+          <view class="stat-item">
+            <view class="stat-value">{{statistics.childScore || 100}}</view>
+            <view class="stat-label">德育积分</view>
+          </view>
+          <view class="stat-item">
+            <view class="stat-value">{{statistics.scoreLevel || '良好'}}</view>
+            <view class="stat-label">积分等级</view>
+          </view>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <!-- 今日提醒区域 -->
+  <view class="reminder-section" wx:if="{{!loading && (role === 'admin' || role === 'head_teacher' || role === 'subject_teacher')}}">
+    <view class="reminder-cards">
+      <!-- 今日课程提醒 -->
+      <view class="reminder-card course-card">
+        <view class="reminder-header">
+          <view class="reminder-title">
+            <text class="reminder-icon">📚</text>
+            <text>今日课程</text>
+          </view>
+          <view class="reminder-actions">
+            <text class="switch-btn" bindtap="switchCourseView">
+              {{courseViewType === 'class' ? '班级课程' : '我的课程'}}
+            </text>
+            <text class="more-btn" bindtap="goToSchedule">更多</text>
+          </view>
+        </view>
+        <view class="course-list" wx:if="{{!coursesLoading && todayCourses.length > 0}}">
+          <view class="course-item {{item.status === '进行中' ? 'active' : ''}}" wx:for="{{todayCourses}}" wx:key="period">
+            <view class="course-time">
+              <text class="period">第{{item.period}}节</text>
+              <text class="time">{{item.time}}</text>
+            </view>
+            <view class="course-info">
+              <text class="course-name">{{item.course_name || item.subject || '未设置'}}</text>
+              <text class="course-teacher" wx:if="{{item.teacher_name}}">{{item.teacher_name}}</text>
+            </view>
+            <view class="course-status {{item.status === '进行中' ? 'active' : ''}}">{{item.status}}</view>
+          </view>
+        </view>
+        <view class="reminder-empty" wx:if="{{!coursesLoading && todayCourses.length === 0}}">
+          <text>今日无课程安排</text>
+        </view>
+        <view class="reminder-loading" wx:if="{{coursesLoading}}">
+          <text>加载中...</text>
+        </view>
+      </view>
+
+      <!-- 今日生日提醒 -->
+      <view class="reminder-card birthday-card">
+        <view class="reminder-header">
+          <view class="reminder-title">
+            <text class="reminder-icon">🎂</text>
+            <text>今日生日</text>
+          </view>
+        </view>
+        <view class="birthday-list" wx:if="{{!birthdayLoading && birthdayStudents.length > 0}}">
+          <view class="birthday-item" wx:for="{{birthdayStudents}}" wx:key="student_id">
+            <image class="birthday-avatar" src="{{item.avatar || '/images/icons/default-avatar.png'}}" mode="aspectFill"></image>
+            <view class="birthday-info">
+              <text class="birthday-name">{{item.name}}</text>
+              <text class="birthday-age" wx:if="{{item.age}}">{{item.age}}岁</text>
+            </view>
+            <view class="birthday-wish" bindtap="sendBirthdayWish" data-name="{{item.name}}">
+              <text class="wish-icon">🎈</text>
+              <text class="wish-text">送祝福</text>
+            </view>
+          </view>
+        </view>
+        <view class="reminder-empty" wx:if="{{!birthdayLoading && birthdayStudents.length === 0}}">
+          <text>今日无学生生日</text>
+        </view>
+        <view class="reminder-loading" wx:if="{{birthdayLoading}}">
+          <text>加载中...</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 快捷操作 -->
+  <view class="quick-actions-section" wx:if="{{quickActions.length > 0}}">
+    <view class="section-title">快捷操作</view>
+    <view class="quick-actions-grid">
+      <view 
+        class="quick-action-item {{item.disabled ? 'disabled' : ''}}" 
+        wx:for="{{quickActions}}" 
+        wx:key="title" 
+        bindtap="onQuickAction" 
+        data-url="{{item.url}}"
+        data-disabled="{{item.disabled}}"
+      >
+        <view class="action-icon-wrapper" style="background: linear-gradient(135deg, {{item.color}} 0%, {{item.colorDark}} 100%);">
+          <image class="action-icon-img" src="/images/icons/{{item.icon}}.png" mode="aspectFit"></image>
+        </view>
+        <view class="action-title">{{item.title}}</view>
+        <view class="action-badge" wx:if="{{item.badge}}">{{item.badge}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-icon"></view>
+    <view class="loading-text">加载中...</view>
+  </view>
+</view>

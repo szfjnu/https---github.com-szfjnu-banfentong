@@ -1,0 +1,157 @@
+<!--pages/score/categories/categories.wxml-->
+<view class="container">
+  <!-- 加载状态 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-icon"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <block wx:else>
+    <!-- 类别列表 -->
+    <view class="category-list">
+      <view class="category-card {{item.is_active === false ? 'disabled' : ''}}"
+            wx:for="{{categories}}" 
+            wx:key="_id">
+        <view class="category-header">
+          <view class="category-icon" style="background: {{item.color}}20; color: {{item.color}}">
+            {{item.icon || '📋'}}
+          </view>
+          <view class="category-info">
+            <text class="category-name">{{item.category_name}}</text>
+            <text class="category-code">{{item.category_code}}</text>
+          </view>
+          <view class="category-status">
+            <switch 
+              checked="{{item.is_active !== false}}" 
+              color="#1890ff"
+              data-category="{{item}}"
+              bindchange="onToggleStatus"
+            />
+          </view>
+        </view>
+        
+        <view class="category-body" wx:if="{{item.description}}">
+          <text class="category-desc">{{item.description}}</text>
+        </view>
+
+        <view class="category-footer">
+          <view class="category-meta">
+            <text class="meta-item" wx:if="{{item.is_dorm_related}}">🏠 宿舍相关</text>
+            <text class="meta-item" wx:if="{{item.is_system}}">系统内置</text>
+          </view>
+          <view class="category-actions" wx:if="{{!item.is_system}}">
+            <view class="action-btn edit" catchtap="onEditCategory" data-category="{{item}}">编辑</view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 空状态 -->
+      <view class="empty" wx:if="{{categories.length === 0}}">
+        <text class="empty-icon">📋</text>
+        <text class="empty-text">暂无积分类别</text>
+        <view class="empty-actions">
+          <button class="init-btn" bindtap="onInitBaseCategories" wx:if="{{userRole === 'admin'}}">
+            初始化基础类别
+          </button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 添加按钮 -->
+    <view class="fab-button" bindtap="onShowAddModal">
+      <text>+</text>
+    </view>
+  </block>
+
+  <!-- 添加/编辑弹窗 -->
+  <view class="modal-mask" wx:if="{{showAddModal}}" bindtap="onCloseModal">
+    <view class="modal-content" catchtap="">
+      <view class="modal-header">
+        <text class="modal-title">{{editingCategory ? '编辑类别' : '添加类别'}}</text>
+        <text class="modal-close" catchtap="onCloseModal">✕</text>
+      </view>
+      
+      <scroll-view class="modal-body" scroll-y>
+        <view class="form-item">
+          <text class="form-label required">类别名称</text>
+          <input 
+            class="form-input"
+            placeholder="输入类别名称"
+            value="{{formData.category_name}}"
+            data-field="category_name"
+            bindinput="onInputChange"
+          />
+        </view>
+
+        <view class="form-item">
+          <text class="form-label required">类别代码</text>
+          <input 
+            class="form-input"
+            placeholder="输入类别代码（如 LEARNING）"
+            value="{{formData.category_code}}"
+            data-field="category_code"
+            bindinput="onInputChange"
+          />
+          <view class="form-tip">类别代码为大写英文，用于系统标识</view>
+        </view>
+
+        <view class="form-item">
+          <text class="form-label">图标</text>
+          <picker 
+            mode="selector" 
+            range="{{iconOptions}}"
+            value="{{selectedIconIndex}}"
+            bindchange="onIconChange"
+          >
+            <view class="picker-value">
+              <text class="icon-preview">{{formData.icon}}</text>
+              <text class="arrow">▼</text>
+            </view>
+          </picker>
+        </view>
+
+        <view class="form-item">
+          <text class="form-label">颜色</text>
+          <picker 
+            mode="selector" 
+            range="{{colorOptions}}"
+            value="{{selectedColorIndex}}"
+            bindchange="onColorChange"
+          >
+            <view class="picker-value">
+              <view class="color-preview" style="background: {{formData.color}}"></view>
+              <text class="arrow">▼</text>
+            </view>
+          </picker>
+        </view>
+
+        <view class="form-item">
+          <text class="form-label">描述</text>
+          <textarea 
+            class="form-textarea"
+            placeholder="输入类别描述（选填）"
+            value="{{formData.description}}"
+            data-field="description"
+            bindinput="onInputChange"
+          />
+        </view>
+
+        <view class="form-item">
+          <text class="form-label">宿舍相关</text>
+          <switch checked="{{formData.is_dorm_related}}" bindchange="onToggleDormRelated" color="#1890ff" />
+          <view class="form-tip">启用后该类别将与宿舍管理关联</view>
+        </view>
+
+        <view class="form-item">
+          <text class="form-label">启用状态</text>
+          <switch checked="{{formData.is_active}}" bindchange="onToggleEnabled" color="#52c41a" />
+        </view>
+      </scroll-view>
+
+      <view class="modal-footer">
+        <view class="modal-btn cancel" bindtap="onCloseModal">取消</view>
+        <view class="modal-btn confirm" bindtap="onSaveCategory">保存</view>
+      </view>
+    </view>
+  </view>
+</view>

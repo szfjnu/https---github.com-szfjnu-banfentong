@@ -1,0 +1,113 @@
+<!-- 分组管理页面 -->
+<view class="container">
+  <!-- 当前班级信息 -->
+  <view class="class-info" wx:if="{{currentClassName}}">
+    <text class="class-label">当前班级：</text>
+    <text class="class-name">{{currentClassName}}</text>
+  </view>
+
+  <!-- 筛选标签 -->
+  <view class="filter-tabs">
+    <view class="filter-tab {{filterType === 'all' ? 'active' : ''}}" 
+          data-type="all" 
+          bindtap="onFilterChange">全部</view>
+    <view class="filter-tab {{filterType === '学习小组' ? 'active' : ''}}" 
+          data-type="学习小组" 
+          bindtap="onFilterChange">学习小组</view>
+    <view class="filter-tab {{filterType === '值日小组' ? 'active' : ''}}" 
+          data-type="值日小组" 
+          bindtap="onFilterChange">值日小组</view>
+    <view class="filter-tab {{filterType === '宿舍小组' ? 'active' : ''}}" 
+          data-type="宿舍小组" 
+          bindtap="onFilterChange">宿舍小组</view>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <!-- 分组列表 -->
+  <view class="group-list" wx:elif="{{groups.length > 0}}">
+    <view class="group-card" 
+          wx:for="{{groups}}" 
+          wx:key="_id" 
+          wx:if="{{filterType === 'all' || item.group_type === filterType}}"
+          bindtap="showGroupActions" 
+          data-group="{{item}}">
+      <view class="group-header">
+        <view class="group-icon" style="background: {{item.group_color || '#1890ff'}}">
+          {{item.group_name[0]}}
+        </view>
+        <view class="group-info">
+          <view class="group-name">{{item.group_name}}</view>
+          <view class="group-meta">
+            <text class="group-type">{{item.group_type}}</text>
+            <text class="group-count">{{item.total_count}}人</text>
+          </view>
+          <!-- 新增：显示组长姓名 -->
+          <view class="group-leader" wx:if="{{item.leader_name}}">
+            <text class="leader-icon">👑</text>
+            <text class="leader-name">{{item.leader_name}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="group-desc" wx:if="{{item.description}}">
+        {{item.description}}
+      </view>
+      <view class="group-members" wx:if="{{item.members && item.members.length > 0}}">
+        <!-- 显示组长头像（如果有的话） -->
+        <view class="member-avatar leader" wx:if="{{item.leader_name}}" style="background: linear-gradient(135deg, #faad14, #d48806);">
+          {{item.leader_name[0]}}
+        </view>
+        <!-- 显示组员头像 -->
+        <view class="member-avatar" wx:for="{{item.members}}" wx:for-item="member" wx:key="student_id" wx:if="{{index < 4}}">
+          {{member.student_name[0]}}
+        </view>
+        <view class="member-more" wx:if="{{item.members.length > 4}}">
+          +{{item.members.length - 4}}
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-container" wx:else>
+    <view class="empty-icon">👥</view>
+    <view class="empty-text">暂无分组</view>
+    <view class="empty-hint">点击下方按钮创建第一个分组</view>
+    <view class="empty-action" bindtap="goToAddGroup">创建分组</view>
+  </view>
+
+  <!-- 添加按钮 -->
+  <view class="add-btn" bindtap="goToAddGroup">
+    <text class="add-icon">+</text>
+    <text class="add-text">新建分组</text>
+  </view>
+
+  <!-- 操作菜单 -->
+  <view class="action-mask" wx:if="{{showActions}}" bindtap="hideActions">
+    <view class="action-sheet" catchtap="preventBubble">
+      <view class="action-header">
+        <text class="action-title">{{selectedGroup.group_name}}</text>
+        <text class="action-close" bindtap="hideActions">✕</text>
+      </view>
+      <view class="action-item" bindtap="viewGroupDetail">
+        <text class="action-icon">📋</text>
+        <text class="action-text">查看详情</text>
+      </view>
+      <view class="action-item" bindtap="viewGroupStudents">
+        <text class="action-icon">👥</text>
+        <text class="action-text">管理成员</text>
+      </view>
+      <view class="action-item" bindtap="editGroup">
+        <text class="action-icon">✏️</text>
+        <text class="action-text">编辑分组</text>
+      </view>
+      <view class="action-item danger" bindtap="deleteGroup">
+        <text class="action-icon">🗑️</text>
+        <text class="action-text">删除分组</text>
+      </view>
+    </view>
+  </view>
+</view>

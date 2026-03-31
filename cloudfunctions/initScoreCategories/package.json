@@ -1,0 +1,9 @@
+{
+  "name": "initScoreCategories",
+  "version": "1.0.0",
+  "description": "初始化积分类别基础数据",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

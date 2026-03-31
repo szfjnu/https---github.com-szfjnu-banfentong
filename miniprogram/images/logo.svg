@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景圆形 -->
+  <circle cx="100" cy="100" r="90" fill="#1890FF"/>
+  
+  <!-- 书本图标 -->
+  <path d="M50 40H150C155.523 40 160 44.4772 160 50V150C160 155.523 155.523 160 150 160H50C44.4772 160 40 155.523 40 150V50C40 44.4772 44.4772 40 50 40Z" fill="white"/>
+  <path d="M60 40V160" stroke="#1890FF" stroke-width="4"/>
+  <path d="M140 40V160" stroke="#1890FF" stroke-width="4"/>
+  
+  <!-- 文字 -->
+  <text x="100" y="110" font-family="Arial" font-size="24" fill="#1890FF" text-anchor="middle">学生管理</text>
+</svg> 

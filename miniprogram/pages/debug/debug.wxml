@@ -1,0 +1,30 @@
+<!--pages/debug/debug.wxml-->
+<view class="container">
+  <button bindtap="debugStudents">检查students数据</button>
+
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+
+  <view wx:if="{{result}}" class="result">
+    <view class="section">
+      <text class="title">调试结果:</text>
+      <text class="content">{{result.success ? '成功' : '失败'}}</text>
+    </view>
+
+    <view wx:if="{{result.firstRecordFields}}" class="section">
+      <text class="title">第一条记录的字段:</text>
+      <text class="content">{{result.firstRecordFields.join(', ')}}</text>
+    </view>
+
+    <view wx:if="{{result.firstRecord}}" class="section">
+      <text class="title">第一条记录内容:</text>
+      <text class="content">{{JSON.stringify(result.firstRecord, null, 2)}}</text>
+    </view>
+
+    <view wx:if="{{result.error}}" class="section">
+      <text class="title">错误信息:</text>
+      <text class="content error">{{result.error}}</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,274 @@
+<!-- add.wxml -->
+<view class="container">
+  <!-- 加载中 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <!-- 表单内容 -->
+  <view class="form-container" wx:else>
+    <!-- 新增模式：显示学期复制按钮 -->
+    <view class="copy-section" wx:if="{{mode === 'add' && previousSemesters.length > 0}}">
+      <view class="copy-card" bindtap="showSemesterCopyModal">
+        <view class="copy-icon">📋</view>
+        <view class="copy-info">
+          <text class="copy-title">从上学期复制分组</text>
+          <text class="copy-desc">快速复用上学期的分组设置</text>
+        </view>
+        <view class="copy-arrow">›</view>
+      </view>
+    </view>
+
+    <!-- 分组信息 -->
+    <view class="form-section">
+      <view class="section-title">基本信息</view>
+
+      <!-- 分组名称 -->
+      <view class="form-item">
+        <text class="form-label required">分组名称</text>
+        <input 
+          class="form-input" 
+          placeholder="请输入分组名称"
+          value="{{formData.group_name}}"
+          bindinput="onNameInput"
+          disabled="{{mode === 'view'}}"
+        />
+      </view>
+
+      <!-- 分组类型 -->
+      <view class="form-item">
+        <text class="form-label required">分组类型</text>
+        <picker 
+          mode="selector" 
+          range="{{groupTypes}}" 
+          value="{{typeIndex}}"
+          bindchange="onTypeChange"
+          disabled="{{mode === 'view'}}"
+        >
+          <view class="picker-value">
+            <text>{{groupTypes[typeIndex]}}</text>
+            <text class="arrow" wx:if="{{mode !== 'view'}}">▼</text>
+          </view>
+        </picker>
+      </view>
+
+      <!-- 分组颜色 -->
+      <view class="form-item">
+        <text class="form-label">分组颜色</text>
+        <view class="color-options">
+          <view 
+            class="color-option {{colorIndex === index ? 'active' : ''}}" 
+            wx:for="{{colorOptions}}" 
+            wx:key="color"
+            data-index="{{index}}"
+            bindtap="{{mode === 'view' ? '' : 'onColorChange'}}"
+            style="background: {{item.color}}"
+          >
+            <text class="color-check" wx:if="{{colorIndex === index}}">✓</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 分组描述 -->
+      <view class="form-item">
+        <text class="form-label">分组描述</text>
+        <textarea 
+          class="form-textarea" 
+          placeholder="请输入分组描述（选填）"
+          value="{{formData.description}}"
+          bindinput="onDescInput"
+          disabled="{{mode === 'view'}}"
+          maxlength="200"
+        />
+      </view>
+    </view>
+
+    <!-- 指定小组长 -->
+    <view class="form-section">
+      <view class="section-title">指定负责人</view>
+
+      <view class="form-item">
+        <text class="form-label required">选择组长</text>
+        <picker 
+          mode="selector" 
+          range="{{availableLeaderStudents}}" 
+          range-key="student_name" 
+          value="{{leaderIndex}}" 
+          bindchange="onLeaderChange"
+          disabled="{{mode === 'view'}}"
+        >
+          <view class="picker-value">
+            <text class="{{formData.leader_name ? '' : 'placeholder'}}">
+              {{formData.leader_name || '请选择组长（仅显示未分组学生）'}}
+            </text>
+            <text class="arrow" wx:if="{{mode !== 'view'}}">▼</text>
+          </view>
+        </picker>
+        <view class="picker-tip" wx:if="{{availableLeaderStudents.length === 0 && mode !== 'view'}}">
+          <text class="tip-text">⚠️ 所有学生都已分配到小组，请先调整其他小组</text>
+        </view>
+      </view>
+
+      <!-- 当前选中的组长显示 -->
+      <view class="selected-leader" wx:if="{{formData.leader_id}}">
+        <view class="leader-badge">
+          <text class="badge-text">👑 组长</text>
+        </view>
+        <view class="leader-info">
+          <view class="leader-avatar">{{formData.leader_name[0]}}</view>
+          <text class="leader-name">{{formData.leader_name}}</text>
+          <text class="leader-id">（{{formData.leader_id}}）</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 成员管理 -->
+    <view class="form-section">
+      <view class="section-header">
+        <text class="section-title">组员管理</text>
+        <text class="member-count">({{formData.members.length}}人)</text>
+        <view class="section-action" wx:if="{{mode !== 'view'}}" bindtap="showStudentPicker">
+          <text class="action-text">添加组员</text>
+        </view>
+      </view>
+
+      <!-- 已选组员列表 -->
+      <view class="member-list" wx:if="{{formData.members.length > 0}}">
+        <view class="member-item" wx:for="{{formData.members}}" wx:key="student_id">
+          <view class="member-avatar">{{item.student_name[0]}}</view>
+          <view class="member-info">
+            <text class="member-name">{{item.student_name}}</text>
+            <text class="member-id">{{item.student_id}}</text>
+          </view>
+          <view class="member-remove" wx:if="{{mode !== 'view'}}" bindtap="removeMember" data-id="{{item.student_id}}">
+            <text class="remove-icon">×</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 空状态 -->
+      <view class="empty-members" wx:else>
+        <text class="empty-text">暂无组员</text>
+        <text class="empty-hint" wx:if="{{mode !== 'view'}}">点击"添加组员"按钮添加学生</text>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="btn-container" wx:if="{{mode !== 'view'}}">
+      <button class="submit-btn {{submitting ? 'disabled' : ''}}" bindtap="onSubmit" disabled="{{submitting}}">
+        {{submitting ? '保存中...' : (mode === 'add' ? '创建分组' : '保存修改')}}
+      </button>
+    </view>
+
+    <!-- 查看模式操作按钮 -->
+    <view class="view-actions" wx:if="{{mode === 'view'}}">
+      <view class="action-btn primary" bindtap="switchToEdit">
+        <text class="btn-icon">✏️</text>
+        <text class="btn-text">编辑</text>
+      </view>
+      <view class="action-btn" bindtap="switchToMembers">
+        <text class="btn-icon">👥</text>
+        <text class="btn-text">管理成员</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 学生选择器弹窗 -->
+  <view class="modal-mask" wx:if="{{showStudentPicker}}" bindtap="hideStudentPicker">
+    <view class="modal-content student-picker" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">选择组员</text>
+        <text class="modal-close" catchtap="hideStudentPicker">✕</text>
+      </view>
+      
+      <!-- 搜索框 -->
+      <view class="search-box">
+        <input 
+          class="search-input" 
+          placeholder="搜索学生姓名或学号"
+          value="{{searchKeyword}}"
+          bindinput="onSearchInput"
+        />
+      </view>
+
+      <!-- 已选学生名单（新增：显示选中效果） -->
+      <view class="selected-students-section" wx:if="{{selectedStudentIds.length > 0}}">
+        <view class="selected-header">
+          <text class="selected-title">已选择 {{selectedStudentIds.length}} 人</text>
+        </view>
+        <scroll-view class="selected-students-list" scroll-x>
+          <view class="selected-student-item" wx:for="{{formData.members}}" wx:key="student_id">
+            <view class="selected-avatar">{{item.student_name[0]}}</view>
+            <text class="selected-name">{{item.student_name}}</text>
+            <text class="selected-remove" catchtap="toggleStudent" data-id="{{item.student_id}}">×</text>
+          </view>
+        </scroll-view>
+      </view>
+
+      <!-- 学生列表 -->
+      <scroll-view class="student-list" scroll-y>
+        <block wx:for="{{availableMemberStudents}}" wx:key="student_id">
+          <view 
+            class="student-item {{selectedStudentIds.indexOf(item.student_id) > -1 ? 'selected' : ''}}" 
+            wx:if="{{!searchKeyword || item.student_name.includes(searchKeyword) || item.student_id.includes(searchKeyword)}}"
+            bindtap="toggleStudent"
+            data-id="{{item.student_id}}"
+          >
+            <view class="student-avatar">{{item.student_name[0]}}</view>
+            <view class="student-info">
+              <text class="student-name">{{item.student_name}}</text>
+              <text class="student-id">{{item.student_id}}</text>
+            </view>
+            <view class="check-box">
+              <text class="check-icon" wx:if="{{selectedStudentIds.indexOf(item.student_id) > -1}}">✓</text>
+            </view>
+          </view>
+        </block>
+
+        <!-- 无可用学生提示 -->
+        <view class="no-students-tip" wx:if="{{availableMemberStudents.length === 0}}">
+          <text>所有学生都已分配到小组</text>
+        </view>
+      </scroll-view>
+
+      <!-- 确认按钮 -->
+      <view class="modal-footer">
+        <button class="confirm-btn" catchtap="hideStudentPicker">确定（已选{{selectedStudentIds.length}}人）</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 学期复制弹窗 -->
+  <view class="modal-mask" wx:if="{{showSemesterCopyModal}}" bindtap="hideSemesterCopyModal">
+    <view class="modal-content semester-modal" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">从上学期复制分组</text>
+        <text class="modal-close" catchtap="hideSemesterCopyModal">✕</text>
+      </view>
+
+      <view class="modal-body">
+        <text class="modal-desc">选择要复制的学期，将该学期的所有分组复制到当前学期：</text>
+        
+        <view class="semester-list">
+          <view 
+            class="semester-item {{selectedSemesterId === item._id ? 'selected' : ''}}" 
+            wx:for="{{previousSemesters}}" 
+            wx:key="_id"
+            data-id="{{item._id}}"
+            bindtap="onSemesterSelect"
+          >
+            <view class="semester-radio">
+              <view class="radio-dot" wx:if="{{selectedSemesterId === item._id}}"></view>
+            </view>
+            <text class="semester-name">{{item.semester_name || item.name}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="modal-footer">
+        <button class="cancel-btn" bindtap="hideSemesterCopyModal">取消</button>
+        <button class="confirm-btn" bindtap="confirmCopyFromSemester">确认复制</button>
+      </view>
+    </view>
+  </view>
+</view>

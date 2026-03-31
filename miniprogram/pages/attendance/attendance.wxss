@@ -1,0 +1,376 @@
+/* pages/attendance/attendance.wxss */
+
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding-bottom: 120rpx;
+}
+
+/* 页面标题 */
+.page-header {
+  padding: 40rpx 30rpx 30rpx;
+  text-align: center;
+  color: #fff;
+}
+
+.page-title {
+  display: block;
+  font-size: 44rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.page-subtitle {
+  display: block;
+  font-size: 28rpx;
+  opacity: 0.9;
+}
+
+/* 周视图 */
+.week-view {
+  margin: 0 30rpx 30rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.1);
+}
+
+.week-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 30rpx;
+}
+
+.week-nav {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+  border-radius: 50%;
+  transition: all 0.3s;
+}
+
+.week-nav:active {
+  background: #e0e0e0;
+  transform: scale(0.95);
+}
+
+.nav-icon {
+  font-size: 40rpx;
+  color: #666;
+  font-weight: bold;
+}
+
+.week-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.week-days {
+  display: flex;
+  justify-content: space-between;
+}
+
+.day-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.day-name {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 10rpx;
+}
+
+.day-number {
+  width: 70rpx;
+  height: 70rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #333;
+  border-radius: 50%;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.day-number.today {
+  color: #667eea;
+  font-weight: bold;
+}
+
+.day-number.selected {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  box-shadow: 0 6rpx 20rpx rgba(102, 126, 234, 0.4);
+}
+
+.day-number.good {
+  background: #f0f9ff;
+  color: #1890ff;
+}
+
+.day-number.warning {
+  background: #fff7e6;
+  color: #fa8c16;
+}
+
+.day-number.danger {
+  background: #fff1f0;
+  color: #ff4d4f;
+}
+
+.day-indicator {
+  margin-top: 8rpx;
+}
+
+.indicator-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+}
+
+.indicator-dot.good {
+  background: #52c41a;
+}
+
+.indicator-dot.warning {
+  background: #fa8c16;
+}
+
+.indicator-dot.danger {
+  background: #ff4d4f;
+}
+
+/* 统计区域 */
+.stats-section {
+  margin: 0 30rpx 30rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.1);
+}
+
+.stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.stats-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.stats-total {
+  display: flex;
+  align-items: center;
+}
+
+.total-label {
+  font-size: 26rpx;
+  color: #999;
+}
+
+.total-value {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #667eea;
+}
+
+/* 出勤率卡片 */
+.rate-cards {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 30rpx;
+}
+
+.rate-card {
+  flex: 1;
+  padding: 30rpx;
+  border-radius: 16rpx;
+  text-align: center;
+}
+
+.rate-card.actual {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.rate-card.assessment {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: #fff;
+}
+
+.rate-label {
+  font-size: 26rpx;
+  margin-bottom: 15rpx;
+  opacity: 0.9;
+}
+
+.rate-value {
+  font-size: 48rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.rate-desc {
+  font-size: 20rpx;
+  opacity: 0.8;
+}
+
+/* 详细统计 */
+.detail-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20rpx;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+}
+
+.stat-icon {
+  width: 50rpx;
+  height: 50rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  margin-right: 15rpx;
+  font-size: 24rpx;
+}
+
+.stat-item.present .stat-icon {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.stat-item.sick .stat-icon {
+  background: #f6ffed;
+  color: #52c41a;
+}
+
+.stat-item.personal .stat-icon {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.stat-item.late .stat-icon {
+  background: #fff7e6;
+  color: #fa8c16;
+}
+
+.stat-item.early .stat-icon {
+  background: #fffbe6;
+  color: #faad14;
+}
+
+.stat-item.absent .stat-icon {
+  background: #fff1f0;
+  color: #ff4d4f;
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-label {
+  display: block;
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 5rpx;
+}
+
+.stat-value {
+  display: block;
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+/* 加载状态 */
+.loading-section {
+  margin: 0 30rpx 30rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 60rpx 30rpx;
+  text-align: center;
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+/* 快捷操作 */
+.quick-actions {
+  display: flex;
+  justify-content: space-around;
+  margin: 0 30rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 30rpx 20rpx;
+  box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.1);
+}
+
+.action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.3s;
+}
+
+.action-item:active {
+  transform: scale(0.95);
+}
+
+.action-icon {
+  width: 90rpx;
+  height: 90rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20rpx;
+  margin-bottom: 12rpx;
+  font-size: 40rpx;
+}
+
+.action-icon.edit {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.action-icon.record {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.action-icon.leave {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.action-icon.settings {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.action-icon.stats {
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+}
+
+.action-text {
+  font-size: 24rpx;
+  color: #666;
+}

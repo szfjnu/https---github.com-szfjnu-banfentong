@@ -1,0 +1,9 @@
+{
+  "name": "deleteRecordWithScore",
+  "version": "1.0.0",
+  "description": "删除记录并回退积分",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

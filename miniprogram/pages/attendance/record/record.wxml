@@ -1,0 +1,241 @@
+<!--pages/attendance/record/record.wxml-->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="page-title">{{mode === 'edit' ? '录入考勤' : '考勤记录'}}</text>
+    <text class="page-subtitle" wx:if="{{mode === 'edit'}}">{{selectedDate}}</text>
+  </view>
+
+  <!-- 查看模式 -->
+  <block wx:if="{{mode === 'view'}}">
+    <!-- 筛选栏 -->
+    <view class="filter-bar">
+      <view class="filter-item" bindtap="onShowFilter">
+        <text class="filter-text">{{filterTimeLabel}}</text>
+        <text class="filter-icon">▼</text>
+      </view>
+      <view class="filter-item" bindtap="onShowFilter">
+        <text class="filter-text">{{filterCategoryName}}</text>
+        <text class="filter-icon">▼</text>
+      </view>
+      <view class="filter-item" bindtap="onShowFilter">
+        <text class="filter-text">{{filterStudentName}}</text>
+        <text class="filter-icon">▼</text>
+      </view>
+    </view>
+
+    <!-- 统计卡片 -->
+    <view class="stats-cards">
+      <view class="stat-card total">
+        <text class="stat-num">{{statistics.total}}</text>
+        <text class="stat-label">总记录</text>
+      </view>
+      <view class="stat-card sick">
+        <text class="stat-num">{{statistics.sickLeave}}</text>
+        <text class="stat-label">病假</text>
+      </view>
+      <view class="stat-card personal">
+        <text class="stat-num">{{statistics.personalLeave}}</text>
+        <text class="stat-label">事假</text>
+      </view>
+      <view class="stat-card late">
+        <text class="stat-num">{{statistics.late}}</text>
+        <text class="stat-label">迟到</text>
+      </view>
+      <view class="stat-card early">
+        <text class="stat-num">{{statistics.earlyLeave}}</text>
+        <text class="stat-label">早退</text>
+      </view>
+      <view class="stat-card absent">
+        <text class="stat-num">{{statistics.absent}}</text>
+        <text class="stat-label">旷课</text>
+      </view>
+    </view>
+
+    <!-- 记录列表 -->
+    <view class="record-list">
+      <view class="record-item" wx:for="{{records}}" wx:key="_id">
+        <view class="record-main">
+          <view class="record-left">
+            <view class="category-badge" style="background: {{item.categoryColor}}20; color: {{item.categoryColor}}">
+              <text class="category-icon">{{item.categoryIcon}}</text>
+              <text class="category-name">{{item.category_name}}</text>
+            </view>
+          </view>
+          <view class="record-right">
+            <text class="student-name">{{item.student_name}}</text>
+            <text class="record-date">{{item.dateStr}}</text>
+          </view>
+        </view>
+        <view class="record-footer">
+          <text class="score-change" wx:if="{{item.score_change}}">{{item.score_change > 0 ? '+' : ''}}{{item.score_change}}积分</text>
+          <text class="recorder">记录人：{{item.recorder_name}}</text>
+        </view>
+        <view class="record-actions" wx:if="{{isAdmin}}">
+          <view class="action-btn delete" catchtap="onDeleteRecord" data-record="{{item}}">
+            <text>删除</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 空状态 -->
+      <view class="empty-state" wx:if="{{!loading && records.length === 0}}">
+        <text class="empty-icon">📋</text>
+        <text class="empty-text">暂无考勤记录</text>
+      </view>
+
+      <!-- 加载状态 -->
+      <view class="loading-state" wx:if="{{loading}}">
+        <text class="loading-text">加载中...</text>
+      </view>
+
+      <!-- 加载更多 -->
+      <view class="load-more" wx:if="{{hasMore && records.length > 0}}">
+        <text class="load-more-text">上拉加载更多</text>
+      </view>
+
+      <!-- 没有更多 -->
+      <view class="no-more" wx:if="{{!hasMore && records.length > 0}}">
+        <text class="no-more-text">没有更多了</text>
+      </view>
+    </view>
+  </block>
+
+  <!-- 编辑模式 -->
+  <block wx:if="{{mode === 'edit'}}">
+    <!-- 考勤类别选择 -->
+    <view class="category-section">
+      <view class="section-title">选择考勤类别</view>
+      <view class="category-list">
+        <view class="category-item {{selectedCategoryId === item.category_id ? 'selected' : ''}}"
+              wx:for="{{categories}}" wx:key="category_id" wx:if="{{item.category_id}}"
+              bindtap="onSelectCategory"
+              data-id="{{item.category_id}}"
+              data-name="{{item.category_name}}"
+              data-code="{{item.category_code}}">
+          <view class="category-icon" style="background: {{item.color}}20; color: {{item.color}}">
+            {{item.icon || '📌'}}
+          </view>
+          <text class="category-text">{{item.category_name}}</text>
+          <text class="category-score" wx:if="{{item.score_deduction}}">{{item.score_deduction}}分</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 学生列表 -->
+    <view class="student-section">
+      <view class="section-header">
+        <text class="section-title">选择学生</text>
+        <view class="select-all-btn" bindtap="onSelectAll">
+          <text>全选</text>
+        </view>
+      </view>
+      <view class="student-list">
+        <view class="student-item {{item.selected ? 'selected' : ''}}"
+              wx:for="{{editStudents}}" wx:key="student_id"
+              bindtap="onSelectStudent"
+              data-index="{{index}}">
+          <view class="student-checkbox">
+            <text class="checkbox-icon">{{item.selected ? '✓' : ''}}</text>
+          </view>
+          <view class="student-info">
+            <text class="student-name">{{item.name}}</text>
+            <text class="student-id">{{item.student_id}}</text>
+          </view>
+          <view class="student-status" wx:if="{{item.attendance}}">
+            <text class="status-badge" style="background: {{item.attendance.categoryColor}}20; color: {{item.attendance.categoryColor}}">
+              {{item.attendance.category_name}}
+            </text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 保存按钮 -->
+    <view class="save-btn-container">
+      <button class="save-btn" bindtap="onSaveAttendance">保存考勤记录</button>
+    </view>
+  </block>
+</view>
+
+<!-- 筛选弹窗 -->
+<view class="filter-modal" wx:if="{{showFilterModal}}">
+  <view class="modal-mask" bindtap="onCloseFilter"></view>
+  <view class="modal-content">
+    <view class="modal-header">
+      <text class="modal-title">筛选条件</text>
+      <view class="modal-close" bindtap="onCloseFilter">✕</view>
+    </view>
+
+    <view class="modal-body">
+      <!-- 时间筛选 -->
+      <view class="filter-group">
+        <text class="filter-label">时间范围</text>
+        <picker mode="selector" range="{{timeOptions}}" range-key="label" bindchange="onTimeOptionChange">
+          <view class="filter-picker">
+            <text>{{selectedTimeOptionLabel}}</text>
+            <text class="picker-icon">▼</text>
+          </view>
+        </picker>
+      </view>
+
+      <!-- 自定义时间 -->
+      <view class="custom-date-range" wx:if="{{selectedTimeOption === 'custom'}}">
+        <view class="date-item">
+          <text class="date-label">开始日期</text>
+          <picker mode="date" value="{{filterStartDate}}" bindchange="onCustomStartChange">
+            <view class="date-picker">
+              <text>{{filterStartDate || '请选择'}}</text>
+            </view>
+          </picker>
+        </view>
+        <view class="date-item">
+          <text class="date-label">结束日期</text>
+          <picker mode="date" value="{{filterEndDate}}" bindchange="onCustomEndChange">
+            <view class="date-picker">
+              <text>{{filterEndDate || '请选择'}}</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+
+      <!-- 小组筛选 -->
+      <view class="filter-group">
+        <text class="filter-label">小组</text>
+        <picker mode="selector" range="{{groups}}" range-key="group_name" bindchange="onGroupChange">
+          <view class="filter-picker">
+            <text>{{filterGroupName}}</text>
+            <text class="picker-icon">▼</text>
+          </view>
+        </picker>
+      </view>
+
+      <!-- 学生筛选 -->
+      <view class="filter-group">
+        <text class="filter-label">学生</text>
+        <picker mode="selector" range="{{filteredStudents}}" range-key="name" bindchange="onStudentChange">
+          <view class="filter-picker">
+            <text>{{filterStudentName}}</text>
+            <text class="picker-icon">▼</text>
+          </view>
+        </picker>
+      </view>
+
+      <!-- 考勤类别筛选 -->
+      <view class="filter-group">
+        <text class="filter-label">考勤类别</text>
+        <picker mode="selector" range="{{categories}}" range-key="category_name" bindchange="onCategoryChange">
+          <view class="filter-picker">
+            <text>{{filterCategoryName}}</text>
+            <text class="picker-icon">▼</text>
+          </view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="modal-footer">
+      <button class="reset-btn" bindtap="onResetFilter">重置</button>
+      <button class="confirm-btn" bindtap="onConfirmFilter">确定</button>
+    </view>
+  </view>
+</view>

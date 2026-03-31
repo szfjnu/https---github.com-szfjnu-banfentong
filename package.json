@@ -1,0 +1,19 @@
+{
+  "name": "banfentong2",
+  "version": "1.0.0",
+  "description": "班级德育管理系统微信小程序",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "miniprogram",
+    "wechat",
+    "education"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "tdesign-miniprogram": "^1.1.5"
+  }
+}

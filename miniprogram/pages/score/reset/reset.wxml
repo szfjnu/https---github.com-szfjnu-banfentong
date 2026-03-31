@@ -1,0 +1,163 @@
+<!--pages/score/reset/reset.wxml-->
+<view class="container">
+  <!-- 班级信息 -->
+  <view class="info-card">
+    <view class="info-row">
+      <text class="info-label">当前班级</text>
+      <text class="info-value">{{className}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">当前学期</text>
+      <text class="info-value">{{semesterName || '未设置'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">学生人数</text>
+      <text class="info-value">{{affectedCount}}人</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">当前总积分</text>
+      <text class="info-value highlight">{{totalScore}}分</text>
+    </view>
+  </view>
+
+  <!-- 清零设置 -->
+  <view class="settings-card">
+    <view class="card-header">
+      <text class="card-title">清零设置</text>
+    </view>
+    
+    <view class="setting-item">
+      <view class="setting-info">
+        <text class="setting-label">清零策略</text>
+        <text class="setting-desc">选择积分清零的时机</text>
+      </view>
+      <picker mode="selector" range="{{resetTypes}}" range-key="label" value="{{resetTypeIndex}}" bindchange="onResetTypeChange">
+        <view class="picker-btn">
+          <text>{{resetTypeLabel}}</text>
+          <text class="arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <block wx:if="{{resetSettings.reset_type !== 'none'}}">
+      <view class="setting-item">
+        <view class="setting-info">
+          <text class="setting-label">清零范围</text>
+          <text class="setting-desc">选择清零的范围方式</text>
+        </view>
+        <picker mode="selector" range="{{resetScopes}}" range-key="label" value="{{resetScopeIndex}}" bindchange="onResetScopeChange">
+          <view class="picker-btn">
+            <text>{{resetScopeLabel}}</text>
+            <text class="arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="setting-item">
+        <view class="setting-info">
+          <text class="setting-label">保留最低积分</text>
+          <text class="setting-desc">清零后保留的最低积分值</text>
+        </view>
+        <input 
+          class="input-sm" 
+          type="number" 
+          value="{{resetSettings.keep_min_score}}"
+          bindinput="onKeepMinScoreInput"
+        />
+      </view>
+
+      <view class="setting-item">
+        <view class="setting-info">
+          <text class="setting-label">积分结转比例</text>
+          <text class="setting-desc">清零时保留的积分比例(0-1)</text>
+        </view>
+        <input 
+          class="input-sm" 
+          type="digit" 
+          value="{{resetSettings.carry_over_ratio}}"
+          bindinput="onCarryOverRatioInput"
+        />
+      </view>
+
+      <view class="setting-item switch-item">
+        <view class="setting-info">
+          <text class="setting-label">仅清零基础分</text>
+          <text class="setting-desc">保留额外获得的积分</text>
+        </view>
+        <switch checked="{{resetSettings.reset_base_only}}" bindchange="onResetBaseOnlyChange" />
+      </view>
+    </block>
+  </view>
+
+  <!-- 手动清零 -->
+  <view class="action-card" wx:if="{{canManage}}">
+    <view class="action-header">
+      <text class="action-title">手动清零</text>
+      <text class="action-desc">立即执行积分清零操作</text>
+    </view>
+    <view class="action-warning">
+      <text class="warning-icon">⚠️</text>
+      <text class="warning-text">清零操作不可撤销，请谨慎操作！建议先备份数据。</text>
+    </view>
+    <button class="action-btn" bindtap="showConfirmDialog">
+      执行清零
+    </button>
+  </view>
+
+  <!-- 历史记录 -->
+  <view class="history-card">
+    <view class="card-header">
+      <text class="card-title">清零历史</text>
+    </view>
+    <view class="history-list">
+      <view wx:if="{{resetHistory.length === 0}}" class="empty-tip">
+        暂无清零记录
+      </view>
+      <view class="history-item" wx:for="{{resetHistory}}" wx:key="_id" bindtap="onViewHistory" data-history="{{item}}">
+        <view class="history-left">
+          <text class="history-time">{{item.executed_at}}</text>
+          <text class="history-type">{{item.reset_type === 'manual' ? '手动清零' : '自动清零'}}</text>
+        </view>
+        <view class="history-right">
+          <text class="history-count">{{item.affected_count}}人</text>
+          <text class="history-score">{{item.total_score_reset}}分</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 确认弹窗 -->
+  <view class="modal-mask" wx:if="{{showConfirmModal}}" bindtap="hideConfirmDialog">
+    <view class="modal-content" catchtap="">
+      <view class="modal-header">
+        <text class="modal-title">确认清零</text>
+        <text class="modal-close" bindtap="hideConfirmDialog">✕</text>
+      </view>
+      <view class="modal-body">
+        <view class="confirm-warning">
+          <text class="warning-icon-large">⚠️</text>
+          <text class="warning-title">重要提醒</text>
+          <text class="warning-desc">此操作将清零所有学生的积分，请确认以下信息：</text>
+        </view>
+        <view class="confirm-info">
+          <view class="confirm-row">
+            <text class="confirm-label">影响学生</text>
+            <text class="confirm-value">{{affectedCount}}人</text>
+          </view>
+          <view class="confirm-row">
+            <text class="confirm-label">重置积分</text>
+            <text class="confirm-value">{{totalScore}}分</text>
+          </view>
+          <view class="confirm-row">
+            <text class="confirm-label">保留积分</text>
+            <text class="confirm-value">{{resetSettings.keep_min_score}}分/人</text>
+          </view>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <view class="cancel-btn" bindtap="hideConfirmDialog">取消</view>
+        <view class="confirm-btn" bindtap="onConfirmReset">确认清零</view>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,215 @@
+<!--pages/score/record/record.wxml-->
+<view class="container">
+  <!-- 统计概览 -->
+  <view class="stats-overview">
+    <view class="stat-item">
+      <text class="stat-value">{{statistics.totalCount}}</text>
+      <text class="stat-label">记录总数</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-value add">{{statistics.totalAdd}}</text>
+      <text class="stat-label">积分增加</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-value deduct">{{statistics.totalDeduct}}</text>
+      <text class="stat-label">积分扣减</text>
+    </view>
+    <view class="stat-item anomaly" bindtap="onViewAnomalies" wx:if="{{statistics.anomalyCount > 0}}">
+      <text class="stat-value warn">{{statistics.anomalyCount}}</text>
+      <text class="stat-label">异常预警</text>
+    </view>
+  </view>
+
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-input-wrapper">
+      <text class="search-icon">🔍</text>
+      <input 
+        class="search-input" 
+        placeholder="搜索学生姓名..." 
+        value="{{searchKeyword}}"
+        bindinput="onSearchInput"
+      />
+    </view>
+    <view class="export-btn" bindtap="onExportTop10" wx:if="{{canExport}}">
+      <text>导出TOP10</text>
+    </view>
+  </view>
+
+  <!-- 快速筛选栏 -->
+  <view class="filter-bar">
+    <view class="filter-item">
+      <picker mode="selector" range="{{students}}" range-key="name" bindchange="onStudentChange">
+        <view class="picker">
+          <text>{{selectedStudentLabel}}</text>
+          <text class="arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="filter-item">
+      <picker mode="selector" range="{{sourceTypes}}" range-key="label" bindchange="onTypeChange">
+        <view class="picker">
+          <text>{{selectedTypeLabel}}</text>
+          <text class="arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="filter-item">
+      <picker mode="selector" range="{{timeOptions}}" range-key="label" bindchange="onTimeChange">
+        <view class="picker">
+          <text>{{selectedTimeLabel}}</text>
+          <text class="arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+  </view>
+
+  <!-- 高级筛选切换 -->
+  <view class="advanced-toggle" bindtap="toggleAdvancedFilter">
+    <text>{{showAdvancedFilter ? '收起' : '展开'}}高级筛选</text>
+    <text class="toggle-icon">{{showAdvancedFilter ? '▲' : '▼'}}</text>
+  </view>
+
+  <!-- 高级筛选区域 -->
+  <view class="advanced-filters {{showAdvancedFilter ? 'show' : ''}}">
+    <view class="filter-row">
+      <view class="filter-item">
+        <text class="filter-label">积分类别</text>
+        <picker mode="selector" range="{{categoryOptions}}" range-key="label" bindchange="onCategoryChange">
+          <view class="picker">
+            <text>{{selectedCategoryLabel}}</text>
+            <text class="arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="filter-item">
+        <text class="filter-label">积分方向</text>
+        <picker mode="selector" range="{{directions}}" range-key="label" bindchange="onDirectionChange">
+          <view class="picker">
+            <text>{{selectedDirectionLabel}}</text>
+            <text class="arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="filter-row">
+      <view class="filter-item">
+        <text class="filter-label">审核状态</text>
+        <picker mode="selector" range="{{approvalStatuses}}" range-key="label" bindchange="onStatusChange">
+          <view class="picker">
+            <text>{{selectedStatusLabel}}</text>
+            <text class="arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="filter-item">
+        <view class="reset-btn" bindtap="resetFilters">
+          <text>重置筛选</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 记录列表 -->
+  <view class="record-list">
+    <view wx:if="{{records.length === 0 && !loading}}" class="empty">
+      <text class="empty-icon">📋</text>
+      <text class="empty-text">暂无积分记录</text>
+    </view>
+
+    <view wx:for="{{records}}" wx:key="_id" class="record-card {{item.anomalyClass}}" bindtap="onRecordDetail" data-id="{{item._id}}">
+      <!-- 异常预警标识 -->
+      <view class="anomaly-badge" wx:if="{{item.isAnomaly}}">
+        <text>⚠️ 异常</text>
+      </view>
+
+      <!-- 头部:学生和日期 -->
+      <view class="record-header">
+        <view class="student-info">
+          <text class="student-name">{{item.studentName}}</text>
+          <text class="record-date">{{item.date}}</text>
+        </view>
+        <view class="status-badge {{item.statusClass}}">{{item.approval_status}}</view>
+      </view>
+
+      <!-- 中部:项目和说明 -->
+      <view class="record-content">
+        <view class="item-info">
+          <view class="item-name">{{item.itemName}}</view>
+          <view class="source-type" style="color: {{item.sourceTypeColor}}">{{item.source_type}}</view>
+        </view>
+        <!-- 细化的原因详情 -->
+        <view class="reason-detail" wx:if="{{item.reason_detail}}">
+          <text class="reason-icon">📝</text>
+          <text>{{item.reason_detail}}</text>
+        </view>
+        <!-- 类别标签 -->
+        <view class="category-tag" style="background: {{item.categoryColor}}20; color: {{item.categoryColor}}" wx:if="{{item.rule_category}}">
+          {{item.rule_category}}
+        </view>
+      </view>
+
+      <!-- 底部:分数变化和记录人 -->
+      <view class="record-footer">
+        <view class="score-change {{item.scoreChangeClass}}">
+          {{item.scoreChangeText}}分
+        </view>
+        <view class="footer-right">
+          <view class="recorder-info">记录人:{{item.recorder_name}}</view>
+          <!-- 申诉按钮 -->
+          <view class="appeal-btn" wx:if="{{canAppeal && item.approval_status === '已通过'}}" catchtap="onAppeal" data-record="{{item}}">
+            申诉
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载更多 -->
+    <view wx:if="{{loading}}" class="loading">
+      <text>加载中...</text>
+    </view>
+
+    <view wx:if="{{!hasMore && records.length > 0}}" class="no-more">
+      <text>没有更多了</text>
+    </view>
+  </view>
+
+  <!-- 日期选择弹窗 -->
+  <view class="modal-mask" wx:if="{{showDatePicker}}" bindtap="onCloseDatePicker">
+    <view class="modal-content date-picker-modal" catchtap="">
+      <view class="modal-header">
+        <text class="modal-title">选择日期范围</text>
+        <text class="modal-close" bindtap="onCloseDatePicker">✕</text>
+      </view>
+      <view class="modal-body">
+        <view class="date-item">
+          <text class="date-label">开始日期</text>
+          <picker mode="date" value="{{customDateRange.start}}" bindchange="onStartDateChange">
+            <view class="date-picker">
+              <text>{{customDateRange.start || '请选择'}}</text>
+              <text class="arrow">▼</text>
+            </view>
+          </picker>
+        </view>
+        <view class="date-item">
+          <text class="date-label">结束日期</text>
+          <picker mode="date" value="{{customDateRange.end}}" bindchange="onEndDateChange">
+            <view class="date-picker">
+              <text>{{customDateRange.end || '请选择'}}</text>
+              <text class="arrow">▼</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <view class="cancel-btn" bindtap="onCloseDatePicker">取消</view>
+        <view class="confirm-btn" bindtap="onConfirmDateRange">确定</view>
+      </view>
+    </view>
+  </view>
+</view>

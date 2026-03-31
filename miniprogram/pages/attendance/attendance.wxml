@@ -1,0 +1,140 @@
+<!--pages/attendance/attendance.wxml-->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="page-title">考勤管理</text>
+    <text class="page-subtitle">{{selectedDateStr}}</text>
+  </view>
+
+  <!-- 周视图 -->
+  <view class="week-view">
+    <view class="week-header">
+      <view class="week-nav" bindtap="onPrevWeek">
+        <text class="nav-icon">‹</text>
+      </view>
+      <view class="week-title">{{weekTitle}}</view>
+      <view class="week-nav" bindtap="onNextWeek">
+        <text class="nav-icon">›</text>
+      </view>
+    </view>
+    <view class="week-days">
+      <view class="day-item" wx:for="{{weekDays}}" wx:key="date">
+        <view class="day-name">{{item.dayName}}</view>
+        <view class="day-number {{item.isToday ? 'today' : ''}} {{item.isSelected ? 'selected' : ''}} {{item.status}}"
+              bindtap="onDayClick" data-date="{{item.date}}">
+          {{item.dayNum}}
+        </view>
+        <view class="day-indicator" wx:if="{{item.status}}">
+          <view class="indicator-dot {{item.status}}"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 班级考勤统计 -->
+  <view class="stats-section" wx:if="{{!statsLoading}}">
+    <view class="stats-header">
+      <text class="stats-title">班级考勤概况</text>
+      <view class="stats-total">
+        <text class="total-label">总人数：</text>
+        <text class="total-value">{{classStats.total_count}}人</text>
+      </view>
+    </view>
+
+    <!-- 出勤率卡片 -->
+    <view class="rate-cards">
+      <view class="rate-card actual">
+        <view class="rate-label">实际出勤率</view>
+        <view class="rate-value">{{classStats.actual_attendance_rate}}%</view>
+        <view class="rate-desc">(总人数-病假-事假-旷课)/总人数</view>
+      </view>
+      <view class="rate-card assessment">
+        <view class="rate-label">考核出勤率</view>
+        <view class="rate-value">{{classStats.assessment_attendance_rate}}%</view>
+        <view class="rate-desc">(总人数-旷课)/总人数</view>
+      </view>
+    </view>
+
+    <!-- 详细统计 -->
+    <view class="detail-stats">
+      <view class="stat-item expected">
+        <view class="stat-icon">👥</view>
+        <view class="stat-info">
+          <text class="stat-label">应到人数</text>
+          <text class="stat-value">{{classStats.total_count}}人</text>
+        </view>
+      </view>
+      <view class="stat-item present">
+        <view class="stat-icon">✓</view>
+        <view class="stat-info">
+          <text class="stat-label">实到人数</text>
+          <text class="stat-value">{{classStats.present_count}}人</text>
+        </view>
+      </view>
+      <view class="stat-item sick">
+        <view class="stat-icon">🏥</view>
+        <view class="stat-info">
+          <text class="stat-label">病假</text>
+          <text class="stat-value">{{classStats.sick_leave_count}}人</text>
+        </view>
+      </view>
+      <view class="stat-item personal">
+        <view class="stat-icon">📝</view>
+        <view class="stat-info">
+          <text class="stat-label">事假</text>
+          <text class="stat-value">{{classStats.personal_leave_count}}人</text>
+        </view>
+      </view>
+      <view class="stat-item late">
+        <view class="stat-icon">⏰</view>
+        <view class="stat-info">
+          <text class="stat-label">迟到</text>
+          <text class="stat-value">{{classStats.late_count}}人</text>
+        </view>
+      </view>
+      <view class="stat-item early">
+        <view class="stat-icon">🏃</view>
+        <view class="stat-info">
+          <text class="stat-label">早退</text>
+          <text class="stat-value">{{classStats.early_leave_count}}人</text>
+        </view>
+      </view>
+      <view class="stat-item absent">
+        <view class="stat-icon">❌</view>
+        <view class="stat-info">
+          <text class="stat-label">旷课</text>
+          <text class="stat-value">{{classStats.absent_count}}人</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-section" wx:if="{{statsLoading}}">
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <!-- 快捷操作 -->
+  <view class="quick-actions" wx:if="{{isAdmin}}">
+    <view class="action-item" bindtap="onShowStudentList">
+      <view class="action-icon edit">✏️</view>
+      <text class="action-text">录入考勤</text>
+    </view>
+    <view class="action-item" bindtap="onNavToRecord">
+      <view class="action-icon record">📋</view>
+      <text class="action-text">考勤记录</text>
+    </view>
+    <view class="action-item" bindtap="onNavToLeaveApproval">
+      <view class="action-icon leave">📄</view>
+      <text class="action-text">请假审批</text>
+    </view>
+    <view class="action-item" bindtap="onNavToSettings">
+      <view class="action-icon settings">⚙️</view>
+      <text class="action-text">考勤设置</text>
+    </view>
+    <view class="action-item" bindtap="onNavToFullAttendance">
+      <view class="action-icon stats">📊</view>
+      <text class="action-text">全勤统计</text>
+    </view>
+  </view>
+</view>

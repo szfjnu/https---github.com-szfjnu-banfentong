@@ -1,0 +1,251 @@
+/* pages/join/bind/bind.wxss */
+.container {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding-bottom: 200rpx;
+}
+
+/* 搜索栏 */
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: white;
+  padding: 20rpx;
+  gap: 20rpx;
+}
+
+.search-input {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: #f5f5f5;
+  border-radius: 40rpx;
+  padding: 16rpx 24rpx;
+}
+
+.search-icon {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 16rpx;
+}
+
+.search-input input {
+  flex: 1;
+  font-size: 28rpx;
+}
+
+.clear-icon {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+.sort-btn {
+  padding: 16rpx 24rpx;
+  background: #f5f5f5;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  color: #666;
+}
+
+/* 学生列表 */
+.student-section {
+  background: white;
+  margin: 20rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.section-count {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.student-list {
+  padding: 0 30rpx;
+}
+
+.student-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.student-item:last-child {
+  border-bottom: none;
+}
+
+.student-item.selected {
+  background: #e6f7ff;
+  margin: 0 -30rpx;
+  padding: 24rpx 30rpx;
+}
+
+.student-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: #f5f7fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  margin-right: 20rpx;
+}
+
+.student-info {
+  flex: 1;
+}
+
+.student-name {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.student-meta {
+  display: flex;
+  gap: 20rpx;
+}
+
+.meta-item {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.student-check {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: #1890ff;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60rpx 0;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+/* 添加学生 */
+.add-student-section {
+  margin: 0 20rpx;
+}
+
+.add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30rpx;
+  background: white;
+  border-radius: 16rpx;
+  border: 2rpx dashed #1890ff;
+}
+
+.add-icon {
+  font-size: 32rpx;
+  margin-right: 12rpx;
+  color: #1890ff;
+}
+
+.add-text {
+  font-size: 28rpx;
+  color: #1890ff;
+}
+
+/* 操作按钮 */
+.action-section {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  padding: 30rpx;
+  padding-bottom: calc(30rpx + env(safe-area-inset-bottom));
+  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.btn-next {
+  width: 100%;
+  height: 88rpx;
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  color: white;
+  font-size: 32rpx;
+  border-radius: 44rpx;
+  border: none;
+}
+
+.btn-next[disabled] {
+  background: #d9d9d9;
+  color: #999;
+}
+
+.btn-next::after {
+  border: none;
+}
+
+/* 加载状态 */
+.loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.loading-icon {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #f3f3f3;
+  border-top: 4rpx solid #1890ff;
+  border-radius: 50%;
+  margin-bottom: 20rpx;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #999;
+}

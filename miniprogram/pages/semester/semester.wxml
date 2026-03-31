@@ -1,0 +1,214 @@
+<!--pages/semester/semester.wxml-->
+<view class="container">
+  <!-- 统计卡片 -->
+  <view class="stats-row">
+    <view class="stat-card">
+      <view class="stat-value">{{semesterCount}}</view>
+      <view class="stat-label">学期总数</view>
+    </view>
+    <view class="stat-card active-card">
+      <view class="stat-value">{{currentSemesterName || '未设置'}}</view>
+      <view class="stat-label">当前学期</view>
+    </view>
+  </view>
+
+  <!-- 学期列表 -->
+  <view class="section-header">
+    <view class="section-title">学期列表</view>
+    <view class="add-btn" bindtap="onAddSemester">
+      <text class="add-icon">+</text>
+      <text>新建学期</text>
+    </view>
+  </view>
+
+  <view class="semester-list" wx:if="{{!loading && allSemesters.length > 0}}">
+    <view class="semester-item {{item.status === 'active' ? 'current' : ''}}" wx:for="{{allSemesters}}" wx:key="_id">
+      <view class="item-header" bindtap="onViewDetail" data-id="{{item._id}}">
+        <view class="item-title-row">
+          <text class="semester-name">{{item.name}}</text>
+          <view class="badge-row">
+            <view class="badge current-badge" wx:if="{{item.status === 'active'}}">当前学期</view>
+            <view class="badge status-badge {{item.isEnded ? 'ended' : 'ongoing'}}">
+              {{item.isEnded ? '已结束' : '进行中'}}
+            </view>
+          </view>
+        </view>
+        <view class="date-row">
+          <text class="date-text">{{item.start_date}} ~ {{item.end_date}}</text>
+          <text class="days-text">共{{item.days}}天</text>
+        </view>
+        <view class="info-row">
+          <view class="info-tag">
+            <text class="tag-label">初始积分</text>
+            <text class="tag-value">{{item.initial_score}}分</text>
+          </view>
+          <view class="info-tag">
+            <text class="tag-label">宿舍初始分</text>
+            <text class="tag-value">{{item.dorm_initial_score}}分</text>
+          </view>
+          <view class="info-tag">
+            <text class="tag-label">折算比例</text>
+            <text class="tag-value">{{item.dorm_conversion_ratio_percent}}%</text>
+          </view>
+        </view>
+      </view>
+      <view class="item-actions">
+        <view class="action-btn edit-btn" catchtap="onEditSemester" data-id="{{item._id}}" data-item="{{item}}">
+          <text>编辑</text>
+        </view>
+        <view class="action-btn set-current-btn" catchtap="onSetCurrent" data-id="{{item._id}}" wx:if="{{item.status !== 'active'}}">
+          <text>设为当前</text>
+        </view>
+        <view class="action-btn delete-btn" catchtap="onDeleteSemester" data-id="{{item._id}}" data-name="{{item.name}}" data-status="{{item.status}}" wx:if="{{item.status !== 'active'}}">
+          <text>删除</text>
+        </view>
+        <view class="action-btn delete-btn disabled" wx:if="{{item.status === 'active'}}">
+          <text>删除</text>
+        </view>
+      </view>
+      <view class="create-time">创建时间：{{item.created_at_text}}</view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && allSemesters.length === 0}}">
+    <view class="empty-icon-text">📅</view>
+    <view class="empty-text">暂无学期记录</view>
+    <view class="empty-hint">点击上方"新建学期"创建第一个学期</view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-wrap" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+</view>
+
+<!-- 新建学期弹窗 -->
+<view class="modal-mask" wx:if="{{showAddModal}}" bindtap="onCloseModal"></view>
+<view class="modal-container" wx:if="{{showAddModal}}">
+  <view class="modal-header">
+    <text class="modal-title">新建学期</text>
+    <view class="modal-close" catchtap="onCloseModal">×</view>
+  </view>
+  <scroll-view scroll-y class="modal-body">
+    <view class="form-item">
+      <view class="form-label required">学期名称</view>
+      <input class="form-input" placeholder="如：2024-2025第一学期" value="{{formData.name}}" bindinput="onFormInput" data-field="name" />
+    </view>
+    <view class="form-item">
+      <view class="form-label required">开始日期</view>
+      <picker mode="date" value="{{formData.start_date}}" bindchange="onDateChange" data-field="start_date">
+        <view class="form-picker {{formData.start_date ? '' : 'placeholder'}}">
+          {{formData.start_date || '请选择开始日期'}}
+          <text class="picker-arrow">›</text>
+        </view>
+      </picker>
+    </view>
+    <view class="form-item">
+      <view class="form-label required">结束日期</view>
+      <picker mode="date" value="{{formData.end_date}}" bindchange="onDateChange" data-field="end_date">
+        <view class="form-picker {{formData.end_date ? '' : 'placeholder'}}">
+          {{formData.end_date || '请选择结束日期'}}
+          <text class="picker-arrow">›</text>
+        </view>
+      </picker>
+    </view>
+    <view class="form-item">
+      <view class="form-label">初始积分</view>
+      <input class="form-input" type="number" placeholder="默认100分" value="{{formData.initial_score}}" bindinput="onFormInput" data-field="initial_score" />
+    </view>
+    <view class="form-item">
+      <view class="form-label">宿舍初始积分</view>
+      <input class="form-input" type="number" placeholder="默认100分" value="{{formData.dorm_initial_score}}" bindinput="onFormInput" data-field="dorm_initial_score" />
+    </view>
+    <view class="form-item">
+      <view class="form-label">宿舍积分折算比例</view>
+      <view class="slider-wrap">
+        <slider min="0" max="100" value="{{formData.dorm_conversion_ratio_percent}}" bindchange="onSliderChange" show-value activeColor="#1890ff" backgroundColor="#e8e8e8" block-size="20" />
+        <text class="slider-hint">宿舍积分按此比例折算到总积分</text>
+      </view>
+    </view>
+    <view class="form-item">
+      <view class="form-label">宿舍预警阈值</view>
+      <input class="form-input" type="number" placeholder="默认60分" value="{{formData.dorm_warning_threshold}}" bindinput="onFormInput" data-field="dorm_warning_threshold" />
+    </view>
+    <view class="form-item">
+      <view class="form-label">宿舍退宿阈值</view>
+      <input class="form-input" type="number" placeholder="默认40分" value="{{formData.dorm_critical_threshold}}" bindinput="onFormInput" data-field="dorm_critical_threshold" />
+    </view>
+    <view class="form-item">
+      <view class="form-label">学期描述</view>
+      <textarea class="form-textarea" placeholder="可选，填写学期描述信息" value="{{formData.description}}" bindinput="onFormInput" data-field="description" maxlength="200" />
+    </view>
+  </scroll-view>
+  <view class="modal-footer">
+    <view class="btn-cancel" catchtap="onCloseModal">取消</view>
+    <view class="btn-confirm" catchtap="onConfirmAdd">确定创建</view>
+  </view>
+</view>
+
+<!-- 编辑学期弹窗 -->
+<view class="modal-mask" wx:if="{{showEditModal}}" bindtap="onCloseEditModal"></view>
+<view class="modal-container edit-modal" wx:if="{{showEditModal}}">
+  <view class="modal-header">
+    <text class="modal-title">编辑学期</text>
+    <view class="modal-close" catchtap="onCloseEditModal">×</view>
+  </view>
+  <scroll-view scroll-y class="modal-body">
+    <view class="form-item">
+      <view class="form-label required">学期名称</view>
+      <input class="form-input" placeholder="如：2024-2025第一学期" value="{{editFormData.name}}" bindinput="onEditFormInput" data-field="name" />
+    </view>
+    <view class="form-item">
+      <view class="form-label required">开始日期</view>
+      <picker mode="date" value="{{editFormData.start_date}}" bindchange="onEditDateChange" data-field="start_date">
+        <view class="form-picker">
+          {{editFormData.start_date || '请选择开始日期'}}
+          <text class="picker-arrow">›</text>
+        </view>
+      </picker>
+    </view>
+    <view class="form-item">
+      <view class="form-label required">结束日期</view>
+      <picker mode="date" value="{{editFormData.end_date}}" bindchange="onEditDateChange" data-field="end_date">
+        <view class="form-picker">
+          {{editFormData.end_date || '请选择结束日期'}}
+          <text class="picker-arrow">›</text>
+        </view>
+      </picker>
+    </view>
+    <view class="form-divider">积分设置</view>
+    <view class="form-item">
+      <view class="form-label">初始积分</view>
+      <input class="form-input" type="number" placeholder="默认100分" value="{{editFormData.initial_score}}" bindinput="onEditFormInput" data-field="initial_score" />
+    </view>
+    <view class="form-item">
+      <view class="form-label">宿舍初始积分</view>
+      <input class="form-input" type="number" placeholder="默认100分" value="{{editFormData.dorm_initial_score}}" bindinput="onEditFormInput" data-field="dorm_initial_score" />
+    </view>
+    <view class="form-item">
+      <view class="form-label">宿舍积分折算比例</view>
+      <view class="slider-wrap">
+        <slider min="0" max="100" value="{{editFormData.dorm_conversion_ratio_percent}}" bindchange="onEditSliderChange" show-value activeColor="#1890ff" backgroundColor="#e8e8e8" block-size="20" />
+        <text class="slider-hint">宿舍积分按此比例折算到总积分</text>
+      </view>
+    </view>
+    <view class="form-item">
+      <view class="form-label">宿舍预警阈值</view>
+      <input class="form-input" type="number" placeholder="默认60分" value="{{editFormData.dorm_warning_threshold}}" bindinput="onEditFormInput" data-field="dorm_warning_threshold" />
+    </view>
+    <view class="form-item">
+      <view class="form-label">宿舍退宿阈值</view>
+      <input class="form-input" type="number" placeholder="默认40分" value="{{editFormData.dorm_critical_threshold}}" bindinput="onEditFormInput" data-field="dorm_critical_threshold" />
+    </view>
+    <view class="form-item">
+      <view class="form-label">学期描述</view>
+      <textarea class="form-textarea" placeholder="可选，填写学期描述信息" value="{{editFormData.description}}" bindinput="onEditFormInput" data-field="description" maxlength="200" />
+    </view>
+  </scroll-view>
+  <view class="modal-footer">
+    <view class="btn-cancel" catchtap="onCloseEditModal">取消</view>
+    <view class="btn-confirm" catchtap="onConfirmEdit">保存修改</view>
+  </view>
+</view>

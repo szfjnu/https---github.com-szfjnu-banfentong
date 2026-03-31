@@ -1,0 +1,245 @@
+<!--pages/student/add/add.wxml-->
+<view class="container">
+  <!-- 表单标题 -->
+  <view class="form-header">
+    <text class="form-title">{{isEdit ? '编辑学生信息' : '添加学生'}}</text>
+    <text class="form-subtitle">{{isEdit ? '修改学生基本信息' : '录入新学生信息'}}</text>
+  </view>
+
+  <!-- 表单内容 -->
+  <form bindsubmit="onSubmit">
+    <!-- 基本信息卡片 -->
+    <view class="form-card">
+      <view class="card-title">
+        <text class="title-icon">👤</text>
+        <text class="title-text">基本信息</text>
+      </view>
+      
+      <view class="form-item required">
+        <text class="form-label">姓名</text>
+        <input 
+          class="form-input" 
+          name="name" 
+          placeholder="请输入学生姓名"
+          value="{{formData.name}}"
+          bindinput="onInputChange"
+          data-field="name"
+        />
+      </view>
+
+      <view class="form-item required">
+        <text class="form-label">学号</text>
+        <input 
+          class="form-input" 
+          name="student_id" 
+          placeholder="请输入学号"
+          value="{{formData.student_id}}"
+          bindinput="onInputChange"
+          data-field="student_id"
+        />
+      </view>
+
+      <view class="form-item required">
+        <text class="form-label">性别</text>
+        <picker mode="selector" range="{{genderOptions}}" value="{{genderIndex}}" bindchange="onGenderChange">
+          <view class="picker-value">
+            <text>{{genderOptions[genderIndex] || '请选择'}}</text>
+            <text class="arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-item required">
+        <text class="form-label">班级</text>
+        <view class="static-value">
+          <text class="value-text">{{currentClassName || '未选择班级'}}</text>
+          <text class="hint-text" wx:if="{{currentClassName}}">（当前班级）</text>
+        </view>
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">出生日期</text>
+        <picker mode="date" value="{{formData.date_of_birth}}" start="1990-01-01" end="2020-12-31" bindchange="onDateChange" data-field="date_of_birth">
+          <view class="picker-value">
+            <text>{{formData.date_of_birth || '请选择'}}</text>
+            <text class="arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">民族</text>
+        <input 
+          class="form-input" 
+          name="ethnicity" 
+          placeholder="请输入民族（选填）"
+          value="{{formData.ethnicity}}"
+          bindinput="onInputChange"
+          data-field="ethnicity"
+        />
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">政治面貌</text>
+        <picker mode="selector" range="{{politicalOptions}}" value="{{politicalIndex}}" bindchange="onPoliticalChange">
+          <view class="picker-value">
+            <text>{{politicalOptions[politicalIndex] || '请选择'}}</text>
+            <text class="arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">入学日期</text>
+        <picker mode="date" value="{{formData.enrollment_date}}" start="2000-01-01" end="2030-12-31" bindchange="onDateChange" data-field="enrollment_date">
+          <view class="picker-value">
+            <text>{{formData.enrollment_date || '请选择'}}</text>
+            <text class="arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+    </view>
+
+    <!-- 联系方式卡片 -->
+    <view class="form-card">
+      <view class="card-title">
+        <text class="title-icon">📞</text>
+        <text class="title-text">联系方式</text>
+      </view>
+      
+      <view class="form-item">
+        <text class="form-label">手机号</text>
+        <input 
+          class="form-input" 
+          type="number"
+          name="phone_number" 
+          placeholder="请输入手机号（选填）"
+          value="{{formData.phone_number}}"
+          bindinput="onInputChange"
+          data-field="phone_number"
+        />
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">家长手机</text>
+        <input 
+          class="form-input" 
+          type="number"
+          name="parent_phone_number" 
+          placeholder="请输入家长手机号（选填）"
+          value="{{formData.parent_phone_number}}"
+          bindinput="onInputChange"
+          data-field="parent_phone_number"
+        />
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">家庭住址</text>
+        <textarea 
+          class="form-textarea" 
+          name="home_address" 
+          placeholder="请输入家庭住址（选填）"
+          value="{{formData.home_address}}"
+          bindinput="onInputChange"
+          data-field="home_address"
+        />
+      </view>
+    </view>
+
+    <!-- 学籍信息卡片 -->
+    <view class="form-card">
+      <view class="card-title">
+        <text class="title-icon">📚</text>
+        <text class="title-text">学籍信息</text>
+      </view>
+      
+      <view class="form-item">
+        <text class="form-label">是否住宿</text>
+        <view class="switch-row">
+          <switch checked="{{formData.is_boarding}}" bindchange="onBoardingChange" color="#1890ff" />
+          <text class="switch-text">{{formData.is_boarding ? '住宿生' : '非住宿'}}</text>
+        </view>
+      </view>
+
+      <!-- 住宿信息 - 仅住宿生显示 -->
+      <view wx:if="{{formData.is_boarding}}" class="dorm-section">
+        <view class="dorm-title">🏠 住宿信息</view>
+        <view class="form-item">
+          <text class="form-label">楼栋号</text>
+          <input 
+            class="form-input" 
+            name="dorm_building" 
+            placeholder="请输入楼栋号（如：1号楼）"
+            value="{{formData.dorm_info.building}}"
+            bindinput="onDormInput"
+            data-field="building"
+          />
+        </view>
+
+        <view class="form-item">
+          <text class="form-label">宿舍号</text>
+          <input 
+            class="form-input" 
+            name="dorm_room" 
+            placeholder="请输入宿舍号（如：301）"
+            value="{{formData.dorm_info.room}}"
+            bindinput="onDormInput"
+            data-field="room"
+          />
+        </view>
+
+        <view class="form-item">
+          <text class="form-label">床位号</text>
+          <input 
+            class="form-input" 
+            name="dorm_bed" 
+            placeholder="请输入床位号（如：1）"
+            value="{{formData.dorm_info.bed}}"
+            bindinput="onDormInput"
+            data-field="bed"
+          />
+        </view>
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">班干部职务</text>
+        <picker mode="selector" range="{{positionOptions}}" value="{{positionIndex}}" bindchange="onPositionChange">
+          <view class="picker-value">
+            <text>{{positionOptions[positionIndex] || '请选择'}}</text>
+            <text class="arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">初始积分</text>
+        <input 
+          class="form-input" 
+          type="number"
+          name="initial_score" 
+          placeholder="默认100分"
+          value="{{formData.initial_score}}"
+          bindinput="onInputChange"
+          data-field="initial_score"
+        />
+      </view>
+    </view>
+
+    <!-- 删除按钮 - 仅编辑模式显示，放在操作按钮之前 -->
+    <view class="delete-section" wx:if="{{isEdit}}">
+      <view class="delete-warning">
+        <text class="warning-icon">⚠️</text>
+        <text class="warning-text">删除操作不可恢复，请谨慎操作</text>
+      </view>
+      <button class="btn-delete" bindtap="onDelete">删除该学生</button>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="form-actions">
+      <button class="btn-cancel" bindtap="onCancel">取消</button>
+      <button class="btn-submit" form-type="submit" loading="{{submitting}}">
+        {{isEdit ? '保存修改' : '添加学生'}}
+      </button>
+    </view>
+  </form>
+</view>

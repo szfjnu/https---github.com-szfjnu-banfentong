@@ -1,0 +1,279 @@
+/* pages/join/info/info.wxss */
+.container {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding-bottom: 200rpx;
+}
+
+/* 欢迎区域 */
+.welcome-section {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%);
+  padding: 40rpx 30rpx;
+}
+
+.welcome-illustration {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+}
+
+.illustration-icon {
+  font-size: 60rpx;
+}
+
+.welcome-text {
+  flex: 1;
+}
+
+.welcome-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.welcome-desc {
+  display: block;
+  font-size: 26rpx;
+  color: #666;
+}
+
+/* 班级信息卡片 */
+.class-card {
+  background: white;
+  margin: 20rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.class-header {
+  display: flex;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.class-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 16rpx;
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  margin-right: 20rpx;
+}
+
+.class-info {
+  flex: 1;
+}
+
+.class-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.class-meta {
+  display: flex;
+  gap: 20rpx;
+}
+
+.meta-item {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.class-body {
+  padding: 20rpx 30rpx;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 16rpx 0;
+}
+
+.info-label {
+  font-size: 28rpx;
+  color: #999;
+}
+
+.info-value {
+  font-size: 28rpx;
+  color: #333;
+}
+
+/* 身份选择 */
+.role-section {
+  background: white;
+  margin: 20rpx;
+  border-radius: 16rpx;
+  padding: 30rpx;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 24rpx;
+}
+
+.role-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.role-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  border: 2rpx solid transparent;
+  transition: all 0.3s;
+}
+
+.role-item.active {
+  background: #e6f7ff;
+  border-color: #1890ff;
+}
+
+.role-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 16rpx;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  margin-right: 20rpx;
+}
+
+.role-info {
+  flex: 1;
+}
+
+.role-name {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.role-desc {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.role-check {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: #1890ff;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+}
+
+/* 提示信息 */
+.tip-box {
+  display: flex;
+  align-items: flex-start;
+  margin-top: 24rpx;
+  padding: 20rpx;
+  background: #fffbe6;
+  border-radius: 12rpx;
+}
+
+.tip-icon {
+  font-size: 32rpx;
+  margin-right: 12rpx;
+}
+
+.tip-text {
+  flex: 1;
+  font-size: 24rpx;
+  color: #faad14;
+  line-height: 1.6;
+}
+
+/* 操作按钮 */
+.action-section {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  padding: 30rpx;
+  padding-bottom: calc(30rpx + env(safe-area-inset-bottom));
+  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.btn-next {
+  width: 100%;
+  height: 88rpx;
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  color: white;
+  font-size: 32rpx;
+  border-radius: 44rpx;
+  border: none;
+}
+
+.btn-next[disabled] {
+  background: #d9d9d9;
+  color: #999;
+}
+
+.btn-next::after {
+  border: none;
+}
+
+/* 加载状态 */
+.loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.loading-icon {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #f3f3f3;
+  border-top: 4rpx solid #1890ff;
+  border-radius: 50%;
+  margin-bottom: 20rpx;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #999;
+}

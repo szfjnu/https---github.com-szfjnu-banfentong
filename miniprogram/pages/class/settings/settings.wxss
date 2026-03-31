@@ -1,0 +1,151 @@
+/* pages/class/settings/settings.wxss */
+.container {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding-bottom: 40rpx;
+}
+
+/* 班级信息卡片 */
+.class-info-card {
+  background: white;
+  margin: 20rpx;
+  padding: 30rpx;
+  border-radius: 16rpx;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-size: 28rpx;
+  color: #999;
+}
+
+.info-value {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.status-graduated {
+  color: #52c41a;
+}
+
+/* 设置区域 */
+.settings-section,
+.actions-section {
+  background: white;
+  margin: 20rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.section-title {
+  padding: 30rpx;
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.settings-list,
+.action-list {
+  padding: 0 30rpx;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-left {
+  display: flex;
+  align-items: center;
+}
+
+.setting-icon {
+  font-size: 36rpx;
+  margin-right: 20rpx;
+}
+
+.setting-name {
+  font-size: 28rpx;
+  color: #333;
+}
+
+/* 操作项 */
+.action-item {
+  display: flex;
+  align-items: center;
+  padding: 30rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.action-item:last-child {
+  border-bottom: none;
+}
+
+.action-item.danger .action-name {
+  color: #ff4d4f;
+}
+
+.action-icon {
+  font-size: 36rpx;
+  margin-right: 20rpx;
+}
+
+.action-name {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.action-arrow {
+  font-size: 32rpx;
+  color: #ccc;
+}
+
+/* 加载状态 */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 0;
+}
+
+.loading-icon {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #f3f3f3;
+  border-top: 4rpx solid #1890ff;
+  border-radius: 50%;
+  margin-bottom: 20rpx;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #999;
+}

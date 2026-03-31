@@ -1,0 +1,9 @@
+{
+  "name": "weather-function",
+  "version": "1.0.0",
+  "dependencies": {
+    "wx-server-sdk": "latest",
+    "jose": "^4.14.4",
+    "axios": "^1.6.0"
+  }
+}

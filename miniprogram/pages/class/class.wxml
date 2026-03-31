@@ -1,0 +1,106 @@
+<!--pages/class/class.wxml-->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <view class="page-title">我的班级</view>
+    <view class="page-subtitle">管理您加入的班级</view>
+  </view>
+
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-input">
+      <text class="search-icon">🔍</text>
+      <input
+        type="text"
+        placeholder="搜索班级名称或学校"
+        value="{{searchKeyword}}"
+        bindconfirm="onSearch"
+        bindinput="onSearchInput"
+      />
+      <text
+        class="clear-icon"
+        wx:if="{{searchKeyword}}"
+        bindtap="onClearSearch"
+      >✕</text>
+    </view>
+  </view>
+
+  <!-- 操作按钮组 -->
+  <view class="action-buttons">
+    <view class="action-btn create-btn" bindtap="onCreateClass">
+      <text class="btn-icon">➕</text>
+      <text class="btn-text">创建班级</text>
+    </view>
+    <view class="action-btn join-btn" bindtap="onJoinClass">
+      <text class="btn-icon">🔗</text>
+      <text class="btn-text">加入班级</text>
+    </view>
+  </view>
+
+  <!-- 班级列表 -->
+  <view class="class-list" wx:if="{{!loading && classes.length > 0}}">
+    <view class="list-header">
+      <text>已加入的班级 ({{classes.length}})</text>
+    </view>
+    
+    <view
+      class="class-item {{currentClassId === item._id ? 'current' : ''}}"
+      wx:for="{{classes}}"
+      wx:key="_id"
+      bindtap="onViewDetail"
+      bindlongpress="onLongPressClass"
+      data-id="{{item._id}}"
+      data-name="{{item.class_name}}"
+      data-isowner="{{item.is_owner}}"
+      data-item="{{item}}"
+    >
+      <view class="class-main">
+        <view class="class-icon">📚</view>
+        <view class="class-info">
+          <view class="class-name">
+            {{item.class_name}}
+            <text class="current-badge" wx:if="{{currentClassId === item._id}}">当前</text>
+          </view>
+          <view class="class-meta">
+            <text class="meta-item" wx:if="{{item.school}}">{{item.school}}</text>
+            <text class="meta-item" wx:if="{{item.grade}}">{{item.grade}}</text>
+          </view>
+          <view class="class-tags">
+            <text class="tag role-tag {{item.role}}">{{item.role === 'head_teacher' ? '班主任' : item.role === 'subject_teacher' ? '任课老师' : item.role === 'student' ? '学生' : item.role === 'parent' ? '家长' : '成员'}}</text>
+            <text class="tag owner-tag" wx:if="{{item.is_owner}}">创建者</text>
+          </view>
+          <view class="class-stats">
+            <text class="stat-item">👨‍🎓 {{item.student_count || 0}}人</text>
+            <text class="stat-item" wx:if="{{item.class_code}}">班级码: {{item.class_code}}</text>
+          </view>
+        </view>
+        <view class="class-actions">
+          <view class="enter-btn" catchtap="onEnterClass" data-item="{{item}}">
+            <text>进入</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty" wx:if="{{!loading && classes.length === 0}}">
+    <view class="empty-icon">📭</view>
+    <view class="empty-text">还没有加入任何班级</view>
+    <view class="empty-hint">创建一个新班级或加入已有班级开始使用</view>
+    <view class="empty-actions">
+      <view class="empty-btn primary" bindtap="onCreateClass">
+        <text>创建班级</text>
+      </view>
+      <view class="empty-btn" bindtap="onJoinClass">
+        <text>加入班级</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-icon">⏳</view>
+    <view class="loading-text">加载中...</view>
+  </view>
+</view>

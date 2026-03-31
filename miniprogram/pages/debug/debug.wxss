@@ -1,0 +1,44 @@
+/* pages/debug/debug.wxss */
+.container {
+  padding: 20rpx;
+}
+
+button {
+  margin-bottom: 30rpx;
+}
+
+.loading {
+  text-align: center;
+  padding: 40rpx 0;
+}
+
+.result {
+  margin-top: 20rpx;
+}
+
+.section {
+  margin-bottom: 30rpx;
+  padding: 20rpx;
+  background: #f5f5f5;
+  border-radius: 8rpx;
+}
+
+.title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 12rpx;
+}
+
+.content {
+  display: block;
+  font-size: 24rpx;
+  color: #666;
+  line-height: 1.6;
+  word-break: break-all;
+}
+
+.error {
+  color: #ff4d4f;
+}

@@ -1,0 +1,149 @@
+<!--pages/student/import/import.wxml-->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="page-title">批量导入学生</text>
+    <text class="page-subtitle" wx:if="{{className}}">{{className}}</text>
+  </view>
+
+  <!-- 导入结果 -->
+  <view class="result-card" wx:if="{{importResult}}">
+    <view class="result-header">
+      <text class="result-title">导入完成</text>
+    </view>
+    <view class="result-body">
+      <view class="result-item success">
+        <text class="result-num">{{importResult.successCount}}</text>
+        <text class="result-label">成功</text>
+      </view>
+      <view class="result-item skip" wx:if="{{importResult.skipCount > 0}}">
+        <text class="result-num">{{importResult.skipCount}}</text>
+        <text class="result-label">跳过(已存在)</text>
+      </view>
+      <view class="result-item fail" wx:if="{{importResult.failCount > 0}}">
+        <text class="result-num">{{importResult.failCount}}</text>
+        <text class="result-label">失败</text>
+      </view>
+    </view>
+    <view class="result-errors" wx:if="{{importResult.errors.length > 0}}">
+      <text class="error-title">错误信息：</text>
+      <view class="error-item" wx:for="{{importResult.errors}}" wx:key="index">
+        <text>{{item}}</text>
+      </view>
+    </view>
+    <view class="result-actions">
+      <button class="btn-secondary" bindtap="onReset">继续导入</button>
+      <button class="btn-primary" bindtap="onFinish">完成</button>
+    </view>
+  </view>
+
+  <block wx:if="{{!importResult}}">
+    <!-- 字段说明 -->
+    <view class="section">
+      <view class="section-title">字段说明</view>
+      <view class="field-list">
+        <view class="field-item" wx:for="{{fieldDesc}}" wx:key="name">
+          <view class="field-name">
+            <text class="field-label">{{item.label}}</text>
+            <text class="field-required" wx:if="{{item.required}}">*</text>
+          </view>
+          <text class="field-example">示例：{{item.example}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 导入方式切换 -->
+    <view class="method-tabs">
+      <view class="tab-item {{importMethod === 'paste' ? 'active' : ''}}" data-method="paste" bindtap="onMethodChange">
+        粘贴数据
+      </view>
+      <view class="tab-item {{importMethod === 'template' ? 'active' : ''}}" data-method="template" bindtap="onMethodChange">
+        查看模板
+      </view>
+    </view>
+
+    <!-- 粘贴方式 -->
+    <view class="section" wx:if="{{importMethod === 'paste'}}">
+      <view class="section-header">
+        <text class="section-title">粘贴数据</text>
+        <text class="section-tip">支持CSV或制表符分隔的数据</text>
+      </view>
+      <textarea 
+        class="paste-area"
+        placeholder="请粘贴学生数据，第一行为标题行&#10;示例：&#10;学号,姓名,性别,住宿,班干部&#10;2024001,张三,男,是,班长"
+        value="{{pasteContent}}"
+        bindinput="onPasteChange"
+      ></textarea>
+      <view class="action-row">
+        <button class="btn-secondary" bindtap="onUseTemplate">使用示例模板</button>
+        <button class="btn-primary" bindtap="onParsePaste">解析数据</button>
+      </view>
+    </view>
+
+    <!-- 模板展示 -->
+    <view class="section" wx:if="{{importMethod === 'template'}}">
+      <view class="section-title">数据模板</view>
+      <view class="template-box">
+        <text class="template-text" selectable="true">{{templateExample}}</text>
+      </view>
+      <view class="template-tips">
+        <text class="tip-title">注意事项：</text>
+        <text class="tip-item">1. 第一行必须为标题行</text>
+        <text class="tip-item">2. 学号和姓名为必填字段</text>
+        <text class="tip-item">3. 住宿字段填写"是"或"否"</text>
+        <text class="tip-item">4. 性别填写"男"或"女"</text>
+        <text class="tip-item">5. 不填写的字段留空即可</text>
+      </view>
+    </view>
+
+    <!-- 数据预览 -->
+    <view class="section" wx:if="{{previewData.length > 0}}">
+      <view class="section-header">
+        <text class="section-title">数据预览</text>
+        <view class="preview-stats">
+          <text class="stat-valid">有效：{{validCount}}</text>
+          <text class="stat-invalid" wx:if="{{invalidCount > 0}}">无效：{{invalidCount}}</text>
+        </view>
+      </view>
+      
+      <view class="preview-list">
+        <view class="preview-item {{item.valid ? 'valid' : 'invalid'}}" wx:for="{{previewData}}" wx:key="rowIndex">
+          <view class="preview-main">
+            <view class="preview-info">
+              <text class="preview-name">{{item.name}}</text>
+              <text class="preview-id">{{item.student_id}}</text>
+            </view>
+            <view class="preview-detail">
+              <text wx:if="{{item.gender}}">{{item.gender}}</text>
+              <text wx:if="{{item.is_boarding}}">住宿</text>
+              <text wx:if="{{item.position}}">{{item.position}}</text>
+            </view>
+          </view>
+          <view class="preview-status">
+            <text class="status-valid" wx:if="{{item.valid}}">✓</text>
+            <view class="status-invalid" wx:else>
+              <text class="status-icon">✗</text>
+              <text class="status-error">{{item.errors[0]}}</text>
+            </view>
+          </view>
+          <view class="preview-actions">
+            <text class="remove-btn" catchtap="onRemoveRow" data-index="{{index}}">删除</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 导入按钮 -->
+      <view class="import-actions">
+        <button class="btn-reset" bindtap="onReset">重新导入</button>
+        <button class="btn-import" bindtap="onConfirmImport" disabled="{{validCount === 0 || importing}}">
+          {{importing ? '导入中...' : '确认导入 (' + validCount + '条)'}}
+        </button>
+      </view>
+      
+      <!-- 进度条 -->
+      <view class="progress-bar" wx:if="{{importing}}">
+        <view class="progress-fill" style="width: {{importProgress}}%"></view>
+      </view>
+    </view>
+  </block>
+</view>

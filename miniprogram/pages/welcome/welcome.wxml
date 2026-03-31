@@ -1,0 +1,76 @@
+<!--pages/welcome/welcome.wxml-->
+<view class="container">
+  <!-- 用户信息 -->
+  <view class="user-section">
+    <image class="user-avatar" src="{{userInfo.avatarUrl || '/images/icons/default-avatar.png'}}" mode="aspectFill"></image>
+    <view class="user-info">
+      <text class="user-name">{{userInfo.nickName || '用户'}}</text>
+      <text class="user-tip">欢迎使用学生成长管理系统</text>
+    </view>
+  </view>
+
+  <!-- 已加入班级 -->
+  <view class="my-classes-section" wx:if="{{myClasses.length > 0}}">
+    <view class="section-header">
+      <view class="tabs">
+        <view class="tab-item {{activeTab === 'joined' ? 'active' : ''}}" bindtap="onTabChange" data-tab="joined">
+          已加入 ({{myClasses.length}})
+        </view>
+        <view class="tab-item {{activeTab === 'pending' ? 'active' : ''}}" bindtap="onTabChange" data-tab="pending">
+          需审核 ({{pendingClasses.length}})
+        </view>
+      </view>
+    </view>
+
+    <!-- 已加入列表 -->
+    <view class="class-list" wx:if="{{activeTab === 'joined'}}">
+      <view class="class-item" wx:for="{{myClasses}}" wx:key="_id" bindtap="onEnterClass" data-item="{{item}}">
+        <view class="class-icon">📚</view>
+        <view class="class-info">
+          <view class="class-name">{{item.class_name}}</view>
+          <view class="class-meta">
+            <text class="meta-item">{{item.school || '学校'}}</text>
+            <text class="meta-item">{{item.role_label}}</text>
+            <text class="meta-item" wx:if="{{item.is_owner}}">管理员</text>
+          </view>
+        </view>
+        <view class="class-arrow">›</view>
+      </view>
+    </view>
+
+    <!-- 待审核列表 -->
+    <view class="class-list" wx:if="{{activeTab === 'pending'}}">
+      <view class="class-item pending" wx:for="{{pendingClasses}}" wx:key="_id">
+        <view class="class-icon">⏳</view>
+        <view class="class-info">
+          <view class="class-name">{{item.class_name}}</view>
+          <view class="class-meta">
+            <text class="meta-item">等待审核</text>
+          </view>
+        </view>
+      </view>
+      <view class="empty-tip" wx:if="{{pendingClasses.length === 0}}">
+        <text>暂无待审核的申请</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-section" wx:if="{{myClasses.length === 0 && pendingClasses.length === 0}}">
+    <image class="empty-icon" src="/images/icons/empty.png" mode="aspectFit"></image>
+    <text class="empty-text">您还没有加入任何班级</text>
+    <text class="empty-tip">请创建班级或加入已有班级</text>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-section">
+    <button class="btn-create" bindtap="onCreateClass">
+      <text class="btn-icon">➕</text>
+      <text>创建班级</text>
+    </button>
+    <button class="btn-join" bindtap="onJoinClass">
+      <text class="btn-icon">🔗</text>
+      <text>加入新班级</text>
+    </button>
+  </view>
+</view>

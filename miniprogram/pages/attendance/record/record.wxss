@@ -1,0 +1,547 @@
+/* pages/attendance/record/record.wxss */
+
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding-bottom: 120rpx;
+}
+
+/* 页面标题 */
+.page-header {
+  padding: 40rpx 30rpx 30rpx;
+  text-align: center;
+  color: #fff;
+}
+
+.page-title {
+  display: block;
+  font-size: 44rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.page-subtitle {
+  display: block;
+  font-size: 28rpx;
+  opacity: 0.9;
+}
+
+/* 筛选栏 */
+.filter-bar {
+  display: flex;
+  margin: 0 30rpx 30rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 20rpx;
+}
+
+.filter-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10rpx;
+  border-radius: 8rpx;
+  background: #f5f7fa;
+  margin: 0 5rpx;
+}
+
+.filter-text {
+  font-size: 26rpx;
+  color: #333;
+  margin-right: 8rpx;
+}
+
+.filter-icon {
+  font-size: 20rpx;
+  color: #999;
+}
+
+/* 统计卡片 */
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15rpx;
+  margin: 0 30rpx 30rpx;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  text-align: center;
+}
+
+.stat-num {
+  display: block;
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.stat-label {
+  display: block;
+  font-size: 24rpx;
+  color: #999;
+}
+
+.stat-card.total .stat-num {
+  color: #667eea;
+}
+
+.stat-card.sick .stat-num {
+  color: #52c41a;
+}
+
+.stat-card.personal .stat-num {
+  color: #1890ff;
+}
+
+.stat-card.late .stat-num {
+  color: #fa8c16;
+}
+
+.stat-card.early .stat-num {
+  color: #faad14;
+}
+
+.stat-card.absent .stat-num {
+  color: #ff4d4f;
+}
+
+/* 记录列表 */
+.record-list {
+  margin: 0 30rpx;
+}
+
+.record-item {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+
+.record-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15rpx;
+}
+
+.category-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+}
+
+.category-icon {
+  margin-right: 8rpx;
+}
+
+.record-right {
+  text-align: right;
+}
+
+.student-name {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 5rpx;
+}
+
+.record-date {
+  display: block;
+  font-size: 24rpx;
+  color: #999;
+}
+
+.record-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 15rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.score-change {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #ff4d4f;
+}
+
+.recorder {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.record-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 15rpx;
+  padding-top: 15rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.action-btn {
+  padding: 8rpx 24rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+}
+
+.action-btn.delete {
+  background: #fff1f0;
+  color: #ff4d4f;
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 100rpx 0;
+}
+
+.empty-icon {
+  display: block;
+  font-size: 100rpx;
+  margin-bottom: 20rpx;
+}
+
+.empty-text {
+  display: block;
+  font-size: 28rpx;
+  color: #fff;
+  opacity: 0.8;
+}
+
+/* 加载状态 */
+.loading-state {
+  text-align: center;
+  padding: 60rpx 0;
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #fff;
+  opacity: 0.8;
+}
+
+/* 加载更多 */
+.load-more {
+  text-align: center;
+  padding: 40rpx 0;
+}
+
+.load-more-text {
+  font-size: 26rpx;
+  color: #fff;
+  opacity: 0.8;
+}
+
+/* 没有更多 */
+.no-more {
+  text-align: center;
+  padding: 40rpx 0;
+}
+
+.no-more-text {
+  font-size: 26rpx;
+  color: #fff;
+  opacity: 0.6;
+}
+
+/* 编辑模式 */
+.category-section {
+  margin: 0 30rpx 30rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+}
+
+.section-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.select-all-btn {
+  padding: 10rpx 20rpx;
+  background: #f5f7fa;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  color: #667eea;
+}
+
+.category-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15rpx;
+}
+
+.category-item {
+  display: flex;
+  align-items: center;
+  padding: 15rpx 20rpx;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  border: 2rpx solid transparent;
+  transition: all 0.3s;
+}
+
+.category-item.selected {
+  background: #667eea10;
+  border-color: #667eea;
+}
+
+.category-icon {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  margin-right: 12rpx;
+  font-size: 28rpx;
+}
+
+.category-text {
+  font-size: 28rpx;
+  color: #333;
+  margin-right: 8rpx;
+}
+
+.category-score {
+  font-size: 24rpx;
+  color: #ff4d4f;
+}
+
+/* 学生列表 */
+.student-section {
+  margin: 0 30rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+}
+
+.student-list {
+  max-height: 600rpx;
+  overflow-y: auto;
+}
+
+.student-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  margin-bottom: 15rpx;
+  border: 2rpx solid transparent;
+  transition: all 0.3s;
+}
+
+.student-item.selected {
+  background: #667eea10;
+  border-color: #667eea;
+}
+
+.student-checkbox {
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid #d9d9d9;
+  border-radius: 8rpx;
+  margin-right: 20rpx;
+}
+
+.student-item.selected .student-checkbox {
+  background: #667eea;
+  border-color: #667eea;
+}
+
+.checkbox-icon {
+  font-size: 24rpx;
+  color: #fff;
+}
+
+.student-info {
+  flex: 1;
+}
+
+.student-info .student-name {
+  font-size: 30rpx;
+  color: #333;
+  margin-bottom: 5rpx;
+}
+
+.student-id {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.student-status {
+  margin-left: 15rpx;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 6rpx 12rpx;
+  border-radius: 6rpx;
+  font-size: 22rpx;
+}
+
+/* 保存按钮 */
+.save-btn-container {
+  margin: 30rpx;
+}
+
+.save-btn {
+  width: 100%;
+  height: 90rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #667eea;
+}
+
+/* 筛选弹窗 */
+.filter-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+}
+
+.modal-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border-radius: 30rpx 30rpx 0 0;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.modal-close {
+  font-size: 36rpx;
+  color: #999;
+}
+
+.modal-body {
+  padding: 30rpx;
+}
+
+.filter-group {
+  margin-bottom: 30rpx;
+}
+
+.filter-label {
+  display: block;
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 15rpx;
+}
+
+.filter-picker {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+}
+
+.picker-icon {
+  font-size: 20rpx;
+  color: #999;
+}
+
+.custom-date-range {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 15rpx;
+}
+
+.date-item {
+  flex: 1;
+}
+
+.date-label {
+  display: block;
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 10rpx;
+}
+
+.date-picker {
+  padding: 15rpx;
+  background: #f5f7fa;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  color: #333;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 20rpx;
+  padding: 30rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.reset-btn {
+  flex: 1;
+  height: 80rpx;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+  color: #666;
+}
+
+.confirm-btn {
+  flex: 2;
+  height: 80rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12rpx;
+  font-size: 30rpx;
+  color: #fff;
+}

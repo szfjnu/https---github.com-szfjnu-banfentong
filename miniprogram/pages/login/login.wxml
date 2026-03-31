@@ -1,0 +1,30 @@
+<!--pages/login/login.wxml-->
+<view class="login-container">
+  <!-- Logo区域 -->
+  <view class="login-header">
+    <image class="logo" src="/images/icons/logo.png" mode="aspectFit"></image>
+    <view class="title">学生成长管理系统</view>
+    <view class="subtitle">数字化班级管理平台</view>
+  </view>
+
+  <!-- 登录表单 -->
+  <view class="login-form">
+    <!-- 登录按钮 -->
+    <button
+      class="btn btn-primary btn-block btn-large login-btn"
+      open-type="getUserInfo"
+      bindgetuserinfo="onGetUserInfo"
+      loading="{{loading}}"
+      disabled="{{loading}}"
+    >
+      微信授权登录
+    </button>
+
+    <!-- 提示信息 -->
+    <view class="login-tips">
+      <view class="tip-item">• 点击按钮使用微信账号快速登录</view>
+      <view class="tip-item">• 登录后可以创建班级或加入已有班级</view>
+      <view class="tip-item">• 首次使用需要授权微信用户信息</view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,268 @@
+<!--pages/score/rules/rules.wxml-->
+<view class="container">
+  <!-- 加载状态 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-icon"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <block wx:else>
+    <!-- 标签切换 -->
+    <view class="tabs">
+      <view class="tabs-left">
+        <view 
+          class="tab-item {{activeTab === 'add' ? 'active' : ''}}" 
+          bindtap="onTabChange" 
+          data-tab="add"
+        >
+          加分项目 ({{addRules.length}})
+        </view>
+        <view 
+          class="tab-item {{activeTab === 'deduct' ? 'active' : ''}}" 
+          bindtap="onTabChange" 
+          data-tab="deduct"
+        >
+          扣分项目 ({{deductRules.length}})
+        </view>
+      </view>
+      <view class="tabs-right">
+        <view class="category-manage-btn" bindtap="onManageCategories">
+          <text class="icon">📋</text>
+          <text>类别管理</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 规则列表 -->
+    <view class="rules-list">
+      <view 
+        class="rule-card {{item.is_enabled === false ? 'disabled' : ''}}"
+        wx:for="{{activeTab === 'add' ? addRules : deductRules}}" 
+        wx:key="_id"
+      >
+        <view class="rule-header">
+          <view class="rule-info">
+            <text class="rule-name">{{item.rule_name || item.name || item.item_name}}</text>
+            <view class="rule-tags">
+              <text class="tag category">{{item.rule_category || item.category}}</text>
+              <text class="tag type {{item.score_value < 0 ? 'deduct' : ''}}">{{item.score_value > 0 ? '加分' : '扣分'}}</text>
+            </view>
+          </view>
+          <view class="rule-score {{item.score_value < 0 ? 'deduct' : ''}}">
+            {{item.score_value > 0 ? '+' : ''}}{{item.score_value || item.default_score || item.score}}
+          </view>
+        </view>
+        
+        <view class="rule-body">
+          <view class="rule-desc">{{item.description || '暂无描述'}}</view>
+          
+          <!-- 规则元数据 -->
+          <view class="rule-meta">
+            <view class="rule-meta-item" wx:if="{{item.semester_id}}">
+              <text class="label">学期:</text>
+              <text class="value">{{item.semester_name || item.semester_id}}</text>
+            </view>
+            <view class="rule-meta-item" wx:if="{{item.class_id}}">
+              <text class="label">班级:</text>
+              <text class="value">{{item.class_name || '指定班级'}}</text>
+            </view>
+            <view class="rule-meta-item" wx:if="{{item.effective_date}}">
+              <text class="label">生效:</text>
+              <text class="value">{{item.effective_date_formatted || item.effective_date}}</text>
+            </view>
+            <view class="rule-meta-item" wx:if="{{item.expiry_date}}">
+              <text class="label">失效:</text>
+              <text class="value">{{item.expiry_date_formatted || item.expiry_date}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="rule-footer">
+          <view class="rule-status">
+            <switch 
+              checked="{{item.is_enabled !== false}}" 
+              color="{{item.score_value < 0 ? '#ff4d4f' : '#52c41a'}}"
+              data-rule="{{item}}"
+              bindchange="onToggleStatus"
+            />
+            <text>{{item.is_enabled !== false ? '已启用' : '已禁用'}}</text>
+          </view>
+          <view class="rule-actions">
+            <view class="action-btn version" catchtap="onViewVersions" data-rule="{{item}}">版本</view>
+            <view class="action-btn edit" catchtap="onEditRule" data-rule="{{item}}">编辑</view>
+            <view class="action-btn delete" catchtap="onDeleteRule" data-rule="{{item}}">删除</view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 空状态 -->
+      <view class="empty" wx:if="{{(activeTab === 'add' && addRules.length === 0) || (activeTab === 'deduct' && deductRules.length === 0)}}">
+        <text class="empty-icon">📋</text>
+        <text class="empty-text">暂无{{activeTab === 'add' ? '加分' : '扣分'}}项目</text>
+      </view>
+    </view>
+
+    <!-- 添加按钮 -->
+    <view class="fab-button" bindtap="onShowAddModal">
+      <text>+</text>
+    </view>
+  </block>
+
+  <!-- 添加/编辑弹窗 -->
+  <view class="modal-mask" wx:if="{{showAddModal}}" bindtap="onCloseModal">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">{{editingRule ? '编辑规则' : '添加规则'}}</text>
+        <text class="modal-close" catchtap="onCloseModal">✕</text>
+      </view>
+      
+      <scroll-view class="modal-body" scroll-y>
+        <view class="form-item">
+          <text class="form-label required">规则名称</text>
+          <input 
+            class="form-input"
+            placeholder="输入规则名称"
+            value="{{formData.rule_name}}"
+            data-field="rule_name"
+            bindinput="onInputChange"
+          />
+        </view>
+
+        <view class="form-item">
+          <text class="form-label">规则编码</text>
+          <input 
+            class="form-input"
+            placeholder="输入规则编码（选填）"
+            value="{{formData.rule_code}}"
+            data-field="rule_code"
+            bindinput="onInputChange"
+          />
+        </view>
+
+        <view class="form-item">
+          <text class="form-label required">积分类别</text>
+          <picker 
+            mode="selector" 
+            range="{{categories}}" 
+            value="{{formData.categoryIndex}}" 
+            bindchange="onCategoryChange"
+          >
+            <view class="picker-value" catchtap="">
+              <text>{{categories[formData.categoryIndex] || formData.rule_category || '请选择'}}</text>
+              <text class="arrow">▼</text>
+            </view>
+          </picker>
+        </view>
+        
+        <!-- 班级归属 - 仅管理员可见 -->
+        <view class="form-item" wx:if="{{userRole === 'admin'}}">
+          <text class="form-label">班级归属</text>
+          <picker 
+            mode="selector" 
+            range="{{classNames}}" 
+            value="{{formData.classIndex}}" 
+            bindchange="onClassChange"
+          >
+            <view class="picker-value" catchtap="">
+              <text>{{classNames[formData.classIndex] || '全局规则'}}</text>
+              <text class="arrow">▼</text>
+            </view>
+          </picker>
+          <view class="form-tip">
+            选择班级后规则仅对该班级可见，留空则为全局规则
+          </view>
+        </view>
+
+        <view class="form-item">
+          <text class="form-label required">积分值</text>
+          <view class="score-input-row">
+            <input 
+              class="form-input score"
+              type="number"
+              placeholder="积分值"
+              value="{{formData.score_value}}"
+              data-field="score_value"
+              bindinput="onInputChange"
+            />
+            <text class="score-unit">分</text>
+          </view>
+          <view class="form-tip">
+            加分项目输入正数，扣分项目输入负数
+          </view>
+        </view>
+
+        <view class="form-item">
+          <text class="form-label">规则描述</text>
+          <textarea 
+            class="form-textarea"
+            placeholder="输入规则描述（选填）"
+            value="{{formData.description}}"
+            data-field="description"
+            bindinput="onInputChange"
+          />
+        </view>
+
+        <!-- 学期关联 - 显示当前学期 -->
+        <view class="form-item">
+          <text class="form-label required">关联学期</text>
+          <view class="semester-info">
+            <text class="semester-name">{{currentSemester.name || currentSemester.semester_name || '当前学期'}}</text>
+            <text class="form-tip">（规则将在该学期内生效）</text>
+          </view>
+        </view>
+
+        <!-- 生效日期 -->
+        <view class="form-item">
+          <text class="form-label">生效日期</text>
+          <picker 
+            mode="date" 
+            value="{{formData.effective_date}}" 
+            start="2020-01-01" 
+            end="2030-12-31"
+            data-field="effective_date"
+            bindchange="onDateChange"
+          >
+            <view class="picker-value">
+              <text>{{formData.effective_date || '立即生效'}}</text>
+              <text class="arrow">▼</text>
+            </view>
+          </picker>
+          <view class="form-tip">
+            规则从该日期开始生效
+          </view>
+        </view>
+
+        <!-- 失效日期 -->
+        <view class="form-item">
+          <text class="form-label">失效日期</text>
+          <picker 
+            mode="date" 
+            value="{{formData.expiry_date}}" 
+            start="2020-01-01" 
+            end="2030-12-31"
+            data-field="expiry_date"
+            bindchange="onDateChange"
+          >
+            <view class="picker-value">
+              <text>{{formData.expiry_date || '永久有效'}}</text>
+              <text class="arrow">▼</text>
+            </view>
+          </picker>
+          <view class="form-tip">
+            规则在该日期后失效，留空表示永久有效
+          </view>
+        </view>
+
+        <view class="form-item">
+          <text class="form-label">启用状态</text>
+          <switch checked="{{formData.is_enabled}}" bindchange="onToggleEnabled" color="#1890ff" />
+        </view>
+      </scroll-view>
+
+      <view class="modal-footer">
+        <view class="modal-btn cancel" bindtap="onCloseModal">取消</view>
+        <view class="modal-btn confirm" bindtap="onSaveRule">保存</view>
+      </view>
+    </view>
+  </view>
+</view>

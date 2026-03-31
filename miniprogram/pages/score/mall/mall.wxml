@@ -1,0 +1,274 @@
+<!--pages/score/mall/mall.wxml-->
+<view class="container">
+  <!-- 我的积分卡片 -->
+  <view class="score-card">
+    <view class="score-info">
+      <text class="score-label">我的积分</text>
+      <text class="score-value">{{myScore}}</text>
+    </view>
+    <view class="score-actions">
+      <button class="action-btn wish-btn" bindtap="onShowWishModal">
+        <text class="btn-icon">💡</text>
+        <text class="btn-text">我想兑换</text>
+      </button>
+      <button class="action-btn records-btn" bindtap="onViewRecords">兑换记录</button>
+    </view>
+  </view>
+
+  <!-- 标签切换 -->
+  <view class="tabs">
+    <view class="tab-item {{activeTab === 'items' ? 'active' : ''}}" bindtap="onSwitchTab" data-tab="items">
+      <text>兑换商品</text>
+    </view>
+    <view class="tab-item {{activeTab === 'wishes' ? 'active' : ''}}" bindtap="onSwitchTab" data-tab="wishes">
+      <text>心愿单</text>
+      <view class="tab-badge" wx:if="{{wishList.length > 0}}">{{wishList.length}}</view>
+    </view>
+  </view>
+
+  <!-- 商品列表 -->
+  <view class="items-container" wx:if="{{activeTab === 'items'}}">
+    <view wx:if="{{loading}}" class="loading">
+      <text>加载中...</text>
+    </view>
+
+    <view wx:elif="{{items.length === 0}}" class="empty">
+      <text class="empty-icon">🛍️</text>
+      <text class="empty-text">暂无可用物品</text>
+      <button class="empty-btn" bindtap="onShowWishModal">提交心愿商品</button>
+    </view>
+
+    <view class="items-grid" wx:else>
+      <view
+        class="item-card {{item.quantity <= 0 ? 'sold-out' : ''}}"
+        wx:for="{{items}}"
+        wx:key="_id"
+      >
+        <!-- 热门标签 -->
+        <view class="hot-tag" wx:if="{{hotItemIds.indexOf(item.item_id) >= 0}}">
+          <text>🔥 热门</text>
+        </view>
+        
+        <!-- 投标模式标签 -->
+        <view class="bid-tag" wx:if="{{item.redemption_mode === '投标模式'}}">
+          <text>投标</text>
+        </view>
+
+        <!-- 物品图片 -->
+        <view class="item-image" bindtap="onRedeem" data-item="{{item}}">
+          <image
+            wx:if="{{item.image_url}}"
+            src="{{item.image_url}}"
+            mode="aspectFill"
+          />
+          <text wx:else class="default-icon">🎁</text>
+        </view>
+
+        <!-- 物品信息 -->
+        <view class="item-info">
+          <view class="item-name">{{item.name}}</view>
+          <view class="item-price">
+            <text class="price-label">需</text>
+            <text class="price-value">{{item.required_score}}</text>
+            <text class="price-unit">积分</text>
+          </view>
+          <view class="item-meta">
+            <text class="item-quantity">库存: {{item.quantity}}</text>
+            <text class="item-mode {{item.redemption_mode === '投标模式' ? 'mode-bid' : ''}}">{{item.redemption_mode}}</text>
+          </view>
+        </view>
+
+        <!-- 操作按钮 -->
+        <view class="item-actions">
+          <!-- 投标模式显示查看投标按钮 -->
+          <view 
+            class="action-btn-small view-bid-btn" 
+            wx:if="{{item.redemption_mode === '投标模式'}}"
+            catchtap="onViewBidList"
+            data-item="{{item}}"
+          >
+            <text>📊 投标情况</text>
+          </view>
+          
+          <!-- 兑换按钮 -->
+          <view 
+            class="action-btn-small redeem-btn {{item.canRedeem ? '' : 'disabled'}}"
+            catchtap="onRedeem"
+            data-item="{{item}}"
+          >
+            <text>{{item.statusText}}</text>
+          </view>
+        </view>
+
+        <!-- 兑换状态角标 -->
+        <view class="item-status" wx:if="{{!item.canRedeem && item.quantity > 0}}">
+          <view class="status-badge status-unavailable">
+            {{item.required_score > myScore ? '积分不足' : '暂不可兑'}}
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 心愿单列表 -->
+  <view class="wishes-container" wx:if="{{activeTab === 'wishes'}}">
+    <view class="wish-header">
+      <text class="wish-title">同学们想要的商品</text>
+      <text class="wish-tip">票数多的商品更容易被采纳上架</text>
+    </view>
+
+    <view wx:if="{{wishLoading}}" class="loading">
+      <text>加载中...</text>
+    </view>
+
+    <view wx:elif="{{wishList.length === 0}}" class="empty">
+      <text class="empty-icon">📝</text>
+      <text class="empty-text">暂无心愿商品</text>
+      <button class="empty-btn" bindtap="onShowWishModal">提交心愿</button>
+    </view>
+
+    <view class="wish-list" wx:else>
+      <view class="wish-item" wx:for="{{wishList}}" wx:key="_id">
+        <view class="wish-info">
+          <view class="wish-name">{{item.name}}</view>
+          <view class="wish-desc" wx:if="{{item.description}}">{{item.description}}</view>
+          <view class="wish-meta">
+            <text class="wish-score">期望积分: {{item.expected_score}}</text>
+            <text class="wish-author">{{item.student_name}}</text>
+          </view>
+        </view>
+        <view class="wish-vote">
+          <view 
+            class="vote-btn {{item.isVoted ? 'voted' : ''}}"
+            catchtap="onVoteWish"
+            data-wish="{{item}}"
+          >
+            <text class="vote-icon">{{item.isVoted ? '✓' : '👍'}}</text>
+            <text class="vote-count">{{item.vote_count}}</text>
+          </view>
+          <text class="wish-status" wx:if="{{item.status === 'added'}}">已上架</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="wish-footer">
+      <button class="submit-wish-btn" bindtap="onShowWishModal">
+        <text class="btn-icon">💡</text>
+        <text>提交我想要兑换的商品</text>
+      </button>
+    </view>
+  </view>
+
+  <!-- 投标详情弹窗 -->
+  <view class="bid-modal" wx:if="{{showBidModal}}" catchtap="onCloseBidModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">📊 投标情况</text>
+        <text class="modal-close" bindtap="onCloseBidModal">✕</text>
+      </view>
+      
+      <view class="modal-body">
+        <view class="bid-item-info" wx:if="{{currentItem}}">
+          <text class="bid-item-name">{{currentItem.name}}</text>
+          <text class="bid-item-price">底价: {{currentItem.required_score}}积分</text>
+        </view>
+
+        <view class="bid-list" wx:if="{{!bidLoading && bidList.length > 0}}">
+          <view class="bid-list-header">
+            <text class="col-rank">排名</text>
+            <text class="col-name">投标人</text>
+            <text class="col-score">投标积分</text>
+            <text class="col-status">状态</text>
+          </view>
+          <view class="bid-row {{item.isMine ? 'is-mine' : ''}}" wx:for="{{bidList}}" wx:key="_id">
+            <text class="col-rank">{{index + 1}}</text>
+            <text class="col-name">{{item.studentName}}</text>
+            <text class="col-score score-highlight">{{item.bidScore}}</text>
+            <text class="col-status status-{{item.statusClass}}">{{item.status}}</text>
+          </view>
+        </view>
+
+        <view class="bid-empty" wx:if="{{!bidLoading && bidList.length === 0}}">
+          <text>暂无投标记录</text>
+        </view>
+
+        <view class="bid-loading" wx:if="{{bidLoading}}">
+          <text>加载中...</text>
+        </view>
+      </view>
+
+      <view class="modal-footer">
+        <view class="bid-tips">
+          <text>💡 投标积分越高，中标概率越大</text>
+        </view>
+        <button class="modal-btn" bindtap="onCloseBidModal">关闭</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 商品建议弹窗 -->
+  <view class="wish-modal" wx:if="{{showWishModal}}" catchtap="onCloseWishModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">💡 我想要兑换</text>
+        <text class="modal-close" bindtap="onCloseWishModal">✕</text>
+      </view>
+      
+      <view class="modal-body">
+        <view class="form-item">
+          <text class="form-label">商品名称 *</text>
+          <input 
+            class="form-input" 
+            placeholder="请输入您想要的商品名称"
+            value="{{wishForm.name}}"
+            bindinput="onWishNameInput"
+            maxlength="50"
+          />
+        </view>
+        
+        <view class="form-item">
+          <text class="form-label">商品描述</text>
+          <textarea 
+            class="form-textarea" 
+            placeholder="请描述您想要的商品详情（选填）"
+            value="{{wishForm.description}}"
+            bindinput="onWishDescInput"
+            maxlength="200"
+          />
+        </view>
+        
+        <view class="form-item">
+          <text class="form-label">期望积分 *</text>
+          <input 
+            class="form-input" 
+            type="number"
+            placeholder="您认为合理的兑换积分"
+            value="{{wishForm.expected_score}}"
+            bindinput="onWishScoreInput"
+          />
+        </view>
+
+        <view class="form-tip">
+          <text>📝 提交后，其他同学可以为您的建议投票，票数高的商品更容易被采纳上架。</text>
+        </view>
+      </view>
+
+      <view class="modal-footer">
+        <button class="modal-btn cancel-btn" bindtap="onCloseWishModal">取消</button>
+        <button class="modal-btn confirm-btn" bindtap="onSubmitWish">提交</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 提示信息 -->
+  <view class="tips" wx:if="{{activeTab === 'items'}}">
+    <view class="tip-item">
+      <text class="tip-icon">💡</text>
+      <text class="tip-text">投标模式：投标积分越高，中标概率越大</text>
+    </view>
+    <view class="tip-item">
+      <text class="tip-icon">🔥</text>
+      <text class="tip-text">热门商品：参与投标/兑换人数较多的商品</text>
+    </view>
+  </view>
+</view>

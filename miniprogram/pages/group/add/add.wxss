@@ -1,0 +1,717 @@
+/* 添加/编辑分组页面样式 */
+.container {
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding-bottom: 120rpx;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 100rpx 0;
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+/* 表单容器 */
+.form-container {
+  padding: 20rpx;
+}
+
+.form-section {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 24rpx;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.member-count {
+  font-size: 26rpx;
+  color: #999;
+  margin-left: 12rpx;
+}
+
+.section-action {
+  margin-left: auto;
+  padding: 8rpx 20rpx;
+  background: #e6f7ff;
+  border-radius: 20rpx;
+}
+
+.action-text {
+  font-size: 24rpx;
+  color: #1890ff;
+}
+
+/* 表单项 */
+.form-item {
+  margin-bottom: 24rpx;
+}
+
+.form-item:last-child {
+  margin-bottom: 0;
+}
+
+.form-label {
+  display: block;
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 12rpx;
+  font-weight: 500;
+}
+
+.form-label.required::before {
+  content: '*';
+  color: #ff4d4f;
+  margin-right: 4rpx;
+}
+
+.form-input {
+  width: 100%;
+  height: 80rpx;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+/* 新增：禁用状态的文本样式 */
+.disabled-text {
+  color: #bfbfbf;
+  font-size: 26rpx;
+  display: flex;
+  align-items: center;
+  height: 80rpx;
+}
+
+.form-textarea {
+  width: 100%;
+  height: 160rpx;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.picker-value {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 80rpx;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.picker-value .arrow {
+  font-size: 20rpx;
+  color: #bfbfbf;
+}
+
+/* 颜色选择器 */
+.color-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+}
+
+.color-option {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.color-option.active {
+  box-shadow: 0 0 0 4rpx rgba(0, 0, 0, 0.1);
+}
+
+.color-check {
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+/* 成员列表 */
+.member-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  gap: 16rpx;
+}
+
+.member-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1890ff, #096dd9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 26rpx;
+  font-weight: 500;
+  flex-shrink: 0; /* 防止头像被压缩 */
+}
+
+/* 新增：组长头像特殊样式（如果需要在组员列表中高亮组长） */
+.member-item.leader-item .member-avatar {
+  background: linear-gradient(135deg, #faad14, #d48806); /* 金色渐变 */
+  box-shadow: 0 0 8rpx rgba(250, 173, 20, 0.4);
+}
+
+.member-info {
+  flex: 1;
+}
+
+.member-name {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+  display: block;
+}
+
+.member-id {
+  font-size: 24rpx;
+  color: #999;
+  display: block;
+  margin-top: 4rpx;
+}
+
+.member-remove {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-icon {
+  font-size: 36rpx;
+  color: #ff4d4f;
+}
+
+/* 空状态 */
+.empty-members {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40rpx 0;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+.empty-hint {
+  font-size: 24rpx;
+  color: #bfbfbf;
+  margin-top: 8rpx;
+}
+
+/* 按钮容器 */
+.btn-container {
+  padding: 32rpx 20rpx;
+}
+
+.submit-btn {
+  width: 100%;
+  height: 88rpx;
+  background: linear-gradient(135deg, #1890ff, #096dd9);
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 500;
+  border-radius: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+}
+
+.submit-btn.disabled {
+  opacity: 0.6;
+}
+
+/* 查看模式操作按钮 */
+.view-actions {
+  display: flex;
+  gap: 20rpx;
+  padding: 32rpx 20rpx;
+}
+
+.action-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.action-btn.primary {
+  background: linear-gradient(135deg, #1890ff, #096dd9);
+}
+
+.action-btn.primary .btn-icon,
+.action-btn.primary .btn-text {
+  color: #fff;
+}
+
+.btn-icon {
+  font-size: 48rpx;
+  margin-bottom: 12rpx;
+}
+
+.btn-text {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+/* 学生选择器弹窗 */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+}
+
+.modal-content.student-picker {
+  width: 100%;
+  max-height: 80vh;
+  background: #fff;
+  border-radius: 24rpx 24rpx 0 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.modal-close {
+  font-size: 32rpx;
+  color: #999;
+  padding: 8rpx;
+}
+
+.search-box {
+  padding: 20rpx 32rpx;
+}
+
+.search-input {
+  width: 100%;
+  height: 72rpx;
+  background: #f5f7fa;
+  border-radius: 36rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.selected-info {
+  padding: 0 32rpx 16rpx;
+  font-size: 26rpx;
+  color: #1890ff;
+}
+
+.student-list {
+  flex: 1;
+  max-height: 50vh;
+  padding: 0 32rpx;
+}
+
+.student-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  gap: 16rpx;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.student-item.selected .student-avatar {
+  background: linear-gradient(135deg, #52c41a, #389e0d);
+}
+
+.student-avatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.student-info {
+  flex: 1;
+}
+
+.student-name {
+  font-size: 30rpx;
+  color: #333;
+  font-weight: 500;
+  display: block;
+}
+
+.student-id {
+  font-size: 24rpx;
+  color: #999;
+  display: block;
+  margin-top: 4rpx;
+}
+
+.check-box {
+  width: 44rpx;
+  height: 44rpx;
+  border: 2rpx solid #d9d9d9;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.student-item.selected .check-box {
+  background: #1890ff;
+  border-color: #1890ff;
+}
+
+.check-icon {
+  font-size: 24rpx;
+  color: #fff;
+}
+
+.modal-footer {
+  padding: 24rpx 32rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.confirm-btn {
+  width: 100%;
+  height: 88rpx;
+  background: linear-gradient(135deg, #1890ff, #096dd9);
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 500;
+  border-radius: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+}
+
+/* 新增：学期复制卡片样式 */
+.copy-section {
+  padding: 0 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.copy-card {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #e6f7ff, #bae7ff);
+  border-radius: 16rpx;
+  padding: 24rpx;
+  border: 1rpx dashed #1890ff;
+}
+
+.copy-icon {
+  font-size: 48rpx;
+  margin-right: 20rpx;
+}
+
+.copy-info {
+  flex: 1;
+}
+
+.copy-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1890ff;
+}
+
+.copy-desc {
+  display: block;
+  font-size: 24rpx;
+  color: #666;
+  margin-top: 4rpx;
+}
+
+.copy-arrow {
+  font-size: 32rpx;
+  color: #1890ff;
+}
+
+/* 新增：选中组长显示样式 */
+.selected-leader {
+  display: flex;
+  align-items: center;
+  background: #fffbe6;
+  border: 1rpx solid #ffe58f;
+  border-radius: 12rpx;
+  padding: 16rpx;
+  margin-top: 16rpx;
+}
+
+.leader-badge {
+  margin-right: 16rpx;
+}
+
+.badge-text {
+  font-size: 24rpx;
+  color: #d48806;
+  background: #faad14;
+  color: #fff;
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+}
+
+.leader-info {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.leader-avatar {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #faad14, #d48806);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 24rpx;
+  margin-right: 12rpx;
+}
+
+.leader-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.leader-id {
+  font-size: 24rpx;
+  color: #999;
+  margin-left: 8rpx;
+}
+
+/* 新增：picker 提示样式 */
+.picker-tip {
+  margin-top: 12rpx;
+}
+
+.tip-text {
+  font-size: 24rpx;
+  color: #faad14;
+}
+
+/* 新增：已选学生名单样式 */
+.selected-students-section {
+  background: #f0f5ff;
+  padding: 16rpx 32rpx;
+  border-bottom: 1rpx solid #e6e6e6;
+}
+
+.selected-header {
+  margin-bottom: 12rpx;
+}
+
+.selected-title {
+  font-size: 26rpx;
+  color: #1890ff;
+  font-weight: 500;
+}
+
+.selected-students-list {
+  white-space: nowrap;
+  padding: 8rpx 0;
+}
+
+.selected-student-item {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 20rpx;
+  position: relative;
+}
+
+.selected-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #52c41a, #389e0d);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 24rpx;
+}
+
+.selected-name {
+  font-size: 22rpx;
+  color: #333;
+  margin-top: 8rpx;
+  max-width: 100rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selected-remove {
+  position: absolute;
+  top: -8rpx;
+  right: -8rpx;
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 50%;
+  background: #ff4d4f;
+  color: #fff;
+  font-size: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 新增：学期复制弹窗样式 */
+.semester-modal {
+  width: 600rpx;
+  max-height: 70vh;
+  border-radius: 24rpx;
+}
+
+.modal-body {
+  padding: 24rpx 32rpx;
+}
+
+.modal-desc {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 24rpx;
+  display: block;
+}
+
+.semester-list {
+  max-height: 400rpx;
+  overflow-y: auto;
+}
+
+.semester-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  border: 2rpx solid #e6e6e6;
+  border-radius: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.semester-item.selected {
+  border-color: #1890ff;
+  background: #e6f7ff;
+}
+
+.semester-radio {
+  width: 40rpx;
+  height: 40rpx;
+  border: 2rpx solid #d9d9d9;
+  border-radius: 50%;
+  margin-right: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.semester-item.selected .semester-radio {
+  border-color: #1890ff;
+}
+
+.radio-dot {
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: 50%;
+  background: #1890ff;
+}
+
+.semester-name {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.cancel-btn {
+  flex: 1;
+  height: 80rpx;
+  background: #f5f5f5;
+  color: #666;
+  font-size: 28rpx;
+  border-radius: 40rpx;
+  border: none;
+  margin-right: 16rpx;
+}
+
+.no-students-tip {
+  text-align: center;
+  padding: 60rpx 0;
+  color: #999;
+  font-size: 28rpx;
+}
+
+/* placeholder 样式 */
+.placeholder {
+  color: #bfbfbf;
+}

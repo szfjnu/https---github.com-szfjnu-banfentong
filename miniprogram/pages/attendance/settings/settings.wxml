@@ -1,0 +1,161 @@
+<!--pages/attendance/settings/settings.wxml-->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="page-title">考勤设置</text>
+    <text class="page-subtitle">管理考勤类别和积分规则</text>
+  </view>
+
+  <!-- 类别列表 -->
+  <view class="category-section">
+    <view class="section-header">
+      <text class="section-title">考勤类别</text>
+      <view class="add-btn" bindtap="onAddCategory">
+        <text class="add-icon">+</text>
+        <text class="add-text">添加类别</text>
+      </view>
+    </view>
+
+    <view class="category-list" wx:if="{{!loading}}">
+      <view class="category-item" wx:for="{{categories}}" wx:key="_id">
+        <view class="category-left">
+          <view class="category-icon" style="background: {{item.color}}20; color: {{item.color}}">
+            {{item.icon || '📌'}}
+          </view>
+          <view class="category-info">
+            <view class="category-name">
+              <text>{{item.category_name}}</text>
+              <text class="system-badge" wx:if="{{item.is_system}}">系统</text>
+            </view>
+            <text class="category-desc" wx:if="{{item.description}}">{{item.description}}</text>
+          </view>
+        </view>
+        <view class="category-right">
+          <view class="score-badge" style="background: {{item.score_deduction >= 0 ? '#f6ffed' : '#fff1f0'}}; color: {{item.score_deduction >= 0 ? '#52c41a' : '#ff4d4f'}}">
+            {{item.score_deduction >= 0 ? '+' : ''}}{{item.score_deduction || 0}}分
+          </view>
+        </view>
+        <view class="category-actions">
+          <switch checked="{{item.is_active}}" color="#667eea" bindchange="onToggleCategory" data-category="{{item}}"/>
+          <view class="action-btn edit" bindtap="onEditCategory" data-category="{{item}}">
+            <text>编辑</text>
+          </view>
+          <view class="action-btn delete" bindtap="onDeleteCategory" data-category="{{item}}" wx:if="{{!item.is_system}}">
+            <text>删除</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载状态 -->
+    <view class="loading-state" wx:if="{{loading}}">
+      <text class="loading-text">加载中...</text>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{!loading && categories.length === 0}}">
+      <text class="empty-icon">📋</text>
+      <text class="empty-text">暂无考勤类别</text>
+      <button class="empty-btn" bindtap="onAddCategory">添加类别</button>
+    </view>
+  </view>
+
+  <!-- 积分规则说明 -->
+  <view class="info-section">
+    <view class="info-title">积分规则说明</view>
+    <view class="info-content">
+      <text class="info-text">• 病假和事假通常不扣积分</text>
+      <text class="info-text">• 迟到和早退可根据情况扣减积分</text>
+      <text class="info-text">• 旷课扣减积分较多</text>
+      <text class="info-text">• 积分扣减值可自定义设置</text>
+    </view>
+  </view>
+</view>
+
+<!-- 添加/编辑类别弹窗 -->
+<view class="modal" wx:if="{{showCategoryModal}}">
+  <view class="modal-mask" bindtap="onCloseModal"></view>
+  <view class="modal-content">
+    <view class="modal-header">
+      <text class="modal-title">{{editingCategory ? '编辑类别' : '添加类别'}}</text>
+      <view class="modal-close" bindtap="onCloseModal">✕</view>
+    </view>
+
+    <view class="modal-body">
+      <!-- 类别名称 -->
+      <view class="form-item">
+        <text class="form-label">类别名称</text>
+        <input class="form-input" 
+               placeholder="请输入类别名称"
+               value="{{categoryForm.category_name}}"
+               bindinput="onNameInput"
+               maxlength="20"/>
+      </view>
+
+      <!-- 积分扣减 -->
+      <view class="form-item">
+        <text class="form-label">积分扣减</text>
+        <input class="form-input" 
+               type="number"
+               placeholder="输入积分值（负数为扣分）"
+               value="{{categoryForm.score_deduction}}"
+               bindinput="onScoreInput"/>
+        <text class="form-tip">负数表示扣分，0表示不扣分</text>
+      </view>
+
+      <!-- 描述 -->
+      <view class="form-item">
+        <text class="form-label">描述说明</text>
+        <textarea class="form-textarea"
+                  placeholder="请输入描述说明（选填）"
+                  value="{{categoryForm.description}}"
+                  bindinput="onDescInput"
+                  maxlength="100"/>
+      </view>
+
+      <!-- 选择颜色 -->
+      <view class="form-item">
+        <text class="form-label">显示颜色</text>
+        <view class="color-list">
+          <view class="color-item {{categoryForm.color === item ? 'selected' : ''}}"
+                wx:for="{{presetColors}}" wx:key="*this"
+                style="background: {{item}}"
+                bindtap="onSelectColor"
+                data-color="{{item}}">
+            <text class="color-check" wx:if="{{categoryForm.color === item}}">✓</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 选择图标 -->
+      <view class="form-item">
+        <text class="form-label">显示图标</text>
+        <view class="icon-list">
+          <view class="icon-item {{categoryForm.icon === item ? 'selected' : ''}}"
+                wx:for="{{presetIcons}}" wx:key="*this"
+                bindtap="onSelectIcon"
+                data-icon="{{item}}">
+            <text>{{item}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 预览 -->
+      <view class="form-item">
+        <text class="form-label">效果预览</text>
+        <view class="preview-box">
+          <view class="preview-category" style="background: {{categoryForm.color}}20; color: {{categoryForm.color}}">
+            <text class="preview-icon">{{categoryForm.icon}}</text>
+            <text class="preview-name">{{categoryForm.category_name || '类别名称'}}</text>
+            <text class="preview-score">{{categoryForm.score_deduction >= 0 ? '+' : ''}}{{categoryForm.score_deduction}}分</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="modal-footer">
+      <button class="cancel-btn" bindtap="onCloseModal">取消</button>
+      <button class="confirm-btn" bindtap="onSaveCategory" loading="{{saving}}">保存</button>
+    </view>
+  </view>
+</view>

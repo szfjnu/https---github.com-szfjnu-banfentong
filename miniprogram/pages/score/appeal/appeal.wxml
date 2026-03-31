@@ -1,0 +1,135 @@
+<!--pages/score/appeal/appeal.wxml-->
+<view class="container">
+  <!-- 原积分记录信息 -->
+  <view class="record-info-card" wx:if="{{recordInfo}}">
+    <view class="card-header">
+      <text class="card-title">原积分记录</text>
+    </view>
+    <view class="card-body">
+      <view class="info-row">
+        <text class="info-label">学生姓名</text>
+        <text class="info-value">{{studentName}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">积分项目</text>
+        <text class="info-value">{{recordInfo.rule_name || recordInfo.reason || '未知项目'}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">积分变动</text>
+        <text class="info-value {{originalScore > 0 ? 'positive' : 'negative'}}">
+          {{originalScore > 0 ? '+' : ''}}{{originalScore}}分
+        </text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">记录时间</text>
+        <text class="info-value">{{recordInfo.record_date || recordInfo.date}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 申诉表单 -->
+  <view class="form-card">
+    <view class="card-header">
+      <text class="card-title">提交申诉</text>
+      <text class="card-desc">申诉将在48小时内完成审核</text>
+    </view>
+    
+    <view class="form-body">
+      <!-- 申诉类型 -->
+      <view class="form-item">
+        <text class="form-label required">申诉类型</text>
+        <picker mode="selector" range="{{appealTypes}}" range-key="label" bindchange="onAppealTypeChange">
+          <view class="picker">
+            <text>{{appealTypes[0].label}}</text>
+            <text class="arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+
+      <!-- 期望积分 -->
+      <view class="form-item" wx:if="{{formData.appeal_type === 'score_error'}}">
+        <text class="form-label required">期望积分</text>
+        <input 
+          class="input" 
+          type="number" 
+          placeholder="请输入您认为正确的积分值"
+          value="{{formData.requested_score}}"
+          bindinput="onRequestedScoreInput"
+        />
+      </view>
+
+      <!-- 申诉理由 -->
+      <view class="form-item">
+        <text class="form-label required">申诉理由</text>
+        <textarea 
+          class="textarea" 
+          placeholder="请详细说明申诉原因，便于审核人员了解情况..."
+          value="{{formData.appeal_reason}}"
+          bindinput="onReasonInput"
+          maxlength="500"
+        />
+        <text class="word-count">{{formData.appeal_reason.length}}/500</text>
+      </view>
+
+      <!-- 证据上传 -->
+      <view class="form-item">
+        <text class="form-label">上传证据（可选）</text>
+        <view class="evidence-list">
+          <view class="evidence-item" wx:for="{{formData.evidence_urls}}" wx:key="*this">
+            <image src="{{item}}" mode="aspectFill" bindtap="onPreviewImage" data-url="{{item}}" />
+            <view class="remove-btn" catchtap="onRemoveEvidence" data-index="{{index}}">✕</view>
+          </view>
+          <view class="evidence-add" bindtap="onChooseEvidence" wx:if="{{formData.evidence_urls.length < 3}}">
+            <text class="add-icon">+</text>
+            <text class="add-text">添加图片</text>
+          </view>
+        </view>
+        <text class="form-tip">最多上传3张图片作为证据</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 申诉流程说明 -->
+  <view class="process-card">
+    <view class="card-header">
+      <text class="card-title">申诉流程</text>
+    </view>
+    <view class="process-steps">
+      <view class="step">
+        <view class="step-num">1</view>
+        <view class="step-content">
+          <text class="step-title">提交申诉</text>
+          <text class="step-desc">填写申诉理由并提交</text>
+        </view>
+      </view>
+      <view class="step">
+        <view class="step-num">2</view>
+        <view class="step-content">
+          <text class="step-title">班委初审</text>
+          <text class="step-desc">24小时内完成初审</text>
+        </view>
+      </view>
+      <view class="step">
+        <view class="step-num">3</view>
+        <view class="step-content">
+          <text class="step-title">班主任终审</text>
+          <text class="step-desc">48小时内完成终审</text>
+        </view>
+      </view>
+      <view class="step">
+        <view class="step-num">4</view>
+        <view class="step-content">
+          <text class="step-title">结果通知</text>
+          <text class="step-desc">同步推送至家长端</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 提交按钮 -->
+  <view class="submit-section">
+    <button class="submit-btn {{submitting ? 'disabled' : ''}}" bindtap="onSubmit" disabled="{{submitting || !canSubmit}}">
+      {{submitting ? '提交中...' : '提交申诉'}}
+    </button>
+  </view>
+</view>

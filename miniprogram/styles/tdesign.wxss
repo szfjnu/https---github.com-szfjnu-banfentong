@@ -1,0 +1,4 @@
+/* TDesign 样式文件 */
+/* 由于我们使用的是自定义样式,这里可以保持为空,或者引入TDesign的基础样式 */
+
+/* 如果需要使用TDesign组件,可以从miniprogram_npm/tdesign-miniprogram中引入 */

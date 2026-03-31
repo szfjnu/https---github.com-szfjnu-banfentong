@@ -1,0 +1,126 @@
+<!--pages/attendance/fullstats/fullstats.wxml-->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="page-title">全勤统计</text>
+    <text class="page-subtitle">统计学生的全勤情况</text>
+  </view>
+
+  <!-- 统计类型选择 -->
+  <view class="type-selector">
+    <picker mode="selector" range="{{statTypeLabels}}" bindchange="onStatTypeChange">
+      <view class="selector-content">
+        <text class="selector-text">{{statTypeLabels[currentTypeIndex]}}</text>
+        <text class="selector-icon">▼</text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 时间导航 -->
+  <view class="period-nav">
+    <view class="nav-btn" bindtap="onPrevPeriod">
+      <text class="nav-icon">‹</text>
+    </view>
+    <view class="period-title">{{currentPeriodLabel}}</view>
+    <view class="nav-btn" bindtap="onNextPeriod">
+      <text class="nav-icon">›</text>
+    </view>
+  </view>
+
+  <!-- 统计卡片 -->
+  <view class="stats-cards" wx:if="{{!loading}}">
+    <view class="stats-card total">
+      <view class="card-icon">👥</view>
+      <view class="card-info">
+        <text class="card-value">{{statistics.total_students}}</text>
+        <text class="card-label">班级总人数</text>
+      </view>
+    </view>
+    <view class="stats-card full">
+      <view class="card-icon">🏆</view>
+      <view class="card-info">
+        <text class="card-value">{{statistics.full_attendance_count}}</text>
+        <text class="card-label">全勤人数</text>
+      </view>
+    </view>
+    <view class="stats-card rate">
+      <view class="card-icon">📊</view>
+      <view class="card-info">
+        <text class="card-value">{{statistics.full_attendance_rate}}%</text>
+        <text class="card-label">全勤率</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 学生列表 -->
+  <view class="student-section" wx:if="{{!loading}}">
+    <view class="section-header">
+      <text class="section-title">学生全勤情况</text>
+      <view class="export-btn" bindtap="onExportStats">
+        <text>导出</text>
+      </view>
+    </view>
+
+    <!-- 全勤学生 -->
+    <view class="category-title">
+      <text class="title-icon">✓</text>
+      <text class="title-text">全勤学生 ({{statistics.full_attendance_count}}人)</text>
+    </view>
+    
+    <view class="student-grid">
+      <view class="student-item full" wx:for="{{studentList}}" wx:key="student_id" wx:if="{{item.is_full_attendance}}">
+        <view class="student-avatar">
+          <text class="avatar-text">{{item.name[0]}}</text>
+        </view>
+        <text class="student-name">{{item.name}}</text>
+        <view class="full-badge">全勤</view>
+      </view>
+    </view>
+
+    <!-- 非全勤学生 -->
+    <view class="category-title" wx:if="{{statistics.total_students - statistics.full_attendance_count > 0}}">
+      <text class="title-icon">✗</text>
+      <text class="title-text">非全勤学生 ({{statistics.total_students - statistics.full_attendance_count}}人)</text>
+    </view>
+    
+    <view class="student-list">
+      <view class="student-detail-item" wx:for="{{studentList}}" wx:key="student_id" wx:if="{{!item.is_full_attendance}}">
+        <view class="student-left">
+          <view class="student-avatar">
+            <text class="avatar-text">{{item.name[0]}}</text>
+          </view>
+          <view class="student-info">
+            <text class="student-name">{{item.name}}</text>
+            <view class="absence-tags">
+              <text class="absence-tag sick" wx:if="{{item.sick_leave_days > 0}}">病假{{item.sick_leave_days}}天</text>
+              <text class="absence-tag personal" wx:if="{{item.personal_leave_days > 0}}">事假{{item.personal_leave_days}}天</text>
+              <text class="absence-tag absent" wx:if="{{item.absent_count > 0}}">旷课{{item.absent_count}}次</text>
+            </view>
+          </view>
+        </view>
+        <view class="student-right">
+          <text class="late-early" wx:if="{{item.late_count > 0 || item.early_leave_count > 0}}">
+            <text wx:if="{{item.late_count > 0}}">迟到{{item.late_count}}次</text>
+            <text wx:if="{{item.late_count > 0 && item.early_leave_count > 0}}"> | </text>
+            <text wx:if="{{item.early_leave_count > 0}}">早退{{item.early_leave_count}}次</text>
+          </text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-state" wx:if="{{loading}}">
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 说明 -->
+  <view class="notice-section">
+    <view class="notice-title">全勤说明</view>
+    <view class="notice-content">
+      <text class="notice-text">• 全勤标准：无病假、事假、旷课</text>
+      <text class="notice-text">• 迟到和早退不计入缺勤，但会显示</text>
+      <text class="notice-text">• 实际出勤率 = (总人数-病假-事假-旷课)/总人数</text>
+    </view>
+  </view>
+</view>

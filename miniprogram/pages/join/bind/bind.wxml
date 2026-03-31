@@ -1,0 +1,83 @@
+<!--pages/join/bind/bind.wxml-->
+<view class="container">
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-input">
+      <image class="search-icon" src="/images/icons/search.png" mode="aspectFit"></image>
+      <input
+        type="text"
+        placeholder="搜索学生姓名"
+        value="{{searchKeyword}}"
+        bindinput="onSearchInput"
+      />
+      <image
+        class="clear-icon"
+        wx:if="{{searchKeyword}}"
+        src="/images/icons/clear.png"
+        mode="aspectFit"
+        bindtap="onClearSearch"
+      ></image>
+    </view>
+    <view class="sort-btn" bindtap="onToggleSort">
+      <text>排序</text>
+    </view>
+  </view>
+
+  <!-- 学生列表 -->
+  <view class="student-section">
+    <view class="section-header">
+      <text class="section-title">选择学生姓名（单选）</text>
+      <text class="section-count">共{{filteredStudents.length}}人</text>
+    </view>
+
+    <view class="student-list" wx:if="{{filteredStudents.length > 0}}">
+      <view
+        class="student-item {{selectedStudentId === item._id ? 'selected' : ''}}"
+        wx:for="{{filteredStudents}}"
+        wx:key="_id"
+        bindtap="onSelectStudent"
+        data-id="{{item._id}}"
+      >
+        <view class="student-avatar">
+          <text>👤</text>
+        </view>
+        <view class="student-info">
+          <view class="student-name">{{item.name}}</view>
+          <view class="student-meta">
+            <text class="meta-item">{{item.student_id}}</text>
+          </view>
+        </view>
+        <view class="student-check" wx:if="{{selectedStudentId === item._id}}">
+          <text>✓</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{filteredStudents.length === 0 && !loading}}">
+      <text class="empty-icon">📭</text>
+      <text class="empty-text">{{searchKeyword ? '未找到匹配的学生' : '暂无学生数据'}}</text>
+    </view>
+  </view>
+
+  <!-- 添加学生按钮 -->
+  <view class="add-student-section">
+    <view class="add-btn" bindtap="onAddStudent">
+      <text class="add-icon">➕</text>
+      <text class="add-text">名单中没有，去添加</text>
+    </view>
+  </view>
+
+  <!-- 下一步按钮 -->
+  <view class="action-section">
+    <button class="btn-next" bindtap="onNext" disabled="{{!selectedStudentId && !isAddingNew}}">
+      下一步
+    </button>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-icon"></view>
+    <view class="loading-text">加载中...</view>
+  </view>
+</view>

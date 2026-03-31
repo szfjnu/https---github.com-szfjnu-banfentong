@@ -1,0 +1,9 @@
+{
+  "name": "resetStudentScore",
+  "version": "1.0.0",
+  "description": "重置学生积分",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

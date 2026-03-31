@@ -1,0 +1,448 @@
+/* pages/score/rules/version.wxss */
+.container {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding-bottom: 100rpx;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+}
+
+.loading-icon {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #e0e0e0;
+  border-top-color: #1890ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin-top: 20rpx;
+  color: #999;
+}
+
+/* 顶部信息 */
+.header {
+  background: linear-gradient(135deg, #1890ff, #096dd9);
+  padding: 40rpx 30rpx;
+  color: #fff;
+}
+
+.rule-name {
+  font-size: 36rpx;
+  font-weight: 600;
+  margin-bottom: 12rpx;
+}
+
+.version-count {
+  font-size: 26rpx;
+  opacity: 0.9;
+}
+
+/* 操作栏 */
+.action-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 30rpx;
+  background: #fff;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.selected-info {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.action-btn {
+  padding: 12rpx 24rpx;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  margin-left: 16rpx;
+}
+
+.action-btn.compare {
+  background: #1890ff;
+  color: #fff;
+}
+
+.action-btn.clear {
+  background: #f5f5f5;
+  color: #666;
+}
+
+/* 版本列表 */
+.versions-list {
+  padding: 20rpx;
+}
+
+.version-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  border-left: 6rpx solid #52c41a;
+}
+
+.version-card.active {
+  border-left-color: #52c41a;
+}
+
+.version-card.history {
+  border-left-color: #d9d9d9;
+}
+
+.version-card.draft {
+  border-left-color: #faad14;
+}
+
+.version-card.selected {
+  background: #f0f5ff;
+  border: 2rpx solid #1890ff;
+}
+
+.version-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.version-info {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.version-number {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #333;
+}
+
+.version-status {
+  font-size: 22rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+}
+
+.version-status.active {
+  background: #f6ffed;
+  color: #52c41a;
+}
+
+.version-status.history {
+  background: #f5f5f5;
+  color: #8c8c8c;
+}
+
+.version-status.draft {
+  background: #fffbe6;
+  color: #faad14;
+}
+
+.version-actions {
+  display: flex;
+  gap: 16rpx;
+}
+
+.btn-icon {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f5f5f5;
+  font-size: 28rpx;
+  color: #999;
+}
+
+.version-card.selected .btn-icon {
+  background: #1890ff;
+  color: #fff;
+}
+
+.version-body {
+  padding: 16rpx 0;
+  border-top: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid #f0f0f0;
+  margin-bottom: 16rpx;
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 12rpx;
+  font-size: 26rpx;
+}
+
+.info-row:last-child {
+  margin-bottom: 0;
+}
+
+.info-row .label {
+  color: #999;
+  width: 140rpx;
+  flex-shrink: 0;
+}
+
+.info-row .value {
+  flex: 1;
+  color: #333;
+}
+
+.info-row .value.score {
+  font-weight: 600;
+  color: #52c41a;
+}
+
+.info-row .value.score.deduct {
+  color: #ff4d4f;
+}
+
+.version-footer {
+  display: flex;
+  gap: 16rpx;
+}
+
+.btn-text {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  background: #f5f5f5;
+  color: #666;
+}
+
+.btn-text.rollback {
+  background: #fff2f0;
+  color: #ff4d4f;
+}
+
+/* 空状态 */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 100rpx 0;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+/* 提示 */
+.tips {
+  padding: 20rpx 30rpx;
+  background: #fff;
+  margin: 0 20rpx 20rpx;
+  border-radius: 12rpx;
+}
+
+.tip-item {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 8rpx;
+}
+
+.tip-item:last-child {
+  margin-bottom: 0;
+}
+
+/* 弹窗 */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+  z-index: 1000;
+}
+
+.modal-content {
+  width: 100%;
+  max-height: 90vh;
+  background: #fff;
+  border-radius: 24rpx 24rpx 0 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.modal-close {
+  font-size: 36rpx;
+  color: #999;
+  padding: 10rpx;
+}
+
+.modal-body {
+  flex: 1;
+  padding: 30rpx;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  display: flex;
+  padding: 20rpx 30rpx 30rpx;
+  flex-shrink: 0;
+}
+
+.modal-btn {
+  flex: 1;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+}
+
+.modal-btn.confirm {
+  background: #1890ff;
+  color: #fff;
+}
+
+/* 对比内容 */
+.compare-section {
+  margin-bottom: 30rpx;
+}
+
+.compare-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16rpx;
+  padding-bottom: 12rpx;
+  border-bottom: 2rpx solid #f0f0f0;
+}
+
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+}
+
+.compare-item {
+  background: #f5f7fa;
+  padding: 16rpx;
+  border-radius: 8rpx;
+}
+
+.compare-label {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 8rpx;
+}
+
+.compare-value {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 600;
+}
+
+.compare-row {
+  display: grid;
+  grid-template-columns: 140rpx 1fr 1fr;
+  gap: 16rpx;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+  align-items: center;
+}
+
+.compare-col {
+  font-size: 26rpx;
+}
+
+.compare-col.label {
+  color: #999;
+}
+
+.compare-col.old {
+  color: #8c8c8c;
+}
+
+.compare-col.new {
+  color: #333;
+}
+
+.compare-col.new.highlight {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+/* 变更记录 */
+.changes-list {
+  background: #fffbe6;
+  border-radius: 12rpx;
+  padding: 16rpx;
+}
+
+.change-item {
+  padding: 12rpx 0;
+  border-bottom: 1rpx solid #ffe58f;
+}
+
+.change-item:last-child {
+  border-bottom: none;
+}
+
+.change-field {
+  font-size: 26rpx;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.change-detail {
+  font-size: 24rpx;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.change-detail .old {
+  color: #8c8c8c;
+}
+
+.change-detail .arrow {
+  color: #d9d9d9;
+}
+
+.change-detail .new {
+  color: #52c41a;
+  font-weight: 600;
+}

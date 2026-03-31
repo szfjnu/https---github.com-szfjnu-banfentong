@@ -1,0 +1,121 @@
+/* pages/login/login.wxss */
+.login-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 80rpx 40rpx;
+}
+
+/* Logo区域 */
+.login-header {
+  text-align: center;
+  margin-bottom: 80rpx;
+}
+
+.logo {
+  width: 160rpx;
+  height: 160rpx;
+  margin-bottom: 40rpx;
+}
+
+.title {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 20rpx;
+}
+
+.subtitle {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* 登录表单 */
+.login-form {
+  background: white;
+  border-radius: 20rpx;
+  padding: 60rpx 40rpx;
+  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.1);
+}
+
+.form-item {
+  margin-bottom: 40rpx;
+}
+
+.form-label {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 20rpx;
+  font-weight: 500;
+}
+
+.form-picker {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 30rpx;
+  background: #f5f5f5;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+}
+
+.form-picker .placeholder {
+  color: #999;
+}
+
+.picker-arrow {
+  color: #999;
+  font-size: 32rpx;
+}
+
+.form-input {
+  padding: 24rpx 30rpx;
+  background: #f5f5f5;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+}
+
+/* 登录按钮 */
+.login-btn {
+  margin-top: 60rpx;
+  margin-bottom: 40rpx;
+}
+
+.btn {
+  border-radius: 10rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-block {
+  width: 100%;
+  padding: 24rpx 0;
+}
+
+.btn-large {
+  font-size: 32rpx;
+}
+
+/* 提示信息 */
+.login-tips {
+  margin-top: 40rpx;
+  padding: 30rpx;
+  background: #f0f9ff;
+  border-radius: 10rpx;
+  border-left: 6rpx solid #1890ff;
+}
+
+.tip-item {
+  font-size: 24rpx;
+  color: #666;
+  line-height: 40rpx;
+  margin-bottom: 10rpx;
+}
+
+.tip-item:last-child {
+  margin-bottom: 0;
+}

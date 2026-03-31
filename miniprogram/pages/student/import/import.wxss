@@ -1,0 +1,428 @@
+/* pages/student/import/import.wxss */
+.container {
+  padding: 20rpx;
+  padding-bottom: 120rpx;
+  background: #f5f7fa;
+  min-height: 100vh;
+}
+
+.page-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40rpx 30rpx;
+  margin: -20rpx -20rpx 20rpx -20rpx;
+  border-radius: 0 0 30rpx 30rpx;
+  color: #fff;
+}
+
+.page-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: bold;
+}
+
+.page-subtitle {
+  display: block;
+  font-size: 24rpx;
+  opacity: 0.8;
+  margin-top: 10rpx;
+}
+
+/* 区块 */
+.section {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.section-header .section-title {
+  margin-bottom: 0;
+}
+
+.section-tip {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 字段说明 */
+.field-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.field-item {
+  width: calc(50% - 8rpx);
+  background: #f8f9fa;
+  padding: 16rpx;
+  border-radius: 8rpx;
+}
+
+.field-name {
+  margin-bottom: 8rpx;
+}
+
+.field-label {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.field-required {
+  color: #ff4d4f;
+  margin-left: 4rpx;
+}
+
+.field-example {
+  font-size: 22rpx;
+  color: #999;
+}
+
+/* 导入方式切换 */
+.method-tabs {
+  display: flex;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 8rpx;
+  margin-bottom: 20rpx;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx;
+  font-size: 28rpx;
+  color: #666;
+  border-radius: 12rpx;
+  transition: all 0.3s;
+}
+
+.tab-item.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  font-weight: bold;
+}
+
+/* 粘贴区域 */
+.paste-area {
+  width: 100%;
+  height: 300rpx;
+  background: #f8f9fa;
+  border: 2rpx dashed #ddd;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  font-size: 26rpx;
+  line-height: 1.6;
+  box-sizing: border-box;
+}
+
+.action-row {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 20rpx;
+}
+
+/* 按钮样式 */
+.btn-primary {
+  flex: 1;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+.btn-secondary {
+  flex: 1;
+  background: #f5f5f5;
+  color: #666;
+  border: none;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  font-size: 28rpx;
+}
+
+/* 模板展示 */
+.template-box {
+  background: #f8f9fa;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.template-text {
+  font-size: 24rpx;
+  color: #333;
+  font-family: monospace;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.template-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.tip-title {
+  font-size: 26rpx;
+  color: #333;
+  font-weight: bold;
+}
+
+.tip-item {
+  font-size: 24rpx;
+  color: #666;
+  margin-left: 20rpx;
+}
+
+/* 预览列表 */
+.preview-stats {
+  display: flex;
+  gap: 20rpx;
+}
+
+.stat-valid {
+  font-size: 24rpx;
+  color: #52c41a;
+}
+
+.stat-invalid {
+  font-size: 24rpx;
+  color: #ff4d4f;
+}
+
+.preview-list {
+  max-height: 600rpx;
+  overflow-y: auto;
+}
+
+.preview-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  background: #f8f9fa;
+  border-radius: 12rpx;
+  margin-bottom: 16rpx;
+  border-left: 6rpx solid #52c41a;
+}
+
+.preview-item.invalid {
+  border-left-color: #ff4d4f;
+  background: #fff2f0;
+}
+
+.preview-main {
+  flex: 1;
+}
+
+.preview-info {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 8rpx;
+}
+
+.preview-name {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.preview-id {
+  font-size: 24rpx;
+  color: #999;
+  background: #eee;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+}
+
+.preview-detail {
+  display: flex;
+  gap: 16rpx;
+}
+
+.preview-detail text {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.preview-status {
+  margin-right: 20rpx;
+}
+
+.status-valid {
+  color: #52c41a;
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.status-invalid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.status-icon {
+  color: #ff4d4f;
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.status-error {
+  font-size: 20rpx;
+  color: #ff4d4f;
+  max-width: 150rpx;
+  text-align: center;
+}
+
+.preview-actions {
+  display: flex;
+}
+
+.remove-btn {
+  font-size: 24rpx;
+  color: #ff4d4f;
+  padding: 8rpx 16rpx;
+}
+
+/* 导入按钮 */
+.import-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 30rpx;
+}
+
+.btn-reset {
+  flex: 1;
+  background: #f5f5f5;
+  color: #666;
+  border: none;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  font-size: 28rpx;
+}
+
+.btn-import {
+  flex: 2;
+  background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+.btn-import[disabled] {
+  background: #ccc;
+}
+
+/* 进度条 */
+.progress-bar {
+  height: 8rpx;
+  background: #eee;
+  border-radius: 4rpx;
+  margin-top: 20rpx;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+  transition: width 0.3s;
+}
+
+/* 导入结果 */
+.result-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+}
+
+.result-header {
+  text-align: center;
+  margin-bottom: 30rpx;
+}
+
+.result-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.result-body {
+  display: flex;
+  justify-content: center;
+  gap: 40rpx;
+  margin-bottom: 30rpx;
+}
+
+.result-item {
+  text-align: center;
+}
+
+.result-num {
+  display: block;
+  font-size: 48rpx;
+  font-weight: bold;
+}
+
+.result-item.success .result-num {
+  color: #52c41a;
+}
+
+.result-item.skip .result-num {
+  color: #faad14;
+}
+
+.result-item.fail .result-num {
+  color: #ff4d4f;
+}
+
+.result-label {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.result-errors {
+  background: #fff2f0;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.error-title {
+  font-size: 26rpx;
+  color: #ff4d4f;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 10rpx;
+}
+
+.error-item {
+  font-size: 24rpx;
+  color: #ff4d4f;
+  margin-bottom: 8rpx;
+}
+
+.result-actions {
+  display: flex;
+  gap: 20rpx;
+}

@@ -1,0 +1,56 @@
+<!--pages/join/join.wxml-->
+<view class="container">
+  <!-- 加入方式选择 -->
+  <view class="method-section">
+    <view class="section-title">选择加入方式</view>
+    <view class="method-list">
+      <view class="method-item {{activeMethod === 'code' ? 'active' : ''}}" bindtap="onMethodChange" data-method="code">
+        <view class="method-icon">🎫</view>
+        <view class="method-info">
+          <view class="method-name">通过班级码加入</view>
+          <view class="method-desc">输入班级码快速加入</view>
+        </view>
+        <view class="method-check" wx:if="{{activeMethod === 'code'}}">✓</view>
+      </view>
+      <view class="method-item {{activeMethod === 'phone' ? 'active' : ''}}" bindtap="onMethodChange" data-method="phone">
+        <view class="method-icon">📱</view>
+        <view class="method-info">
+          <view class="method-name">通过老师手机号加入</view>
+          <view class="method-desc">输入老师手机号查找班级</view>
+        </view>
+        <view class="method-check" wx:if="{{activeMethod === 'phone'}}">✓</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 输入区域 -->
+  <view class="input-section">
+    <view class="input-label" wx:if="{{activeMethod === 'code'}}">班级码</view>
+    <view class="input-label" wx:else>老师手机号</view>
+    <input
+      class="input-field"
+      type="{{activeMethod === 'code' ? 'text' : 'number'}}"
+      placeholder="{{activeMethod === 'code' ? '请输入班级码' : '请输入老师手机号'}}"
+      value="{{inputValue}}"
+      bindinput="onInputChange"
+      maxlength="{{activeMethod === 'code' ? 20 : 11}}"
+    />
+    <view class="help-link" wx:if="{{activeMethod === 'code'}}" bindtap="onShowHelp">
+      <text>不知道班级码，如何获取？</text>
+    </view>
+  </view>
+
+  <!-- 隐私协议 -->
+  <view class="agreement-section">
+    <checkbox checked="{{agreed}}" bindtap="onToggleAgreement" color="#1890ff" />
+    <text class="agreement-text">我已阅读</text>
+    <text class="agreement-link" bindtap="onShowPrivacy">《班分通数据安全和隐私保障规则》</text>
+  </view>
+
+  <!-- 查找按钮 -->
+  <view class="action-section">
+    <button class="btn-search" bindtap="onSearch" disabled="{{!canSearch}}">
+      查找班级
+    </button>
+  </view>
+</view>

@@ -1,0 +1,5 @@
+{
+  "usingComponents": {},
+  "navigationBarTitleText": "积分排行榜",
+  "enablePullDownRefresh": true
+}

@@ -1,0 +1,86 @@
+{
+  "pages": [
+    "pages/login/login",
+    "pages/welcome/welcome",
+    "pages/index/index",
+    "pages/student/student",
+    "pages/student/detail/detail",
+    "pages/student/add/add",
+    "pages/student/import/import",
+    "pages/class/class",
+    "pages/class/add/add",
+    "pages/class/detail/detail",
+    "pages/class/settings/settings",
+    "pages/join/join",
+    "pages/join/info/info",
+    "pages/join/bind/bind",
+    "pages/join/confirm/confirm",
+    "pages/attendance/attendance",
+    "pages/attendance/leave/leave",
+    "pages/attendance/record/record",
+    "pages/attendance/settings/settings",
+    "pages/attendance/fullstats/fullstats",
+    "pages/score/score",
+    "pages/score/record/record",
+    "pages/score/mall/mall",
+    "pages/score/mall/admin/admin",
+    "pages/score/add/add",
+    "pages/score/rules/rules",
+    "pages/score/rules/version/version",
+    "pages/score/categories/categories",
+    "pages/score/appeal/appeal",
+    "pages/score/reset/reset",
+    "pages/score/anomaly/anomaly",
+    "pages/volunteer/volunteer",
+    "pages/volunteer/add/add",
+    "pages/group/group",
+    "pages/group/add/add",
+    "pages/semester/semester",
+    "pages/debug/debug"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#1890ff",
+    "navigationBarTitleText": "学生成长管理",
+    "navigationBarTextStyle": "white",
+    "enablePullDownRefresh": false
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#1890ff",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "images/icons/home.png",
+        "selectedIconPath": "images/icons/home-active.png"
+      },
+      {
+        "pagePath": "pages/student/student",
+        "text": "学生",
+        "iconPath": "images/icons/student.png",
+        "selectedIconPath": "images/icons/student-active.png"
+      },
+      {
+        "pagePath": "pages/score/score",
+        "text": "积分",
+        "iconPath": "images/icons/score.png",
+        "selectedIconPath": "images/icons/score-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents",
+  "permission": {
+    "scope.userLocation": {
+      "desc": "你的位置信息将用于考勤定位功能"
+    }
+  },
+  "requiredPrivateInfos": [
+    "getLocation"
+  ],
+  "cloud": true
+}

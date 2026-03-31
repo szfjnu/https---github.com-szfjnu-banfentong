@@ -1,0 +1,313 @@
+/* pages/class/class.wxss */
+.container {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding-bottom: 120rpx;
+}
+
+/* 页面标题 */
+.page-header {
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  padding: 40rpx 30rpx;
+  color: white;
+}
+
+.page-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 8rpx;
+}
+
+.page-subtitle {
+  font-size: 24rpx;
+  opacity: 0.8;
+}
+
+/* 搜索栏 */
+.search-bar {
+  background: white;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.search-input {
+  display: flex;
+  align-items: center;
+  background: #f5f5f5;
+  border-radius: 40rpx;
+  padding: 20rpx 30rpx;
+}
+
+.search-icon {
+  font-size: 32rpx;
+  margin-right: 20rpx;
+}
+
+.search-input input {
+  flex: 1;
+  font-size: 28rpx;
+}
+
+.clear-icon {
+  font-size: 28rpx;
+  color: #999;
+  padding: 10rpx;
+}
+
+/* 操作按钮组 */
+.action-buttons {
+  display: flex;
+  gap: 20rpx;
+  padding: 0 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24rpx;
+  background: white;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.action-btn:active {
+  background: #f9f9f9;
+}
+
+.btn-icon {
+  font-size: 32rpx;
+  margin-right: 12rpx;
+}
+
+.btn-text {
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+.create-btn {
+  color: #1890ff;
+}
+
+.join-btn {
+  color: #52c41a;
+}
+
+/* 班级列表 */
+.class-list {
+  padding: 0 20rpx;
+}
+
+.list-header {
+  font-size: 26rpx;
+  color: #999;
+  padding: 10rpx 0;
+}
+
+.class-item {
+  background: white;
+  border-radius: 16rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  border: 2rpx solid transparent;
+}
+
+.class-item.current {
+  border-color: #1890ff;
+  background: #e6f7ff;
+}
+
+.class-main {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  transition: all 0.3s;
+}
+
+.class-main:active {
+  background: #f9f9f9;
+}
+
+.class-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 16rpx;
+  background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  margin-right: 24rpx;
+}
+
+.class-info {
+  flex: 1;
+}
+
+.class-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 12rpx;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.current-badge {
+  font-size: 22rpx;
+  font-weight: normal;
+  background: #1890ff;
+  color: white;
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+}
+
+.class-meta {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 12rpx;
+}
+
+.meta-item {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.class-tags {
+  display: flex;
+  gap: 12rpx;
+  margin-bottom: 12rpx;
+}
+
+.tag {
+  font-size: 22rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+}
+
+.role-tag {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.role-tag.head_teacher {
+  background: #fff7e6;
+  color: #fa8c16;
+}
+
+.role-tag.subject_teacher {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.role-tag.student {
+  background: #f6ffed;
+  color: #52c41a;
+}
+
+.role-tag.parent {
+  background: #fff1f0;
+  color: #ff4d4f;
+}
+
+.owner-tag {
+  background: #f9f0ff;
+  color: #722ed1;
+}
+
+.class-stats {
+  display: flex;
+  gap: 20rpx;
+}
+
+.stat-item {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.class-actions {
+  display: flex;
+  align-items: center;
+}
+
+.enter-btn {
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  color: white;
+  font-size: 24rpx;
+  padding: 12rpx 24rpx;
+  border-radius: 30rpx;
+}
+
+.enter-btn:active {
+  opacity: 0.8;
+}
+
+/* 空状态 */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 40rpx;
+}
+
+.empty-icon {
+  font-size: 120rpx;
+  margin-bottom: 30rpx;
+}
+
+.empty-text {
+  font-size: 32rpx;
+  color: #666;
+  margin-bottom: 16rpx;
+}
+
+.empty-hint {
+  font-size: 26rpx;
+  color: #999;
+  margin-bottom: 40rpx;
+}
+
+.empty-actions {
+  display: flex;
+  gap: 20rpx;
+}
+
+.empty-btn {
+  padding: 20rpx 40rpx;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  background: white;
+  color: #666;
+  border: 2rpx solid #ddd;
+}
+
+.empty-btn.primary {
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  color: white;
+  border: none;
+}
+
+/* 加载状态 */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 0;
+}
+
+.loading-icon {
+  font-size: 60rpx;
+  margin-bottom: 20rpx;
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #999;
+}

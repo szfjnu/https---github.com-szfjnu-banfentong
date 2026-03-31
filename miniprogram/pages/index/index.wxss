@@ -1,0 +1,702 @@
+/* pages/index/index.wxss */
+.container {
+  padding: 20rpx;
+  background: #f5f5f5;
+  min-height: 100vh;
+  padding-bottom: 40rpx;
+}
+
+/* 卡片通用样式 */
+.card {
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+
+.card-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 30rpx;
+}
+
+/* 用户信息卡片 */
+.user-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.user-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.avatar {
+  border-radius: 50%;
+  margin-right: 30rpx;
+  border: 4rpx solid rgba(255, 255, 255, 0.3);
+}
+
+.avatar-large {
+  width: 100rpx;
+  height: 100rpx;
+}
+
+.user-name {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.user-role {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20rpx;
+}
+
+.tag {
+  padding: 6rpx 16rpx;
+  border-radius: 6rpx;
+  font-size: 24rpx;
+}
+
+.tag-primary {
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.semester {
+  font-size: 24rpx;
+  opacity: 0.9;
+}
+
+/* 天气信息 */
+.weather-section {
+  text-align: right;
+  padding-left: 20rpx;
+}
+
+.weather-main {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+  margin-bottom: 8rpx;
+}
+
+.weather-temp {
+  font-size: 48rpx;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.weather-desc {
+  font-size: 24rpx;
+  opacity: 0.9;
+}
+
+.weather-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  font-size: 20rpx;
+  opacity: 0.8;
+}
+
+.weather-wind, .weather-humidity {
+  display: block;
+}
+
+.weather-tips {
+  margin-top: 20rpx;
+  padding: 16rpx 20rpx;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.tips-icon {
+  font-size: 24rpx;
+}
+
+.tips-text {
+  font-size: 22rpx;
+  opacity: 0.9;
+}
+
+/* 统计卡片 */
+.stat-card {
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+
+.stat-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+/* 紧凑型统计网格 - 四个一行 */
+.stat-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15rpx;
+  margin-bottom: 30rpx;
+}
+
+.stat-item-compact {
+  text-align: center;
+  padding: 20rpx 10rpx;
+  background: linear-gradient(135deg, #f5f7fa 0%, #f0f2f5 100%);
+  border-radius: 12rpx;
+  transition: all 0.3s ease;
+}
+
+.stat-item-compact:active {
+  transform: scale(0.95);
+}
+
+.stat-value-compact {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #1890ff;
+  margin-bottom: 8rpx;
+  line-height: 1.2;
+}
+
+.stat-label-compact {
+  font-size: 22rpx;
+  color: #666;
+}
+
+.text-warning {
+  color: #fa8c16;
+}
+
+/* 普通统计网格 */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20rpx;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 30rpx 20rpx;
+  background: linear-gradient(135deg, #f5f7fa 0%, #f0f2f5 100%);
+  border-radius: 16rpx;
+  transition: all 0.3s ease;
+}
+
+.stat-item:active {
+  transform: scale(0.95);
+}
+
+.stat-value {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #1890ff;
+  margin-bottom: 10rpx;
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 24rpx;
+  color: #666;
+}
+
+/* 积分排行榜 */
+.ranking-section {
+  border-top: 1rpx solid #f0f0f0;
+  padding-top: 20rpx;
+}
+
+.ranking-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.ranking-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.ranking-more {
+  font-size: 24rpx;
+  color: #1890ff;
+}
+
+.ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.ranking-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx 20rpx;
+  background: #fafafa;
+  border-radius: 12rpx;
+}
+
+.ranking-item:nth-child(1) {
+  background: linear-gradient(135deg, #fff7e6 0%, #fffbe6 100%);
+}
+
+.ranking-item:nth-child(2) {
+  background: linear-gradient(135deg, #f5f5f5 0%, #fafafa 100%);
+}
+
+.ranking-item:nth-child(3) {
+  background: linear-gradient(135deg, #fff1e6 0%, #fff7f0 100%);
+}
+
+.ranking-left {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.ranking-badge {
+  width: 40rpx;
+  font-size: 28rpx;
+  text-align: center;
+}
+
+.ranking-avatar {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+}
+
+.ranking-name {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.ranking-right {
+  text-align: right;
+}
+
+.ranking-score {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #52c41a;
+  display: block;
+}
+
+.ranking-label {
+  font-size: 20rpx;
+  color: #999;
+}
+
+.ranking-empty, .ranking-loading {
+  text-align: center;
+  padding: 40rpx 0;
+  color: #999;
+  font-size: 26rpx;
+}
+
+/* 提醒区域 */
+.reminder-section {
+  margin-bottom: 20rpx;
+}
+
+.reminder-cards {
+  display: flex;
+  gap: 15rpx;
+}
+
+.reminder-card {
+  flex: 1;
+  background: white;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+
+.reminder-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.reminder-title {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.reminder-icon {
+  font-size: 28rpx;
+}
+
+.reminder-actions {
+  display: flex;
+  gap: 16rpx;
+}
+
+.switch-btn {
+  font-size: 22rpx;
+  color: #1890ff;
+  padding: 4rpx 12rpx;
+  background: #e6f7ff;
+  border-radius: 8rpx;
+}
+
+.more-btn {
+  font-size: 22rpx;
+  color: #999;
+}
+
+/* 课程列表 */
+.course-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.course-item {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 16rpx;
+  background: #fafafa;
+  border-radius: 12rpx;
+  gap: 16rpx;
+}
+
+.course-item.active {
+  background: #e6f7ff;
+  border-left: 4rpx solid #1890ff;
+}
+
+.course-time {
+  text-align: center;
+  min-width: 80rpx;
+}
+
+.period {
+  display: block;
+  font-size: 24rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.time {
+  display: block;
+  font-size: 18rpx;
+  color: #999;
+}
+
+.course-info {
+  flex: 1;
+}
+
+.course-name {
+  display: block;
+  font-size: 26rpx;
+  color: #333;
+}
+
+.course-teacher {
+  display: block;
+  font-size: 20rpx;
+  color: #999;
+}
+
+.course-status {
+  font-size: 20rpx;
+  color: #999;
+  padding: 4rpx 12rpx;
+  background: #f0f0f0;
+  border-radius: 8rpx;
+}
+
+.course-status.active {
+  background: #52c41a;
+  color: white;
+}
+
+/* 生日列表 */
+.birthday-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.birthday-item {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 16rpx;
+  background: #fafafa;
+  border-radius: 12rpx;
+  gap: 16rpx;
+}
+
+.birthday-avatar {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+}
+
+.birthday-info {
+  flex: 1;
+}
+
+.birthday-name {
+  display: block;
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.birthday-age {
+  display: block;
+  font-size: 20rpx;
+  color: #999;
+}
+
+.birthday-wish {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 8rpx 16rpx;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+  border-radius: 20rpx;
+}
+
+.wish-icon {
+  font-size: 20rpx;
+}
+
+.wish-text {
+  font-size: 22rpx;
+  color: white;
+}
+
+.reminder-empty, .reminder-loading {
+  text-align: center;
+  padding: 30rpx 0;
+  color: #999;
+  font-size: 24rpx;
+}
+
+/* 快捷操作区域 */
+.quick-actions-section {
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 30rpx;
+}
+
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20rpx;
+}
+
+.quick-action-item {
+  text-align: center;
+  padding: 20rpx 10rpx;
+  border-radius: 16rpx;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.quick-action-item:active {
+  transform: scale(0.95);
+  opacity: 0.8;
+}
+
+.quick-action-item.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.action-icon-wrapper {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 15rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.quick-action-item:active .action-icon-wrapper {
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.2);
+}
+
+.action-icon-img {
+  width: 50rpx;
+  height: 50rpx;
+}
+
+.action-title {
+  font-size: 24rpx;
+  color: #333;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.action-badge {
+  position: absolute;
+  top: 10rpx;
+  right: 10rpx;
+  background: #ff4d4f;
+  color: white;
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+  min-width: 30rpx;
+  text-align: center;
+}
+
+/* 加载状态 */
+.loading {
+  text-align: center;
+  padding: 100rpx 0;
+}
+
+.loading-icon {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #f3f3f3;
+  border-top: 4rpx solid #1890ff;
+  border-radius: 50%;
+  margin: 0 auto 20rpx;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+/* 响应式布局 - 小屏幕适配 */
+@media screen and (max-width: 375px) {
+  .quick-actions-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .stat-grid-compact {
+    gap: 10rpx;
+  }
+  
+  .stat-value-compact {
+    font-size: 32rpx;
+  }
+  
+  .stat-label-compact {
+    font-size: 20rpx;
+  }
+  
+  .reminder-cards {
+    flex-direction: column;
+  }
+  
+  .action-icon-wrapper {
+    width: 90rpx;
+    height: 90rpx;
+  }
+  
+  .action-icon-img {
+    width: 45rpx;
+    height: 45rpx;
+  }
+}
+
+/* 响应式布局 - 超小屏幕适配 */
+@media screen and (max-width: 320px) {
+  .quick-actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15rpx;
+  }
+  
+  .stat-grid-compact {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10rpx;
+  }
+  
+  .stat-item-compact {
+    padding: 16rpx 8rpx;
+  }
+  
+  .stat-value-compact {
+    font-size: 28rpx;
+  }
+  
+  .stat-grid {
+    gap: 15rpx;
+  }
+  
+  .stat-item {
+    padding: 20rpx 15rpx;
+  }
+  
+  .stat-value {
+    font-size: 36rpx;
+  }
+  
+  .weather-section {
+    display: none;
+  }
+}
+
+/* 响应式布局 - 大屏幕适配 */
+@media screen and (min-width: 414px) {
+  .quick-actions-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 25rpx;
+  }
+  
+  .action-icon-wrapper {
+    width: 110rpx;
+    height: 110rpx;
+  }
+  
+  .action-icon-img {
+    width: 55rpx;
+    height: 55rpx;
+  }
+}
