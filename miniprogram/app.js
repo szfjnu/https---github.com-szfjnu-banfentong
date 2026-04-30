@@ -11,6 +11,8 @@ App({
     class_id: null, // 用户关联的班级ID，用于数据隔离
     currentSemester: null,
     currentSemesterId: null, // 当前学期ID
+    currentSemesterName: null, // 当前学期名称
+    currentClassName: null, // 当前班级名称
     envId: null,
     // 会员相关
     membership: null, // 会员信息
@@ -70,6 +72,14 @@ App({
         this.globalData.student_id = studentId;
         console.log('已恢复学号:', studentId);
       }
+      // 恢复学期ID
+      const semesterId = wx.getStorageSync('currentSemesterId');
+      if (semesterId) {
+        this.globalData.currentSemesterId = semesterId;
+        console.log('已恢复学期ID:', semesterId);
+      }
+      // 异步获取最新学期信息
+      this.getCurrentSemester();
     } else {
       console.log('用户未登录');
     }
@@ -187,18 +197,24 @@ App({
         redemption: ['read', 'write', 'approve'],
         grade: ['read', 'write'],
         duty: ['read', 'write'],
+        notification: ['read', 'write'],
+        settings: ['read', 'write'],
         // 数据隔离范围：class_id 匹配本班
       },
       subject_teacher: {
         student: ['read'],
         score: ['read', 'write'],
         grade: ['read', 'write'],
+        notification: ['read', 'write'],
+        settings: ['read'],
         // 数据隔离范围：assigned_classes 中的班级
       },
       class_cadre: {
         score: ['read', 'write'],
         duty: ['read', 'write'],
         attendance: ['read', 'write'],
+        notification: ['read'],
+        settings: ['read'],
         // 数据隔离范围：本班
       },
       student: {
@@ -206,12 +222,16 @@ App({
         score: ['read'],
         volunteer: ['read', 'write'],
         redemption: ['read', 'write'],
+        notification: ['read'],
+        settings: ['read', 'write'],
         // 数据隔离范围：仅本人数据
       },
       parent: {
         profile: ['read'],
         score: ['read'],
         attendance: ['read'],
+        notification: ['read'],
+        settings: ['read'],
         // 数据隔离范围：关联学生数据
       }
     };
@@ -312,8 +332,11 @@ App({
             const semester = res.data[0];
             this.globalData.currentSemester = semester;
             this.globalData.currentSemesterId = semester._id || semester.semester_id || '';
+            this.globalData.currentSemesterName = semester.name || '';
+            console.log('已获取当前学期:', semester.name, 'ID:', this.globalData.currentSemesterId);
             resolve(semester);
           } else {
+            console.warn('未找到当前学期');
             resolve(null);
           }
         })

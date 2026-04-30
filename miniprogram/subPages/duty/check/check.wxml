@@ -1,0 +1,155 @@
+<!--pages/duty/check/check.wxml - 值日检查页面-->
+<view class="container">
+  <!-- 日期和操作栏 -->
+  <view class="top-bar">
+    <picker mode="date" value="{{dutyDate}}" bindchange="onDateChange">
+      <view class="date-badge">{{dutyDate}}</view>
+    </picker>
+    <view class="batch-btn" bindtap="onBatchAllQualified">
+      <text>✅ 全部合格</text>
+    </view>
+  </view>
+
+  <!-- 筛选标签 -->
+  <view class="filter-tabs">
+    <view class="filter-tab {{filterStatus === 'pending' ? 'active' : ''}}" data-status="pending" bindtap="onFilterChange">
+      待检查 ({{pendingTasks.length}})
+    </view>
+    <view class="filter-tab {{filterStatus === 'checked' ? 'active' : ''}}" data-status="checked" bindtap="onFilterChange">
+      已检查 ({{checkedTasks.length}})
+    </view>
+    <view class="filter-tab {{filterStatus === 'all' ? 'active' : ''}}" data-status="all" bindtap="onFilterChange">
+      全部
+    </view>
+  </view>
+
+  <!-- 任务列表 -->
+  <view class="task-list" wx:if="{{!loading}}">
+    <view class="task-card" wx:for="{{displayList}}" wx:key="task_id">
+      <view class="task-top">
+        <view class="task-left">
+          <view class="task-icon">{{item.task_name === '扫地' ? '🧹' : (item.task_name === '擦黑板' ? '🪟' : (item.task_name === '倒垃圾' ? '🗑️' : '📋'))}}</view>
+          <view class="task-info">
+            <text class="task-name">{{item.task_name || '未分配'}}</text>
+            <text class="task-meta">{{item.student_name}} | {{item.group_name}}</text>
+          </view>
+        </view>
+        <view class="task-right">
+          <view class="status-tag {{item.status === '已完成' ? 'done' : (item.status === '未完成' ? 'fail' : 'pending')}}">
+            {{item.status}}
+          </view>
+        </view>
+      </view>
+
+      <!-- 已检查：显示检查结果 -->
+      <view class="task-result" wx:if="{{item.inspection && item.inspection.is_inspected}}">
+        <view class="result-row">
+          <text class="result-label">检查人：</text>
+          <text class="result-value">{{item.inspection.inspector_name}}（{{item.inspection.inspector_role}}）</text>
+        </view>
+        <view class="result-row">
+          <text class="result-label">积分变化：</text>
+          <text class="result-value {{item.score_change > 0 ? 'plus' : 'minus'}}">
+            {{item.score_change > 0 ? '+' : ''}}{{item.score_change}}分
+          </text>
+        </view>
+        <view class="result-row" wx:if="{{item.inspection.problems}}">
+          <text class="result-label">问题：</text>
+          <text class="result-value">{{item.inspection.problems}}</text>
+        </view>
+        <view class="result-row" wx:if="{{item.inspection.comment}}">
+          <text class="result-label">评语：</text>
+          <text class="result-value">{{item.inspection.comment}}</text>
+        </view>
+      </view>
+
+      <!-- 待检查：显示检查按钮 -->
+      <view class="task-action" wx:if="{{item.status === '待完成'}}">
+        <view class="check-btn" bindtap="onOpenCheck" data-task="{{item}}">检查评分</view>
+      </view>
+    </view>
+ 
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{displayList.length === 0}}">
+      <text class="empty-icon">📋</text>
+      <text class="empty-text">{{filterStatus === 'pending' ? '暂无待检查任务' : '暂无记录'}}</text>
+    </view>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading-state" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 检查弹窗 -->
+  <view class="modal-mask" wx:if="{{showCheckModal}}" bindtap="onHideCheckModal">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">检查评分</text>
+        <text class="modal-close" bindtap="onHideCheckModal">✕</text>
+      </view>
+
+      <view class="modal-task-info" wx:if="{{currentTask}}">
+        <text class="modal-task-name">{{currentTask.task_name}}</text>
+        <text class="modal-task-student">{{currentTask.student_name}}</text>
+      </view>
+
+      <!-- 合格/不合格 -->
+      <view class="qualified-btns">
+        <view class="qualified-btn {{checkForm.is_qualified ? 'active yes' : ''}}" data-value="{{true}}" bindtap="onQualifiedChange">
+          ✅ 合格
+        </view>
+        <view class="qualified-btn {{!checkForm.is_qualified ? 'active no' : ''}}" data-value="{{false}}" bindtap="onQualifiedChange">
+          ❌ 不合格
+        </view>
+      </view>
+
+      <!-- 积分调整 -->
+      <view class="form-group">
+        <text class="form-label">积分变化（合格+分，不合格-分）</text>
+        <input class="form-input" type="number" value="{{checkForm.score_change}}" bindinput="onCustomScoreChange" />
+      </view>
+
+      <!-- 检查评分 -->
+      <view class="form-group">
+        <text class="form-label">评分 (1-5)</text>
+        <view class="score-stars">
+          <text class="star {{checkForm.inspection_score >= 1 ? 'active' : ''}}">★</text>
+          <text class="star {{checkForm.inspection_score >= 2 ? 'active' : ''}}">★</text>
+          <text class="star {{checkForm.inspection_score >= 3 ? 'active' : ''}}">★</text>
+          <text class="star {{checkForm.inspection_score >= 4 ? 'active' : ''}}">★</text>
+          <text class="star {{checkForm.inspection_score >= 5 ? 'active' : ''}}">★</text>
+        </view>
+      </view>
+
+      <!-- 问题记录 -->
+      <view class="form-group" wx:if="{{!checkForm.is_qualified}}">
+        <text class="form-label">问题记录</text>
+        <textarea class="form-textarea" placeholder="描述问题..." value="{{checkForm.problems}}" bindinput="onProblemInput" />
+      </view>
+
+      <!-- 评语 -->
+      <view class="form-group">
+        <text class="form-label">评语</text>
+        <textarea class="form-textarea" placeholder="可选..." value="{{checkForm.comment}}" bindinput="onCommentInput" />
+      </view>
+
+      <!-- 检查人信息 -->
+      <view class="form-row">
+        <view class="form-group half">
+          <text class="form-label">检查人</text>
+          <input class="form-input" value="{{checkForm.inspector_name}}" bindinput="onInspectorNameInput" />
+        </view>
+        <view class="form-group half">
+          <text class="form-label">角色</text>
+          <picker range="{{roleOptions}}" value="{{roleOptions.indexOf(checkForm.inspector_role)}}" bindchange="onRoleChange">
+            <view class="form-picker">{{checkForm.inspector_role}} ▾</view>
+          </picker>
+        </view>
+      </view>
+
+      <!-- 提交按钮 -->
+      <view class="submit-btn" bindtap="onSubmitCheck">确认提交</view>
+    </view>
+  </view>
+</view>

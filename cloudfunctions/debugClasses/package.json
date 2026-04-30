@@ -1,0 +1,9 @@
+{
+  "name": "debugClasses",
+  "version": "1.0.0",
+  "description": "调试classes集合数据查询",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

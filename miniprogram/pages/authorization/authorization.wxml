@@ -1,0 +1,114 @@
+<!-- pages/authorization/authorization.wxml -->
+<view class="container">
+  <!-- 顶部操作栏 -->
+  <view class="action-bar">
+    <view class="action-left">
+      <text class="action-text">已选 {{selectedStudentIds.length}} 人</text>
+    </view>
+    <view class="action-right">
+      <button class="btn-batch" bindtap="onShowBatchModal" disabled="{{selectedStudentIds.length === 0}}">批量授权</button>
+    </view>
+  </view>
+
+  <!-- 筛选栏 -->
+  <view class="filter-bar">
+    <input class="search-input" placeholder="搜索学生姓名/学号" value="{{searchKeyword}}" bindinput="onSearchInput" />
+    <picker mode="selector" range="{{positionOptions}}" range-key="label" bindchange="onPositionFilter">
+      <view class="filter-picker">
+        {{selectedPosition || '全部职位'}} ▾
+      </view>
+    </picker>
+  </view>
+
+  <!-- 全选 -->
+  <view class="select-all-bar">
+    <view class="select-all-left" bindtap="onToggleSelectAll">
+      <view class="checkbox {{selectAll ? 'checked' : ''}}"></view>
+      <text>全选当前列表</text>
+    </view>
+    <text class="student-count">共 {{filteredStudents.length}} 名学生</text>
+  </view>
+
+  <!-- 学生列表 -->
+  <view class="student-list" wx:if="{{!loading}}">
+    <view class="student-card {{item.isSelected ? 'selected' : ''}}" wx:for="{{filteredStudents}}" wx:key="student_id"
+          bindtap="onToggleSelect" data-id="{{item.student_id}}">
+      <view class="checkbox {{item.isSelected ? 'checked' : ''}}"></view>
+      <view class="student-info">
+        <view class="student-name">{{item.name}}</view>
+        <view class="student-meta">
+          <text class="student-id">{{item.student_id}}</text>
+          <text class="student-position" wx:if="{{item.position}}">{{item.position}}</text>
+        </view>
+      </view>
+      <view class="auth-status" catchtap="onViewStudentAuth" data-id="{{item.student_id}}">
+        <text class="auth-count">{{item.permissions ? Object.keys(item.permissions).length : 0}}项权限</text>
+        <text class="auth-arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && filteredStudents.length === 0}}">
+    <text class="empty-icon">👥</text>
+    <text class="empty-text">暂无学生数据</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <!-- ========== 单个学生权限弹窗 ========== -->
+  <view class="modal-mask" wx:if="{{showSingleModal}}" bindtap="closeModal">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">{{currentStudent.name}} - 权限设置</text>
+        <text class="modal-close" catchtap="closeModal">✕</text>
+      </view>
+      <scroll-view scroll-y class="modal-body">
+        <view class="perm-module" wx:for="{{currentModuleList}}" wx:key="key">
+          <view class="perm-module-title">{{item.label}}</view>
+          <view class="perm-checkboxes">
+            <label class="perm-checkbox" wx:for="{{item.actions}}" wx:for-item="action" wx:key="*this"
+                   catchtap="onCheckPermission" data-module="{{item.key}}" data-action="{{action}}">
+              <view class="checkbox {{item.currentActions.indexOf(action) >= 0 ? 'checked' : ''}}"></view>
+              <text class="checkbox-label {{action === 'approve' && item.currentActions.indexOf(action) >= 0 ? 'approve-label' : ''}}">{{actionLabels[action] || action}}</text>
+            </label>
+          </view>
+        </view>
+      </scroll-view>
+      <view class="modal-footer">
+        <button class="modal-cancel" catchtap="closeModal">取消</button>
+        <button class="modal-confirm" catchtap="onSaveSingleAuth">保存</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- ========== 批量授权弹窗 ========== -->
+  <view class="modal-mask" wx:if="{{showBatchModal}}" bindtap="onHideBatchModal">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">批量授权 ({{selectedStudentIds.length}}人)</text>
+        <text class="modal-close" catchtap="onHideBatchModal">✕</text>
+      </view>
+      <scroll-view scroll-y class="modal-body">
+        <view class="batch-hint">选择要授予的权限（将覆盖已有权限中相同的模块）：</view>
+        <view class="perm-module" wx:for="{{permissionModules}}" wx:key="key">
+          <view class="perm-module-title">{{item.label}}</view>
+          <view class="perm-checkboxes">
+            <label class="perm-checkbox" wx:for="{{item.actions}}" wx:for-item="action" wx:key="*this"
+                   catchtap="onBatchCheckPermission" data-module="{{item.key}}" data-action="{{action}}">
+              <view class="checkbox {{batchPermissions[item.key] && batchPermissions[item.key].indexOf(action) >= 0 ? 'checked' : ''}}"></view>
+              <text class="checkbox-label {{action === 'approve' && batchPermissions[item.key] && batchPermissions[item.key].indexOf(action) >= 0 ? 'approve-label' : ''}}">{{actionLabels[action] || action}}</text>
+            </label>
+          </view>
+        </view>
+      </scroll-view>
+      <view class="modal-footer">
+        <button class="modal-cancel" catchtap="onHideBatchModal">取消</button>
+        <button class="modal-confirm" catchtap="onBatchAuthorize" loading="{{submitting}}">确认授权</button>
+      </view>
+    </view>
+  </view>
+</view>

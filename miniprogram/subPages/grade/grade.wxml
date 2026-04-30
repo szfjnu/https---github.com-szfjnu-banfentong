@@ -1,0 +1,180 @@
+<!-- 成绩管理中心 -->
+<wxs module="grade">
+  // 根据科目名获取学生分数
+  function getScore(student, subject) {
+    if (!student || !student.subjects) return '';
+    for (var i = 0; i < student.subjects.length; i++) {
+      if (student.subjects[i].subject === subject) {
+        return student.subjects[i].score;
+      }
+    }
+    return '';
+  }
+  // 判断是否不及格
+  function isFail(student, subject) {
+    var score = getScore(student, subject);
+    return score !== '' && score < 60;
+  }
+  module.exports = {
+    getScore: getScore,
+    isFail: isFail
+  };
+</wxs>
+
+<view class="grade-container">
+  <!-- 顶部考试类型 Tab -->
+  <view class="exam-tabs">
+    <view class="tab-item {{currentExamType === 'monthly' ? 'active' : ''}}" bindtap="switchExamType" data-type="monthly">月考</view>
+    <view class="tab-item {{currentExamType === 'midterm' ? 'active' : ''}}" bindtap="switchExamType" data-type="midterm">期中</view>
+    <view class="tab-item {{currentExamType === 'final' ? 'active' : ''}}" bindtap="switchExamType" data-type="final">期末</view>
+  </view>
+
+  <!-- 学期选择器 -->
+  <view class="filter-row">
+    <picker mode="selector" range="{{termList}}" value="{{termIndex}}" bindchange="onTermChange">
+      <view class="picker-item">
+        <text class="picker-label">学期：</text>
+        <text class="picker-value">{{termList[termIndex] || '请选择'}}</text>
+        <text class="picker-arrow">▼</text>
+      </view>
+    </picker>
+
+    <!-- 科目选择器：仅班主任/管理员显示 -->
+    <picker wx:if="{{role === 'head_teacher' || role === 'admin'}}" mode="selector" range="{{subjectList}}" value="{{subjectIndex}}" bindchange="onSubjectChange">
+      <view class="picker-item">
+        <text class="picker-label">科目：</text>
+        <text class="picker-value">{{subjectList[subjectIndex] || '全部'}}</text>
+        <text class="picker-arrow">▼</text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-box" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text>加载中...</text>
+  </view>
+
+  <!-- 统计卡片：仅班主任/管理员可见 -->
+  <view class="stats-section" wx:if="{{!loading && (role === 'head_teacher' || role === 'admin') && stats}}">
+    <view class="stats-title">📊 考试统计</view>
+    <view class="stats-grid">
+      <view class="stat-card">
+        <view class="stat-value">{{stats.overall.avg_score}}</view>
+        <view class="stat-label">平均分</view>
+      </view>
+      <view class="stat-card">
+        <view class="stat-value">{{stats.overall.max_score}}</view>
+        <view class="stat-label">最高分</view>
+      </view>
+      <view class="stat-card">
+        <view class="stat-value">{{stats.overall.pass_rate}}%</view>
+        <view class="stat-label">及格率</view>
+      </view>
+      <view class="stat-card">
+        <view class="stat-value">{{stats.overall.total_count}}</view>
+        <view class="stat-label">总人次</view>
+      </view>
+    </view>
+
+    <!-- 各科目统计 -->
+    <view class="subject-stats" wx:if="{{stats.subjects && stats.subjects.length > 1}}">
+      <view class="subject-stat-item" wx:for="{{stats.subjects}}" wx:key="subject">
+        <view class="subject-stat-name">{{item.subject}}</view>
+        <view class="subject-stat-detail">
+          均{{item.avg_score}} · 高{{item.max_score}} · 及格{{item.pass_rate}}%
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 学生/家长视图：个人成绩 + 趋势图 -->
+  <view wx:if="{{!loading && (role === 'student' || role === 'parent')}}">
+    <!-- 简易趋势图 -->
+    <view class="trend-chart" wx:if="{{myGrades.length > 0}}">
+      <view class="chart-title">成绩趋势</view>
+      <view class="chart-bars">
+        <view class="chart-bar-group" wx:for="{{myGrades}}" wx:key="_id">
+          <view class="chart-bar" style="height: {{item.score > 100 ? 100 : item.score}}%; background: {{item.is_pass ? '#52c41a' : '#ff4d4f'}};">
+          </view>
+          <view class="chart-bar-label">{{item.subject}}</view>
+          <view class="chart-bar-score {{item.is_pass ? '' : 'text-fail'}}">{{item.score}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 个人成绩列表 -->
+    <view class="my-grade-list">
+      <view class="grade-card" wx:for="{{myGrades}}" wx:key="_id">
+        <view class="grade-card-left">
+          <view class="grade-subject">{{item.subject}}</view>
+          <view class="grade-meta">排名 #{{item.rank_class || '-'}}</view>
+        </view>
+        <view class="grade-card-right">
+          <view class="grade-score {{item.is_pass ? '' : 'text-fail'}}">{{item.score}}</view>
+          <view class="grade-pass-tag {{item.is_pass ? 'pass' : 'fail'}}">{{item.is_pass ? '及格' : '不及格'}}</view>
+        </view>
+      </view>
+      <view class="empty-tip" wx:if="{{myGrades.length === 0}}">暂无成绩数据</view>
+    </view>
+  </view>
+
+  <!-- 班主任/管理员视图：全班成绩表格 -->
+  <view wx:if="{{!loading && (role === 'head_teacher' || role === 'admin')}}">
+    <!-- 批量导入按钮 -->
+    <view class="action-bar">
+      <view class="import-btn" bindtap="onImportExcel">
+        <text>📥 批量导入</text>
+      </view>
+    </view>
+
+    <!-- 成绩表格 -->
+    <view class="grade-table" wx:if="{{studentList.length > 0}}">
+      <view class="table-header">
+        <view class="th th-rank">排名</view>
+        <view class="th th-name">姓名</view>
+        <view class="th th-total">总分</view>
+        <view class="th th-subject" wx:for="{{allSubjects}}" wx:key="*this">{{item}}</view>
+      </view>
+      <view class="table-row" wx:for="{{studentList}}" wx:key="student_id" bindtap="goToStudentDetail" data-id="{{item.student_id}}">
+        <view class="td td-rank {{item.rank_class <= 3 ? 'top-rank' : ''}}">{{item.rank_class || '-'}}</view>
+        <view class="td td-name">{{item.student_name}}</view>
+        <view class="td td-total">{{item.total_score}}</view>
+        <view class="td td-subject" wx:for="{{allSubjects}}" wx:key="*this">
+          <text class="{{grade.isFail(item, item2) ? 'text-fail' : ''}}">{{grade.getScore(item, item2) || '-'}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="empty-tip" wx:if="{{studentList.length === 0 && !loading}}">暂无成绩数据，请先录入</view>
+  </view>
+
+  <!-- 批量导入弹窗 -->
+  <view class="modal-mask" wx:if="{{showImportModal}}" bindtap="closeImportModal">
+    <view class="modal-content" catchtap="">
+      <view class="modal-title">批量录入成绩</view>
+
+      <!-- 科目选择 -->
+      <view class="import-field">
+        <text class="import-label">录入科目：</text>
+        <picker mode="selector" range="{{importSubjectList}}" value="{{importSubjectIndex}}" bindchange="onImportSubjectChange">
+          <view class="import-picker">{{importSubject}}</view>
+        </picker>
+      </view>
+
+      <!-- 数据输入 -->
+      <view class="import-field">
+        <text class="import-label">成绩数据：</text>
+        <text class="import-hint">每行一条，格式：学号 分数（空格/逗号/Tab分隔）</text>
+        <textarea class="import-textarea" placeholder="2024001 95&#10;2024002 88&#10;2024003 72" value="{{importText}}" bindinput="onImportInput" auto-height maxlength="-1" />
+      </view>
+
+      <!-- 操作按钮 -->
+      <view class="modal-actions">
+        <view class="modal-btn cancel-btn" bindtap="closeImportModal">取消</view>
+        <view class="modal-btn confirm-btn {{importing ? 'disabled' : ''}}" bindtap="doImport">
+          {{importing ? '录入中...' : '确认录入'}}
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

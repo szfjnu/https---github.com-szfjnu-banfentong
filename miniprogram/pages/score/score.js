@@ -1,4 +1,4 @@
-// pages/score/score.js
+﻿// pages/score/score.js
 const app = getApp();
 const api = require('../../utils/api.js');
 const util = require('../../utils/util.js');
@@ -12,7 +12,13 @@ Page({
     pageSize: 50,
     hasMore: true,
     userRole: '',  // 用户角色
-    currentClassId: '' // 【新增】用于存储班级ID
+    currentClassId: '',
+
+    // 学生个人积分信息（学生/家长模式）
+    myScoreInfo: null,
+    myRank: 0,
+    totalStudents: 0,
+    isStudentMode: false
   },
 
   onLoad: function () {
@@ -20,21 +26,97 @@ Page({
       userRole: app.globalData.role,
       currentClassId: app.globalData.class_id || '' 
     });
-    this.loadRanking();
+    this.initView();
   },
 
   onShow: function () {
-    // 【修复】切换回来时总是刷新数据（与index页面保持一致）
     const newClassId = app.globalData.class_id || '';
     this.setData({ 
       userRole: app.globalData.role,
       currentClassId: newClassId
     });
-    // 每次显示都重新加载排行榜，确保数据实时性
-    this.loadRanking();
+    this.initView();
   },
 
-  // 加载积分排行榜
+  // 根据角色初始化视图
+  initView: function () {
+    const role = this.data.userRole;
+    const isStudentMode = role === 'student' || role === 'parent';
+    this.setData({ isStudentMode });
+
+    if (isStudentMode) {
+      this.loadMyScore();
+    } else {
+      this.loadRanking();
+    }
+  },
+
+  // 学生/家长：加载个人积分和排名
+  loadMyScore: async function () {
+    this.setData({ loading: true });
+    try {
+      const studentId = app.globalData.student_id;
+      const classId = this.data.currentClassId;
+      if (!studentId || !classId) {
+        this.setData({ loading: false });
+        return;
+      }
+
+      const db = wx.cloud.database();
+      const _ = db.command;
+
+      // 获取个人积分
+      const studentRes = await db.collection('students')
+        .where({ student_id: studentId, class_id: classId })
+        .limit(1)
+        .get();
+
+      if (!studentRes.data || studentRes.data.length === 0) {
+        this.setData({ loading: false });
+        return;
+      }
+
+      const student = studentRes.data[0];
+      const currentScore = student.current_score || 100;
+
+      // 获取班级排名 - 查询积分高于自己的学生数量
+      const rankRes = await db.collection('students')
+        .where({
+          class_id: classId,
+          current_score: _.gt(currentScore),
+          status: _.neq('graduated')
+        })
+        .count();
+
+      // 获取班级总人数
+      const totalRes = await db.collection('students')
+        .where({
+          class_id: classId,
+          status: _.neq('graduated')
+        })
+        .count();
+
+      const myRank = rankRes.total + 1;
+      const totalStudents = totalRes.total;
+
+      this.setData({
+        myScoreInfo: {
+          ...student,
+          scoreLevel: util.getScoreLevel(currentScore),
+          scoreColor: util.getScoreColor(currentScore)
+        },
+        myRank,
+        totalStudents,
+        loading: false
+      });
+
+    } catch (err) {
+      console.error('加载个人积分失败:', err);
+      this.setData({ loading: false });
+    }
+  },
+
+  // 管理员/教师：加载积分排行榜
   loadRanking: async function (refresh = true) {
     if (refresh) {
       this.setData({ loading: true, page: 0, hasMore: true });
@@ -44,23 +126,18 @@ Page({
       const { page, pageSize, searchKeyword, currentClassId, userRole } = this.data;
       const skip = refresh ? 0 : page * pageSize;
       
-      // 【关键修改】构建参数对象，包含分页、搜索和班级ID
       let params = {
         limit: pageSize,
         skip: skip
       };
-      // 【关键修改】如果不是超级管理员，添加班级过滤条件
-      // 注意：这里假设你的后端逻辑是根据是否有 class_id 参数来判断
       if (userRole !== 'admin' && currentClassId) {
         params.class_id = currentClassId; 
       }
 
-      // 【关键修改】将参数传入 API
       const res = await api.scoreApi.getScoreRanking(params);
 
       let students = res.data;
 
-      // 如果有搜索关键词,进行过滤
       if (searchKeyword) {
         students = students.filter(s =>
           s.name.includes(searchKeyword) ||
@@ -107,14 +184,14 @@ Page({
   onViewDetail: function (e) {
     const studentId = e.currentTarget.dataset.id;
     wx.navigateTo({
-      url: `/pages/student/detail/detail?id=${studentId}`
+      url: `/subPages/student/detail/detail?id=${studentId}`
     });
   },
 
   // 查看积分记录
   onViewRecords: function () {
     wx.navigateTo({
-      url: '/pages/score/record/record'
+      url: '/subPages/score/record/record'
     });
   },
 
@@ -130,21 +207,56 @@ Page({
       return;
     }
     wx.navigateTo({
-      url: '/pages/score/add/add'
+      url: '/subPages/score/add/add'
     });
   },
 
   // 积分规则管理
   onManageRules: function () {
     wx.navigateTo({
-      url: '/pages/score/rules/rules'
+      url: '/subPages/score/rules/rules'
     });
   },
 
   // 兑换管理
   onManageExchange: function () {
     wx.navigateTo({
-      url: '/pages/score/mall/admin/admin'
+      url: '/subPages/score/mall/admin/admin'
+    });
+  },
+
+  // 兑换台账
+  onManageLedger: function () {
+    wx.navigateTo({
+      url: '/subPages/score/mall/ledger/ledger'
+    });
+  },
+
+  // 学生端：去积分商城
+  onGoMall: function () {
+    wx.navigateTo({
+      url: '/subPages/score/mall/mall'
+    });
+  },
+
+  // 学生端：去志愿服务
+  onGoVolunteer: function () {
+    wx.navigateTo({
+      url: '/subPages/volunteer/volunteer'
+    });
+  },
+
+  // 学生端：去住宿积分
+  onGoDorm: function () {
+    wx.navigateTo({
+      url: '/subPages/dorm/mydorm/mydorm'
+    });
+  },
+
+  // 查看积分规则（学生/家长端）
+  onViewRules: function () {
+    wx.navigateTo({
+      url: '/subPages/score/rules/rules'
     });
   },
 

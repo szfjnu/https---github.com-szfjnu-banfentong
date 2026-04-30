@@ -1,0 +1,51 @@
+<!-- pages/usercenter/notification-detail/notification-detail.wxml -->
+<view class="container" wx:if="{{!loading && notification}}">
+  <!-- 通知头部 -->
+  <view class="detail-header">
+    <view class="header-row">
+      <view class="type-badge" style="background: {{notification.typeColor}}20;">
+        <text class="type-icon">{{notification.typeIcon}}</text>
+        <text class="type-label" style="color: {{notification.typeColor}}">{{notification.typeLabel}}</text>
+      </view>
+      <view class="priority-tag priority-{{notification.priority}}" wx:if="{{notification.priority !== 'normal'}}">
+        {{notification.priority === 'important' ? '重要' : notification.priority === 'urgent' ? '紧急' : ''}}
+      </view>
+    </view>
+    <text class="detail-title">{{notification.title}}</text>
+    <view class="detail-meta">
+      <text class="meta-item">{{notification.sender_name}}</text>
+      <text class="meta-divider">|</text>
+      <text class="meta-item">{{notification.publish_time}}</text>
+    </view>
+  </view>
+
+  <!-- 通知内容 -->
+  <view class="detail-body">
+    <view class="content-text">{{notification.content}}</view>
+  </view>
+
+  <!-- 关联操作 -->
+  <view class="action-section" wx:if="{{notification.action_type}}">
+    <button class="action-btn" bindtap="onAction">
+      {{notification.action_type === 'view_detail' ? '查看详情' : notification.action_type === 'external_link' ? '打开链接' : '查看相关内容'}}
+    </button>
+  </view>
+
+  <!-- 底部操作 -->
+  <view class="detail-footer">
+    <view class="footer-btn" bindtap="onToggleStar">
+      <text class="star-icon">{{isStarred ? '★' : '☆'}}</text>
+      <text class="star-text">{{isStarred ? '已收藏' : '收藏'}}</text>
+    </view>
+  </view>
+</view>
+
+<!-- 加载状态 -->
+<view class="loading-wrap" wx:if="{{loading}}">
+  <text>加载中...</text>
+</view>
+
+<!-- 空状态 -->
+<view class="empty-wrap" wx:if="{{!loading && !notification}}">
+  <text>通知不存在或已被撤回</text>
+</view>

@@ -1,13 +1,16 @@
-// pages/join/join.js
+﻿// pages/join/join.js
 const app = getApp();
 const util = require('../../utils/util.js');
+const api = require('../../utils/api.js');
 
 Page({
   data: {
     activeMethod: 'code',
     inputValue: '',
     agreed: false,
-    canSearch: false
+    canSearch: false,
+    searchResults: [],   // 手机号查询结果列表
+    showResults: false    // 是否显示结果列表
   },
 
   // 切换加入方式
@@ -16,7 +19,9 @@ Page({
     this.setData({
       activeMethod: method,
       inputValue: '',
-      canSearch: false
+      canSearch: false,
+      searchResults: [],
+      showResults: false
     });
   },
 
@@ -69,41 +74,86 @@ Page({
     });
   },
 
-  // 查找班级
+  // 查找班级（使用云函数绕过数据库安全规则限制）
   onSearch: async function () {
     if (!this.data.canSearch) return;
 
     wx.showLoading({ title: '查找中...', mask: true });
 
     try {
-      const db = wx.cloud.database();
-      let query = {};
-
       if (this.data.activeMethod === 'code') {
-        query = { class_code: this.data.inputValue };
-      } else {
-        query = { creator_phone: this.data.inputValue };
-      }
-
-      const res = await db.collection('classes')
-        .where(query)
-        .limit(1)
-        .get();
-
-      wx.hideLoading();
-
-      if (res.data && res.data.length > 0) {
-        // 找到班级，跳转到班级信息页
-        wx.navigateTo({
-          url: `/pages/join/info/info?id=${res.data[0]._id}`
+        // 通过班级码查找 - 使用云函数
+        const classCode = this.data.inputValue.toUpperCase().trim();
+        console.log('正在按班级码查找:', classCode);
+        
+        const res = await wx.cloud.callFunction({
+          name: 'joinClass',
+          data: {
+            action: 'searchByCode',
+            data: { classCode }
+          }
         });
+
+        const result = res.result;
+        wx.hideLoading();
+
+        if (result.success && result.data && result.data.length > 0) {
+          console.log('找到班级:', result.data[0].class_name);
+          this.setData({ searchResults: [], showResults: false });
+          wx.navigateTo({
+            url: `/subPages/join/info/info?id=${result.data[0]._id}`
+          });
+        } else {
+          console.log('未找到班级码:', classCode);
+          util.showError('未找到班级，请检查班级码是否正确');
+        }
       } else {
-        util.showError('未找到班级，请检查输入');
+        // 通过老师手机号查找 - 使用云函数
+        const phone = this.data.inputValue.trim();
+        console.log('正在按手机号查找:', phone);
+        
+        const res = await wx.cloud.callFunction({
+          name: 'joinClass',
+          data: {
+            action: 'searchByPhone',
+            data: { phone }
+          }
+        });
+
+        const result = res.result;
+        wx.hideLoading();
+
+        if (result.success && result.data && result.data.length > 0) {
+          console.log('找到班级数量:', result.data.length);
+          if (result.data.length === 1) {
+            this.setData({ searchResults: [], showResults: false });
+            wx.navigateTo({
+              url: `/subPages/join/info/info?id=${result.data[0]._id}`
+            });
+          } else {
+            this.setData({
+              searchResults: result.data,
+              showResults: true
+            });
+          }
+        } else {
+          console.log('未找到手机号:', phone);
+          util.showError('未找到该老师创建的班级');
+        }
       }
     } catch (err) {
       console.error('查找班级失败:', err);
       wx.hideLoading();
-      util.showError('查找失败');
+      util.showError('查找失败: ' + (err.message || '未知错误'));
     }
+  },
+
+  // 选择搜索结果中的班级
+  onSelectResult: function (e) {
+    const classId = e.currentTarget.dataset.id;
+    this.setData({ searchResults: [], showResults: false });
+    wx.navigateTo({
+      url: `/subPages/join/info/info?id=${classId}`
+    });
   }
 });

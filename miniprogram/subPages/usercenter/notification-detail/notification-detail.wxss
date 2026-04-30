@@ -1,0 +1,146 @@
+/* pages/usercenter/notification-detail/notification-detail.wxss */
+.container {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.detail-header {
+  background: #fff;
+  padding: 32rpx;
+  margin-bottom: 16rpx;
+}
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.type-badge {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+}
+
+.type-icon {
+  font-size: 28rpx;
+}
+
+.type-label {
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.priority-tag {
+  font-size: 22rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+}
+
+.priority-important {
+  background: #fff7e6;
+  color: #fa8c16;
+  border: 1rpx solid #ffd591;
+}
+
+.priority-urgent {
+  background: #fff1f0;
+  color: #ff4d4f;
+  border: 1rpx solid #ffccc7;
+}
+
+.detail-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  line-height: 1.5;
+  margin-bottom: 16rpx;
+}
+
+.detail-meta {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.meta-item {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.meta-divider {
+  color: #d9d9d9;
+}
+
+.detail-body {
+  background: #fff;
+  padding: 32rpx;
+  margin-bottom: 16rpx;
+}
+
+.content-text {
+  font-size: 30rpx;
+  color: #333;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.action-section {
+  padding: 24rpx 32rpx;
+}
+
+.action-btn {
+  background: #1890ff;
+  color: #fff;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+}
+
+.action-btn::after {
+  border: none;
+}
+
+.detail-footer {
+  background: #fff;
+  padding: 24rpx 32rpx;
+  display: flex;
+  justify-content: center;
+}
+
+.footer-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+  padding: 16rpx 48rpx;
+}
+
+.star-icon {
+  font-size: 44rpx;
+  color: #d9d9d9;
+}
+
+.star-icon.active, .footer-btn .star-icon[style*="color"] {
+  color: #faad14;
+}
+
+.star-text {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.loading-wrap, .empty-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400rpx;
+  font-size: 28rpx;
+  color: #999;
+}

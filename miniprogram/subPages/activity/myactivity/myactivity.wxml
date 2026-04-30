@@ -1,0 +1,39 @@
+<!-- 聚光点 - 我的活动 -->
+<view class="my-container">
+  <!-- Tab -->
+  <view class="tab-bar">
+    <view
+      class="tab-item {{currentTab === index ? 'tab-active' : ''}}"
+      wx:for="{{tabs}}"
+      wx:key="index"
+      bindtap="onTabChange"
+      data-index="{{index}}"
+    >{{item}}</view>
+  </view>
+
+  <!-- 列表 -->
+  <view class="list" wx:if="{{!loading && list.length > 0}}">
+    <view class="card" wx:for="{{list}}" wx:key="_id" bindtap="onGoDetail" data-id="{{item._id}}">
+      <view class="card-top">
+        <text class="card-title">{{item.title}}</text>
+        <text class="card-status" style="color: {{item.statusColor}}; background: {{item.statusColor}}15;">{{item.statusText}}</text>
+      </view>
+      <view class="card-meta">
+        <text>{{item.category}}</text>
+        <text>🕐 {{item.timeStr}}</text>
+        <text>📍 {{item.location}}</text>
+      </view>
+      <view class="card-people">{{item.current_count}}{{item.max_people > 0 ? '/' + item.max_people : ''}}人</view>
+    </view>
+  </view>
+
+  <view class="empty" wx:if="{{!loading && list.length === 0}}">
+    <text class="empty-icon">📋</text>
+    <text class="empty-text">暂无活动记录</text>
+  </view>
+
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-icon"></view>
+    <text>加载中...</text>
+  </view>
+</view>

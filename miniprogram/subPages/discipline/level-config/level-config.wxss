@@ -1,0 +1,52 @@
+/* pages/discipline/level-config/level-config.wxss */
+.container { padding: 20rpx; min-height: 100vh; background: #f5f5f5; }
+
+.tip-card { background: #fff7e6; border-radius: 16rpx; padding: 24rpx; margin-bottom: 20rpx; display: flex; flex-direction: column; align-items: center; }
+.tip-icon { font-size: 40rpx; margin-bottom: 8rpx; }
+.tip-text { font-size: 26rpx; color: #ad6800; text-align: center; margin-bottom: 16rpx; }
+.tip-btn { background: #faad14; color: #fff; padding: 12rpx 40rpx; border-radius: 8rpx; font-size: 26rpx; }
+
+.level-list { padding-bottom: 120rpx; }
+.level-card { background: #fff; border-radius: 16rpx; padding: 24rpx; margin-bottom: 16rpx; box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06); }
+.level-header { display: flex; align-items: center; margin-bottom: 20rpx; }
+.level-badge { width: 56rpx; height: 56rpx; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28rpx; font-weight: bold; margin-right: 16rpx; flex-shrink: 0; }
+.level-info { flex: 1; }
+.level-name { font-size: 32rpx; font-weight: bold; color: #333; display: block; }
+.level-code { font-size: 24rpx; color: #999; }
+.level-actions { display: flex; gap: 12rpx; }
+.action-btn { padding: 8rpx 20rpx; border-radius: 8rpx; font-size: 24rpx; }
+.action-btn.edit { background: #e6f7ff; color: #1890ff; }
+.action-btn.delete { background: #fff1f0; color: #ff4d4f; }
+
+.level-params { display: flex; flex-wrap: wrap; gap: 12rpx; }
+.param-item { background: #f9f9f9; border-radius: 8rpx; padding: 12rpx 20rpx; display: flex; flex-direction: column; align-items: center; min-width: 140rpx; flex: 1; }
+.param-label { font-size: 22rpx; color: #999; }
+.param-value { font-size: 28rpx; font-weight: bold; color: #333; }
+.param-value.danger { color: #ff4d4f; }
+
+.empty-state { display: flex; flex-direction: column; align-items: center; padding-top: 200rpx; }
+.empty-icon { font-size: 80rpx; margin-bottom: 20rpx; }
+.empty-text { font-size: 28rpx; color: #999; margin-bottom: 30rpx; }
+.empty-btn { background: #1890ff; color: #fff; padding: 16rpx 48rpx; border-radius: 12rpx; font-size: 28rpx; }
+
+.loading-state { text-align: center; padding-top: 200rpx; color: #999; }
+
+.fab-btn { position: fixed; right: 40rpx; bottom: 80rpx; width: 100rpx; height: 100rpx; background: #1890ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4rpx 16rpx rgba(24,144,255,0.4); }
+.fab-icon { font-size: 48rpx; color: #fff; }
+
+.modal-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: center; justify-content: center; }
+.modal-content { width: 90%; max-height: 80vh; background: #fff; border-radius: 20rpx; overflow: hidden; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 30rpx; border-bottom: 1rpx solid #f0f0f0; }
+.modal-title { font-size: 32rpx; font-weight: bold; }
+.modal-close { font-size: 36rpx; color: #999; padding: 0 10rpx; }
+.modal-body { padding: 30rpx; max-height: 60vh; overflow-y: auto; }
+.modal-footer { display: flex; border-top: 1rpx solid #f0f0f0; }
+.btn-cancel, .btn-confirm { flex: 1; text-align: center; padding: 28rpx 0; font-size: 30rpx; }
+.btn-cancel { color: #999; }
+.btn-confirm { color: #1890ff; font-weight: bold; }
+
+.form-group { margin-bottom: 24rpx; }
+.form-group.half { flex: 1; }
+.form-label { font-size: 26rpx; color: #666; margin-bottom: 8rpx; display: block; }
+.form-input { border: 1rpx solid #e8e8e8; border-radius: 8rpx; padding: 16rpx 20rpx; font-size: 28rpx; }
+.form-row { display: flex; gap: 20rpx; }

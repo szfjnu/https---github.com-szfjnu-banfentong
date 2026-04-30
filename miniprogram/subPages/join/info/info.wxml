@@ -1,0 +1,92 @@
+<!--pages/join/info/info.wxml-->
+<view class="container">
+  <!-- 欢迎区域 -->
+  <view class="welcome-section">
+    <view class="welcome-illustration">
+      <text class="illustration-icon">👋</text>
+    </view>
+    <view class="welcome-text">
+      <text class="welcome-title">欢迎使用班小二</text>
+      <text class="welcome-desc">你正在加入「{{classInfo.class_name}}」</text>
+    </view>
+  </view>
+
+  <!-- 班级信息卡片 -->
+  <view class="class-card" wx:if="{{classInfo}}">
+    <view class="class-header">
+      <view class="class-avatar">
+        <text>📚</text>
+      </view>
+      <view class="class-info">
+        <view class="class-name">{{classInfo.class_name}}</view>
+        <view class="class-meta">
+          <text class="meta-item">{{classInfo.grade}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="class-body">
+      <view class="info-row">
+        <text class="info-label">创建者</text>
+        <text class="info-value">{{classInfo.creator_name || '老师'}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">创建时间</text>
+        <text class="info-value">{{classInfo.created_at}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">学生人数</text>
+        <text class="info-value">{{studentCount}}人</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 身份选择 -->
+  <view class="role-section">
+    <view class="section-title">请选择您的身份</view>
+    <view class="role-list">
+      <view class="role-item {{selectedRole === 'student' ? 'active' : ''}}" bindtap="onSelectRole" data-role="student">
+        <view class="role-icon">🎓</view>
+        <view class="role-info">
+          <view class="role-name">我是学生</view>
+          <view class="role-desc">录入信息后以学生身份加入班级</view>
+        </view>
+        <view class="role-check" wx:if="{{selectedRole === 'student'}}">✓</view>
+      </view>
+      <view class="role-item {{selectedRole === 'parent' ? 'active' : ''}}" bindtap="onSelectRole" data-role="parent">
+        <view class="role-icon">👨‍👩‍👧</view>
+        <view class="role-info">
+          <view class="role-name">我是家长</view>
+          <view class="role-desc">绑定孩子信息后查看班级动态</view>
+        </view>
+        <view class="role-check" wx:if="{{selectedRole === 'parent'}}">✓</view>
+      </view>
+      <view class="role-item {{selectedRole === 'teacher' ? 'active' : ''}}" bindtap="onSelectRole" data-role="teacher">
+        <view class="role-icon">👨‍🏫</view>
+        <view class="role-info">
+          <view class="role-name">我是老师</view>
+          <view class="role-desc">协助管理班级事务</view>
+        </view>
+        <view class="role-check" wx:if="{{selectedRole === 'teacher'}}">✓</view>
+      </view>
+    </view>
+
+    <!-- 提示信息 -->
+    <view class="tip-box">
+      <text class="tip-icon">💡</text>
+      <text class="tip-text">学生可直接录入姓名和学号加入；家长需绑定子女信息；老师兼家长用户请先以教师身份进班，再绑定家长身份。</text>
+    </view>
+  </view>
+
+  <!-- 下一步按钮 -->
+  <view class="action-section">
+    <button class="btn-next" bindtap="onNext" disabled="{{!selectedRole}}">
+      下一步
+    </button>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-icon"></view>
+    <view class="loading-text">加载中...</view>
+  </view>
+</view>

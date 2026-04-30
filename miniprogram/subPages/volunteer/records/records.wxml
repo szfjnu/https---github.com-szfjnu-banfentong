@@ -1,0 +1,95 @@
+<!--pages/volunteer/records/records.wxml-->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="page-title">我的志愿服务记录</text>
+  </view>
+
+  <!-- 状态筛选 -->
+  <view class="filter-section">
+    <picker mode="selector" range="{{statusOptions}}" range-key="label" bindchange="onStatusChange">
+      <view class="filter-picker">
+        <text>{{selectedStatusLabel}}</text>
+        <text class="picker-arrow">▼</text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 记录列表 -->
+  <view class="record-list" wx:if="{{!loading && records.length > 0}}">
+    <view class="record-card" wx:for="{{records}}" wx:key="_id" bindtap="onRecordDetail" data-id="{{item._id}}">
+      <view class="card-header">
+        <view class="activity-name">{{item.activity_name}}</view>
+        <view class="status-tag {{item.statusClass}}">{{item.statusText}}</view>
+      </view>
+      
+      <view class="card-body">
+        <view class="info-row">
+          <view class="info-item">
+            <text class="info-icon">📅</text>
+            <text>{{item.dateStr}}</text>
+          </view>
+          <view class="info-item">
+            <text class="info-icon">⏱️</text>
+            <text>{{item.duration}}小时</text>
+          </view>
+        </view>
+        
+        <view class="info-row">
+          <view class="info-item">
+            <text class="info-icon">🏷️</text>
+            <text>{{item.service_type || '未分类'}}</text>
+          </view>
+          <view class="score-badge">
+            <text>+{{item.earned_score}}分</text>
+          </view>
+        </view>
+
+        <view class="info-row" wx:if="{{item.organization}}">
+          <view class="info-item">
+            <text class="info-icon">🏢</text>
+            <text>{{item.organization}}</text>
+          </view>
+        </view>
+        
+        <view class="description" wx:if="{{item.description}}">{{item.description}}</view>
+      </view>
+
+      <!-- 审核进度 -->
+      <view class="approval-progress">
+        <view class="progress-step {{item.approval_status === '待班委审核' ? 'current' : 'done'}}">
+          <view class="step-dot"></view>
+          <text class="step-text">提交</text>
+        </view>
+        <view class="progress-line {{item.approval_status !== '待班委审核' ? 'done' : ''}}"></view>
+        <view class="progress-step {{item.approval_status === '待班主任审核' ? 'current' : (item.approval_status === '已通过' || item.approval_status === '已拒绝' ? 'done' : '')}}">
+          <view class="step-dot"></view>
+          <text class="step-text">班委审核</text>
+        </view>
+        <view class="progress-line {{item.approval_status === '已通过' || item.approval_status === '已拒绝' ? 'done' : ''}}"></view>
+        <view class="progress-step {{item.approval_status === '已通过' ? 'done' : (item.approval_status === '已拒绝' ? 'rejected' : '')}}">
+          <view class="step-dot"></view>
+          <text class="step-text">班主任审核</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && records.length === 0}}">
+    <text class="empty-icon">📋</text>
+    <view class="empty-text">暂无志愿服务记录</view>
+    <view class="empty-hint">点击右下角按钮提交志愿服务</view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text class="loading-icon">⏳</text>
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <!-- 添加按钮 -->
+  <view class="fab-button" bindtap="onAddRecord">
+    <text class="fab-icon">+</text>
+  </view>
+</view>

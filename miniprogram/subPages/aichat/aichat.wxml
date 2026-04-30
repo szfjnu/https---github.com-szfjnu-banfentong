@@ -1,0 +1,103 @@
+<!-- 微聊陪伴 -->
+<view class="chat-container">
+  <!-- 加载状态 -->
+  <view class="loading-box" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text>加载中...</text>
+  </view>
+
+  <block wx:if="{{!loading}}">
+    <!-- NPC 切换栏 -->
+    <view class="npc-bar" bindtap="toggleNpcPicker">
+      <view class="npc-current">
+        <text class="npc-icon">{{currentNpc.icon}}</text>
+        <text class="npc-name">{{currentNpc.name}}</text>
+        <text class="npc-arrow {{showNpcPicker ? 'up' : ''}}">▼</text>
+      </view>
+    </view>
+
+    <!-- NPC 选择下拉 -->
+    <view class="npc-dropdown" wx:if="{{showNpcPicker}}">
+      <view class="npc-dropdown-mask" bindtap="toggleNpcPicker"></view>
+      <view class="npc-dropdown-list">
+        <view class="npc-option {{item.key === npcType ? 'active' : ''}}"
+          wx:for="{{npcList}}" wx:key="key"
+          bindtap="selectNpc" data-key="{{item.key}}">
+          <text class="npc-option-icon">{{item.icon}}</text>
+          <view class="npc-option-info">
+            <text class="npc-option-name">{{item.name}}</text>
+            <text class="npc-option-desc">{{item.desc}}</text>
+          </view>
+          <text class="npc-option-check" wx:if="{{item.key === npcType}}">✓</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 聊天消息列表 -->
+    <scroll-view class="chat-list" scroll-y enhanced scroll-into-view="{{scrollToView}}" scroll-with-animation>
+      <!-- 空状态 -->
+      <view class="empty-chat" wx:if="{{messages.length === 0}}">
+        <view class="empty-icon">{{currentNpc.icon}}</view>
+        <view class="empty-title">{{currentNpc.name}}</view>
+        <view class="empty-desc">{{currentNpc.desc}}</view>
+        <view class="empty-hint">说点什么开始聊天吧~</view>
+      </view>
+
+      <!-- 消息列表 -->
+      <view class="message-item {{item.role === 'user' ? 'user' : 'assistant'}}"
+        wx:for="{{messages}}" wx:key="index" id="msg-{{index}}">
+        <view class="message-avatar" wx:if="{{item.role === 'assistant'}}">
+          {{currentNpc.icon}}
+        </view>
+        <view class="message-bubble {{item.role === 'user' ? 'user-bubble' : 'ai-bubble'}}">
+          <text class="message-text">{{item.displayContent || item.content}}</text>
+          <view class="typing-indicator" wx:if="{{item.role === 'assistant' && !item.content && sending}}">
+            <view class="typing-dot"></view>
+            <view class="typing-dot"></view>
+            <view class="typing-dot"></view>
+          </view>
+        </view>
+        <view class="message-avatar user-avatar" wx:if="{{item.role === 'user'}}">
+          我
+        </view>
+      </view>
+
+      <!-- AI 正在输入提示 -->
+      <view class="message-item assistant" wx:if="{{sending && messages[messages.length-1].role === 'user'}}">
+        <view class="message-avatar">{{currentNpc.icon}}</view>
+        <view class="message-bubble ai-bubble">
+          <view class="typing-indicator">
+            <view class="typing-dot"></view>
+            <view class="typing-dot"></view>
+            <view class="typing-dot"></view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 底部锚点 -->
+      <view class="chat-bottom" id="chat-bottom"></view>
+    </scroll-view>
+
+    <!-- 底部输入栏 -->
+    <view class="input-bar">
+      <view class="input-wrap">
+        <input class="chat-input"
+          placeholder="输入消息..."
+          value="{{inputText}}"
+          bindinput="onInputChange"
+          bindconfirm="sendMessage"
+          confirm-type="send"
+          disabled="{{sending}}"
+          adjust-position="{{true}}"
+        />
+      </view>
+      <view class="send-btn {{inputText.trim() && !sending ? '' : 'disabled'}}" bindtap="sendMessage">
+        <text wx:if="{{sending}}">...</text>
+        <text wx:else>发送</text>
+      </view>
+      <view class="clear-btn" bindtap="clearChat">
+        <text>🗑</text>
+      </view>
+    </view>
+  </block>
+</view>

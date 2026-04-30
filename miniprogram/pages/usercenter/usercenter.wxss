@@ -1,0 +1,243 @@
+/* pages/usercenter/usercenter.wxss */
+.container {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding-bottom: 40rpx;
+}
+
+.user-header {
+  background: linear-gradient(135deg, #1890ff, #096dd9);
+  padding: 60rpx 30rpx 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.avatar-wrap {
+  position: relative;
+  margin-right: 24rpx;
+}
+
+.avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  border: 4rpx solid rgba(255,255,255,0.5);
+}
+
+.role-badge {
+  position: absolute;
+  bottom: -8rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #faad14;
+  color: #fff;
+  font-size: 18rpx;
+  padding: 2rpx 12rpx;
+  border-radius: 20rpx;
+  white-space: nowrap;
+}
+
+.user-detail {
+  flex: 1;
+}
+
+.nickname {
+  display: block;
+  color: #fff;
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 8rpx;
+}
+
+.class-name {
+  display: block;
+  color: rgba(255,255,255,0.8);
+  font-size: 26rpx;
+  margin-bottom: 8rpx;
+}
+
+.member-tag {
+  display: inline-block;
+  font-size: 20rpx;
+  padding: 2rpx 12rpx;
+  border-radius: 8rpx;
+  color: #fff;
+}
+
+.member-basic { background: #52c41a; }
+.member-pro { background: #722ed1; }
+.member-enterprise { background: #eb2f96; }
+
+.notification-entry {
+  position: relative;
+  width: 80rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-icon {
+  width: 48rpx;
+  height: 48rpx;
+  filter: brightness(0) invert(1);
+}
+
+.notification-badge {
+  position: absolute;
+  top: 4rpx;
+  right: 0;
+  background: #ff4d4f;
+  color: #fff;
+  font-size: 20rpx;
+  min-width: 32rpx;
+  height: 32rpx;
+  line-height: 32rpx;
+  text-align: center;
+  border-radius: 16rpx;
+  padding: 0 6rpx;
+}
+
+.menu-section {
+  margin: 20rpx 24rpx 0;
+}
+
+.section-title {
+  font-size: 26rpx;
+  color: #999;
+  margin-bottom: 12rpx;
+  padding-left: 8rpx;
+}
+
+.menu-list {
+  background: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 28rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.menu-item:last-child {
+  border-bottom: none;
+}
+
+.menu-item.disabled {
+  opacity: 0.6;
+}
+
+.menu-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.menu-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+}
+
+.icon-emoji {
+  font-size: 36rpx;
+}
+
+.menu-text {
+  flex: 1;
+}
+
+.menu-title {
+  display: block;
+  font-size: 30rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.menu-desc {
+  display: block;
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 4rpx;
+}
+
+.menu-right {
+  display: flex;
+  align-items: center;
+}
+
+.menu-badge {
+  background: #ff4d4f;
+  color: #fff;
+  font-size: 22rpx;
+  min-width: 36rpx;
+  height: 36rpx;
+  line-height: 36rpx;
+  text-align: center;
+  border-radius: 18rpx;
+  padding: 0 8rpx;
+  margin-right: 12rpx;
+}
+
+.coming-soon {
+  font-size: 22rpx;
+  color: #faad14;
+  background: #fffbe6;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid #ffe58f;
+}
+
+.arrow {
+  font-size: 36rpx;
+  color: #ccc;
+  margin-left: 8rpx;
+}
+
+.logout-section {
+  margin: 40rpx 24rpx 0;
+}
+
+.logout-btn {
+  background: #fff;
+  color: #ff4d4f;
+  border: none;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+}
+
+.logout-btn::after {
+  border: none;
+}
+
+.version-info {
+  text-align: center;
+  padding: 40rpx 0 20rpx;
+  font-size: 24rpx;
+  color: #ccc;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.version-sub {
+  font-size: 20rpx;
+  color: #ddd;
+}

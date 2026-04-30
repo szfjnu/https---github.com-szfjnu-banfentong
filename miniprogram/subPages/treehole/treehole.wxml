@@ -1,0 +1,218 @@
+<!-- 心灵树洞 -->
+<wxs module="fmt">
+  // 格式化时间
+  function timeAgo(dateStr) {
+    if (!dateStr) return '';
+    var now = getDate().getTime();
+    var d = getDate(dateStr).getTime();
+    var diff = now - d;
+    if (diff < 0) diff = 0;
+    var sec = Math.floor(diff / 1000);
+    if (sec < 60) return '刚刚';
+    var min = Math.floor(sec / 60);
+    if (min < 60) return min + '分钟前';
+    var hr = Math.floor(min / 60);
+    if (hr < 24) return hr + '小时前';
+    var day = Math.floor(hr / 24);
+    if (day < 30) return day + '天前';
+    var month = Math.floor(day / 30);
+    if (month < 12) return month + '个月前';
+    return Math.floor(month / 12) + '年前';
+  }
+  // 心情图标
+  function moodIcon(mood) {
+    var map = {
+      happy: '😊',
+      sad: '😢',
+      anxious: '😰',
+      angry: '😤',
+      confused: '🤔',
+      peaceful: '😌'
+    };
+    return map[mood] || '';
+  }
+  // 心情文字
+  function moodLabel(mood) {
+    var map = {
+      happy: '开心',
+      sad: '难过',
+      anxious: '焦虑',
+      angry: '生气',
+      confused: '困惑',
+      peaceful: '平静'
+    };
+    return map[mood] || '';
+  }
+  module.exports = {
+    timeAgo: timeAgo,
+    moodIcon: moodIcon,
+    moodLabel: moodLabel
+  };
+</wxs>
+
+<view class="treehole-container">
+  <!-- 顶部标语 -->
+  <view class="treehole-banner">
+    <view class="banner-emoji">🌳</view>
+    <view class="banner-text">说出你的心事，这里只有倾听</view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-box" wx:if="{{loading && posts.length === 0}}">
+    <view class="loading-spinner"></view>
+    <text>加载中...</text>
+  </view>
+
+  <!-- 帖子列表 -->
+  <view class="post-list" wx:if="{{!loading || posts.length > 0}}">
+    <view class="post-card" wx:for="{{posts}}" wx:key="_id" bindtap="goToDetail" data-id="{{item._id}}">
+      <!-- 心情标签 -->
+      <view class="post-header">
+        <view class="mood-tag" wx:if="{{item.mood}}">
+          <text>{{fmt.moodIcon(item.mood)}} {{fmt.moodLabel(item.mood)}}</text>
+        </view>
+        <view class="post-time">{{fmt.timeAgo(item.created_at)}}</view>
+      </view>
+
+      <!-- 帖子内容 -->
+      <view class="post-content">{{item.content}}</view>
+
+      <!-- 作者标识 -->
+      <view class="post-author">
+        <text wx:if="{{item.is_anonymous}}">🎭 匿名</text>
+        <text wx:else>{{item.author_name || '未知'}}</text>
+      </view>
+
+      <!-- 底部操作栏 -->
+      <view class="post-footer">
+        <view class="post-action" catchtap="onToggleHeart" data-id="{{item._id}}" data-index="{{index}}">
+          <text class="action-icon {{heartMap[item._id] ? 'hearted' : ''}}">{{heartMap[item._id] ? '❤️' : '🤍'}}</text>
+          <text class="action-count">{{item.hearts_count || 0}}</text>
+        </view>
+        <view class="post-action">
+          <text class="action-icon">💬</text>
+          <text class="action-count">{{item.replies_count || 0}}</text>
+        </view>
+        <view class="post-action" catchtap="onReport" data-id="{{item._id}}" wx:if="{{!item.is_reported}}">
+          <text class="action-icon">🚩</text>
+        </view>
+        <!-- 管理员操作 -->
+        <view class="post-action admin-action" catchtap="onAdminAction" data-id="{{item._id}}" data-status="{{item.status}}" wx:if="{{isAdmin}}">
+          <text class="action-icon">⚙️</text>
+        </view>
+      </view>
+
+      <!-- 举报标记 -->
+      <view class="reported-badge" wx:if="{{item.is_reported && isAdmin}}">
+        <text>⚠️ 已举报：{{item.report_reason}}</text>
+      </view>
+    </view>
+
+    <!-- 加载更多 -->
+    <view class="load-more" wx:if="{{hasMore && !loading}}" bindtap="loadMore">
+      <text>点击加载更多</text>
+    </view>
+    <view class="no-more" wx:if="{{!hasMore && posts.length > 0}}">
+      <text>- 已经到底了 -</text>
+    </view>
+    <view class="empty-tip" wx:if="{{posts.length === 0 && !loading}}">
+      <view class="empty-emoji">🌿</view>
+      <text>树洞里还没有心事，来写第一条吧</text>
+    </view>
+  </view>
+
+  <!-- 发帖按钮 -->
+  <view class="fab-btn" bindtap="openPublishModal">
+    <text>✏️</text>
+  </view>
+
+  <!-- 发帖弹窗 -->
+  <view class="modal-mask" wx:if="{{showPublishModal}}" bindtap="closePublishModal">
+    <view class="modal-content publish-modal" catchtap="">
+      <view class="modal-title">倾诉心事</view>
+
+      <!-- 心情选择 -->
+      <view class="mood-picker">
+        <view class="mood-option {{selectedMood === item.value ? 'active' : ''}}"
+          wx:for="{{moodOptions}}" wx:key="value"
+          bindtap="onSelectMood" data-mood="{{item.value}}">
+          <text class="mood-emoji">{{item.icon}}</text>
+          <text class="mood-text">{{item.label}}</text>
+        </view>
+      </view>
+
+      <!-- 内容输入 -->
+      <textarea class="publish-textarea"
+        placeholder="把心事放进树洞..."
+        value="{{publishContent}}"
+        bindinput="onPublishInput"
+        maxlength="500"
+        auto-height
+      />
+      <view class="char-count">{{publishContent.length}}/500</view>
+
+      <!-- 匿名开关 -->
+      <view class="anonymous-row">
+        <text class="anonymous-label">🎭 匿名发布</text>
+        <switch checked="{{isAnonymous}}" bindchange="onAnonymousChange" color="#1890ff" />
+      </view>
+
+      <!-- 操作按钮 -->
+      <view class="modal-actions">
+        <view class="modal-btn cancel-btn" bindtap="closePublishModal">取消</view>
+        <view class="modal-btn confirm-btn {{publishing ? 'disabled' : ''}}" bindtap="doPublish">
+          {{publishing ? '发布中...' : '发布'}}
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 举报弹窗 -->
+  <view class="modal-mask" wx:if="{{showReportModal}}" bindtap="closeReportModal">
+    <view class="modal-content report-modal" catchtap="">
+      <view class="modal-title">举报帖子</view>
+      <view class="report-hint">请选择举报原因：</view>
+      <view class="report-options">
+        <view class="report-option {{reportReason === item ? 'active' : ''}}"
+          wx:for="{{reportReasons}}" wx:key="*this"
+          bindtap="onSelectReportReason" data-reason="{{item}}">
+          {{item}}
+        </view>
+      </view>
+      <textarea class="report-textarea"
+        placeholder="补充说明（选填）"
+        value="{{reportDetail}}"
+        bindinput="onReportDetailInput"
+        maxlength="200"
+        auto-height
+      />
+      <view class="modal-actions">
+        <view class="modal-btn cancel-btn" bindtap="closeReportModal">取消</view>
+        <view class="modal-btn confirm-btn {{!reportReason ? 'disabled' : ''}}" bindtap="doReport">
+          提交举报
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 管理员操作弹窗 -->
+  <view class="modal-mask" wx:if="{{showAdminModal}}" bindtap="closeAdminModal">
+    <view class="modal-content" catchtap="">
+      <view class="modal-title">管理操作</view>
+      <view class="admin-actions">
+        <view class="admin-action-btn" bindtap="onHidePost" wx:if="{{adminPostStatus === 'normal'}}">
+          🙈 隐藏帖子
+        </view>
+        <view class="admin-action-btn" bindtap="onRestorePost" wx:if="{{adminPostStatus === 'hidden'}}">
+          👁️ 恢复帖子
+        </view>
+        <view class="admin-action-btn danger" bindtap="onDeletePost">
+          🗑️ 删除帖子
+        </view>
+      </view>
+      <view class="modal-actions">
+        <view class="modal-btn cancel-btn" bindtap="closeAdminModal" style="flex:1;">关闭</view>
+      </view>
+    </view>
+  </view>
+</view>

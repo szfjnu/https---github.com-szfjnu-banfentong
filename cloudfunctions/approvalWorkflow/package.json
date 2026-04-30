@@ -1,0 +1,9 @@
+{
+  "name": "approvalWorkflow",
+  "version": "1.0.0",
+  "description": "通用审批工作流云函数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

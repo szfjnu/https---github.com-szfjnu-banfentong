@@ -1,0 +1,87 @@
+<!--pages/approval/approval.wxml-->
+<view class="container">
+  <!-- 统计卡片 -->
+  <view class="stats-bar">
+    <view class="stat-item" bindtap="onTabChange" data-tab="pending">
+      <text class="stat-num">{{stats.pendingCadre + stats.pendingTeacher}}</text>
+      <text class="stat-label">待审核</text>
+    </view>
+    <view class="stat-item" bindtap="onTabChange" data-tab="approved">
+      <text class="stat-num green">{{stats.approved}}</text>
+      <text class="stat-label">已通过</text>
+    </view>
+    <view class="stat-item" bindtap="onTabChange" data-tab="rejected">
+      <text class="stat-num red">{{stats.rejected}}</text>
+      <text class="stat-label">已驳回</text>
+    </view>
+  </view>
+
+  <!-- 类型筛选 -->
+  <view class="filter-bar">
+    <picker mode="selector" range="{{businessTypes}}" range-key="label" value="{{businessTypeIndex}}" bindchange="onBusinessTypeChange">
+      <view class="filter-item">
+        <text>{{businessTypes[businessTypeIndex].label}}</text>
+        <text class="arrow">▼</text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 标签栏 -->
+  <view class="tab-bar">
+    <view class="tab-item {{activeTab === 'pending' ? 'active' : ''}}" bindtap="onTabChange" data-tab="pending">
+      待审核
+      <view class="badge" wx:if="{{stats.pendingCadre + stats.pendingTeacher > 0}}">
+        {{stats.pendingCadre + stats.pendingTeacher}}
+      </view>
+    </view>
+    <view class="tab-item {{activeTab === 'approved' ? 'active' : ''}}" bindtap="onTabChange" data-tab="approved">
+      已通过
+    </view>
+    <view class="tab-item {{activeTab === 'rejected' ? 'active' : ''}}" bindtap="onTabChange" data-tab="rejected">
+      已驳回
+    </view>
+    <view class="tab-item {{activeTab === 'mine' ? 'active' : ''}}" bindtap="onTabChange" data-tab="mine">
+      我的提交
+    </view>
+  </view>
+
+  <!-- 审批列表 -->
+  <view class="approval-list">
+    <view class="approval-item" wx:for="{{approvals}}" wx:key="_id" bindtap="onViewDetail" data-id="{{item._id}}">
+      <view class="item-header">
+        <view class="type-tag" style="background: {{item.statusColor}}20; color: {{item.statusColor}}">
+          {{item.businessTypeLabel}}
+        </view>
+        <view class="status-tag" style="color: {{item.statusColor}}">
+          {{item.statusLabel}}
+        </view>
+      </view>
+      <view class="item-body">
+        <view class="item-title">提交人: {{item.submitter_name}}</view>
+        <view class="item-meta">提交时间: {{item.createdTimeStr}}</view>
+      </view>
+      <!-- 快速审批按钮（仅待审核且有权时显示） -->
+      <view class="item-actions" wx:if="{{activeTab === 'pending'}}">
+        <view class="action-btn reject" catchtap="onQuickReject" data-item="{{item}}">驳回</view>
+        <view class="action-btn approve" catchtap="onQuickApprove" data-item="{{item}}">通过</view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{!loading && approvals.length === 0}}">
+      <text class="empty-icon">📋</text>
+      <text class="empty-text">暂无审批记录</text>
+    </view>
+
+    <!-- 加载更多 -->
+    <view class="load-more" wx:if="{{hasMore && approvals.length > 0}}">
+      <text>加载更多...</text>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading && approvals.length === 0}}">
+    <view class="loading-icon"></view>
+    <text>加载中...</text>
+  </view>
+</view>

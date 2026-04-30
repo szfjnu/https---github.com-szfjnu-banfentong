@@ -1,0 +1,89 @@
+<!--pages/dorm/mydorm/mydorm.wxml-->
+<view class="container">
+  <!-- 非住宿生提示 -->
+  <view class="not-boarding" wx:if="{{!loading && !isBoarding}}">
+    <text class="nb-icon">🏠</text>
+    <view class="nb-text">您不是住宿生</view>
+    <view class="nb-hint">住宿积分功能仅对住宿生开放</view>
+  </view>
+
+  <block wx:if="{{!loading && isBoarding}}">
+    <!-- 宿舍信息卡片 -->
+    <view class="dorm-info-card">
+      <view class="card-header">
+        <text class="card-title">🏠 我的宿舍</text>
+      </view>
+      <view class="dorm-detail">
+        <view class="dorm-item">
+          <text class="dorm-label">楼栋</text>
+          <text class="dorm-value">{{dormInfo.building || '未分配'}}</text>
+        </view>
+        <view class="dorm-item">
+          <text class="dorm-label">房间</text>
+          <text class="dorm-value">{{dormInfo.room || '未分配'}}</text>
+        </view>
+        <view class="dorm-item">
+          <text class="dorm-label">床位</text>
+          <text class="dorm-value">{{dormInfo.bed || '未分配'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 积分概览卡片 -->
+    <view class="score-card">
+      <view class="score-main">
+        <view class="score-circle {{scoreInfo.current_score < 60 ? 'danger' : (scoreInfo.current_score < 80 ? 'warning' : 'good')}}">
+          <text class="score-number">{{scoreInfo.current_score}}</text>
+          <text class="score-unit">分</text>
+        </view>
+        <view class="score-label">当前积分</view>
+      </view>
+      <view class="score-stats">
+        <view class="stat-item">
+          <text class="stat-value add">+{{scoreInfo.total_add}}</text>
+          <text class="stat-label">累计加分</text>
+        </view>
+        <view class="stat-divider"></view>
+        <view class="stat-item">
+          <text class="stat-value minus">-{{scoreInfo.total_deduct}}</text>
+          <text class="stat-label">累计扣分</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 预警提示 -->
+    <view class="warning-card {{warningLevel}}" wx:if="{{warningLevel}}">
+      <text class="warning-icon">{{warningLevel === 'red' ? '🔴' : (warningLevel === 'orange' ? '🟠' : '🟡')}}</text>
+      <text class="warning-text">{{warningText}}</text>
+    </view>
+
+    <!-- 近期记录 -->
+    <view class="records-card">
+      <view class="section-header">
+        <text class="section-title">📋 近期记录</text>
+        <view class="view-all" bindtap="onViewAllRecords">查看全部 ›</view>
+      </view>
+
+      <view class="record-list" wx:if="{{recentRecords.length > 0}}">
+        <view class="record-item" wx:for="{{recentRecords}}" wx:key="_id">
+          <view class="record-left">
+            <view class="record-type">{{item.typeText}}</view>
+            <view class="record-reason">{{item.reason || item.description || '日常记录'}}</view>
+            <view class="record-date">{{item.dateStr}}</view>
+          </view>
+          <view class="record-score {{item.scoreClass}}">{{item.scoreText}}</view>
+        </view>
+      </view>
+
+      <view class="empty-records" wx:else>
+        <text>暂无宿舍积分记录</text>
+      </view>
+    </view>
+  </block>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text class="loading-icon">⏳</text>
+    <view class="loading-text">加载中...</view>
+  </view>
+</view>

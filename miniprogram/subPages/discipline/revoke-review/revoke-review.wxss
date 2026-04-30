@@ -1,0 +1,71 @@
+/* pages/discipline/revoke-review/revoke-review.wxss */
+.container { padding: 20rpx; min-height: 100vh; background: #f5f5f5; padding-bottom: 40rpx; }
+.info-card { background: #fff; border-radius: 16rpx; padding: 24rpx; margin-bottom: 20rpx; box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06); }
+.info-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; }
+.student-name { font-size: 34rpx; font-weight: bold; color: #333; }
+.level-badge { padding: 8rpx 20rpx; border-radius: 8rpx; font-size: 28rpx; font-weight: bold; }
+.info-row { display: flex; align-items: center; padding: 8rpx 0; }
+.info-label { font-size: 26rpx; color: #999; width: 160rpx; flex-shrink: 0; }
+.info-value { font-size: 26rpx; color: #333; flex: 1; }
+.info-value.danger { color: #ff4d4f; font-weight: bold; }
+.status-tag { padding: 6rpx 14rpx; border-radius: 6rpx; font-size: 22rpx; }
+.status-tag.active { background: #fff1f0; color: #ff4d4f; }
+.status-tag.revoked { background: #f6ffed; color: #52c41a; }
+
+.progress-card { background: #fff; border-radius: 16rpx; padding: 24rpx; margin-bottom: 20rpx; box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06); }
+.card-title { font-size: 30rpx; font-weight: bold; color: #333; margin-bottom: 16rpx; }
+.progress-item { margin-bottom: 16rpx; }
+.progress-item:last-child { margin-bottom: 0; }
+.progress-header { display: flex; justify-content: space-between; margin-bottom: 8rpx; }
+.progress-label { font-size: 26rpx; color: #666; }
+.progress-num { font-size: 26rpx; color: #333; font-weight: bold; }
+.progress-bar { height: 16rpx; background: #e8e8e8; border-radius: 8rpx; overflow: hidden; }
+.progress-fill { height: 100%; background: #1890ff; border-radius: 8rpx; }
+.progress-fill.service { background: #52c41a; }
+
+.revoke-section, .section-card { background: #fff; border-radius: 16rpx; padding: 24rpx; margin-bottom: 16rpx; box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06); }
+.section-title { font-size: 28rpx; font-weight: bold; color: #333; margin-bottom: 12rpx; padding-bottom: 12rpx; border-bottom: 1rpx solid #f0f0f0; }
+.revoke-card { padding: 16rpx 0; border-bottom: 1rpx solid #f5f5f5; }
+.revoke-card:last-child { border-bottom: none; }
+.revoke-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8rpx; }
+.revoke-date { font-size: 26rpx; color: #999; }
+.revoke-status { font-size: 22rpx; padding: 4rpx 12rpx; border-radius: 4rpx; }
+.revoke-status.pending { background: #fff7e6; color: #faad14; }
+.revoke-status.approved { background: #f6ffed; color: #52c41a; }
+.revoke-status.rejected { background: #fff1f0; color: #ff4d4f; }
+.revoke-body { margin-bottom: 8rpx; }
+.revoke-reason { font-size: 28rpx; color: #333; }
+.revoke-reflection, .revoke-review { font-size: 26rpx; color: #666; margin-top: 8rpx; padding: 12rpx; background: #f9f9f9; border-radius: 8rpx; }
+.reflection-label, .review-label { font-weight: bold; color: #333; }
+
+.review-actions { display: flex; gap: 16rpx; margin-top: 12rpx; }
+.review-btn { flex: 1; text-align: center; padding: 16rpx; border-radius: 8rpx; font-size: 28rpx; font-weight: bold; }
+.review-btn.approve { background: #52c41a; color: #fff; }
+.review-btn.reject { background: #ff4d4f; color: #fff; }
+
+.report-item, .service-item { padding: 12rpx 0; border-bottom: 1rpx solid #f5f5f5; }
+.report-item:last-child, .service-item:last-child { border-bottom: none; }
+.item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4rpx; }
+.item-title { font-size: 26rpx; color: #333; flex: 1; }
+.item-status { font-size: 22rpx; padding: 2rpx 10rpx; border-radius: 4rpx; }
+.item-status.pending { background: #fff7e6; color: #faad14; }
+.item-status.approved { background: #f6ffed; color: #52c41a; }
+.item-status.rejected { background: #fff1f0; color: #ff4d4f; }
+.item-content { font-size: 24rpx; color: #666; display: block; margin-top: 4rpx; }
+.item-date { font-size: 24rpx; color: #999; }
+
+.modal-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: center; justify-content: center; }
+.modal-content { width: 85%; background: #fff; border-radius: 20rpx; overflow: hidden; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 30rpx; border-bottom: 1rpx solid #f0f0f0; }
+.modal-title { font-size: 32rpx; font-weight: bold; }
+.modal-close { font-size: 36rpx; color: #999; }
+.modal-body { padding: 30rpx; }
+.modal-footer { display: flex; border-top: 1rpx solid #f0f0f0; }
+.btn-cancel, .btn-confirm { flex: 1; text-align: center; padding: 28rpx 0; font-size: 30rpx; }
+.btn-cancel { color: #999; }
+.btn-confirm { color: #1890ff; font-weight: bold; }
+.form-group { margin-bottom: 16rpx; }
+.form-label { font-size: 28rpx; color: #333; margin-bottom: 8rpx; display: block; }
+.form-textarea { border: 1rpx solid #e8e8e8; border-radius: 8rpx; padding: 16rpx 20rpx; font-size: 28rpx; width: 100%; min-height: 160rpx; box-sizing: border-box; }
+
+.loading-state { text-align: center; padding-top: 120rpx; color: #999; }

@@ -1,0 +1,115 @@
+<!--pages/duty/arrange/arrange.wxml - 值日安排页面-->
+<view class="container">
+  <!-- 轮转设置模式 -->
+  <block wx:if="{{mode === 'rotation'}}">
+    <view class="section-card">
+      <view class="section-title">轮转设置</view>
+
+      <view class="form-group">
+        <text class="form-label">轮转方式</text>
+        <view class="switch-row">
+          <text class="switch-text">{{rotationMode === 'daily' ? '每日轮换' : '每周轮换'}}</text>
+          <switch checked="{{rotationMode === 'weekly'}}" bindchange="onRotationModeChange" color="#1890ff" />
+        </view>
+      </view>
+
+      <view class="form-group">
+        <text class="form-label">生效日（点击切换）</text>
+        <view class="weekday-grid">
+          <view class="weekday-item {{effectiveWeekdays.indexOf('一') >= 0 ? 'active' : ''}}" data-day="一" bindtap="onWeekdayToggle">周一</view>
+          <view class="weekday-item {{effectiveWeekdays.indexOf('二') >= 0 ? 'active' : ''}}" data-day="二" bindtap="onWeekdayToggle">周二</view>
+          <view class="weekday-item {{effectiveWeekdays.indexOf('三') >= 0 ? 'active' : ''}}" data-day="三" bindtap="onWeekdayToggle">周三</view>
+          <view class="weekday-item {{effectiveWeekdays.indexOf('四') >= 0 ? 'active' : ''}}" data-day="四" bindtap="onWeekdayToggle">周四</view>
+          <view class="weekday-item {{effectiveWeekdays.indexOf('五') >= 0 ? 'active' : ''}}" data-day="五" bindtap="onWeekdayToggle">周五</view>
+          <view class="weekday-item {{effectiveWeekdays.indexOf('六') >= 0 ? 'active' : ''}}" data-day="六" bindtap="onWeekdayToggle">周六</view>
+          <view class="weekday-item {{effectiveWeekdays.indexOf('日') >= 0 ? 'active' : ''}}" data-day="日" bindtap="onWeekdayToggle">周日</view>
+        </view>
+      </view>
+
+      <view class="form-group">
+        <text class="form-label">参与轮转的小组（自动按顺序排列）</text>
+        <view class="group-chips">
+          <view class="group-chip" wx:for="{{dutyGroups}}" wx:key="_id">
+            {{item.group_name}}
+          </view>
+        </view>
+        <view class="hint-text" wx:if="{{dutyGroups.length === 0}}">暂无值日小组，请先在分组管理中创建</view>
+      </view>
+
+      <view class="submit-btn" bindtap="onSaveRotation">保存轮转配置</view>
+    </view>
+  </block>
+
+  <!-- 任务分派模式 -->
+  <block wx:else>
+    <!-- 日期选择 -->
+    <view class="date-bar">
+      <text class="date-label">值日日期</text>
+      <picker mode="date" value="{{dutyDate}}" bindchange="onDateChange">
+        <view class="date-value">{{dutyDate}}</view>
+      </picker>
+    </view>
+
+    <!-- 选择小组 -->
+    <view class="section-card">
+      <view class="section-title">选择值日小组</view>
+      <view class="group-grid" wx:if="{{dutyGroups.length > 0}}">
+        <view class="group-card {{selectedGroupId === item._id ? 'selected' : ''}}" 
+              wx:for="{{dutyGroups}}" wx:key="_id"
+              bindtap="onGroupSelect" data-id="{{item._id}}">
+          <view class="group-name">{{item.group_name}}</view>
+          <view class="group-count">{{item.members.length + (item.leader_id ? 1 : 0)}}人</view>
+        </view>
+      </view>
+      <view class="empty-hint" wx:else>
+        <text>暂无值日小组</text>
+      </view>
+    </view>
+
+    <!-- 快捷操作 -->
+    <view class="quick-actions" wx:if="{{selectedGroupId && templates.length > 0}}">
+      <view class="action-btn" bindtap="onAutoAssign">
+        <text>🔄 轮流分配</text>
+      </view>
+      <view class="action-btn" wx:for="{{templates}}" wx:key="_id" 
+            bindtap="onAssignSameTask" data-id="{{item.template_id}}">
+        <text>{{item.icon}} 全部{{item.name}}</text>
+      </view>
+    </view>
+
+    <!-- 成员任务分派 -->
+    <view class="section-card" wx:if="{{assignments.length > 0}}">
+      <view class="section-title">成员任务分派</view>
+      <view class="assign-list">
+        <view class="assign-item" wx:for="{{assignments}}" wx:key="student_id">
+          <view class="assign-member">
+            <view class="member-avatar {{item.is_leader ? 'leader' : ''}}">
+              {{item.student_name[0]}}
+            </view>
+            <text class="member-name">{{item.student_name}}</text>
+            <text class="leader-tag" wx:if="{{item.is_leader}}">组长</text>
+          </view>
+          <view class="assign-task">
+            <picker range="{{templates}}" range-key="name" value="{{0}}" bindchange="onTaskSelect" data-index="{{index}}">
+              <view class="task-picker {{item.task_name ? 'assigned' : ''}}">
+                {{item.task_name || '选择任务 ▾'}}
+              </view>
+            </picker>
+            <view class="exempt-btn" bindtap="onExemptMember" data-index="{{index}}">免值</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 无模板提示 -->
+    <view class="tip-card" wx:if="{{selectedGroupId && templates.length === 0}}">
+      <text class="tip-icon">💡</text>
+      <text class="tip-text">请先创建任务模板</text>
+    </view>
+
+    <!-- 提交按钮 -->
+    <view class="submit-btn {{submitting ? 'disabled' : ''}}" wx:if="{{selectedGroupId}}" bindtap="onSubmit">
+      {{submitting ? '提交中...' : '确认安排'}}
+    </view>
+  </block>
+</view>

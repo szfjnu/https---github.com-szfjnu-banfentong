@@ -1,0 +1,115 @@
+<!-- pages/discipline/level-config/level-config.wxml -->
+<view class="container">
+  <!-- 提示 -->
+  <view class="tip-card" wx:if="{{isDefault}}">
+    <text class="tip-icon">💡</text>
+    <text class="tip-text">当前显示默认配置，点击"初始化配置"保存到数据库后可编辑</text>
+    <view class="tip-btn" bindtap="onInitConfigs">初始化配置</view>
+  </view>
+
+  <!-- 级别列表 -->
+  <view class="level-list" wx:if="{{!loading && levels.length > 0}}">
+    <view class="level-card" wx:for="{{levels}}" wx:key="level_code">
+      <view class="level-header">
+        <view class="level-badge" style="{{item._badgeStyle}}">
+          {{item.level_order}}
+        </view>
+        <view class="level-info">
+          <text class="level-name">{{item.level_name}}</text>
+          <text class="level-code" wx:if="{{item.level_code}}">{{item.level_code}}</text>
+        </view>
+        <view class="level-actions" wx:if="{{item.config_id}}">
+          <view class="action-btn edit" bindtap="onEditLevel" data-level="{{item}}">编辑</view>
+          <view class="action-btn delete" bindtap="onDeleteLevel" data-level="{{item}}">删除</view>
+        </view>
+      </view>
+      <view class="level-params">
+        <view class="param-item">
+          <text class="param-label">考察期</text>
+          <text class="param-value">{{item.probation_months}}个月</text>
+        </view>
+        <view class="param-item">
+          <text class="param-label">思想汇报</text>
+          <text class="param-value">{{item.thought_reports}}篇</text>
+        </view>
+        <view class="param-item">
+          <text class="param-label">服务令</text>
+          <text class="param-value">{{item.service_hours}}小时</text>
+        </view>
+        <view class="param-item">
+          <text class="param-label">扣减积分</text>
+          <text class="param-value danger">-{{item.score_deduction}}分</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && levels.length === 0}}">
+    <text class="empty-icon">📋</text>
+    <text class="empty-text">暂无级别配置</text>
+    <view class="empty-btn" bindtap="onInitConfigs">初始化默认配置</view>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading-state" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 添加按钮 -->
+  <view class="fab-btn" wx:if="{{!isDefault && levels.length > 0}}" bindtap="onAddLevel">
+    <text class="fab-icon">+</text>
+  </view>
+
+  <!-- 编辑弹窗 -->
+  <view class="modal-mask" wx:if="{{showEditModal}}" bindtap="onHideModal">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">{{editingLevel ? '编辑级别' : '添加级别'}}</text>
+        <text class="modal-close" bindtap="onHideModal">✕</text>
+      </view>
+      <view class="modal-body">
+        <view class="form-group">
+          <text class="form-label">级别名称 *</text>
+          <input class="form-input" value="{{form.level_name}}" bindinput="onFormInput" data-field="level_name" placeholder="如：口头警告" />
+        </view>
+        <view class="form-group">
+          <text class="form-label">级别代码</text>
+          <input class="form-input" value="{{form.level_code}}" bindinput="onFormInput" data-field="level_code" placeholder="如：verbal_warning" />
+        </view>
+        <view class="form-group">
+          <text class="form-label">排序</text>
+          <input class="form-input" type="number" value="{{form.level_order}}" bindinput="onFormInput" data-field="level_order" />
+        </view>
+        <view class="form-row">
+          <view class="form-group half">
+            <text class="form-label">考察期（月）</text>
+            <input class="form-input" type="number" value="{{form.probation_months}}" bindinput="onFormInput" data-field="probation_months" />
+          </view>
+          <view class="form-group half">
+            <text class="form-label">思想汇报（篇）</text>
+            <input class="form-input" type="number" value="{{form.thought_reports}}" bindinput="onFormInput" data-field="thought_reports" />
+          </view>
+        </view>
+        <view class="form-row">
+          <view class="form-group half">
+            <text class="form-label">服务令（小时）</text>
+            <input class="form-input" type="number" value="{{form.service_hours}}" bindinput="onFormInput" data-field="service_hours" />
+          </view>
+          <view class="form-group half">
+            <text class="form-label">扣减积分</text>
+            <input class="form-input" type="number" value="{{form.score_deduction}}" bindinput="onFormInput" data-field="score_deduction" />
+          </view>
+        </view>
+        <view class="form-group">
+          <text class="form-label">标识颜色</text>
+          <input class="form-input" type="color" value="{{form.color}}" bindinput="onFormInput" data-field="color" />
+        </view>
+      </view>
+      <view class="modal-footer">
+        <view class="btn-cancel" bindtap="onHideModal">取消</view>
+        <view class="btn-confirm" bindtap="onSave">保存</view>
+      </view>
+    </view>
+  </view>
+</view>

@@ -10,23 +10,25 @@ const _ = db.command
 
 // 云函数入口函数
 exports.main = async (event, context) => {
-  const { action, item_id, student_id, bid_score } = event
+  const { action, item_id, student_id, bid_score, class_id } = event
 
   if (action === 'submitBid') {
-    return await submitBid(item_id, student_id, bid_score)
+    return await submitBid(item_id, student_id, bid_score, class_id)
   } else if (action === 'cancelBid') {
-    return await cancelBid(item_id, student_id)
+    return await cancelBid(item_id, student_id, class_id)
   } else if (action === 'determineWinner') {
-    return await determineWinner(item_id)
+    return await determineWinner(item_id, class_id)
   }
 }
 
 // 提交投标
-async function submitBid(item_id, student_id, bid_score) {
+async function submitBid(item_id, student_id, bid_score, class_id) {
   try {
-    // 1. 检查物品是否在投标期内
-    const itemRes = await db.collection('redemption_items').doc(item_id).get()
-    if (!itemRes.data) {
+    // 1. 检查物品是否在投标期内（班级维度验证）
+    const itemQuery = { _id: item_id };
+    if (class_id) itemQuery.class_id = class_id;
+    const itemRes = await db.collection('redemption_items').where(itemQuery).limit(1).get()
+    if (!itemRes.data || itemRes.data.length === 0) {
       return { success: false, message: '物品不存在' }
     }
 
@@ -93,11 +95,13 @@ async function submitBid(item_id, student_id, bid_score) {
 }
 
 // 取消投标
-async function cancelBid(item_id, student_id) {
+async function cancelBid(item_id, student_id, class_id) {
   try {
-    // 1. 检查是否在投标截止前
-    const itemRes = await db.collection('redemption_items').doc(item_id).get()
-    if (!itemRes.data) {
+    // 1. 检查是否在投标截止前（班级维度验证）
+    const itemQuery = { _id: item_id };
+    if (class_id) itemQuery.class_id = class_id;
+    const itemRes = await db.collection('redemption_items').where(itemQuery).limit(1).get()
+    if (!itemRes.data || itemRes.data.length === 0) {
       return { success: false, message: '物品不存在' }
     }
 
@@ -139,22 +143,26 @@ async function cancelBid(item_id, student_id) {
 }
 
 // 确定中标者
-async function determineWinner(item_id) {
+async function determineWinner(item_id, class_id) {
   try {
-    // 1. 获取物品信息
-    const itemRes = await db.collection('redemption_items').doc(item_id).get()
-    if (!itemRes.data) {
+    // 1. 获取物品信息（班级维度验证）
+    const itemQuery = { _id: item_id };
+    if (class_id) itemQuery.class_id = class_id;
+    const itemRes = await db.collection('redemption_items').where(itemQuery).limit(1).get()
+    if (!itemRes.data || itemRes.data.length === 0) {
       return { success: false, message: '物品不存在' }
     }
 
     const item = itemRes.data
 
-    // 2. 获取所有投标记录
-    const bidsRes = await db.collection('redemption_requests').where({
+    // 2. 获取所有投标记录（班级维度隔离）
+    let bidQuery = {
       item_id: item_id,
       redemption_mode: '投标',
       status: '待审批'
-    }).orderBy('bid_score', 'desc')
+    };
+    if (class_id) bidQuery.class_id = class_id;
+    const bidsRes = await db.collection('redemption_requests').where(bidQuery).orderBy('bid_score', 'desc')
       .orderBy('bid_time', 'asc')
       .get()
 

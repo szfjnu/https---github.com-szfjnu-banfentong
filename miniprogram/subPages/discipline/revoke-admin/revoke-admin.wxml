@@ -1,0 +1,98 @@
+<!-- pages/discipline/revoke-admin/revoke-admin.wxml -->
+<view class="container">
+  <!-- 统计概览 -->
+  <view class="stats-card">
+    <view class="stats-row">
+      <view class="stat-item" bindtap="onFilterChange" data-status="pending">
+        <text class="stat-value warning">{{stats.pending}}</text>
+        <text class="stat-label">待审核</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item" bindtap="onFilterChange" data-status="approved">
+        <text class="stat-value success">{{stats.approved}}</text>
+        <text class="stat-label">已批准</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item" bindtap="onFilterChange" data-status="rejected">
+        <text class="stat-value danger">{{stats.rejected}}</text>
+        <text class="stat-label">已拒绝</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 筛选标签 -->
+  <view class="filter-tabs">
+    <view class="filter-tab {{filterStatus === 'pending' ? 'active' : ''}}" data-status="pending" bindtap="onFilterChange">待审核</view>
+    <view class="filter-tab {{filterStatus === 'approved' ? 'active' : ''}}" data-status="approved" bindtap="onFilterChange">已批准</view>
+    <view class="filter-tab {{filterStatus === 'rejected' ? 'active' : ''}}" data-status="rejected" bindtap="onFilterChange">已拒绝</view>
+    <view class="filter-tab {{filterStatus === 'all' ? 'active' : ''}}" data-status="all" bindtap="onFilterChange">全部</view>
+  </view>
+
+  <!-- 申请列表 -->
+  <view class="app-list" wx:if="{{!loading}}">
+    <view class="app-card" wx:for="{{displayList}}" wx:key="application_id">
+      <view class="app-header">
+        <view class="student-info">
+          <text class="student-name">{{item.student_name}}</text>
+          <view class="level-badge" style="{{item._levelBadgeStyle}}">{{item.discipline_level}}</view>
+        </view>
+        <view class="revoke-status {{item.status}}">{{item._statusText}}</view>
+      </view>
+      <view class="app-body">
+        <view class="info-row">
+          <text class="info-label">申请日期</text>
+          <text class="info-value">{{item.application_date}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">申请理由</text>
+          <text class="info-value">{{item.application_reason}}</text>
+        </view>
+        <view class="info-row" wx:if="{{item.student_self_reflection}}">
+          <text class="info-label">自我反思</text>
+          <text class="info-value">{{item.student_self_reflection}}</text>
+        </view>
+        <view class="info-row" wx:if="{{item.review_comments}}">
+          <text class="info-label">审核意见</text>
+          <text class="info-value">{{item.review_comments}}</text>
+        </view>
+      </view>
+      <view class="app-footer">
+        <view class="app-actions" wx:if="{{item.status === 'pending'}}">
+          <view class="action-btn approve" data-app="{{item}}" data-action="approved" bindtap="onShowReview">批准</view>
+          <view class="action-btn reject" data-app="{{item}}" data-action="rejected" bindtap="onShowReview">拒绝</view>
+        </view>
+        <view class="detail-btn" bindtap="onViewRecord" data-id="{{item.discipline_record_id}}">查看详情</view>
+      </view>
+    </view>
+
+    <view class="empty-state" wx:if="{{displayList.length === 0}}">
+      <text class="empty-icon">📋</text>
+      <text class="empty-text">暂无撤销申请</text>
+    </view>
+  </view>
+
+  <!-- 审核弹窗 -->
+  <view class="modal-mask" wx:if="{{showReviewModal}}" bindtap="onHideReview">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">{{reviewAction === 'approved' ? '批准撤销' : '拒绝申请'}}</text>
+        <text class="modal-close" bindtap="onHideReview">✕</text>
+      </view>
+      <view class="modal-body">
+        <view class="form-group">
+          <text class="form-label">审核意见</text>
+          <textarea class="form-textarea" value="{{reviewComments}}" bindinput="onReviewCommentInput" placeholder="请填写审核意见" maxlength="500" />
+        </view>
+      </view>
+      <view class="modal-footer">
+        <view class="btn-cancel" bindtap="onHideReview">取消</view>
+        <view class="btn-confirm" bindtap="onSubmitReview">确认</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading-state" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

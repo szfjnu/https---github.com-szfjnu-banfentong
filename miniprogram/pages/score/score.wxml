@@ -1,90 +1,67 @@
 <!--pages/score/score.wxml-->
 <view class="container">
-  <!-- 操作按钮栏 -->
-  <view class="action-bar">
-    <button class="action-btn" bindtap="onViewRecords">
-      <image class="btn-icon" src="/images/icons/record.png" mode="aspectFit"></image>
-      <text>积分记录</text>
-    </button>
-    <button class="action-btn primary" bindtap="onAddScore">
-      <image class="btn-icon" src="/images/icons/add.png" mode="aspectFit"></image>
-      <text>添加积分</text>
-    </button>
-  </view>
-
-  <!-- 管理员功能区 -->
-  <view class="admin-section" wx:if="{{userRole === 'admin' || userRole === 'head_teacher'}}">
-    <view class="section-title">管理功能</view>
-    <view class="admin-btns">
-      <view class="admin-btn" bindtap="onManageRules">
-        <text class="btn-icon-text">📋</text>
-        <text>积分规则</text>
+  <!-- 学生/家长视图：仅显示本人积分 -->
+  <block wx:if="{{isStudentMode}}">
+    <!-- 个人积分卡片 -->
+    <view class="my-score-card" wx:if="{{myScoreInfo}}">
+      <view class="score-circle" style="background: {{myScoreInfo.scoreColor}}">
+        <text class="score-number">{{myScoreInfo.current_score || 100}}</text>
+        <text class="score-unit">分</text>
       </view>
-      <view class="admin-btn" bindtap="onManageExchange">
-        <text class="btn-icon-text">🎁</text>
-        <text>兑换管理</text>
+      <view class="score-level-tag" style="background: {{myScoreInfo.scoreColor}}20; color: {{myScoreInfo.scoreColor}}">
+        {{myScoreInfo.scoreLevel}}
+      </view>
+      <view class="rank-info">
+        <view class="rank-item">
+          <text class="rank-value">{{myRank}}</text>
+          <text class="rank-label">班级排名</text>
+        </view>
+        <view class="rank-divider"></view>
+        <view class="rank-item">
+          <text class="rank-value">{{totalStudents}}</text>
+          <text class="rank-label">班级总人数</text>
+        </view>
       </view>
     </view>
-  </view>
 
-  <!-- 搜索栏 -->
-  <view class="search-bar">
-    <view class="search-input">
-      <image class="search-icon" src="/images/icons/search.png" mode="aspectFit"></image>
-      <input
-        type="text"
-        placeholder="搜索学号或姓名"
-        value="{{searchKeyword}}"
-        bindconfirm="onSearch"
-        bindinput="onSearchInput"
-      />
-      <image
-        class="clear-icon"
-        wx:if="{{searchKeyword}}"
-        src="/images/icons/clear.png"
-        mode="aspectFit"
-        bindtap="onClearSearch"
-      ></image>
-    </view>
-  </view>
-
-  <!-- 积分排行榜 -->
-  <view class="card">
-    <view class="card-title">积分排行榜</view>
-    <view class="ranking-list" wx:if="{{!loading && students.length > 0}}">
-      <view
-        class="ranking-item"
-        wx:for="{{students}}"
-        wx:key="_id"
-        bindtap="onViewDetail"
-        data-id="{{item.student_id}}"
-      >
-        <view class="ranking-number {{index < 3 ? 'top-' + (index + 1) : ''}}">
-          {{index + 1}}
-        </view>
-        <view class="student-avatar">
-          <image src="/images/icons/default-avatar.png" mode="aspectFill"></image>
-        </view>
-        <view class="student-info">
-          <view class="student-name">{{item.name}}</view>
-          <view class="student-meta">
-            <text class="meta-item">{{item.student_id}}</text>
-            <text class="meta-item">{{item.class_name}}</text>
+    <!-- 功能入口 -->
+    <view class="score-nav">
+      <view class="score-nav-title">
+        <view class="nav-title-bar"></view>
+        <text>积分服务</text>
+      </view>
+      <view class="score-nav-grid">
+        <view class="nav-item" bindtap="onViewRecords">
+          <view class="nav-icon-wrap" style="background: #1890ff15;">
+            <text class="nav-icon">📋</text>
           </view>
+          <text class="nav-label">积分明细</text>
         </view>
-        <view class="score-info">
-          <view class="score-value" style="color: {{item.scoreColor}}">
-            {{item.current_score || 100}}
+        <view class="nav-item" bindtap="onGoMall">
+          <view class="nav-icon-wrap" style="background: #52c41a15;">
+            <text class="nav-icon">🎁</text>
           </view>
-          <view class="score-level">{{item.scoreLevel}}</view>
+          <text class="nav-label">积分商城</text>
+        </view>
+        <view class="nav-item" bindtap="onGoVolunteer">
+          <view class="nav-icon-wrap" style="background: #722ed115;">
+            <text class="nav-icon">🤝</text>
+          </view>
+          <text class="nav-label">志愿服务</text>
+        </view>
+        <view class="nav-item" bindtap="onGoDorm" wx:if="{{myScoreInfo && myScoreInfo.is_boarding}}">
+          <view class="nav-icon-wrap" style="background: #fa8c1615;">
+            <text class="nav-icon">🏠</text>
+          </view>
+          <text class="nav-label">住宿积分</text>
+        </view>
+        <view class="nav-item" bindtap="onViewRules">
+          <view class="nav-icon-wrap" style="background: #eb2f9615;">
+            <text class="nav-icon">📖</text>
+          </view>
+          <text class="nav-label">积分规则</text>
         </view>
       </view>
-    </view>
-
-    <!-- 空状态 -->
-    <view class="empty" wx:if="{{!loading && students.length === 0}}">
-      <image class="empty-icon" src="/images/icons/empty.png" mode="aspectFit"></image>
-      <view class="empty-text">暂无积分数据</view>
     </view>
 
     <!-- 加载状态 -->
@@ -92,5 +69,121 @@
       <view class="loading-icon"></view>
       <view class="loading-text">加载中...</view>
     </view>
-  </view>
+  </block>
+
+  <!-- 管理员/教师视图：显示排行榜 -->
+  <block wx:else>
+    <!-- 功能入口 -->
+    <view class="score-nav">
+      <view class="score-nav-title">
+        <view class="nav-title-bar"></view>
+        <text>积分管理</text>
+      </view>
+      <view class="score-nav-grid">
+        <view class="nav-item" bindtap="onViewRecords">
+          <view class="nav-icon-wrap" style="background: #1890ff15;">
+            <text class="nav-icon">📋</text>
+          </view>
+          <text class="nav-label">积分记录</text>
+        </view>
+        <view class="nav-item" bindtap="onAddScore">
+          <view class="nav-icon-wrap" style="background: #52c41a15;">
+            <text class="nav-icon">➕</text>
+          </view>
+          <text class="nav-label">添加积分</text>
+        </view>
+        <view class="nav-item" bindtap="onGoMall">
+          <view class="nav-icon-wrap" style="background: #722ed115;">
+            <text class="nav-icon">🎁</text>
+          </view>
+          <text class="nav-label">积分商城</text>
+        </view>
+        <view class="nav-item" bindtap="onManageRules">
+          <view class="nav-icon-wrap" style="background: #fa8c1615;">
+            <text class="nav-icon">📖</text>
+          </view>
+          <text class="nav-label">积分规则</text>
+        </view>
+        <view class="nav-item" bindtap="onManageExchange" wx:if="{{userRole === 'admin' || userRole === 'head_teacher'}}">
+          <view class="nav-icon-wrap" style="background: #13c2c215;">
+            <text class="nav-icon">⚙️</text>
+          </view>
+          <text class="nav-label">兑换管理</text>
+        </view>
+        <view class="nav-item" bindtap="onManageLedger" wx:if="{{userRole === 'admin' || userRole === 'head_teacher'}}">
+          <view class="nav-icon-wrap" style="background: #eb2f9615;">
+            <text class="nav-icon">📒</text>
+          </view>
+          <text class="nav-label">兑换台账</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 搜索栏 -->
+    <view class="search-bar">
+      <view class="search-input">
+        <image class="search-icon" src="/images/icons/search.png" mode="aspectFit"></image>
+        <input
+          type="text"
+          placeholder="搜索学号或姓名"
+          value="{{searchKeyword}}"
+          bindconfirm="onSearch"
+          bindinput="onSearchInput"
+        />
+        <image
+          class="clear-icon"
+          wx:if="{{searchKeyword}}"
+          src="/images/icons/clear.png"
+          mode="aspectFit"
+          bindtap="onClearSearch"
+        ></image>
+      </view>
+    </view>
+
+    <!-- 积分排行榜 -->
+    <view class="card">
+      <view class="card-title">积分排行榜</view>
+      <view class="ranking-list" wx:if="{{!loading && students.length > 0}}">
+        <view
+          class="ranking-item"
+          wx:for="{{students}}"
+          wx:key="_id"
+          bindtap="onViewDetail"
+          data-id="{{item.student_id}}"
+        >
+          <view class="ranking-number {{index < 3 ? 'top-' + (index + 1) : ''}}">
+            {{index + 1}}
+          </view>
+          <view class="student-avatar">
+            <image src="/images/icons/default-avatar.png" mode="aspectFill"></image>
+          </view>
+          <view class="student-info">
+            <view class="student-name">{{item.name}}</view>
+            <view class="student-meta">
+              <text class="meta-item">{{item.student_id}}</text>
+              <text class="meta-item">{{item.class_name}}</text>
+            </view>
+          </view>
+          <view class="score-info">
+            <view class="score-value" style="color: {{item.scoreColor}}">
+              {{item.current_score || 100}}
+            </view>
+            <view class="score-level">{{item.scoreLevel}}</view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 空状态 -->
+      <view class="empty" wx:if="{{!loading && students.length === 0}}">
+        <image class="empty-icon" src="/images/icons/empty.png" mode="aspectFit"></image>
+        <view class="empty-text">暂无积分数据</view>
+      </view>
+
+      <!-- 加载状态 -->
+      <view class="loading" wx:if="{{loading}}">
+        <view class="loading-icon"></view>
+        <view class="loading-text">加载中...</view>
+      </view>
+    </view>
+  </block>
 </view>

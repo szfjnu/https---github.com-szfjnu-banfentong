@@ -5,6 +5,71 @@
   padding-bottom: 120rpx;
 }
 
+/* 班级功能导航 */
+.class-nav {
+  background: white;
+  padding: 24rpx 20rpx 8rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.class-nav-title {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.nav-title-bar {
+  width: 6rpx;
+  height: 32rpx;
+  background: linear-gradient(180deg, #667eea, #764ba2);
+  border-radius: 3rpx;
+  margin-right: 14rpx;
+}
+
+.class-nav-grid {
+  display: flex;
+  gap: 12rpx;
+}
+
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16rpx 0 20rpx;
+  border-radius: 16rpx;
+  transition: all 0.2s;
+}
+
+.nav-item:active {
+  background: #f5f5f5;
+  transform: scale(0.95);
+}
+
+.nav-icon-wrap {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10rpx;
+}
+
+.nav-icon {
+  font-size: 40rpx;
+}
+
+.nav-label {
+  font-size: 22rpx;
+  color: #333;
+  white-space: nowrap;
+}
+
 /* 筛选区域 */
 .filter-section {
   background: white;

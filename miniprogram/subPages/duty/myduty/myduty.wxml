@@ -1,0 +1,121 @@
+<!--pages/duty/myduty/myduty.wxml - 学生端我的值日-->
+<view class="container">
+  <!-- 统计概览 -->
+  <view class="stats-card">
+    <view class="stats-row">
+      <view class="stat-item">
+        <text class="stat-value">{{myStats.total}}</text>
+        <text class="stat-label">总任务</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-value success">{{myStats.completed}}</text>
+        <text class="stat-label">已完成</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-value danger">{{myStats.incomplete}}</text>
+        <text class="stat-label">未完成</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-value {{myStats.totalScore >= 0 ? 'success' : 'danger'}}">{{myStats.totalScore >= 0 ? '+' : ''}}{{myStats.totalScore}}</text>
+        <text class="stat-label">积分变化</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 未读提醒 -->
+  <view class="reminder-section" wx:if="{{reminders.length > 0}}">
+    <view class="reminder-header">
+      <text class="reminder-title">通知 ({{unreadCount}})</text>
+      <text class="reminder-read-all" bindtap="onMarkAllRead">全部已读</text>
+    </view>
+    <view class="reminder-list">
+      <view class="reminder-item {{item.reminder_type === '检查结果' && item.consecutive_incomplete > 1 ? 'warning' : ''}}" 
+            wx:for="{{reminders}}" wx:key="reminder_id"
+            bindtap="onMarkRead" data-id="{{item.reminder_id}}">
+        <view class="reminder-type">
+          <text wx:if="{{item.reminder_type === '任务分配'}}">📋</text>
+          <text wx:elif="{{item.reminder_type === '检查结果'}}">{{item.consecutive_incomplete > 1 ? '⚠️' : '✅'}}</text>
+          <text wx:elif="{{item.reminder_type === '未完成提醒'}}">⚠️</text>
+          <text wx:else>🔔</text>
+        </view>
+        <view class="reminder-content">
+          <text class="reminder-text">{{item.reminder_content}}</text>
+          <text class="reminder-date">{{item.duty_date}}</text>
+        </view>
+        <view class="reminder-dot" wx:if="{{!item.is_read}}"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 任务Tab -->
+  <view class="task-tabs">
+    <view class="task-tab {{activeTab === 'pending' ? 'active' : ''}}" data-tab="pending" bindtap="onTabChange">
+      待完成 ({{pendingTasks.length}})
+    </view>
+    <view class="task-tab {{activeTab === 'completed' ? 'active' : ''}}" data-tab="completed" bindtap="onTabChange">
+      已完成 ({{completedTasks.length}})
+    </view>
+    <view class="task-tab {{activeTab === 'incomplete' ? 'active' : ''}}" data-tab="incomplete" bindtap="onTabChange">
+      未完成 ({{incompleteTasks.length}})
+    </view>
+  </view>
+
+  <!-- 任务列表 -->
+  <view class="task-list" wx:if="{{!loading}}">
+    <view class="task-card" wx:for="{{currentTasks}}" wx:key="task_id">
+      <view class="task-header">
+        <view class="task-icon">
+          {{item.task_name === '扫地' ? '🧹' : (item.task_name === '擦黑板' ? '🪟' : (item.task_name === '倒垃圾' ? '🗑️' : '📋'))}}
+        </view>
+        <view class="task-info">
+          <text class="task-name">{{item.task_name}}</text>
+          <text class="task-date">{{item.duty_date}} {{item.weekday}}</text>
+        </view>
+        <view class="task-status {{item.status === '已完成' ? 'done' : (item.status === '未完成' ? 'fail' : 'pending')}}">
+          {{item.status}}
+        </view>
+      </view>
+
+      <!-- 小组信息 -->
+      <view class="task-group">{{item.group_name}}</view>
+
+      <!-- 积分变化 -->
+      <view class="task-score" wx:if="{{item.score_change !== 0}}">
+        <text class="score-label">积分变化：</text>
+        <text class="score-value {{item.score_change > 0 ? 'plus' : 'minus'}}">
+          {{item.score_change > 0 ? '+' : ''}}{{item.score_change}}分
+        </text>
+      </view>
+
+      <!-- 检查详情 -->
+      <view class="task-inspection" wx:if="{{item.inspection && item.inspection.is_inspected}}">
+        <view class="inspection-row" wx:if="{{item.inspection.comment}}">
+          <text class="inspection-label">评语：</text>
+          <text class="inspection-value">{{item.inspection.comment}}</text>
+        </view>
+        <view class="inspection-row" wx:if="{{item.inspection.problems}}">
+          <text class="inspection-label">问题：</text>
+          <text class="inspection-value problem">{{item.inspection.problems}}</text>
+        </view>
+        <view class="inspection-row">
+          <text class="inspection-label">检查人：</text>
+          <text class="inspection-value">{{item.inspection.inspector_name}}（{{item.inspection.inspector_role}}）</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{isCurrentEmpty}}">
+      <text class="empty-icon">{{activeTab === 'pending' ? '🎉' : '📋'}}</text>
+      <text class="empty-text">{{activeTab === 'pending' ? '暂无待完成任务' : (activeTab === 'completed' ? '暂无已完成任务' : '暂无未完成任务')}}</text>
+    </view>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading-state" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

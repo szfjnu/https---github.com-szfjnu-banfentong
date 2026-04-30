@@ -1,0 +1,106 @@
+<!-- 聚光点 - 活动列表 -->
+<view class="activity-container">
+  <!-- 顶部标题栏 -->
+  <view class="page-header">
+    <view class="header-left">
+      <text class="header-title">聚光点</text>
+      <text class="header-sub">发现精彩，点亮校园</text>
+    </view>
+    <view class="header-right">
+      <view class="my-btn" bindtap="onMyActivities">
+        <text>我的活动</text>
+      </view>
+      <view class="audit-btn" wx:if="{{showAuditBtn && pendingCount > 0}}" bindtap="onGoAudit">
+        <text>审核</text>
+        <view class="audit-badge">{{pendingCount}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 分类滚动 -->
+  <scroll-view class="category-scroll" scroll-x enable-flex>
+    <view
+      class="cat-item {{currentCategory === index ? 'cat-active' : ''}}"
+      wx:for="{{categories}}"
+      wx:key="index"
+      bindtap="onCategoryChange"
+      data-index="{{index}}"
+    >
+      {{item}}
+    </view>
+  </scroll-view>
+
+  <!-- 状态 Tab -->
+  <view class="tab-bar">
+    <view
+      class="tab-item {{currentTab === index ? 'tab-active' : ''}}"
+      wx:for="{{tabs}}"
+      wx:key="index"
+      bindtap="onTabChange"
+      data-index="{{index}}"
+    >
+      {{item}}
+    </view>
+  </view>
+
+  <!-- 活动列表 -->
+  <view class="activity-list" wx:if="{{!loading && activities.length > 0}}">
+    <view class="activity-card" wx:for="{{activities}}" wx:key="_id" bindtap="onGoDetail" data-id="{{item._id}}">
+      <!-- 封面 -->
+      <view class="card-cover" wx:if="{{item.cover_image}}">
+        <image src="{{item.cover_image}}" mode="aspectFill"></image>
+      </view>
+      <view class="card-cover card-cover-placeholder" wx:else>
+        <text class="cover-emoji">
+          {{item.category === '体育竞技' ? '⚽' : item.category === '学习交流' ? '📚' : item.category === '游戏娱乐' ? '🎮' : item.category === '兴趣社交' ? '🎨' : '🎯'}}
+        </text>
+      </view>
+
+      <!-- 信息 -->
+      <view class="card-info">
+        <view class="card-top">
+          <view class="card-title">{{item.title}}</view>
+          <view class="card-status" style="color: {{item.statusColor}}; background: {{item.statusColor}}15;">
+            {{item.statusText}}
+          </view>
+        </view>
+        <view class="card-meta">
+          <text class="meta-tag">{{item.category}}</text>
+          <text class="meta-text">📍 {{item.location}}</text>
+        </view>
+        <view class="card-meta">
+          <text class="meta-text">🕐 {{item.timeStr}}</text>
+        </view>
+        <view class="card-bottom">
+          <view class="people-info">
+            <text class="people-current">{{item.current_count}}</text>
+            <text class="people-divider">/</text>
+            <text class="people-max">{{item.max_people > 0 ? item.max_people : '不限'}}</text>
+            <text class="people-label">人</text>
+          </view>
+          <view class="organizer">
+            <text>{{item.organizer.name}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty" wx:if="{{!loading && activities.length === 0}}">
+    <text class="empty-icon">🎪</text>
+    <text class="empty-text">暂无活动，快来发布一个吧</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-icon"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 发布按钮 -->
+  <view class="fab-publish" wx:if="{{showPublishBtn}}" bindtap="onPublish">
+    <text class="fab-icon">＋</text>
+    <text class="fab-text">发布</text>
+  </view>
+</view>

@@ -1,0 +1,227 @@
+<wxs module="utils">
+// 时间格式化
+function formatTime(ts) {
+  if (!ts) return '';
+  var d = getDate(ts);
+  var now = getDate();
+  var diff = (now - d) / 1000;
+  if (diff < 60) return '刚刚';
+  if (diff < 3600) return Math.floor(diff / 60) + '分钟前';
+  if (diff < 86400) return Math.floor(diff / 3600) + '小时前';
+  if (diff < 2592000) return Math.floor(diff / 86400) + '天前';
+  var m = d.getMonth() + 1;
+  var day = d.getDate();
+  return m + '月' + day + '日';
+}
+
+// 价格格式化
+function formatPrice(price) {
+  if (price === 0) return '免费赠送';
+  return '¥' + price.toFixed(2);
+}
+
+// 状态标签
+function statusLabel(status) {
+  var map = { on_sale: '在售', reserved: '已预留', sold: '已成交', removed: '已下架' };
+  return map[status] || status;
+}
+
+function statusColor(status) {
+  var map = { on_sale: '#52c41a', reserved: '#faad14', sold: '#999999', removed: '#ff4d4f' };
+  return map[status] || '#999999';
+}
+
+module.exports = {
+  formatTime: formatTime,
+  formatPrice: formatPrice,
+  statusLabel: statusLabel,
+  statusColor: statusColor
+};
+</wxs>
+
+<view class="page-container">
+  <!-- 顶部搜索栏 -->
+  <view class="search-bar">
+    <view class="search-input-wrap">
+      <image class="search-icon" src="/images/icons/search.png" mode="aspectFit" />
+      <input class="search-input" placeholder="搜索商品..." value="{{keyword}}" bindinput="onSearchInput" confirm-type="search" bindconfirm="onSearch" />
+    </view>
+  </view>
+
+  <!-- 分类 Tab -->
+  <scroll-view class="category-tabs" scroll-x enable-flex>
+    <view class="tab-item {{currentCategory === 'all' ? 'active' : ''}}" bindtap="switchCategory" data-category="all">全部</view>
+    <view class="tab-item {{currentCategory === 'textbook' ? 'active' : ''}}" bindtap="switchCategory" data-category="textbook">📚 教材</view>
+    <view class="tab-item {{currentCategory === 'electronics' ? 'active' : ''}}" bindtap="switchCategory" data-category="electronics">💻 数码</view>
+    <view class="tab-item {{currentCategory === 'daily' ? 'active' : ''}}" bindtap="switchCategory" data-category="daily">🧴 生活</view>
+    <view class="tab-item {{currentCategory === 'sports' ? 'active' : ''}}" bindtap="switchCategory" data-category="sports">⚽ 运动</view>
+    <view class="tab-item {{currentCategory === 'clothing' ? 'active' : ''}}" bindtap="switchCategory" data-category="clothing">👔 服饰</view>
+    <view class="tab-item {{currentCategory === 'other' ? 'active' : ''}}" bindtap="switchCategory" data-category="other">📦 其他</view>
+  </scroll-view>
+
+  <!-- 我的发布入口 -->
+  <view class="my-entry" bindtap="goMyItems">
+    <text class="my-entry-icon">📦</text>
+    <text class="my-entry-text">我的发布</text>
+    <text class="my-entry-arrow">›</text>
+  </view>
+
+  <!-- 商品列表 -->
+  <view class="item-list">
+    <block wx:for="{{items}}" wx:key="_id">
+      <view class="item-card" bindtap="goDetail" data-id="{{item._id}}">
+        <!-- 图片 -->
+        <view class="item-image-wrap">
+          <image class="item-image" src="{{item.images[0] || '/images/icons/default-item.png'}}" mode="aspectFill" />
+          <view class="item-status-tag" style="background: {{utils.statusColor(item.status)}}">
+            {{utils.statusLabel(item.status)}}
+          </view>
+        </view>
+
+        <!-- 信息 -->
+        <view class="item-info">
+          <view class="item-title">{{item.title}}</view>
+          <view class="item-meta">
+            <text class="item-condition">{{item.condition_label}}</text>
+            <text class="item-dot">·</text>
+            <text class="item-category">{{item.category_label}}</text>
+          </view>
+          <view class="item-bottom">
+            <view class="price-area">
+              <text class="item-price">{{utils.formatPrice(item.price)}}</text>
+              <text class="item-original-price" wx:if="{{item.original_price}}">¥{{item.original_price}}</text>
+            </view>
+            <view class="item-stats">
+              <text class="stat-item">👁 {{item.view_count}}</text>
+              <text class="stat-item">❤️ {{item.want_count}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-tip" wx:if="{{!loading && items.length === 0}}">
+    <text>暂无商品，快来发布第一件吧~</text>
+  </view>
+
+  <!-- 加载更多 -->
+  <view class="load-more" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+  <view class="load-more" wx:elif="{{!hasMore && items.length > 0}}">
+    <text>没有更多了</text>
+  </view>
+
+  <!-- 发布按钮 -->
+  <view class="fab-btn" bindtap="showPublishModal">
+    <text class="fab-icon">+</text>
+    <text class="fab-text">发布</text>
+  </view>
+
+  <!-- ===== 发布弹窗 ===== -->
+  <view class="modal-mask" wx:if="{{showPublish}}" bindtap="hidePublishModal">
+    <view class="modal-content publish-modal" catchtap="">
+      <view class="modal-title">发布商品</view>
+      <scroll-view scroll-y class="publish-scroll">
+        <!-- 标题 -->
+        <view class="form-field">
+          <text class="form-label">商品标题 *</text>
+          <input class="form-input" placeholder="简要描述你的商品" value="{{publishForm.title}}" bindinput="onPublishInput" data-field="title" maxlength="30" />
+        </view>
+
+        <!-- 分类 -->
+        <view class="form-field">
+          <text class="form-label">分类 *</text>
+          <picker class="form-picker" value="{{publishForm.categoryIndex}}" range="{{categoryNames}}" bindchange="onCategoryPick">
+            <view class="picker-text">{{categoryNames[publishForm.categoryIndex] || '请选择分类'}}</view>
+          </picker>
+        </view>
+
+        <!-- 成色 -->
+        <view class="form-field">
+          <text class="form-label">成色 *</text>
+          <picker class="form-picker" value="{{publishForm.conditionIndex}}" range="{{conditionNames}}" bindchange="onConditionPick">
+            <view class="picker-text">{{conditionNames[publishForm.conditionIndex] || '请选择成色'}}</view>
+          </picker>
+        </view>
+
+        <!-- 价格 -->
+        <view class="form-field">
+          <text class="form-label">价格(元) *  <text class="form-hint">0 = 免费赠送</text></text>
+          <input class="form-input" type="digit" placeholder="0" value="{{publishForm.price}}" bindinput="onPublishInput" data-field="price" />
+        </view>
+
+        <!-- 原价 -->
+        <view class="form-field">
+          <text class="form-label">原价(选填)</text>
+          <input class="form-input" type="digit" placeholder="选填" value="{{publishForm.originalPrice}}" bindinput="onPublishInput" data-field="originalPrice" />
+        </view>
+
+        <!-- 描述 -->
+        <view class="form-field">
+          <text class="form-label">描述 *</text>
+          <textarea class="form-textarea" placeholder="详细描述商品状况、使用时长等" value="{{publishForm.description}}" bindinput="onPublishInput" data-field="description" maxlength="500" />
+        </view>
+
+        <!-- 图片 -->
+        <view class="form-field">
+          <text class="form-label">图片(最多9张)</text>
+          <view class="image-grid">
+            <block wx:for="{{publishForm.images}}" wx:key="index">
+              <view class="image-item">
+                <image class="preview-image" src="{{item}}" mode="aspectFill" />
+                <view class="remove-image" catchtap="removeImage" data-index="{{index}}">×</view>
+              </view>
+            </block>
+            <view class="add-image" bindtap="chooseImage" wx:if="{{publishForm.images.length < 9}}">
+              <text class="add-icon">+</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 联系方式 -->
+        <view class="form-field">
+          <text class="form-label">联系方式(选填)</text>
+          <input class="form-input" placeholder="QQ/微信/手机号" value="{{publishForm.sellerContact}}" bindinput="onPublishInput" data-field="sellerContact" />
+        </view>
+      </scroll-view>
+
+      <view class="modal-actions">
+        <view class="modal-btn cancel-btn" bindtap="hidePublishModal">取消</view>
+        <view class="modal-btn confirm-btn {{publishing ? 'disabled' : ''}}" bindtap="submitPublish">
+          {{publishing ? '发布中...' : '发布'}}
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== 我的发布弹窗 ===== -->
+  <view class="modal-mask" wx:if="{{showMyItems}}" bindtap="hideMyItems">
+    <view class="modal-content my-modal" catchtap="">
+      <view class="modal-title">我的发布</view>
+      <scroll-view scroll-y class="my-scroll">
+        <block wx:for="{{myItems}}" wx:key="_id">
+          <view class="my-item-card">
+            <image class="my-item-image" src="{{item.images[0] || '/images/icons/default-item.png'}}" mode="aspectFill" />
+            <view class="my-item-info">
+              <text class="my-item-title">{{item.title}}</text>
+              <text class="my-item-status" style="color: {{utils.statusColor(item.status)}}">{{utils.statusLabel(item.status)}}</text>
+              <text class="my-item-price">{{utils.formatPrice(item.price)}}</text>
+            </view>
+            <view class="my-item-actions">
+              <view class="action-btn reserve-btn" wx:if="{{item.status === 'on_sale'}}" catchtap="onReserve" data-item="{{item}}">预留</view>
+              <view class="action-btn sold-btn" wx:if="{{item.status === 'on_sale' || item.status === 'reserved'}}" catchtap="onMarkSold" data-item="{{item}}">成交</view>
+              <view class="action-btn remove-btn" catchtap="onDeleteItem" data-id="{{item._id}}">删除</view>
+            </view>
+          </view>
+        </block>
+        <view class="empty-tip" wx:if="{{myItems.length === 0}}">暂无发布</view>
+      </scroll-view>
+      <view class="modal-actions">
+        <view class="modal-btn confirm-btn" bindtap="hideMyItems" style="flex:1">关闭</view>
+      </view>
+    </view>
+  </view>
+</view>

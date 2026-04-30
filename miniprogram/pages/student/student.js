@@ -1,4 +1,4 @@
-// pages/student/student.js
+﻿// pages/student/student.js
 const app = getApp();
 const api = require('../../utils/api.js');
 const util = require('../../utils/util.js');
@@ -9,6 +9,7 @@ Page({
     searchKeyword: '',
     loading: true,
     showAddButton: false,
+    showClassNav: true,
     page: 0,
     pageSize: 20,
     hasMore: true,
@@ -30,6 +31,11 @@ Page({
       { value: '卫生委员', label: '卫生委员' },
       { value: '体育委员', label: '体育委员' },
       { value: '生活委员', label: '生活委员' },
+      { value: '心理委员', label: '心理委员' },
+      { value: '电教管理员', label: '电教管理员' },
+      { value: '安全委员', label: '安全委员' },
+      { value: '组织委员', label: '组织委员' },
+      { value: '积分委员', label: '积分委员' },
       { value: '课代表', label: '课代表' },
       { value: '班干部', label: '无' }
     ],
@@ -57,8 +63,26 @@ Page({
     const role = app.globalData.role;
     const canWrite = app.hasPermission('student', 'write');
     this.setData({
-      showAddButton: canWrite || role === 'admin' || role === 'head_teacher'
+      showAddButton: canWrite || role === 'admin' || role === 'head_teacher',
+      showClassNav: role === 'admin' || role === 'head_teacher' || role === 'teacher'
     });
+  },
+
+  // 班级功能导航
+  onNavAttendance: function () {
+    wx.navigateTo({ url: '/subPages/attendance/attendance' });
+  },
+  onNavDuty: function () {
+    wx.navigateTo({ url: '/subPages/duty/duty' });
+  },
+  onNavDorm: function () {
+    wx.navigateTo({ url: '/subPages/dorm/dorm' });
+  },
+  onNavDiscipline: function () {
+    wx.navigateTo({ url: '/subPages/discipline/record/record' });
+  },
+  onNavGroup: function () {
+    wx.navigateTo({ url: '/subPages/group/group' });
   },
 
   // 加载班级列表
@@ -87,21 +111,22 @@ Page({
     try {
       const { page, pageSize, searchKeyword, selectedClass, selectedBoarding, selectedPosition } = this.data;
       const skip = refresh ? 0 : page * pageSize;
+      const role = app.globalData.role;
+      const studentId = app.globalData.student_id;
+
+      // 家长/学生端：仅展示本人或本人子女的信息，不走API批量查询
+      if ((role === 'student' || role === 'parent') && studentId) {
+        await this.loadOwnStudentInfo(studentId);
+        return;
+      }
 
       // 1. 优先获取当前用户的班级ID
       let targetClassId = app.globalData.class_id; 
-      // 【调试代码】打印一下 ID，确认它是不是空的
-      // 【调试】：打印一下看看有没有取到值
       console.log('当前全局班级ID:', app.globalData.class_id);
-      console.log('=== 调试信息 ===');
-      console.log('当前角色:', app.globalData.role);
+      console.log('当前角色:', role);
       console.log('当前班级ID (targetClassId):', targetClassId);      
-      // 2. 如果是管理员(admin)，且用户手动选择了“全部班级”或特定班级，则按用户选择查
-      // 如果不是管理员，强制只能查自己班级的数据
-      const role = app.globalData.role;
       
       if (role !== 'admin' && !targetClassId) {
-         // 普通老师如果没有班级ID，直接返回空，防止查全库
          this.setData({ students: [], loading: false });
          return;
       }
@@ -111,24 +136,13 @@ Page({
         limit: pageSize,
         skip: skip,
         search: searchKeyword,
-        // 关键修改：将 class_id 传给 API，而不是 class_name
         class_id: targetClassId 
       };
 
-      // --- 修改结束 ---
-      // 【调试代码】打印一下传给 API 的参数
       console.log('传给 API 的参数:', queryParam);
       const res = await api.studentApi.getStudents(queryParam);
-      // 【调试代码】打印一下 API 返回的数据
       console.log('API 返回的数据数量:', res.data.length);
-      console.log('API 返回的第一条数据:', res.data[0]);
-//      const res = await api.studentApi.getStudents({
-//        limit: pageSize,
-//        skip: skip,
-//        search: searchKeyword,
-//        class_name: selectedClass
-//     });
-//
+
       let students = res.data;
 
       // 前端筛选住宿状态
@@ -159,6 +173,33 @@ Page({
       console.error('加载学生列表失败:', err);
       this.setData({ loading: false });
       util.showError('加载失败');
+    }
+  },
+
+  // 家长/学生端：仅加载本人/子女信息
+  loadOwnStudentInfo: async function (studentId) {
+    try {
+      const db = wx.cloud.database();
+      const res = await db.collection('students')
+        .where({ student_id: studentId })
+        .limit(1)
+        .get();
+
+      let students = (res.data || []).map(student => ({
+        ...student,
+        name: student.name || student.student_name || '',
+        scoreLevel: util.getScoreLevel(student.current_score || 100),
+        scoreColor: util.getScoreColor(student.current_score || 100)
+      }));
+
+      this.setData({
+        students,
+        loading: false,
+        hasMore: false
+      });
+    } catch (err) {
+      console.error('加载本人信息失败:', err);
+      this.setData({ students: [], loading: false });
     }
   },
 
@@ -215,7 +256,7 @@ Page({
   onViewDetail: function (e) {
     const studentId = e.currentTarget.dataset.id;
     wx.navigateTo({
-      url: `/pages/student/detail/detail?id=${studentId}`
+      url: `/subPages/student/detail/detail?id=${studentId}`
     });
   },
 
@@ -252,7 +293,7 @@ Page({
   onEditStudent: function (e) {
     const studentId = e.currentTarget.dataset.id;
     wx.navigateTo({
-      url: `/pages/student/add/add?id=${studentId}`
+      url: `/subPages/student/add/add?id=${studentId}`
     });
   },
 
@@ -294,14 +335,14 @@ Page({
   // 添加学生
   onAddStudent: function () {
     wx.navigateTo({
-      url: '/pages/student/add/add'
+      url: '/subPages/student/add/add'
     });
   },
 
   // 批量导入学生
   onImportStudents: function () {
     wx.navigateTo({
-      url: '/pages/student/import/import'
+      url: '/subPages/student/import/import'
     });
   },
 

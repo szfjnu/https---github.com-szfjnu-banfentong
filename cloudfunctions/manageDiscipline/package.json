@@ -1,0 +1,9 @@
+{
+  "name": "manageDiscipline",
+  "version": "1.0.0",
+  "description": "处分管理云函数：级别配置、处分记录、撤销申请",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

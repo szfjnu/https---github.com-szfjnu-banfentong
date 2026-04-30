@@ -1,0 +1,344 @@
+/* pages/authorization/authorization.wxss */
+.container {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding-bottom: 40rpx;
+}
+
+.action-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 30rpx;
+  background: white;
+  border-bottom: 1rpx solid #e8e8e8;
+}
+
+.action-text {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.btn-batch {
+  background: #1890ff;
+  color: white;
+  font-size: 26rpx;
+  padding: 12rpx 30rpx;
+  border-radius: 8rpx;
+  border: none;
+}
+
+.btn-batch[disabled] {
+  background: #b7dfff;
+  color: white;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 20rpx;
+  padding: 20rpx 30rpx;
+  background: white;
+  margin-bottom: 2rpx;
+}
+
+.search-input {
+  flex: 1;
+  height: 64rpx;
+  background: #f5f5f5;
+  border-radius: 8rpx;
+  padding: 0 20rpx;
+  font-size: 26rpx;
+}
+
+.filter-picker {
+  height: 64rpx;
+  line-height: 64rpx;
+  padding: 0 20rpx;
+  background: #f5f5f5;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  color: #333;
+}
+
+.select-all-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 30rpx;
+  background: white;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.select-all-left {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  font-size: 26rpx;
+  color: #666;
+}
+
+.student-count {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.checkbox {
+  width: 40rpx;
+  height: 40rpx;
+  border: 2rpx solid #d9d9d9;
+  border-radius: 6rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkbox.checked {
+  background: #1890ff;
+  border-color: #1890ff;
+}
+
+.checkbox.checked::after {
+  content: '✓';
+  color: white;
+  font-size: 24rpx;
+}
+
+.student-list {
+  padding: 10rpx 20rpx;
+}
+
+.student-card {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  background: white;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.04);
+  border: 2rpx solid transparent;
+}
+
+.student-card.selected {
+  border-color: #1890ff;
+  background: #e6f7ff;
+}
+
+.student-info {
+  flex: 1;
+}
+
+.student-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.student-meta {
+  display: flex;
+  gap: 20rpx;
+  align-items: center;
+}
+
+.student-id {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.student-position {
+  font-size: 22rpx;
+  color: #1890ff;
+  background: #e6f7ff;
+  padding: 2rpx 12rpx;
+  border-radius: 4rpx;
+}
+
+.auth-status {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.auth-count {
+  font-size: 24rpx;
+  color: #1890ff;
+}
+
+.auth-arrow {
+  font-size: 32rpx;
+  color: #ccc;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 100rpx 0;
+}
+
+.empty-icon {
+  font-size: 100rpx;
+  margin-bottom: 20rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+.loading {
+  text-align: center;
+  padding: 80rpx 0;
+  font-size: 28rpx;
+  color: #999;
+}
+
+/* 弹窗 */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  width: 85%;
+  max-height: 80vh;
+  background: white;
+  border-radius: 20rpx;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.modal-close {
+  font-size: 36rpx;
+  color: #999;
+  padding: 10rpx;
+}
+
+.modal-body {
+  padding: 30rpx;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.batch-hint {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 30rpx;
+}
+
+.perm-module {
+  margin-bottom: 30rpx;
+}
+
+.perm-module-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+
+/* 复选框样式 */
+.perm-checkboxes {
+  display: flex;
+  gap: 30rpx;
+  flex-wrap: wrap;
+}
+
+.perm-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 12rpx 0;
+}
+
+.checkbox-label {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.checkbox-label.approve-label {
+  color: #52c41a;
+  font-weight: 500;
+}
+
+/* 弹窗内复选框尺寸 */
+.perm-checkbox .checkbox {
+  width: 36rpx;
+  height: 36rpx;
+  border: 2rpx solid #d9d9d9;
+  border-radius: 6rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.perm-checkbox .checkbox.checked {
+  background: #1890ff;
+  border-color: #1890ff;
+}
+
+.perm-checkbox .checkbox.checked::after {
+  content: '✓';
+  color: white;
+  font-size: 22rpx;
+}
+
+/* 审批权限选中色 */
+.perm-checkbox .checkbox.approve-checked {
+  background: #52c41a;
+  border-color: #52c41a;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 20rpx;
+  padding: 30rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.modal-cancel {
+  flex: 1;
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  background: #f5f5f5;
+  color: #666;
+}
+
+.modal-confirm {
+  flex: 1;
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  background: #1890ff;
+  color: white;
+}

@@ -1,0 +1,138 @@
+<!-- pages/usercenter/settings/settings.wxml -->
+<view class="container">
+  <!-- Tab 切换 -->
+  <view class="tab-bar">
+    <view class="tab-item {{activeTab === 'profile' ? 'active' : ''}}" bindtap="switchTab" data-tab="profile">个人信息</view>
+    <view class="tab-item {{activeTab === 'notification' ? 'active' : ''}}" bindtap="switchTab" data-tab="notification">通知偏好</view>
+    <view class="tab-item {{activeTab === 'privacy' ? 'active' : ''}}" bindtap="switchTab" data-tab="privacy">隐私</view>
+    <view class="tab-item {{activeTab === 'display' ? 'active' : ''}}" bindtap="switchTab" data-tab="display">显示</view>
+  </view>
+
+  <!-- 个人信息 -->
+  <view class="tab-content" wx:if="{{activeTab === 'profile'}}">
+    <view class="form-section">
+      <view class="form-item avatar-item" bindtap="onChooseAvatar">
+        <text class="form-label">头像</text>
+        <view class="form-right">
+          <image class="avatar-preview" src="{{userInfo.avatarUrl || '/images/icons/default-avatar.png'}}" mode="aspectFill" />
+          <text class="arrow">›</text>
+        </view>
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">昵称</text>
+        <input class="form-input" value="{{nickname}}" bindinput="onNicknameInput" placeholder="请输入昵称" />
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">手机号</text>
+        <input class="form-input" value="{{phone}}" bindinput="onPhoneInput" placeholder="请输入手机号" type="number" maxlength="11" />
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">邮箱</text>
+        <input class="form-input" value="{{email}}" bindinput="onEmailInput" placeholder="请输入邮箱" />
+      </view>
+    </view>
+
+    <view class="form-section">
+      <view class="form-item static">
+        <text class="form-label">角色</text>
+        <text class="form-value">{{userInfo.role === 'admin' ? '管理员' : userInfo.role === 'head_teacher' ? '班主任' : userInfo.role === 'subject_teacher' ? '科任老师' : userInfo.role === 'class_cadre' ? '班干部' : userInfo.role === 'student' ? '学生' : '家长'}}</text>
+      </view>
+      <view class="form-item static">
+        <text class="form-label">班级</text>
+        <text class="form-value">{{userInfo.class_name || '未分配'}}</text>
+      </view>
+      <view class="form-item static">
+        <text class="form-label">会员等级</text>
+        <text class="form-value">{{membershipLevel === 'pro' ? '专业版' : membershipLevel === 'basic' ? '基础版' : membershipLevel === 'enterprise' ? '企业版' : '免费版'}}</text>
+      </view>
+    </view>
+
+    <button class="save-btn" bindtap="saveProfile">保存修改</button>
+  </view>
+
+  <!-- 通知偏好 -->
+  <view class="tab-content" wx:if="{{activeTab === 'notification'}}">
+    <view class="setting-section">
+      <view class="section-hint">管理各模块的消息接收方式</view>
+      <view class="notification-list">
+        <view class="notification-item" wx:for="{{notificationTypes}}" wx:key="key">
+          <view class="ntf-left">
+            <text class="ntf-icon">{{item.icon}}</text>
+            <text class="ntf-label">{{item.label}}</text>
+          </view>
+          <view class="ntf-right">
+            <view class="switch-group">
+              <text class="switch-label">接收</text>
+              <switch checked="{{notificationPreferences[item.key].enabled !== false}}"
+                      bindchange="onNotificationToggle"
+                      data-type="{{item.key}}" data-field="enabled"
+                      color="#1890ff" size="mini" />
+            </view>
+            <view class="switch-group">
+              <text class="switch-label">推送</text>
+              <switch checked="{{notificationPreferences[item.key].push !== false}}"
+                      bindchange="onNotificationToggle"
+                      data-type="{{item.key}}" data-field="push"
+                      color="#52c41a" size="mini" />
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 隐私设置 -->
+  <view class="tab-content" wx:if="{{activeTab === 'privacy'}}">
+    <view class="setting-section">
+      <view class="section-hint">控制家长可查看的信息范围（仅班主任和学生可设置）</view>
+      <view class="privacy-list">
+        <view class="privacy-item">
+          <text class="privacy-label">积分信息</text>
+          <switch checked="{{privacySettings.show_score_to_parent}}"
+                  bindchange="onPrivacyToggle" data-field="show_score_to_parent"
+                  color="#1890ff" />
+        </view>
+        <view class="privacy-item">
+          <text class="privacy-label">考勤信息</text>
+          <switch checked="{{privacySettings.show_attendance_to_parent}}"
+                  bindchange="onPrivacyToggle" data-field="show_attendance_to_parent"
+                  color="#1890ff" />
+        </view>
+        <view class="privacy-item">
+          <text class="privacy-label">宿舍信息</text>
+          <switch checked="{{privacySettings.show_dorm_to_parent}}"
+                  bindchange="onPrivacyToggle" data-field="show_dorm_to_parent"
+                  color="#1890ff" />
+        </view>
+        <view class="privacy-item">
+          <text class="privacy-label">志愿信息</text>
+          <switch checked="{{privacySettings.show_volunteer_to_parent}}"
+                  bindchange="onPrivacyToggle" data-field="show_volunteer_to_parent"
+                  color="#1890ff" />
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 显示设置 -->
+  <view class="tab-content" wx:if="{{activeTab === 'display'}}">
+    <view class="setting-section">
+      <view class="section-hint">自定义显示偏好</view>
+      <view class="display-list">
+        <view class="display-item">
+          <text class="display-label">字体大小</text>
+          <view class="font-size-options">
+            <view class="font-option {{displaySettings.font_size === item.value ? 'active' : ''}}"
+                  wx:for="{{fontSizeOptions}}" wx:key="value"
+                  bindtap="onFontSizeChange" data-value="{{item.value}}">
+              {{item.label}}
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

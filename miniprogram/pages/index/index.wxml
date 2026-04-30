@@ -1,4 +1,4 @@
-<!--pages/index/index.wxml-->
+﻿<!--pages/index/index.wxml-->
 <view class="container">
   <!-- 用户信息卡片 -->
   <view class="user-card card" wx:if="{{userInfo}}">
@@ -39,19 +39,19 @@
         <view class="stat-title">班级概况</view>
         <!-- 四个数据项一行 -->
         <view class="stat-grid-compact">
-          <view class="stat-item-compact">
+          <view class="stat-item-compact" bindtap="goToStudentList">
             <view class="stat-value-compact">{{statistics.studentCount || 0}}</view>
             <view class="stat-label-compact">学生总数</view>
           </view>
-          <view class="stat-item-compact">
+          <view class="stat-item-compact" bindtap="goToScorePage">
             <view class="stat-value-compact">{{statistics.avgScore || 100}}</view>
             <view class="stat-label-compact">平均积分</view>
           </view>
-          <view class="stat-item-compact">
+          <view class="stat-item-compact" bindtap="goToAttendance">
             <view class="stat-value-compact">{{statistics.attendanceRate || 100}}%</view>
             <view class="stat-label-compact">考勤率</view>
           </view>
-          <view class="stat-item-compact">
+          <view class="stat-item-compact" bindtap="goToApproval">
             <view class="stat-value-compact text-warning">{{statistics.pendingApprovals || 0}}</view>
             <view class="stat-label-compact">待审批</view>
           </view>
@@ -64,7 +64,7 @@
             <text class="ranking-more" bindtap="goToRanking">更多 ></text>
           </view>
           <view class="ranking-list" wx:if="{{!rankingLoading && scoreRanking.length > 0}}">
-            <view class="ranking-item" wx:for="{{scoreRanking}}" wx:key="student_id">
+            <view class="ranking-item" wx:for="{{scoreRanking}}" wx:key="student_id" bindtap="goToStudentDetail" data-id="{{item.student_id}}">
               <view class="ranking-left">
                 <text class="ranking-badge">{{item.badge || item.rank}}</text>
                 <image class="ranking-avatar" src="{{item.avatar || '/images/icons/default-avatar.png'}}" mode="aspectFill"></image>
@@ -91,21 +91,55 @@
       <view class="stat-card">
         <view class="stat-title">我的数据</view>
         <view class="stat-grid">
-          <view class="stat-item">
+          <view class="stat-item" bindtap="goToScorePage">
             <view class="stat-value">{{statistics.myScore || 100}}</view>
             <view class="stat-label">德育积分</view>
           </view>
-          <view class="stat-item">
+          <view class="stat-item" bindtap="goToScorePage">
             <view class="stat-value">{{statistics.scoreLevel || '良好'}}</view>
             <view class="stat-label">积分等级</view>
           </view>
-          <view class="stat-item">
+          <view class="stat-item" bindtap="goToAttendance">
             <view class="stat-value">{{statistics.attendanceCount || 0}}</view>
             <view class="stat-label">考勤记录</view>
           </view>
-          <view class="stat-item">
+          <view class="stat-item" bindtap="goToVolunteer">
             <view class="stat-value">{{statistics.volunteerHours || 0}}h</view>
             <view class="stat-label">志愿时长</view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 学生功能导航 -->
+      <view class="student-nav-card">
+        <view class="nav-section-title">
+          <view class="nav-title-bar"></view>
+          <text>发现精彩</text>
+        </view>
+        <view class="nav-grid">
+          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/aichat/aichat">
+            <view class="nav-entry-icon" style="background: #667eea15;">💬</view>
+            <text class="nav-entry-label">微聊陪伴</text>
+          </view>
+          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/treehole/treehole">
+            <view class="nav-entry-icon" style="background: #52c41a15;">🌳</view>
+            <text class="nav-entry-label">心灵树洞</text>
+          </view>
+          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/activity/list/list">
+            <view class="nav-entry-icon" style="background: #667eea15;">🎪</view>
+            <text class="nav-entry-label">聚光点</text>
+          </view>
+          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/hero/hero">
+            <view class="nav-entry-icon" style="background: #faad1415;">🏆</view>
+            <text class="nav-entry-label">英雄台</text>
+          </view>
+          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/flea/flea">
+            <view class="nav-entry-icon" style="background: #fa8c1615;">🏷</view>
+            <text class="nav-entry-label">校园闲鱼</text>
+          </view>
+          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/grade/grade">
+            <view class="nav-entry-icon" style="background: #722ed115;">📊</view>
+            <text class="nav-entry-label">成绩管理</text>
           </view>
         </view>
       </view>
@@ -116,13 +150,47 @@
       <view class="stat-card">
         <view class="stat-title">孩子数据</view>
         <view class="stat-grid">
-          <view class="stat-item">
+          <view class="stat-item" bindtap="goToScorePage">
             <view class="stat-value">{{statistics.childScore || 100}}</view>
             <view class="stat-label">德育积分</view>
           </view>
-          <view class="stat-item">
+          <view class="stat-item" bindtap="goToScorePage">
             <view class="stat-value">{{statistics.scoreLevel || '良好'}}</view>
             <view class="stat-label">积分等级</view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 家长功能导航 -->
+      <view class="student-nav-card">
+        <view class="nav-section-title">
+          <view class="nav-title-bar"></view>
+          <text>校园服务</text>
+        </view>
+        <view class="nav-grid">
+          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/aichat/aichat">
+            <view class="nav-entry-icon" style="background: #667eea15;">💬</view>
+            <text class="nav-entry-label">微聊陪伴</text>
+          </view>
+          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/treehole/treehole">
+            <view class="nav-entry-icon" style="background: #52c41a15;">🌳</view>
+            <text class="nav-entry-label">心灵树洞</text>
+          </view>
+          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/activity/list/list">
+            <view class="nav-entry-icon" style="background: #667eea15;">🎪</view>
+            <text class="nav-entry-label">聚光点</text>
+          </view>
+          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/hero/hero">
+            <view class="nav-entry-icon" style="background: #faad1415;">🏆</view>
+            <text class="nav-entry-label">英雄台</text>
+          </view>
+          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/flea/flea">
+            <view class="nav-entry-icon" style="background: #fa8c1615;">🏷</view>
+            <text class="nav-entry-label">校园闲鱼</text>
+          </view>
+          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/grade/grade">
+            <view class="nav-entry-icon" style="background: #722ed115;">📊</view>
+            <text class="nav-entry-label">成绩管理</text>
           </view>
         </view>
       </view>

@@ -1,4 +1,4 @@
-// pages/welcome/welcome.js
+﻿// pages/welcome/welcome.js
 const app = getApp();
 const util = require('../../utils/util.js');
 
@@ -32,49 +32,54 @@ Page({
     });
   },
 
-  // 加载我的班级
+  // 加载我的班级（使用云函数绕过数据库安全规则限制）
   loadMyClasses: async function () {
     try {
-      const db = wx.cloud.database();
+      const res = await wx.cloud.callFunction({
+        name: 'joinClass',
+        data: {
+          action: 'getUserClasses',
+          data: {}
+        }
+      });
 
-      // 查询已加入的班级
-      const joinedRes = await db.collection('user_class_relation')
-        .where({
-          user_openid: app.globalData.openid,
-          status: 'joined'
-        })
-        .get();
+      const result = res.result;
 
-      // 查询待审核的班级
-      const pendingRes = await db.collection('user_class_relation')
-        .where({
-          user_openid: app.globalData.openid,
-          status: 'pending'
-        })
-        .get();
+      if (result.success && result.data) {
+        const joinedClasses = (result.data.joined || []).map(cls => ({
+          ...cls,
+          role_label: this.getRoleLabel(cls.role)
+        }));
+        const pendingClasses = (result.data.pending || []).map(cls => ({
+          ...cls,
+          role_label: this.getRoleLabel(cls.role)
+        }));
 
-      // 获取班级详情
-      const myClasses = await this.getClassDetails(joinedRes.data);
-      const pendingClasses = await this.getClassDetails(pendingRes.data);
-
-      this.setData({ myClasses, pendingClasses });
+        this.setData({ myClasses: joinedClasses, pendingClasses });
+      }
     } catch (err) {
       console.error('加载班级失败:', err);
     }
   },
 
-  // 获取班级详情
+  // 获取班级详情（已弃用，改用云函数）
   getClassDetails: async function (relations) {
-    const db = wx.cloud.database();
     const classes = [];
 
     for (const relation of relations) {
       try {
-        const res = await db.collection('classes').doc(relation.class_id).get();
-        if (res.data) {
+        const res = await wx.cloud.callFunction({
+          name: 'joinClass',
+          data: {
+            action: 'getClassDetail',
+            data: { classId: relation.class_id }
+          }
+        });
+
+        if (res.result.success && res.result.data) {
           classes.push({
-            ...res.data,
-            role: relation.role, // 从关系表中获取角色
+            ...res.result.data,
+            role: relation.role,
             role_label: this.getRoleLabel(relation.role),
             relation_id: relation._id,
             is_owner: relation.is_owner || false,
@@ -136,7 +141,7 @@ Page({
         console.error('跳转首页失败:', err);
         // 如果switchTab失败，尝试navigateTo到班级详情页
         wx.navigateTo({
-          url: `/pages/class/detail/detail?id=${classId}`
+          url: `/subPages/class/detail/detail?id=${classId}`
         });
       }
     });
@@ -145,7 +150,7 @@ Page({
   // 创建班级
   onCreateClass: function () {
     wx.navigateTo({
-      url: '/pages/class/add/add'
+      url: '/subPages/class/add/add'
     });
   },
 

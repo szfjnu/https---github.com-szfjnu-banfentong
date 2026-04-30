@@ -1,0 +1,254 @@
+<!-- 英雄台 -->
+<wxs module="fmt">
+  function timeAgo(dateStr) {
+    if (!dateStr) return '';
+    var now = getDate().getTime();
+    var d = getDate(dateStr).getTime();
+    var diff = now - d;
+    if (diff < 0) diff = 0;
+    var sec = Math.floor(diff / 1000);
+    if (sec < 60) return '刚刚';
+    var min = Math.floor(sec / 60);
+    if (min < 60) return min + '分钟前';
+    var hr = Math.floor(min / 60);
+    if (hr < 24) return hr + '小时前';
+    var day = Math.floor(hr / 24);
+    if (day < 30) return day + '天前';
+    return '';
+  }
+  function honorIcon(icon) {
+    var map = {
+      trophy: '🏆', star: '⭐', heart: '💖',
+      rocket: '🚀', crown: '👑', medal: '🏅'
+    };
+    return map[icon] || '🏅';
+  }
+  function typeLabel(type) {
+    var map = {
+      academic: '学业之星', behavior: '行为模范',
+      volunteer: '志愿先锋', progress: '进步达人', special: '特殊荣誉'
+    };
+    return map[type] || '荣誉';
+  }
+  function typeColor(type) {
+    var map = {
+      academic: '#faad14', behavior: '#52c41a',
+      volunteer: '#eb2f96', progress: '#1890ff', special: '#722ed1'
+    };
+    return map[type] || '#1890ff';
+  }
+  module.exports = {
+    timeAgo: timeAgo,
+    honorIcon: honorIcon,
+    typeLabel: typeLabel,
+    typeColor: typeColor
+  };
+</wxs>
+
+<view class="hero-container">
+  <!-- 顶部英雄榜 -->
+  <view class="hero-banner">
+    <view class="banner-title">🏆 英雄台</view>
+    <view class="banner-subtitle">每一份努力都值得被看见</view>
+
+    <!-- 统计概览 -->
+    <view class="stats-row" wx:if="{{stats}}">
+      <view class="stats-item">
+        <view class="stats-num">{{stats.totalHonors || 0}}</view>
+        <view class="stats-label">荣誉总数</view>
+      </view>
+      <view class="stats-item">
+        <view class="stats-num">{{stats.totalStudents || 0}}</view>
+        <view class="stats-label">获奖人次</view>
+      </view>
+      <view class="stats-item">
+        <view class="stats-num">{{stats.typeCount.academic || 0}}</view>
+        <view class="stats-label">学业之星</view>
+      </view>
+      <view class="stats-item">
+        <view class="stats-num">{{stats.typeCount.progress || 0}}</view>
+        <view class="stats-label">进步达人</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 类型筛选 Tab -->
+  <view class="type-tabs">
+    <view class="type-tab {{currentType === '' ? 'active' : ''}}" bindtap="switchType" data-type="">全部</view>
+    <view class="type-tab {{currentType === 'academic' ? 'active' : ''}}" bindtap="switchType" data-type="academic">🏆 学业</view>
+    <view class="type-tab {{currentType === 'behavior' ? 'active' : ''}}" bindtap="switchType" data-type="behavior">⭐ 行为</view>
+    <view class="type-tab {{currentType === 'volunteer' ? 'active' : ''}}" bindtap="switchType" data-type="volunteer">💖 志愿</view>
+    <view class="type-tab {{currentType === 'progress' ? 'active' : ''}}" bindtap="switchType" data-type="progress">🚀 进步</view>
+    <view class="type-tab {{currentType === 'special' ? 'active' : ''}}" bindtap="switchType" data-type="special">👑 特殊</view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-box" wx:if="{{loading && honors.length === 0}}">
+    <view class="loading-spinner"></view>
+    <text>加载中...</text>
+  </view>
+
+  <!-- 荣誉墙 -->
+  <view class="honor-list" wx:if="{{!loading || honors.length > 0}}">
+    <view class="honor-card {{item.is_pinned ? 'pinned' : ''}}" wx:for="{{honors}}" wx:key="_id">
+      <!-- 置顶标识 -->
+      <view class="pin-badge" wx:if="{{item.is_pinned}}">📌 置顶</view>
+
+      <!-- 荣誉头部 -->
+      <view class="honor-header">
+        <view class="honor-icon-wrap" style="background: {{fmt.typeColor(item.honor_type)}}20;">
+          <text class="honor-icon">{{fmt.honorIcon(item.icon)}}</text>
+        </view>
+        <view class="honor-info">
+          <view class="honor-title">{{item.title}}</view>
+          <view class="honor-type-label" style="color: {{fmt.typeColor(item.honor_type)}};">{{fmt.typeLabel(item.honor_type)}}</view>
+        </view>
+      </view>
+
+      <!-- 颁奖词 -->
+      <view class="honor-desc" wx:if="{{item.description}}">{{item.description}}</view>
+
+      <!-- 获奖学生 -->
+      <view class="honor-student">
+        <text class="student-badge">🎓 {{item.student_name}}</text>
+        <text class="honor-period" wx:if="{{item.period}}">{{item.period}}</text>
+      </view>
+
+      <!-- 底部操作栏 -->
+      <view class="honor-footer">
+        <view class="honor-action" catchtap="onToggleCheer" data-id="{{item._id}}" data-index="{{index}}">
+          <text class="cheer-icon {{cheerMap[item._id] ? 'cheered' : ''}}">{{cheerMap[item._id] ? '🎉' : '👏'}}</text>
+          <text class="cheer-count">{{item.cheers_count || 0}}</text>
+        </view>
+        <view class="honor-time">{{fmt.timeAgo(item.created_at)}}</view>
+
+        <!-- 管理员操作 -->
+        <view class="admin-ops" wx:if="{{isAdmin}}" catchtap="onAdminAction" data-id="{{item._id}}" data-pinned="{{item.is_pinned}}">
+          <text class="admin-btn">管理</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载更多 -->
+    <view class="load-more" wx:if="{{hasMore && !loading}}" bindtap="loadMore">
+      <text>点击加载更多</text>
+    </view>
+    <view class="no-more" wx:if="{{!hasMore && honors.length > 0}}">
+      <text>- 已经到底了 -</text>
+    </view>
+    <view class="empty-tip" wx:if="{{honors.length === 0 && !loading}}">
+      <view class="empty-emoji">🏆</view>
+      <text>英雄台还没有荣誉记录</text>
+    </view>
+  </view>
+
+  <!-- 颁发荣誉按钮（管理员） -->
+  <view class="fab-btn" wx:if="{{isAdmin}}" bindtap="openAwardModal">
+    <text>🏅</text>
+  </view>
+
+  <!-- ===== 颁发荣誉弹窗 ===== -->
+  <view class="modal-mask" wx:if="{{showAwardModal}}" bindtap="closeAwardModal">
+    <view class="modal-content award-modal" catchtap="">
+      <view class="modal-title">🏅 颁发荣誉</view>
+
+      <!-- 选择模板 -->
+      <view class="form-field">
+        <text class="form-label">荣誉模板</text>
+        <picker mode="selector" range="{{templateTitles}}" value="{{templateIndex}}" bindchange="onTemplateChange">
+          <view class="form-picker">{{templateTitles[templateIndex] || '请选择'}}</view>
+        </picker>
+      </view>
+
+      <!-- 荣誉标题 -->
+      <view class="form-field">
+        <text class="form-label">荣誉标题</text>
+        <input class="form-input" placeholder="如：月度学霸" value="{{awardTitle}}" bindinput="onAwardTitleInput" />
+      </view>
+
+      <!-- 荣誉类型 -->
+      <view class="form-field">
+        <text class="form-label">荣誉类型</text>
+        <picker mode="selector" range="{{typeOptions}}" range-key="label" value="{{typeIndex}}" bindchange="onTypeChange">
+          <view class="form-picker">{{typeOptions[typeIndex].label}}</view>
+        </picker>
+      </view>
+
+      <!-- 颁奖词 -->
+      <view class="form-field">
+        <text class="form-label">颁奖词（选填）</text>
+        <textarea class="form-textarea" placeholder="写一句鼓励的话..." value="{{awardDesc}}" bindinput="onAwardDescInput" maxlength="300" auto-height />
+      </view>
+
+      <!-- 选择学生 -->
+      <view class="form-field">
+        <text class="form-label">获奖学生</text>
+        <view class="student-selector" bindtap="openStudentPicker">
+          <text wx:if="{{selectedStudents.length === 0}}" class="selector-placeholder">点击选择学生</text>
+          <view class="selected-tags" wx:else>
+            <view class="student-tag" wx:for="{{selectedStudents}}" wx:key="student_id">
+              {{item.student_name}}
+              <text class="tag-remove" catchtap="removeStudent" data-index="{{index}}">✕</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 周期 -->
+      <view class="form-field">
+        <text class="form-label">周期（选填）</text>
+        <input class="form-input" placeholder="如：2024-03" value="{{awardPeriod}}" bindinput="onPeriodInput" />
+      </view>
+
+      <!-- 操作按钮 -->
+      <view class="modal-actions">
+        <view class="modal-btn cancel-btn" bindtap="closeAwardModal">取消</view>
+        <view class="modal-btn confirm-btn {{awarding ? 'disabled' : ''}}" bindtap="doAward">
+          {{awarding ? '颁发中...' : '确认颁发'}}
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== 学生选择弹窗 ===== -->
+  <view class="modal-mask" wx:if="{{showStudentPicker}}" bindtap="closeStudentPicker">
+    <view class="modal-content picker-modal" catchtap="">
+      <view class="modal-title">选择学生</view>
+      <input class="search-input" placeholder="搜索学生姓名" value="{{searchKeyword}}" bindinput="onSearchStudent" />
+      <view class="student-picker-list">
+        <view class="picker-student-item {{isStudentSelected(item.student_id) ? 'selected' : ''}}"
+          wx:for="{{filteredStudents}}" wx:key="student_id"
+          bindtap="toggleStudentSelect" data-student="{{item}}">
+          <text class="picker-student-name">{{item.name || item.student_name}}</text>
+          <text class="picker-check">{{isStudentSelected(item.student_id) ? '✓' : ''}}</text>
+        </view>
+        <view class="empty-tip" wx:if="{{filteredStudents.length === 0}}">未找到学生</view>
+      </view>
+      <view class="modal-actions">
+        <view class="modal-btn cancel-btn" bindtap="closeStudentPicker">取消</view>
+        <view class="modal-btn confirm-btn" bindtap="confirmStudentSelect">确认选择</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== 管理操作弹窗 ===== -->
+  <view class="modal-mask" wx:if="{{showAdminModal}}" bindtap="closeAdminModal">
+    <view class="modal-content" catchtap="">
+      <view class="modal-title">管理操作</view>
+      <view class="admin-actions">
+        <view class="admin-action-btn" bindtap="onPinHonor" wx:if="{{!adminPostPinned}}">
+          📌 置顶荣誉
+        </view>
+        <view class="admin-action-btn" bindtap="onUnpinHonor" wx:if="{{adminPostPinned}}">
+          📌 取消置顶
+        </view>
+        <view class="admin-action-btn danger" bindtap="onRevokeHonor">
+          🗑️ 撤销荣誉
+        </view>
+      </view>
+      <view class="modal-actions">
+        <view class="modal-btn cancel-btn" bindtap="closeAdminModal" style="flex:1;">关闭</view>
+      </view>
+    </view>
+  </view>
+</view>

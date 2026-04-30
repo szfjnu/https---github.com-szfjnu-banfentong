@@ -1,0 +1,35 @@
+<!-- 聚光点 - 审核管理 -->
+<view class="audit-container">
+  <view class="audit-list" wx:if="{{!loading && list.length > 0}}">
+    <view class="audit-card" wx:for="{{list}}" wx:key="_id">
+      <view class="card-main" bindtap="onGoDetail" data-id="{{item._id}}">
+        <view class="card-title">{{item.title}}</view>
+        <view class="card-meta">
+          <text class="meta-tag">{{item.category}}</text>
+          <text class="meta-text">{{item.organizer.name}} 发起</text>
+        </view>
+        <view class="card-meta">
+          <text class="meta-text">🕐 {{item.timeStr}}</text>
+          <text class="meta-text">📍 {{item.location}}</text>
+        </view>
+        <view class="card-people">
+          已报名 {{item.current_count}}{{item.max_people > 0 ? '/' + item.max_people : ''}}人
+        </view>
+      </view>
+      <view class="card-actions">
+        <view class="action-btn approve" bindtap="onApprove" data-id="{{item._id}}">通过</view>
+        <view class="action-btn reject" bindtap="onReject" data-id="{{item._id}}">驳回</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty" wx:if="{{!loading && list.length === 0}}">
+    <text class="empty-icon">✅</text>
+    <text class="empty-text">暂无待审核活动</text>
+  </view>
+
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-icon"></view>
+    <text>加载中...</text>
+  </view>
+</view>

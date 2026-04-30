@@ -1,5 +1,45 @@
 <!--pages/student/student.wxml-->
 <view class="container">
+  <!-- 班级功能导航 -->
+  <view class="class-nav" wx:if="{{showClassNav}}">
+    <view class="class-nav-title">
+      <view class="nav-title-bar"></view>
+      <text>班级管理</text>
+    </view>
+    <view class="class-nav-grid">
+      <view class="nav-item" bindtap="onNavAttendance">
+        <view class="nav-icon-wrap" style="background: #1890ff15;">
+          <text class="nav-icon">📋</text>
+        </view>
+        <text class="nav-label">考勤管理</text>
+      </view>
+      <view class="nav-item" bindtap="onNavDuty">
+        <view class="nav-icon-wrap" style="background: #52c41a15;">
+          <text class="nav-icon">🧹</text>
+        </view>
+        <text class="nav-label">值日管理</text>
+      </view>
+      <view class="nav-item" bindtap="onNavDorm">
+        <view class="nav-icon-wrap" style="background: #722ed115;">
+          <text class="nav-icon">🏠</text>
+        </view>
+        <text class="nav-label">宿舍管理</text>
+      </view>
+      <view class="nav-item" bindtap="onNavDiscipline">
+        <view class="nav-icon-wrap" style="background: #fa8c1615;">
+          <text class="nav-icon">⚠️</text>
+        </view>
+        <text class="nav-label">纪律处分</text>
+      </view>
+      <view class="nav-item" bindtap="onNavGroup">
+        <view class="nav-icon-wrap" style="background: #eb2f9615;">
+          <text class="nav-icon">👥</text>
+        </view>
+        <text class="nav-label">分组管理</text>
+      </view>
+    </view>
+  </view>
+
   <!-- 搜索和筛选栏 -->
   <view class="filter-section">
     <!-- 搜索栏 -->

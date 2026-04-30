@@ -1,0 +1,562 @@
+﻿// pages/score/mall/mall.js
+const app = getApp();
+const api = require('../../../utils/api.js');
+const util = require('../../../utils/util.js');
+
+Page({
+  data: {
+    items: [],
+    myScore: 0,
+    loading: true,
+    studentId: null,
+    activeTab: 'items', // 'items' 商品列表 / 'wishes' 心愿单
+    
+    // 投标详情弹窗
+    showBidModal: false,
+    currentItem: null,
+    bidList: [],
+    bidLoading: false,
+    
+    // 商品建议弹窗
+    showWishModal: false,
+    wishForm: {
+      name: '',
+      description: '',
+      expected_score: ''
+    },
+    
+    // 心愿单列表
+    wishList: [],
+    wishLoading: false,
+    
+    // 热门商品ID列表
+    hotItemIds: []
+  },
+
+  onLoad: function () {
+    this.checkLogin();
+  },
+
+  onShow: function () {
+    this.loadData();
+  },
+
+  // 下拉刷新
+  onPullDownRefresh: function () {
+    this.loadData();
+  },
+
+  // 检查登录状态
+  checkLogin: function () {
+    if (!app.globalData.userInfo || !app.globalData.openid) {
+      wx.redirectTo({
+        url: '/pages/login/login'
+      });
+      return;
+    }
+
+    const role = app.globalData.role;
+    // 允许学生和家长使用积分商城
+    if (role !== 'student' && role !== 'parent') {
+      wx.showToast({
+        title: '仅学生/家长可使用积分商城',
+        icon: 'none',
+        duration: 2000
+      });
+      setTimeout(() => {
+        wx.navigateBack();
+      }, 2000);
+      return;
+    }
+
+    this.setData({
+      studentId: app.globalData.student_id
+    });
+  },
+
+  // 加载数据
+  loadData: async function () {
+    this.setData({ loading: true });
+
+    try {
+      // 获取我的积分和学生信息
+      await this.loadMyScore();
+
+      // 获取可兑换物品
+      await this.loadItems();
+
+      // 获取热门商品
+      await this.loadHotItems();
+
+      // 获取心愿单
+      await this.loadWishList();
+
+      this.setData({ loading: false });
+      wx.stopPullDownRefresh();
+    } catch (err) {
+      console.error('加载数据失败:', err);
+      this.setData({ loading: false });
+      wx.stopPullDownRefresh();
+      util.showError('加载失败');
+    }
+  },
+
+  // 获取我的积分和学生信息
+  loadMyScore: async function () {
+    try {
+      const studentId = this.data.studentId;
+      if (!studentId) return;
+
+      const studentRes = await api.studentApi.getStudentByStudentId(studentId);
+      if (studentRes.data && studentRes.data.length > 0) {
+        const student = studentRes.data[0];
+        this.setData({
+          myScore: student.current_score || 100,
+          studentInfo: student
+        });
+      }
+    } catch (err) {
+      console.error('获取积分失败:', err);
+    }
+  },
+
+  // 获取可兑换物品
+  loadItems: async function () {
+    try {
+      const db = wx.cloud.database();
+      const classId = app.globalData.class_id;
+      
+      const res = await db.collection('redemption_items')
+        .where({
+          class_id: classId,
+          status: '可兑换'
+        })
+        .orderBy('created_at', 'desc')
+        .get();
+
+      // 处理物品数据
+      const items = res.data.map(item => {
+        return {
+          ...item,
+          canRedeem: item.required_score <= this.data.myScore && item.quantity > 0,
+          statusText: this.getStatusText(item.status, item.quantity)
+        };
+      });
+
+      this.setData({ items });
+    } catch (err) {
+      console.error('获取物品失败:', err);
+    }
+  },
+
+  // 获取热门商品
+  loadHotItems: async function () {
+    try {
+      const db = wx.cloud.database();
+      const _ = db.command;
+      const classId = app.globalData.class_id;
+      
+      // 统计每个商品的投标/兑换次数
+      const requestsRes = await db.collection('redemption_requests')
+        .where({
+          class_id: classId
+        })
+        .get();
+
+      // 统计每个商品的参与人数
+      const itemCounts = {};
+      (requestsRes.data || []).forEach(req => {
+        if (req.item_id) {
+          itemCounts[req.item_id] = (itemCounts[req.item_id] || 0) + 1;
+        }
+      });
+
+      // 找出参与人数 >= 3 的商品作为热门商品
+      const hotItemIds = Object.keys(itemCounts).filter(id => itemCounts[id] >= 3);
+      
+      this.setData({ hotItemIds });
+    } catch (err) {
+      console.error('获取热门商品失败:', err);
+    }
+  },
+
+  // 获取状态文本
+  getStatusText: function (status, quantity) {
+    if (status !== '可兑换') {
+      return status;
+    }
+    if (quantity <= 0) {
+      return '已售罄';
+    }
+    return '可兑换';
+  },
+
+  // 切换标签
+  onSwitchTab: function (e) {
+    const tab = e.currentTarget.dataset.tab;
+    this.setData({ activeTab: tab });
+  },
+
+  // 查看投标情况
+  onViewBidList: async function (e) {
+    const item = e.currentTarget.dataset.item;
+    
+    this.setData({
+      showBidModal: true,
+      currentItem: item,
+      bidLoading: true,
+      bidList: []
+    });
+
+    try {
+      const db = wx.cloud.database();
+      const classId = app.globalData.class_id;
+      const res = await db.collection('redemption_requests')
+        .where({
+          item_id: item.item_id,
+          class_id: classId,
+          status: db.command.in(['待审批', '已批准', '已中标', '未中标'])
+        })
+        .orderBy('bid_score', 'desc')
+        .limit(20)
+        .get();
+
+      // 处理投标列表
+      const bidList = (res.data || []).map(bid => ({
+        ...bid,
+        isMine: bid.student_id === this.data.studentId,
+        bidScore: bid.bid_score || bid.required_score,
+        studentName: bid.student_name || '匿名',
+        bidTime: bid.bid_time ? util.formatTime(new Date(bid.bid_time)) : '',
+        // 状态样式类名映射
+        statusClass: this.getStatusClass(bid.status)
+      }));
+
+      this.setData({
+        bidList,
+        bidLoading: false
+      });
+    } catch (err) {
+      console.error('获取投标列表失败:', err);
+      this.setData({ bidLoading: false });
+    }
+  },
+
+  // 关闭投标弹窗
+  onCloseBidModal: function () {
+    this.setData({
+      showBidModal: false,
+      currentItem: null,
+      bidList: []
+    });
+  },
+
+  // 阻止冒泡
+  stopPropagation: function () {},
+
+  // 获取状态样式类名
+  getStatusClass: function (status) {
+    const statusMap = {
+      '待审批': 'pending',
+      '已批准': 'approved',
+      '已中标': 'winning',
+      '未中标': 'lost'
+    };
+    return statusMap[status] || 'pending';
+  },
+
+  // 兑换物品
+  onRedeem: function (e) {
+    const item = e.currentTarget.dataset.item;
+
+    if (!item.canRedeem) {
+      if (item.required_score > this.data.myScore) {
+        wx.showToast({
+          title: '积分不足',
+          icon: 'none',
+          duration: 2000
+        });
+      } else if (item.quantity <= 0) {
+        wx.showToast({
+          title: '已售罄',
+          icon: 'none',
+          duration: 2000
+        });
+      } else {
+        wx.showToast({
+          title: '暂不可兑换',
+          icon: 'none',
+          duration: 2000
+        });
+      }
+      return;
+    }
+
+    // 投标模式显示投标输入框
+    if (item.redemption_mode === '投标模式') {
+      this.showBidInputDialog(item);
+    } else {
+      // 直接兑换
+      wx.showModal({
+        title: '确认兑换',
+        content: `确定要兑换"${item.name}"吗？需要${item.required_score}积分`,
+        success: (res) => {
+          if (res.confirm) {
+            this.submitRedemption(item, item.required_score);
+          }
+        }
+      });
+    }
+  },
+
+  // 显示投标输入框
+  showBidInputDialog: function (item) {
+    const minScore = item.required_score;
+    const myScore = this.data.myScore;
+    
+    wx.showModal({
+      title: '投标兑换',
+      content: `最低投标积分：${minScore}\n您的积分：${myScore}\n\n投标积分越高，中标概率越大`,
+      editable: true,
+      placeholderText: `请输入投标积分（≥${minScore}）`,
+      success: (res) => {
+        if (res.confirm) {
+          const bidScore = parseInt(res.content);
+          if (isNaN(bidScore) || bidScore < minScore) {
+            wx.showToast({
+              title: `投标积分不能低于${minScore}`,
+              icon: 'none'
+            });
+            return;
+          }
+          if (bidScore > myScore) {
+            wx.showToast({
+              title: '投标积分不能超过您的积分',
+              icon: 'none'
+            });
+            return;
+          }
+          this.submitRedemption(item, bidScore);
+        }
+      }
+    });
+  },
+
+  // 提交兑换申请
+  submitRedemption: async function (item, bidScore) {
+    try {
+      const studentId = this.data.studentId;
+      if (!studentId) {
+        util.showError('未登录');
+        return;
+      }
+
+      // 检查积分是否充足
+      if (this.data.myScore < bidScore) {
+        wx.showToast({
+          title: '积分不足',
+          icon: 'none',
+          duration: 2000
+        });
+        return;
+      }
+
+      wx.showLoading({ title: '提交中...', mask: true });
+
+      // 提交兑换申请
+      const studentInfo = this.data.studentInfo || {};
+      const db = wx.cloud.database();
+      
+      await db.collection('redemption_requests').add({
+        data: {
+          request_id: `RR${Date.now()}`,
+          item_id: item.item_id,
+          item_name: item.name,
+          student_id: studentId,
+          student_name: studentInfo.name || '',
+          class_name: studentInfo.class_name || '',
+          class_id: studentInfo.class_id || app.globalData.class_id || '',
+          required_score: item.required_score,
+          redemption_mode: item.redemption_mode,
+          bid_score: bidScore,
+          bid_time: db.serverDate(),
+          status: '待审批',
+          created_at: db.serverDate()
+        }
+      });
+
+      wx.hideLoading();
+      wx.showToast({
+        title: item.redemption_mode === '投标模式' ? '投标成功' : '兑换申请已提交',
+        icon: 'success',
+        duration: 2000
+      });
+
+      // 刷新数据
+      setTimeout(() => {
+        this.loadData();
+      }, 2000);
+
+    } catch (err) {
+      wx.hideLoading();
+      console.error('提交兑换失败:', err);
+      util.showError('提交失败');
+    }
+  },
+
+  // 显示心愿弹窗
+  onShowWishModal: function () {
+    this.setData({
+      showWishModal: true,
+      wishForm: {
+        name: '',
+        description: '',
+        expected_score: ''
+      }
+    });
+  },
+
+  // 关闭心愿弹窗
+  onCloseWishModal: function () {
+    this.setData({ showWishModal: false });
+  },
+
+  // 输入心愿商品名称
+  onWishNameInput: function (e) {
+    this.setData({ 'wishForm.name': e.detail.value });
+  },
+
+  // 输入心愿商品描述
+  onWishDescInput: function (e) {
+    this.setData({ 'wishForm.description': e.detail.value });
+  },
+
+  // 输入期望积分
+  onWishScoreInput: function (e) {
+    this.setData({ 'wishForm.expected_score': e.detail.value });
+  },
+
+  // 提交心愿商品
+  onSubmitWish: async function () {
+    const { name, description, expected_score } = this.data.wishForm;
+    
+    if (!name.trim()) {
+      wx.showToast({ title: '请输入商品名称', icon: 'none' });
+      return;
+    }
+
+    if (!expected_score || parseInt(expected_score) <= 0) {
+      wx.showToast({ title: '请输入合理的期望积分', icon: 'none' });
+      return;
+    }
+
+    try {
+      wx.showLoading({ title: '提交中...', mask: true });
+
+      const db = wx.cloud.database();
+      const studentInfo = this.data.studentInfo || {};
+      
+      await db.collection('product_wishes').add({
+        data: {
+          wish_id: `PW${Date.now()}`,
+          name: name.trim(),
+          description: description.trim(),
+          expected_score: parseInt(expected_score),
+          student_id: this.data.studentId,
+          student_name: studentInfo.name || '',
+          class_id: app.globalData.class_id || '',
+          status: 'pending', // pending待处理 / added已上架 / rejected已拒绝
+          vote_count: 0, // 投票数
+          voters: [], // 投票人列表
+          created_at: db.serverDate()
+        }
+      });
+
+      wx.hideLoading();
+      wx.showToast({
+        title: '提交成功',
+        icon: 'success'
+      });
+
+      this.setData({ showWishModal: false });
+      
+      // 刷新心愿单
+      this.loadWishList();
+    } catch (err) {
+      wx.hideLoading();
+      console.error('提交心愿失败:', err);
+      util.showError('提交失败');
+    }
+  },
+
+  // 加载心愿单
+  loadWishList: async function () {
+    this.setData({ wishLoading: true });
+    
+    try {
+      const db = wx.cloud.database();
+      const classId = app.globalData.class_id;
+      
+      const res = await db.collection('product_wishes')
+        .where({
+          class_id: classId,
+          status: db.command.in(['pending', 'added'])
+        })
+        .orderBy('vote_count', 'desc')
+        .orderBy('created_at', 'desc')
+        .limit(20)
+        .get();
+
+      const wishList = (res.data || []).map(wish => ({
+        ...wish,
+        isVoted: (wish.voters || []).includes(this.data.studentId),
+        createdAt: util.formatDate(new Date(wish.created_at))
+      }));
+
+      this.setData({
+        wishList,
+        wishLoading: false
+      });
+    } catch (err) {
+      console.error('加载心愿单失败:', err);
+      this.setData({ wishLoading: false });
+    }
+  },
+
+  // 为心愿投票
+  onVoteWish: async function (e) {
+    const wish = e.currentTarget.dataset.wish;
+    
+    if (wish.isVoted) {
+      wx.showToast({ title: '您已投过票', icon: 'none' });
+      return;
+    }
+
+    try {
+      const db = wx.cloud.database();
+      const _ = db.command;
+      
+      await db.collection('product_wishes').doc(wish._id).update({
+        data: {
+          vote_count: _.inc(1),
+          voters: _.push(this.data.studentId)
+        }
+      });
+
+      wx.showToast({ title: '投票成功', icon: 'success' });
+      
+      // 刷新心愿单
+      this.loadWishList();
+    } catch (err) {
+      console.error('投票失败:', err);
+      wx.showToast({ title: '投票失败', icon: 'none' });
+    }
+  },
+
+  // 查看兑换记录
+  onViewRecords: function () {
+    wx.navigateTo({
+      url: '/subPages/score/mall/records/records'
+    });
+  }
+});

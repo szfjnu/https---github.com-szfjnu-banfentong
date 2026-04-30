@@ -1,0 +1,130 @@
+<!-- pages/discipline/revoke-review/revoke-review.wxml -->
+<view class="container" wx:if="{{!loading && record}}">
+  <!-- 处分信息 -->
+  <view class="info-card">
+    <view class="info-header">
+      <text class="student-name">{{record.student_name || record.student_id}}</text>
+      <view class="level-badge" style="{{record._levelBadgeStyle}}">
+        {{record.discipline_level}}
+      </view>
+    </view>
+    <view class="info-row">
+      <text class="info-label">处分原因</text>
+      <text class="info-value">{{record.reason}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">处分日期</text>
+      <text class="info-value">{{record.issue_date}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">扣减积分</text>
+      <text class="info-value danger">-{{record.score_deduction}}分</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">状态</text>
+      <view class="status-tag {{record.status}}">
+        {{record.status === 'active' ? '生效中' : '已撤销'}}
+      </view>
+    </view>
+  </view>
+
+  <!-- 完成进度 -->
+  <view class="progress-card">
+    <view class="card-title">完成进度</view>
+    <view class="progress-item">
+      <view class="progress-header">
+        <text class="progress-label">思想汇报</text>
+        <text class="progress-num">{{record.thought_completed || 0}}/{{record.thought_reports_required || 0}}篇</text>
+      </view>
+      <view class="progress-bar">
+        <view class="progress-fill" style="width: {{record.thought_reports_required > 0 ? ((record.thought_completed || 0) / record.thought_reports_required * 100) : 0}}%"></view>
+      </view>
+    </view>
+    <view class="progress-item">
+      <view class="progress-header">
+        <text class="progress-label">服务令</text>
+        <text class="progress-num">{{record.service_completed_hours || 0}}/{{record.service_hours_required || 0}}小时</text>
+      </view>
+      <view class="progress-bar">
+        <view class="progress-fill service" style="{{record._serviceProgressWidth}}"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 待审核撤销申请 -->
+  <view class="revoke-section" wx:if="{{record.revocationApplications.length > 0}}">
+    <view class="section-title">撤销申请</view>
+    <view class="revoke-card" wx:for="{{record.revocationApplications}}" wx:key="application_id">
+      <view class="revoke-header">
+        <text class="revoke-date">{{item.application_date}}</text>
+        <view class="revoke-status {{item.status}}">{{item.status === 'pending' ? '待审核' : item.status === 'approved' ? '已批准' : '已拒绝'}}</view>
+      </view>
+      <view class="revoke-body">
+        <text class="revoke-reason">{{item.application_reason}}</text>
+      </view>
+      <view class="revoke-reflection" wx:if="{{item.student_self_reflection}}">
+        <text class="reflection-label">自我反思：</text>
+        <text>{{item.student_self_reflection}}</text>
+      </view>
+      <view class="revoke-review" wx:if="{{item.review_comments}}">
+        <text class="review-label">审核意见：</text>
+        <text>{{item.review_comments}}</text>
+      </view>
+
+      <!-- 审核按钮 -->
+      <view class="review-actions" wx:if="{{item.status === 'pending'}}">
+        <view class="review-btn approve" data-action="approved" bindtap="onShowReview">批准撤销</view>
+        <view class="review-btn reject" data-action="rejected" bindtap="onShowReview">拒绝</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 思想汇报列表 -->
+  <view class="section-card" wx:if="{{record.thoughtReports.length > 0}}">
+    <view class="section-title">思想汇报</view>
+    <view class="report-item" wx:for="{{record.thoughtReports}}" wx:key="report_id">
+      <view class="item-header">
+        <text class="item-title">{{item.title}} - {{item.report_month}}</text>
+        <view class="item-status {{item.status}}">{{item.status === 'pending' ? '待审核' : item.status === 'approved' ? '已通过' : '已拒绝'}}</view>
+      </view>
+      <text class="item-content">{{item.content}}</text>
+    </view>
+  </view>
+
+  <!-- 服务令列表 -->
+  <view class="section-card" wx:if="{{record.serviceRecords.length > 0}}">
+    <view class="section-title">服务令记录</view>
+    <view class="service-item" wx:for="{{record.serviceRecords}}" wx:key="service_id">
+      <view class="item-header">
+        <text class="item-title">{{item.service_type}} {{item.hours}}小时</text>
+        <view class="item-status {{item.status}}">{{item.status === 'pending' ? '待审核' : item.status === 'approved' ? '已通过' : '已拒绝'}}</view>
+      </view>
+      <text class="item-date">{{item.date}}</text>
+    </view>
+  </view>
+</view>
+
+<!-- 审核弹窗 -->
+<view class="modal-mask" wx:if="{{showReviewModal}}" bindtap="onHideReview">
+  <view class="modal-content" catchtap="">
+    <view class="modal-header">
+      <text class="modal-title">{{reviewAction === 'approved' ? '批准撤销' : '拒绝申请'}}</text>
+      <text class="modal-close" bindtap="onHideReview">✕</text>
+    </view>
+    <view class="modal-body">
+      <view class="form-group">
+        <text class="form-label">审核意见</text>
+        <textarea class="form-textarea" value="{{reviewComments}}" bindinput="onReviewCommentInput" placeholder="请填写审核意见" maxlength="500" />
+      </view>
+    </view>
+    <view class="modal-footer">
+      <view class="btn-cancel" bindtap="onHideReview">取消</view>
+      <view class="btn-confirm" bindtap="onSubmitReview">确认</view>
+    </view>
+  </view>
+</view>
+
+<!-- 加载中 -->
+<view class="loading-state" wx:if="{{loading}}">
+  <text>加载中...</text>
+</view>

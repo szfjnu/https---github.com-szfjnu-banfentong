@@ -57,11 +57,14 @@ exports.main = async (event, context) => {
 
     // 3. 计算折算积分（保留两位小数）
     const convertedScoreChange = Math.round(dorm_score_change * conversionRatio * 100) / 100
+    
+    console.log('宿舍积分变化:', dorm_score_change, '折算比例:', conversionRatio, '折算积分变化:', convertedScoreChange)
 
     // 4. 更新宿舍积分账户
     await db.collection('dorm_score_accounts').doc(dormAccount._id).update({
       data: {
         original_score: _.inc(dorm_score_change),
+        current_score: _.inc(dorm_score_change),  // 同时更新当前积分
         converted_score: _.inc(convertedScoreChange),
         updated_at: new Date()
       }
@@ -69,12 +72,12 @@ exports.main = async (event, context) => {
 
     // 5. 在日常积分记录中创建折算记录
     if (convertedScoreChange !== 0) {
-      const scoreRecordRes = await db.collection('score_records').add({
+      await db.collection('score_records').add({
         data: {
           student_id: student_id,
           item_id: 'DORM_CONVERSION',
           score_change: convertedScoreChange,
-          reason_detail: '宿舍积分折算',
+          reason_detail: `宿舍积分折算 (系数${conversionRatio})`,
           date: new Date(),
           recorder_name: '系统自动',
           recorder_openid: 'system',
@@ -85,17 +88,30 @@ exports.main = async (event, context) => {
         }
       })
 
-      // 6. 更新学生总积分
-      await db.collection('students').where({
+      // 6. 先获取当前学生积分，计算新积分等级
+      const studentRes = await db.collection('students').where({
         student_id: student_id
-      }).update({
-        data: {
-          current_score: _.inc(convertedScoreChange),
-          dorm_converted_score: _.inc(convertedScoreChange),
-          score_level: calculateScoreLevel(_.inc(convertedScoreChange)),
-          updated_at: new Date()
-        }
-      })
+      }).get()
+      
+      if (studentRes.data.length > 0) {
+        const currentStudent = studentRes.data[0]
+        const newScore = (currentStudent.current_score || 100) + convertedScoreChange
+        const newScoreLevel = calculateScoreLevel(newScore)
+        
+        // 更新学生总积分
+        await db.collection('students').where({
+          student_id: student_id
+        }).update({
+          data: {
+            current_score: _.inc(convertedScoreChange),
+            dorm_converted_score: _.inc(convertedScoreChange),
+            score_level: newScoreLevel,
+            updated_at: new Date()
+          }
+        })
+        
+        console.log('学生积分更新:', '原积分:', currentStudent.current_score, '变化:', convertedScoreChange, '新积分:', newScore)
+      }
     }
 
     // 7. 检查是否需要发送预警

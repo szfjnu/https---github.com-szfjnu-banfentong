@@ -1,0 +1,224 @@
+<!--pages/volunteer/add/add.wxml-->
+<view class="container">
+  <!-- 表单标题 -->
+  <view class="form-header">
+    <text class="form-title">登记志愿服务</text>
+    <text class="form-subtitle">记录学生志愿服务活动</text>
+  </view>
+
+  <!-- 表单内容 -->
+  <form>
+    <!-- 学生选择 -->
+    <view class="form-card">
+      <view class="card-title">
+        <text class="title-icon">👥</text>
+        <text class="title-text">参与学生</text>
+      </view>
+      
+      <!-- 已选学生列表 -->
+      <view class="selected-students" wx:if="{{selectedStudents.length > 0}}">
+        <view class="student-tag" wx:for="{{selectedStudents}}" wx:key="student_id">
+          <text class="tag-name">{{item.student_name}}</text>
+          <!-- 学生/家长身份不允许移除自己 -->
+          <text class="tag-remove" wx:if="{{!isStudentOrParent}}" bindtap="removeStudent" data-id="{{item.student_id}}">×</text>
+        </view>
+      </view>
+      
+      <!-- 学生/家长身份提示 -->
+      <view class="auto-bind-tip" wx:if="{{isStudentOrParent}}">
+        <text class="tip-icon">🔒</text>
+        <text class="tip-text">您只能为自己提交志愿服务记录</text>
+      </view>
+      
+      <!-- 教师身份才显示添加学生按钮 -->
+      <view class="add-student-btn" wx:if="{{!isStudentOrParent}}" bindtap="showStudentPicker">
+        <text class="btn-icon">+</text>
+        <text class="btn-text">{{selectedStudents.length > 0 ? '继续添加学生' : '选择参与学生'}}</text>
+      </view>
+      
+      <view class="student-count" wx:if="{{selectedStudents.length > 0}}">
+        <text>已选择 {{selectedStudents.length}} 名学生</text>
+      </view>
+    </view>
+
+    <!-- 基本信息 -->
+    <view class="form-card">
+      <view class="card-title">
+        <text class="title-icon">📋</text>
+        <text class="title-text">活动信息</text>
+      </view>
+      
+      <view class="form-item required">
+        <text class="form-label">活动名称</text>
+        <input 
+          class="form-input" 
+          placeholder="请输入活动名称"
+          value="{{formData.activity_name}}"
+          bindinput="onInputChange"
+          data-field="activity_name"
+        />
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">组织单位</text>
+        <input 
+          class="form-input" 
+          placeholder="请输入组织单位（选填）"
+          value="{{formData.organization}}"
+          bindinput="onInputChange"
+          data-field="organization"
+        />
+      </view>
+
+      <view class="form-item required">
+        <text class="form-label">服务日期</text>
+        <picker mode="date" value="{{formData.service_date}}" end="{{currentDate}}" bindchange="onDateChange">
+          <view class="picker-value">
+            <text>{{formData.service_date || '请选择'}}</text>
+            <text class="arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">服务地点</text>
+        <input 
+          class="form-input" 
+          placeholder="请输入服务地点（选填）"
+          value="{{formData.location}}"
+          bindinput="onInputChange"
+          data-field="location"
+        />
+      </view>
+    </view>
+
+    <!-- 服务详情 -->
+    <view class="form-card">
+      <view class="card-title">
+        <text class="title-icon">⏱️</text>
+        <text class="title-text">服务详情</text>
+      </view>
+      
+      <view class="form-item required">
+        <text class="form-label">服务类型</text>
+        <picker mode="selector" range="{{serviceTypes}}" value="{{serviceTypeIndex}}" bindchange="onServiceTypeChange">
+          <view class="picker-value">
+            <text>{{serviceTypes[serviceTypeIndex] || '请选择'}}</text>
+            <text class="arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-item required">
+        <text class="form-label">服务时长（小时）</text>
+        <input 
+          class="form-input" 
+          type="digit"
+          placeholder="请输入服务时长"
+          value="{{formData.duration}}"
+          bindinput="onInputChange"
+          data-field="duration"
+        />
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">服务内容</text>
+        <textarea 
+          class="form-textarea" 
+          placeholder="请描述服务内容（选填）"
+          value="{{formData.description}}"
+          bindinput="onInputChange"
+          data-field="description"
+        />
+      </view>
+
+      <!-- 积分显示 -->
+      <view class="score-info" wx:if="{{earnedScore > 0}}">
+        <text class="score-label">每人可获得积分</text>
+        <text class="score-value">+{{earnedScore}}分</text>
+        <text class="score-hint">（{{scorePerHour}}分/小时）</text>
+      </view>
+    </view>
+
+    <!-- 证明材料 -->
+    <view class="form-card">
+      <view class="card-title">
+        <text class="title-icon">📷</text>
+        <text class="title-text">证明材料</text>
+      </view>
+      
+      <view class="form-item">
+        <text class="form-label">上传图片（最多3张）</text>
+        <view class="image-upload">
+          <view class="image-list">
+            <view class="image-item" wx:for="{{formData.proof_images}}" wx:key="*this">
+              <image src="{{item}}" mode="aspectFill" class="proof-image"></image>
+              <view class="delete-btn" bindtap="onDeleteImage" data-index="{{index}}">✕</view>
+            </view>
+            <view class="add-image" wx:if="{{formData.proof_images.length < 3}}" bindtap="onChooseImage">
+              <text class="add-icon">+</text>
+              <text class="add-text">添加图片</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="form-actions">
+      <button class="btn-cancel" bindtap="onCancel">取消</button>
+      <button class="btn-submit" bindtap="onSubmit" loading="{{loading}}">提交登记</button>
+    </view>
+  </form>
+
+  <!-- 学生选择器弹窗 -->
+  <view class="modal-mask" wx:if="{{showStudentPicker}}" bindtap="hideStudentPicker">
+    <view class="modal-content student-picker" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">选择参与学生</text>
+        <text class="modal-close" catchtap="hideStudentPicker">✕</text>
+      </view>
+      
+      <!-- 搜索框 -->
+      <view class="search-box">
+        <input 
+          class="search-input" 
+          placeholder="搜索学生姓名或学号"
+          value="{{searchKeyword}}"
+          bindinput="onSearchInput"
+        />
+      </view>
+
+      <!-- 已选数量 -->
+      <view class="selected-info">
+        <text>已选择 {{selectedStudentIds.length}} 人</text>
+      </view>
+
+      <!-- 学生列表 -->
+      <scroll-view class="student-list" scroll-y>
+        <view 
+          class="student-item {{selectedStudentIds.indexOf(item.student_id) > -1 ? 'selected' : ''}}" 
+          wx:for="{{allStudents}}" 
+          wx:key="student_id"
+          wx:if="{{!searchKeyword || item.student_name.includes(searchKeyword) || item.student_id.includes(searchKeyword)}}"
+          bindtap="toggleStudent"
+          data-id="{{item.student_id}}"
+        >
+          <view class="student-avatar">{{item.student_name[0]}}</view>
+          <view class="student-info">
+            <text class="student-name">{{item.student_name}}</text>
+            <text class="student-id">{{item.student_id}}</text>
+          </view>
+          <view class="check-box">
+            <text class="check-icon" wx:if="{{selectedStudentIds.indexOf(item.student_id) > -1}}">✓</text>
+          </view>
+        </view>
+      </scroll-view>
+
+      <!-- 确认按钮 -->
+      <view class="modal-footer">
+        <button class="confirm-btn" catchtap="hideStudentPicker">确定</button>
+      </view>
+    </view>
+  </view>
+</view>

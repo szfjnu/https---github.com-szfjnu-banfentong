@@ -1,0 +1,301 @@
+/* pages/dorm/mydorm/mydorm.wxss */
+.container {
+  padding: 20rpx;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+.not-boarding {
+  text-align: center;
+  padding: 200rpx 40rpx;
+}
+
+.nb-icon {
+  font-size: 100rpx;
+  display: block;
+  margin-bottom: 30rpx;
+}
+
+.nb-text {
+  font-size: 34rpx;
+  color: #333;
+  margin-bottom: 15rpx;
+}
+
+.nb-hint {
+  font-size: 26rpx;
+  color: #999;
+}
+
+/* 宿舍信息卡片 */
+.dorm-info-card {
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+}
+
+.card-header {
+  margin-bottom: 20rpx;
+}
+
+.card-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.dorm-detail {
+  display: flex;
+  justify-content: space-around;
+}
+
+.dorm-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dorm-label {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 10rpx;
+}
+
+.dorm-value {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+/* 积分概览卡片 */
+.score-card {
+  background: white;
+  border-radius: 20rpx;
+  padding: 40rpx 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+}
+
+.score-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 40rpx;
+}
+
+.score-circle {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15rpx;
+}
+
+.score-circle.good {
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+}
+
+.score-circle.warning {
+  background: linear-gradient(135deg, #faad14 0%, #ffc53d 100%);
+}
+
+.score-circle.danger {
+  background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
+}
+
+.score-number {
+  font-size: 52rpx;
+  font-weight: bold;
+  color: white;
+}
+
+.score-unit {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.score-label {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.score-stats {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.stat-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-value {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.stat-value.add {
+  color: #52c41a;
+}
+
+.stat-value.minus {
+  color: #ff4d4f;
+}
+
+.stat-label {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.stat-divider {
+  width: 1rpx;
+  height: 60rpx;
+  background: #f0f0f0;
+  margin: 0 20rpx;
+}
+
+/* 预警卡片 */
+.warning-card {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 30rpx;
+  border-radius: 16rpx;
+  margin-bottom: 20rpx;
+  gap: 15rpx;
+}
+
+.warning-card.red {
+  background: #fff2f0;
+  border: 1rpx solid #ffccc7;
+}
+
+.warning-card.orange {
+  background: #fff7e6;
+  border: 1rpx solid #ffd591;
+}
+
+.warning-card.yellow {
+  background: #fffbe6;
+  border: 1rpx solid #ffe58f;
+}
+
+.warning-icon {
+  font-size: 32rpx;
+}
+
+.warning-text {
+  font-size: 26rpx;
+  color: #333;
+  flex: 1;
+}
+
+/* 记录卡片 */
+.records-card {
+  background: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.view-all {
+  font-size: 26rpx;
+  color: #1890ff;
+}
+
+.record-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.record-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx;
+  background: #fafafa;
+  border-radius: 12rpx;
+}
+
+.record-left {
+  flex: 1;
+}
+
+.record-type {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6rpx;
+}
+
+.record-reason {
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 6rpx;
+}
+
+.record-date {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.record-score {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-left: 20rpx;
+}
+
+.record-score.score-add {
+  color: #52c41a;
+}
+
+.record-score.score-minus {
+  color: #ff4d4f;
+}
+
+.empty-records {
+  text-align: center;
+  padding: 40rpx 0;
+  color: #999;
+  font-size: 26rpx;
+}
+
+.loading {
+  text-align: center;
+  padding: 100rpx 0;
+}
+
+.loading-icon {
+  font-size: 60rpx;
+  display: block;
+  margin-bottom: 20rpx;
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #999;
+}

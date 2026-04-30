@@ -1,0 +1,524 @@
+/* 英雄台 */
+
+.hero-container {
+  min-height: 100vh;
+  background: #f5f0ff;
+  padding-bottom: 120rpx;
+}
+
+/* 顶部英雄榜 */
+.hero-banner {
+  background: linear-gradient(135deg, #722ed1, #531dab);
+  padding: 40rpx 24rpx 32rpx;
+  color: #ffffff;
+}
+
+.banner-title {
+  font-size: 40rpx;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 8rpx;
+}
+
+.banner-subtitle {
+  font-size: 24rpx;
+  text-align: center;
+  opacity: 0.8;
+  margin-bottom: 28rpx;
+}
+
+.stats-row {
+  display: flex;
+  justify-content: space-around;
+}
+
+.stats-item {
+  text-align: center;
+}
+
+.stats-num {
+  font-size: 36rpx;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.stats-label {
+  font-size: 22rpx;
+  opacity: 0.8;
+  margin-top: 4rpx;
+}
+
+/* 类型筛选 Tab */
+.type-tabs {
+  display: flex;
+  padding: 16rpx 24rpx;
+  gap: 12rpx;
+  background: #ffffff;
+  overflow-x: auto;
+  white-space: nowrap;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+
+.type-tab {
+  padding: 10rpx 22rpx;
+  border-radius: 24rpx;
+  font-size: 24rpx;
+  color: #666666;
+  background: #f5f7fa;
+  flex-shrink: 0;
+}
+
+.type-tab.active {
+  background: #f0edff;
+  color: #722ed1;
+  font-weight: 600;
+}
+
+/* 加载状态 */
+.loading-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 0;
+  color: #999999;
+  font-size: 28rpx;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #e8e8e8;
+  border-top-color: #722ed1;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 20rpx;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 荣誉列表 */
+.honor-list {
+  padding: 20rpx 24rpx;
+}
+
+.honor-card {
+  background: #ffffff;
+  border-radius: 20rpx;
+  padding: 28rpx 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+  position: relative;
+}
+
+.honor-card.pinned {
+  border: 2rpx solid #faad14;
+  background: #fffdf0;
+}
+
+.pin-badge {
+  position: absolute;
+  top: 0;
+  right: 24rpx;
+  background: #faad14;
+  color: #ffffff;
+  font-size: 20rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 0 0 12rpx 12rpx;
+}
+
+/* 荣誉头部 */
+.honor-header {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-bottom: 16rpx;
+}
+
+.honor-icon-wrap {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.honor-icon {
+  font-size: 44rpx;
+}
+
+.honor-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.honor-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #333333;
+  margin-bottom: 4rpx;
+}
+
+.honor-type-label {
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+/* 颁奖词 */
+.honor-desc {
+  font-size: 26rpx;
+  color: #666666;
+  line-height: 1.6;
+  margin-bottom: 16rpx;
+  padding-left: 8rpx;
+  border-left: 4rpx solid #f0edff;
+}
+
+/* 获奖学生 */
+.honor-student {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.student-badge {
+  font-size: 28rpx;
+  color: #333333;
+  font-weight: 500;
+}
+
+.honor-period {
+  font-size: 22rpx;
+  color: #999999;
+  background: #f5f7fa;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+}
+
+/* 底部操作栏 */
+.honor-footer {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #f5f5f5;
+}
+
+.honor-action {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.cheer-icon {
+  font-size: 34rpx;
+}
+
+.cheer-icon.cheered {
+  animation: cheerBounce 0.4s ease;
+}
+
+@keyframes cheerBounce {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+.cheer-count {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.honor-time {
+  font-size: 22rpx;
+  color: #cccccc;
+}
+
+.admin-ops {
+  margin-left: auto;
+}
+
+.admin-btn {
+  font-size: 24rpx;
+  color: #722ed1;
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  background: #f0edff;
+}
+
+/* 加载更多/空状态 */
+.load-more {
+  text-align: center;
+  padding: 30rpx 0;
+  font-size: 28rpx;
+  color: #722ed1;
+}
+
+.no-more {
+  text-align: center;
+  padding: 30rpx 0;
+  font-size: 26rpx;
+  color: #cccccc;
+}
+
+.empty-tip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 120rpx 0;
+  font-size: 28rpx;
+  color: #999999;
+}
+
+.empty-emoji {
+  font-size: 80rpx;
+  margin-bottom: 24rpx;
+}
+
+/* FAB 按钮 */
+.fab-btn {
+  position: fixed;
+  right: 40rpx;
+  bottom: 120rpx;
+  width: 108rpx;
+  height: 108rpx;
+  background: linear-gradient(135deg, #722ed1, #531dab);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(114, 46, 209, 0.4);
+  font-size: 48rpx;
+  z-index: 100;
+}
+
+.fab-btn:active {
+  transform: scale(0.92);
+}
+
+/* ===== 弹窗通用 ===== */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.modal-content {
+  width: 100%;
+  background: #ffffff;
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 40rpx;
+  box-shadow: 0 -8rpx 32rpx rgba(0, 0, 0, 0.1);
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.modal-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #333333;
+  text-align: center;
+  margin-bottom: 28rpx;
+}
+
+/* 表单 */
+.form-field {
+  margin-bottom: 20rpx;
+}
+
+.form-label {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 10rpx;
+  display: block;
+}
+
+.form-input {
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  padding: 18rpx 24rpx;
+  font-size: 28rpx;
+  color: #333333;
+  border: 2rpx solid #e8e8e8;
+}
+
+.form-picker {
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  padding: 18rpx 24rpx;
+  font-size: 28rpx;
+  color: #333333;
+  border: 2rpx solid #e8e8e8;
+}
+
+.form-textarea {
+  width: 100%;
+  min-height: 140rpx;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+  color: #333333;
+  box-sizing: border-box;
+  line-height: 1.6;
+  border: 2rpx solid #e8e8e8;
+}
+
+/* 学生选择器 */
+.student-selector {
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  min-height: 72rpx;
+  border: 2rpx solid #e8e8e8;
+}
+
+.selector-placeholder {
+  font-size: 28rpx;
+  color: #cccccc;
+}
+
+.selected-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.student-tag {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  background: #f0edff;
+  color: #722ed1;
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+}
+
+.tag-remove {
+  font-size: 22rpx;
+  color: #999999;
+  padding: 0 4rpx;
+}
+
+/* 搜索输入 */
+.search-input {
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  padding: 16rpx 24rpx;
+  font-size: 28rpx;
+  color: #333333;
+  margin-bottom: 16rpx;
+  border: 2rpx solid #e8e8e8;
+}
+
+/* 学生选择列表 */
+.student-picker-list {
+  max-height: 480rpx;
+  overflow-y: auto;
+}
+
+.picker-student-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 16rpx;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.picker-student-item.selected {
+  background: #f0edff;
+}
+
+.picker-student-name {
+  font-size: 28rpx;
+  color: #333333;
+}
+
+.picker-check {
+  font-size: 28rpx;
+  color: #722ed1;
+  font-weight: 700;
+}
+
+/* 操作按钮 */
+.modal-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 24rpx;
+}
+
+.modal-btn {
+  flex: 1;
+  text-align: center;
+  padding: 22rpx 0;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.cancel-btn {
+  background: #f5f7fa;
+  color: #666666;
+}
+
+.cancel-btn:active {
+  background: #e8e8e8;
+}
+
+.confirm-btn {
+  background: linear-gradient(135deg, #722ed1, #531dab);
+  color: #ffffff;
+}
+
+.confirm-btn:active {
+  opacity: 0.85;
+}
+
+.confirm-btn.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ===== 管理员操作 ===== */
+.admin-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.admin-action-btn {
+  padding: 24rpx;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  color: #333333;
+  text-align: center;
+}
+
+.admin-action-btn:active {
+  background: #e8e8e8;
+}
+
+.admin-action-btn.danger {
+  color: #ff4d4f;
+  background: #fff2f0;
+}
+
+.admin-action-btn.danger:active {
+  background: #ffccc7;
+}

@@ -1,0 +1,168 @@
+<!-- pages/usercenter/notifications/notifications.wxml -->
+<view class="container">
+  <!-- Tab 切换 -->
+  <view class="tab-bar" wx:if="{{canPublish}}">
+    <view class="tab-item {{activeTab === 'receive' ? 'active' : ''}}" bindtap="switchTab" data-tab="receive">接收通知</view>
+    <view class="tab-item {{activeTab === 'publish' ? 'active' : ''}}" bindtap="switchTab" data-tab="publish">已发通知</view>
+  </view>
+
+  <!-- 接收通知 -->
+  <view wx:if="{{activeTab === 'receive'}}">
+    <!-- 筛选栏 -->
+    <view class="filter-bar">
+      <scroll-view class="type-filter" scroll-x="true">
+        <view class="type-item {{filterType === item.key ? 'active' : ''}}"
+              wx:for="{{notificationTypes}}" wx:key="key"
+              bindtap="onFilterType" data-type="{{item.key}}">
+          {{item.icon || ''}} {{item.label}}
+        </view>
+      </scroll-view>
+      <view class="read-filter">
+        <view class="read-item {{filterRead === '' ? 'active' : ''}}" bindtap="onFilterRead" data-read="">全部</view>
+        <view class="read-item {{filterRead === 'unread' ? 'active' : ''}}" bindtap="onFilterRead" data-read="unread">未读</view>
+        <view class="read-item {{filterRead === 'read' ? 'active' : ''}}" bindtap="onFilterRead" data-read="read">已读</view>
+      </view>
+    </view>
+
+    <!-- 操作栏 -->
+    <view class="action-bar">
+      <text class="action-text">共 {{notifications.length}} 条通知</text>
+      <text class="action-link" bindtap="onMarkAllRead">全部标记已读</text>
+    </view>
+
+    <!-- 通知列表 -->
+    <view class="notification-list" wx:if="{{notifications.length > 0}}">
+      <view class="notification-card {{item.is_read ? '' : 'unread'}}"
+            wx:for="{{notifications}}" wx:key="notification_id"
+            bindtap="onViewNotification"
+            data-id="{{item.notification_id}}"
+            data-user_notification_id="{{item.user_notification_id}}">
+        <view class="card-header">
+          <view class="card-type">
+            <text class="type-icon">{{item.typeIcon}}</text>
+            <text class="type-label" style="color: {{item.typeColor}}">{{item.typeLabel}}</text>
+          </view>
+          <text class="card-time">{{item.publish_time}}</text>
+        </view>
+        <view class="card-body">
+          <text class="card-title">{{item.title}}</text>
+          <text class="card-summary">{{item.summary}}</text>
+        </view>
+        <view class="card-footer">
+          <view class="card-sender">{{item.sender_name}}</view>
+          <view class="card-actions">
+            <text class="action-star {{item.is_starred ? 'starred' : ''}}"
+                  catchtap="onToggleStar"
+                  data-id="{{item.user_notification_id}}">
+              {{item.is_starred ? '★' : '☆'}}
+            </text>
+            <text class="action-read" wx:if="{{!item.is_read}}" catchtap="onMarkRead" data-id="{{item.user_notification_id}}">标为已读</text>
+          </view>
+        </view>
+        <view class="unread-dot" wx:if="{{!item.is_read}}"></view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{!loading && notifications.length === 0}}">
+      <text class="empty-icon">📭</text>
+      <text class="empty-text">暂无通知</text>
+    </view>
+  </view>
+
+  <!-- 已发通知 -->
+  <view wx:if="{{activeTab === 'publish'}}">
+    <!-- 发布按钮 -->
+    <view class="publish-entry">
+      <button class="publish-btn" bindtap="showPublish">+ 发布新通知</button>
+    </view>
+
+    <!-- 已发列表 -->
+    <view class="published-list" wx:if="{{publishedList.length > 0}}">
+      <view class="published-card" wx:for="{{publishedList}}" wx:key="notification_id">
+        <view class="card-header">
+          <view class="card-type">
+            <text class="type-icon">{{item.type === 'system' ? '📢' : item.type === 'discipline' ? '⚠️' : item.type === 'grade' ? '📝' : item.type === 'transfer' ? '🎓' : '📢'}}</text>
+            <text class="type-label">{{item.type}}</text>
+          </view>
+          <view class="status-tag {{item.status}}">
+            {{item.status === 'published' ? '已发布' : item.status === 'recalled' ? '已撤回' : item.status}}
+          </view>
+        </view>
+        <view class="card-body">
+          <text class="card-title">{{item.title}}</text>
+          <text class="card-summary">{{item.summary}}</text>
+        </view>
+        <view class="card-footer">
+          <text class="card-time">{{item.publish_time}}</text>
+          <view class="card-actions">
+            <text class="action-recall" wx:if="{{item.status === 'published'}}"
+                  catchtap="onRecall" data-id="{{item.notification_id}}">撤回</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{!loading && publishedList.length === 0}}">
+      <text class="empty-icon">📝</text>
+      <text class="empty-text">暂无已发通知</text>
+    </view>
+  </view>
+
+  <!-- 发布弹窗 -->
+  <view class="modal-mask" wx:if="{{showPublishModal}}" bindtap="hidePublish">
+    <view class="modal-content" catchtap="">
+      <view class="modal-header">
+        <text class="modal-title">发布通知</text>
+        <text class="modal-close" bindtap="hidePublish">✕</text>
+      </view>
+      <view class="modal-body">
+        <view class="form-group">
+          <text class="form-label">通知类型</text>
+          <picker mode="selector" range="{{['系统通知', '处分通知', '成绩通知', '转段监控', '树洞消息', '市场消息', '积分变动', '考勤提醒', '值日提醒', '宿舍通知', '志愿服务', '审批通知']}}"
+                  range-key=""
+                  bindchange="onPublishTypeChange">
+            <view class="form-picker">
+              {{publishForm.type === 'system' ? '系统通知' : publishForm.type === 'discipline' ? '处分通知' : publishForm.type === 'grade' ? '成绩通知' : '系统通知'}} ▾
+            </view>
+          </picker>
+        </view>
+        <view class="form-group">
+          <text class="form-label">发送对象</text>
+          <picker mode="selector" range="{{['全班成员', '全班学生', '全班家长']}}"
+                  bindchange="onPublishTargetChange">
+            <view class="form-picker">
+              {{publishForm.target_type === 'all_class' ? '全班成员' : publishForm.target_type === 'all_student' ? '全班学生' : publishForm.target_type === 'all_parent' ? '全班家长' : '全班成员'}} ▾
+            </view>
+          </picker>
+        </view>
+        <view class="form-group">
+          <text class="form-label">标题</text>
+          <input class="form-input" value="{{publishForm.title}}" bindinput="onPublishTitleInput" placeholder="请输入通知标题" />
+        </view>
+        <view class="form-group">
+          <text class="form-label">内容</text>
+          <textarea class="form-textarea" value="{{publishForm.content}}" bindinput="onPublishContentInput" placeholder="请输入通知内容" maxlength="2000" />
+        </view>
+        <view class="form-group">
+          <text class="form-label">优先级</text>
+          <view class="priority-options">
+            <view class="priority-item {{publishForm.priority === 'normal' ? 'active' : ''}}" bindtap="onPublishPriorityChange" data-value="normal">普通</view>
+            <view class="priority-item {{publishForm.priority === 'important' ? 'active' : ''}}" bindtap="onPublishPriorityChange" data-value="important">重要</view>
+            <view class="priority-item {{publishForm.priority === 'urgent' ? 'active' : ''}}" bindtap="onPublishPriorityChange" data-value="urgent">紧急</view>
+          </view>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="modal-cancel" bindtap="hidePublish">取消</button>
+        <button class="modal-confirm" bindtap="submitPublish" loading="{{submitting}}">发布</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-more" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

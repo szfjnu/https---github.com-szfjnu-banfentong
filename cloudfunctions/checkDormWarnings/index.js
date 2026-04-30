@@ -57,12 +57,11 @@ exports.main = async (event, context) => {
     const now = new Date()
 
     for (const student of students) {
-      const dormScore = student.dorm_score || 100
       const studentId = student.student_id
-      const studentName = student.student_name
+      const studentName = student.name || student.student_name
       const classId = student.class_id
 
-      // 获取或创建宿舍积分账户
+      // 获取或创建宿舍积分账户（以账户积分为准，更实时准确）
       const accountRes = await db.collection('dorm_score_accounts')
         .where({
           student_id: studentId,
@@ -79,7 +78,9 @@ exports.main = async (event, context) => {
           data: {
             student_id: studentId,
             semester_id: semester_id,
+            class_id: classId,
             original_score: 100,
+            current_score: 100,
             converted_score: 0,
             conversion_ratio: 0.3,
             warning_count: 0,
@@ -87,8 +88,13 @@ exports.main = async (event, context) => {
             updated_at: now
           }
         })
-        account = { _id: createRes._id, original_score: 100 }
+        account = { _id: createRes._id, original_score: 100, current_score: 100 }
       }
+
+      // 使用账户中的 current_score 作为实时宿舍积分（优先），否则用 original_score
+      const dormScore = account.current_score !== undefined
+        ? account.current_score
+        : (account.original_score || 100)
 
       // 查询近期扣分情况（近7天）
       const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
@@ -117,7 +123,7 @@ exports.main = async (event, context) => {
       const previousDeductionCount = previousDeductionRes.data.length
       const deductionTrend = recentDeductionCount - previousDeductionCount
 
-      // 判断预警类型和等级
+      // 判断预警类型和等级（基于实时 dormScore）
       const warningResult = checkWarning(
         dormScore,
         recentDeductionCount,

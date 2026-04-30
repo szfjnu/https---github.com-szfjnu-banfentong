@@ -1,0 +1,189 @@
+<!-- pages/discipline/revoke-apply/revoke-apply.wxml -->
+<view class="container" wx:if="{{!loading && record}}">
+  <!-- 处分信息 -->
+  <view class="info-card">
+    <view class="info-header">
+      <view class="level-badge" style="{{record._levelBadgeStyle}}">
+        {{record.discipline_level}}
+      </view>
+      <view class="status-tag {{record.status}}">
+        {{record._statusText}}
+      </view>
+    </view>
+    <view class="info-row">
+      <text class="info-label">处分原因</text>
+      <text class="info-value">{{record.reason}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">处分日期</text>
+      <text class="info-value">{{record.issue_date}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">扣减积分</text>
+      <text class="info-value danger">-{{record.score_deduction}}分</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">考察期</text>
+      <text class="info-value">{{record.probation_months}}个月</text>
+    </view>
+  </view>
+
+  <!-- 完成进度 -->
+  <view class="progress-card" wx:if="{{record.status === 'active'}}">
+    <view class="card-title">完成进度</view>
+    <view class="progress-item">
+      <view class="progress-header">
+        <text class="progress-label">思想汇报</text>
+        <text class="progress-num">{{record.thought_completed}}/{{record.thought_reports_required}}篇</text>
+      </view>
+      <view class="progress-bar">
+        <view class="progress-fill" style="width: {{record.thought_reports_required > 0 ? (record.thought_completed / record.thought_reports_required * 100) : 0}}%"></view>
+      </view>
+    </view>
+    <view class="progress-item">
+      <view class="progress-header">
+        <text class="progress-label">服务令</text>
+        <text class="progress-num">{{record.service_completed_hours}}/{{record.service_hours_required}}小时</text>
+      </view>
+      <view class="progress-bar">
+        <view class="progress-fill service" style="{{record._serviceProgressWidth}}"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-section" wx:if="{{record.status === 'active'}}">
+    <view class="action-btn primary" bindtap="onShowThoughtModal">提交思想汇报</view>
+    <view class="action-btn green" bindtap="onShowServiceModal">提交服务令</view>
+    <view class="action-btn warn" bindtap="onShowRevokeModal">申请撤销处分</view>
+  </view>
+
+  <!-- 已提交的思想汇报 -->
+  <view class="section-card" wx:if="{{record.thoughtReports.length > 0}}">
+    <view class="section-title">思想汇报记录</view>
+    <view class="report-item" wx:for="{{record.thoughtReports}}" wx:key="report_id">
+      <view class="report-header">
+        <text class="report-title">{{item.title}}</text>
+        <view class="report-status {{item.status}}">{{item.status === 'pending' ? '待审核' : item.status === 'approved' ? '已通过' : '已拒绝'}}</view>
+      </view>
+      <text class="report-month">{{item.report_month}}</text>
+    </view>
+  </view>
+
+  <!-- 已提交的服务令 -->
+  <view class="section-card" wx:if="{{record.serviceRecords.length > 0}}">
+    <view class="section-title">服务令记录</view>
+    <view class="service-item" wx:for="{{record.serviceRecords}}" wx:key="service_id">
+      <view class="service-header">
+        <text class="service-type">{{item.service_type}}</text>
+        <text class="service-hours">{{item.hours}}小时</text>
+        <view class="service-status {{item.status}}">{{item.status === 'pending' ? '待审核' : item.status === 'approved' ? '已通过' : '已拒绝'}}</view>
+      </view>
+      <text class="service-date">{{item.date}}</text>
+    </view>
+  </view>
+
+  <!-- 撤销申请记录 -->
+  <view class="section-card" wx:if="{{record.revocationApplications.length > 0}}">
+    <view class="section-title">撤销申请记录</view>
+    <view class="revoke-item" wx:for="{{record.revocationApplications}}" wx:key="application_id">
+      <view class="revoke-header">
+        <text class="revoke-date">{{item.application_date}}</text>
+        <view class="revoke-status {{item.status}}">{{item.status === 'pending' ? '待审核' : item.status === 'approved' ? '已批准' : '已拒绝'}}</view>
+      </view>
+      <text class="revoke-reason">{{item.application_reason}}</text>
+      <text class="revoke-comment" wx:if="{{item.review_comments}}">审核意见：{{item.review_comments}}</text>
+    </view>
+  </view>
+</view>
+
+<!-- 思想汇报弹窗 -->
+<view class="modal-mask" wx:if="{{showThoughtModal}}" bindtap="onHideModal">
+  <view class="modal-content" catchtap="preventBubble">
+    <view class="modal-header">
+      <text class="modal-title">提交思想汇报</text>
+      <text class="modal-close" bindtap="onHideModal">✕</text>
+    </view>
+    <view class="modal-body">
+      <view class="form-group">
+        <text class="form-label">汇报月份</text>
+        <input class="form-input" value="{{thoughtForm.report_month}}" bindinput="onThoughtInput" data-field="report_month" placeholder="如：2026-04" />
+      </view>
+      <view class="form-group">
+        <text class="form-label">标题</text>
+        <input class="form-input" value="{{thoughtForm.title}}" bindinput="onThoughtInput" data-field="title" placeholder="思想汇报" />
+      </view>
+      <view class="form-group">
+        <text class="form-label">内容 *</text>
+        <textarea class="form-textarea" value="{{thoughtForm.content}}" bindinput="onThoughtInput" data-field="content" placeholder="请填写思想汇报内容" maxlength="2000" />
+      </view>
+    </view>
+    <view class="modal-footer">
+      <view class="btn-cancel" bindtap="onHideModal">取消</view>
+      <view class="btn-confirm" bindtap="onSubmitThought">提交</view>
+    </view>
+  </view>
+</view>
+
+<!-- 服务令弹窗 -->
+<view class="modal-mask" wx:if="{{showServiceModal}}" bindtap="onHideModal">
+  <view class="modal-content" catchtap="preventBubble">
+    <view class="modal-header">
+      <text class="modal-title">提交服务令</text>
+      <text class="modal-close" bindtap="onHideModal">✕</text>
+    </view>
+    <view class="modal-body">
+      <view class="form-group">
+        <text class="form-label">服务类型</text>
+        <input class="form-input" value="{{serviceForm.service_type}}" bindinput="onServiceInput" data-field="service_type" placeholder="如：校园清洁" />
+      </view>
+      <view class="form-group">
+        <text class="form-label">服务时长（小时）*</text>
+        <input class="form-input" type="digit" value="{{serviceForm.hours}}" bindinput="onServiceInput" data-field="hours" />
+      </view>
+      <view class="form-group">
+        <text class="form-label">服务日期</text>
+        <picker mode="date" value="{{serviceForm.date}}" bindchange="onServiceDateChange">
+          <view class="form-picker">{{serviceForm.date}}</view>
+        </picker>
+      </view>
+      <view class="form-group">
+        <text class="form-label">服务描述</text>
+        <textarea class="form-textarea" value="{{serviceForm.description}}" bindinput="onServiceInput" data-field="description" placeholder="描述服务内容" maxlength="500" />
+      </view>
+    </view>
+    <view class="modal-footer">
+      <view class="btn-cancel" bindtap="onHideModal">取消</view>
+      <view class="btn-confirm" bindtap="onSubmitService">提交</view>
+    </view>
+  </view>
+</view>
+
+<!-- 撤销申请弹窗 -->
+<view class="modal-mask" wx:if="{{showRevokeModal}}" bindtap="onHideModal">
+  <view class="modal-content" catchtap="preventBubble">
+    <view class="modal-header">
+      <text class="modal-title">申请撤销处分</text>
+      <text class="modal-close" bindtap="onHideModal">✕</text>
+    </view>
+    <view class="modal-body">
+      <view class="form-group">
+        <text class="form-label">申请理由 *</text>
+        <textarea class="form-textarea" value="{{revokeForm.application_reason}}" bindinput="onRevokeInput" data-field="application_reason" placeholder="请说明申请撤销的理由" maxlength="500" />
+      </view>
+      <view class="form-group">
+        <text class="form-label">自我反思</text>
+        <textarea class="form-textarea" value="{{revokeForm.student_self_reflection}}" bindinput="onRevokeInput" data-field="student_self_reflection" placeholder="对自己的认识和改进" maxlength="1000" />
+      </view>
+    </view>
+    <view class="modal-footer">
+      <view class="btn-cancel" bindtap="onHideModal">取消</view>
+      <view class="btn-confirm" bindtap="onSubmitRevoke">提交申请</view>
+    </view>
+  </view>
+</view>
+
+<!-- 加载中 -->
+<view class="loading-state" wx:if="{{loading}}">
+  <text>加载中...</text>
+</view>

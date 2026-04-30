@@ -53,4 +53,22 @@
       查找班级
     </button>
   </view>
+
+  <!-- 搜索结果列表（手机号查询多条结果时显示） -->
+  <view class="results-section" wx:if="{{showResults && searchResults.length > 0}}">
+    <view class="section-title">找到 {{searchResults.length}} 个班级，请选择</view>
+    <view class="results-list">
+      <view class="result-item" wx:for="{{searchResults}}" wx:key="_id" bindtap="onSelectResult" data-id="{{item._id}}">
+        <view class="result-icon">📚</view>
+        <view class="result-info">
+          <view class="result-name">{{item.class_name}}</view>
+          <view class="result-meta">
+            <text class="meta-item" wx:if="{{item.grade}}">{{item.grade}}</text>
+            <text class="meta-item" wx:if="{{item.creator_name}}">创建者: {{item.creator_name}}</text>
+          </view>
+        </view>
+        <view class="result-arrow">›</view>
+      </view>
+    </view>
+  </view>
 </view>

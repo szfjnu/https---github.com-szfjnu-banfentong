@@ -1,0 +1,89 @@
+<!--pages/volunteer/detail/detail.wxml-->
+<view class="container">
+  <block wx:if="{{!loading && record}}">
+    <!-- 状态头部 -->
+    <view class="status-header {{record.statusClass}}">
+      <text class="status-icon">{{record.statusClass === 'approved' ? '✅' : (record.statusClass === 'rejected' ? '❌' : '⏳')}}</text>
+      <text class="status-text">{{record.statusText}}</text>
+    </view>
+
+    <!-- 基本信息 -->
+    <view class="detail-card">
+      <view class="card-title">活动信息</view>
+      <view class="detail-row">
+        <text class="detail-label">活动名称</text>
+        <text class="detail-value">{{record.activity_name}}</text>
+      </view>
+      <view class="detail-row">
+        <text class="detail-label">服务类型</text>
+        <text class="detail-value type-tag" style="color: {{record.typeColor}}">{{record.service_type || '未分类'}}</text>
+      </view>
+      <view class="detail-row">
+        <text class="detail-label">服务日期</text>
+        <text class="detail-value">{{record.dateStr}}</text>
+      </view>
+      <view class="detail-row">
+        <text class="detail-label">服务时长</text>
+        <text class="detail-value">{{record.duration}}小时</text>
+      </view>
+      <view class="detail-row" wx:if="{{record.organization}}">
+        <text class="detail-label">服务单位</text>
+        <text class="detail-value">{{record.organization}}</text>
+      </view>
+      <view class="detail-row" wx:if="{{record.location}}">
+        <text class="detail-label">服务地点</text>
+        <text class="detail-value">{{record.location}}</text>
+      </view>
+    </view>
+
+    <!-- 积分信息 -->
+    <view class="detail-card">
+      <view class="card-title">积分信息</view>
+      <view class="score-display">
+        <text class="score-value">+{{record.earned_score}}</text>
+        <text class="score-label">获得积分</text>
+      </view>
+    </view>
+
+    <!-- 描述 -->
+    <view class="detail-card" wx:if="{{record.description}}">
+      <view class="card-title">活动描述</view>
+      <text class="description-text">{{record.description}}</text>
+    </view>
+
+    <!-- 证明材料 -->
+    <view class="detail-card" wx:if="{{record.proof_images && record.proof_images.length > 0}}">
+      <view class="card-title">证明材料</view>
+      <view class="image-list">
+        <image 
+          wx:for="{{record.proof_images}}" 
+          wx:key="*this" 
+          src="{{item}}" 
+          mode="aspectFill"
+          class="proof-image"
+          bindtap="onPreviewImage"
+          data-url="{{item}}"
+        />
+      </view>
+    </view>
+
+    <!-- 提交信息 -->
+    <view class="detail-card">
+      <view class="card-title">提交信息</view>
+      <view class="detail-row">
+        <text class="detail-label">提交人</text>
+        <text class="detail-value">{{record.recorder_name}}</text>
+      </view>
+      <view class="detail-row">
+        <text class="detail-label">提交时间</text>
+        <text class="detail-value">{{record.createdStr}}</text>
+      </view>
+    </view>
+  </block>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text class="loading-icon">⏳</text>
+    <view class="loading-text">加载中...</view>
+  </view>
+</view>

@@ -1,0 +1,85 @@
+<!-- pages/discipline/record/add/add.wxml -->
+<view class="container">
+  <view class="form-section" wx:if="{{!loading}}">
+    <!-- 选择学生 -->
+    <view class="form-group">
+      <text class="form-label">学生 *</text>
+      <picker range="{{students}}" range-key="name" value="{{selectedStudentIndex}}" bindchange="onStudentChange">
+        <view class="form-picker">{{form.student_name || '请选择学生'}}</view>
+      </picker>
+    </view>
+
+    <!-- 处分级别 -->
+    <view class="form-group">
+      <text class="form-label">处分级别 *</text>
+      <picker range="{{levelConfigs}}" range-key="level_name" value="{{selectedLevelIndex}}" bindchange="onLevelChange">
+        <view class="form-picker">{{form.level_name || '请选择级别'}}</view>
+      </picker>
+    </view>
+
+    <!-- 处分原因 -->
+    <view class="form-group">
+      <text class="form-label">处分原因 *</text>
+      <textarea class="form-textarea" value="{{form.reason}}" bindinput="onInput" data-field="reason" placeholder="请填写处分原因" maxlength="500" />
+    </view>
+
+    <!-- 处分日期 -->
+    <view class="form-group">
+      <text class="form-label">处分日期</text>
+      <picker mode="date" value="{{form.issue_date}}" bindchange="onDateChange">
+        <view class="form-picker">{{form.issue_date}}</view>
+      </picker>
+    </view>
+
+    <!-- 发布人/单位 -->
+    <view class="form-group">
+      <text class="form-label">发布人/单位</text>
+      <input class="form-input" value="{{form.issuer}}" bindinput="onInput" data-field="issuer" placeholder="班主任姓名" />
+    </view>
+
+    <!-- 文件编号 -->
+    <view class="form-group">
+      <text class="form-label">处分文件编号</text>
+      <input class="form-input" value="{{form.document_id}}" bindinput="onInput" data-field="document_id" placeholder="可选" />
+    </view>
+
+    <!-- 级别参数 -->
+    <view class="params-card" wx:if="{{form.level_name}}">
+      <view class="params-title">级别参数（可微调）</view>
+      <view class="form-row">
+        <view class="form-group half">
+          <text class="form-label">扣减积分</text>
+          <input class="form-input" type="number" value="{{form.score_deduction}}" bindinput="onInput" data-field="score_deduction" />
+        </view>
+        <view class="form-group half">
+          <text class="form-label">考察期（月）</text>
+          <input class="form-input" type="number" value="{{form.probation_months}}" bindinput="onInput" data-field="probation_months" />
+        </view>
+      </view>
+      <view class="form-row">
+        <view class="form-group half">
+          <text class="form-label">思想汇报（篇）</text>
+          <input class="form-input" type="number" value="{{form.thought_reports_required}}" bindinput="onInput" data-field="thought_reports_required" />
+        </view>
+        <view class="form-group half">
+          <text class="form-label">服务令（小时）</text>
+          <input class="form-input" type="number" value="{{form.service_hours_required}}" bindinput="onInput" data-field="service_hours_required" />
+        </view>
+      </view>
+      <view class="form-group">
+        <view class="switch-row">
+          <text class="form-label" style="margin-bottom:0">限制评优</text>
+          <switch checked="{{form.affects_excellence_award}}" bindchange="onSwitchChange" color="#ff4d4f" />
+        </view>
+      </view>
+    </view>
+
+    <view class="submit-btn {{submitting ? 'disabled' : ''}}" bindtap="onSubmit">
+      {{submitting ? '提交中...' : '确认添加处分'}}
+    </view>
+  </view>
+
+  <view class="loading-state" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

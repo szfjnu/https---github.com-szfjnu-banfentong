@@ -1,0 +1,77 @@
+<!-- pages/discipline/record/record.wxml -->
+<view class="container">
+  <!-- 统计概览 -->
+  <view class="stats-card">
+    <view class="stats-row">
+      <view class="stat-item">
+        <text class="stat-value">{{stats.total}}</text>
+        <text class="stat-label">总处分</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-value danger">{{stats.active}}</text>
+        <text class="stat-label">生效中</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-value success">{{stats.revoked}}</text>
+        <text class="stat-label">已撤销</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 操作栏 -->
+  <view class="action-bar">
+    <view class="action-btn primary" bindtap="onAddRecord">+ 添加处分</view>
+    <view class="action-btn outline" bindtap="onGoLevelConfig">级别配置</view>
+    <view class="action-btn outline" bindtap="onGoRevokeAdmin">撤销管理</view>
+  </view>
+
+  <!-- 筛选标签 -->
+  <view class="filter-tabs">
+    <view class="filter-tab {{filterStatus === 'all' ? 'active' : ''}}" data-status="all" bindtap="onFilterChange">全部</view>
+    <view class="filter-tab {{filterStatus === 'active' ? 'active' : ''}}" data-status="active" bindtap="onFilterChange">生效中</view>
+    <view class="filter-tab {{filterStatus === 'revoked' ? 'active' : ''}}" data-status="revoked" bindtap="onFilterChange">已撤销</view>
+  </view>
+
+  <!-- 记录列表 -->
+  <view class="record-list" wx:if="{{!loading}}">
+    <view class="record-card" wx:for="{{displayList}}" wx:key="record_id" bindtap="onViewDetail" data-id="{{item.record_id}}">
+      <view class="record-header">
+        <view class="student-info">
+          <text class="student-name">{{item.student_name || item.student_id}}</text>
+          <view class="level-tag" style="{{item._levelBadgeStyle}}">
+            {{item.discipline_level}}
+          </view>
+        </view>
+        <view class="status-tag {{item.status}}">
+          {{item._statusText}}
+        </view>
+      </view>
+      <view class="record-body">
+        <text class="record-reason">{{item.reason}}</text>
+      </view>
+      <view class="record-footer">
+        <text class="record-date">{{item.issue_date}}</text>
+        <view class="record-meta">
+          <text class="meta-score">-{{item.score_deduction}}分</text>
+          <text class="meta-divider">|</text>
+          <text class="meta-period">考察{{item.probation_months}}月</text>
+        </view>
+        <view class="record-actions" catchtap="">
+          <view class="del-btn" catchtap="onDeleteRecord" data-record="{{item}}">删除</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="empty-state" wx:if="{{displayList.length === 0}}">
+      <text class="empty-icon">📋</text>
+      <text class="empty-text">暂无处分记录</text>
+    </view>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading-state" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

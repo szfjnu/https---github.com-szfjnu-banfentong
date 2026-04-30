@@ -1,0 +1,450 @@
+/* pages/score/add/add.wxss */
+.container {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding-bottom: 120rpx;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+}
+
+.loading-icon {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #e0e0e0;
+  border-top-color: #1890ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin-top: 20rpx;
+  color: #999;
+}
+
+.section {
+  background: #fff;
+  margin: 20rpx;
+  padding: 24rpx;
+  border-radius: 16rpx;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+
+.section-header .section-title {
+  margin-bottom: 0;
+}
+
+.selected-count {
+  font-size: 24rpx;
+  color: #1890ff;
+  font-weight: 600;
+}
+
+/* 选择器 */
+.picker-value {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f5f7fa;
+  padding: 24rpx;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.arrow {
+  font-size: 20rpx;
+  color: #999;
+}
+
+/* 积分项目网格 */
+.items-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.item-card {
+  background: #f0f5ff;
+  border: 2rpx solid #d6e4ff;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  transition: all 0.2s;
+}
+
+.item-card.selected {
+  background: #e6f7ff;
+  border-color: #1890ff;
+  box-shadow: 0 4rpx 12rpx rgba(24, 144, 255, 0.2);
+}
+
+.item-card.deduct {
+  background: #fff2f0;
+  border-color: #ffccc7;
+}
+
+.item-card.deduct.selected {
+  background: #fff1f0;
+  border-color: #ff4d4f;
+  box-shadow: 0 4rpx 12rpx rgba(255, 77, 79, 0.2);
+}
+
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12rpx;
+}
+
+.item-name {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #333;
+  flex: 1;
+}
+
+.item-type {
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+  background: #e6f7ff;
+  color: #1890ff;
+  flex-shrink: 0;
+}
+
+.item-type.deduct {
+  background: #fff2f0;
+  color: #ff4d4f;
+}
+
+.item-score {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #1890ff;
+  margin-bottom: 8rpx;
+}
+
+.item-score.deduct {
+  color: #ff4d4f;
+}
+
+.item-desc {
+  font-size: 22rpx;
+  color: #999;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.empty-tip {
+  text-align: center;
+  padding: 40rpx 0;
+  color: #999;
+  font-size: 26rpx;
+}
+
+/* 积分输入 */
+.score-input-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+}
+
+.score-btn {
+  width: 80rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 48rpx;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.score-btn.minus {
+  background: #fff1f0;
+  color: #ff4d4f;
+  border: 2rpx solid #ffccc7;
+}
+
+.score-btn.plus {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 2rpx solid #b7eb8f;
+}
+
+.score-btn:active {
+  transform: scale(0.95);
+}
+
+.score-value-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+}
+
+.score-input {
+  width: 120rpx;
+  font-size: 48rpx;
+  font-weight: 700;
+  text-align: center;
+  color: #333;
+}
+
+.score-unit {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.score-type-toggle-wrapper {
+  margin-top: 16rpx;
+}
+
+.score-type-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 16rpx 24rpx;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+}
+
+.score-type-toggle.add {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 2rpx solid #b7eb8f;
+}
+
+.score-type-toggle.deduct {
+  background: #fff1f0;
+  color: #ff4d4f;
+  border: 2rpx solid #ffccc7;
+}
+
+.toggle-text {
+  font-weight: 600;
+}
+
+.toggle-hint {
+  font-size: 22rpx;
+  opacity: 0.8;
+}
+
+/* 输入框 */
+.reason-input {
+  width: 100%;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  font-size: 28rpx;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.remark-input {
+  width: 100%;
+  height: 120rpx;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  font-size: 28rpx;
+  color: #333;
+  box-sizing: border-box;
+}
+
+/* 筛选栏 */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+  flex-wrap: wrap;
+}
+
+.picker-filter {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  background: #f0f0f0;
+  padding: 16rpx 20rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  color: #333;
+}
+
+.search-input-small {
+  flex: 1;
+  min-width: 200rpx;
+}
+
+.search-input-small input {
+  background: #f0f0f0;
+  padding: 16rpx 20rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+}
+
+.select-all-btn {
+  background: #1890ff;
+  color: #fff;
+  padding: 16rpx 24rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+}
+
+/* 学生列表 */
+.student-list {
+  max-height: 400rpx;
+}
+
+.student-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  background: #fafafa;
+  border-radius: 12rpx;
+  margin-bottom: 12rpx;
+  border: 2rpx solid transparent;
+  transition: all 0.2s;
+}
+
+.student-item.selected {
+  background: #e6f7ff;
+  border-color: #1890ff;
+}
+
+.checkbox {
+  width: 40rpx;
+  height: 40rpx;
+  border: 2rpx solid #d9d9d9;
+  border-radius: 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.checkbox.checked {
+  background: #1890ff;
+  border-color: #1890ff;
+  color: #fff;
+}
+
+.student-info {
+  flex: 1;
+}
+
+.student-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4rpx;
+  display: flex;
+  align-items: center;
+}
+
+.leader-tag {
+  display: inline-block;
+  font-size: 20rpx;
+  color: #fff;
+  background: linear-gradient(135deg, #fa8c16, #ff7a45);
+  padding: 2rpx 12rpx;
+  border-radius: 8rpx;
+  margin-left: 12rpx;
+  font-weight: 500;
+}
+
+.student-meta {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.student-meta text {
+  margin-right: 16rpx;
+}
+
+.student-score {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.student-score .score-label {
+  display: block;
+  font-size: 20rpx;
+  color: #999;
+}
+
+.student-score .score-value {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1890ff;
+}
+
+/* 提交按钮 */
+.submit-section {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20rpx 30rpx;
+  background: #fff;
+  box-shadow: 0 -4rpx 20rpx rgba(0,0,0,0.08);
+}
+
+.submit-btn {
+  width: 100%;
+  height: 88rpx;
+  border-radius: 44rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  border: none;
+}
+
+.submit-btn.add {
+  background: linear-gradient(135deg, #52c41a, #73d13d);
+  color: #fff;
+}
+
+.submit-btn.deduct {
+  background: linear-gradient(135deg, #ff4d4f, #ff7875);
+  color: #fff;
+}
+
+.submit-btn[disabled] {
+  background: #d9d9d9;
+  color: #fff;
+}

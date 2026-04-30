@@ -1,0 +1,139 @@
+<wxs module="utils">
+function formatTime(ts) {
+  if (!ts) return '';
+  var d = getDate(ts);
+  var Y = d.getFullYear();
+  var M = d.getMonth() + 1;
+  var D = d.getDate();
+  var h = d.getHours();
+  var m = d.getMinutes();
+  return Y + '-' + (M < 10 ? '0' + M : M) + '-' + (D < 10 ? '0' + D : D) + ' ' + (h < 10 ? '0' + h : h) + ':' + (m < 10 ? '0' + m : m);
+}
+
+function formatPrice(price) {
+  if (price === 0) return '免费赠送';
+  return '¥' + price.toFixed(2);
+}
+
+function statusLabel(status) {
+  var map = { on_sale: '在售', reserved: '已预留', sold: '已成交', removed: '已下架' };
+  return map[status] || status;
+}
+
+module.exports = {
+  formatTime: formatTime,
+  formatPrice: formatPrice,
+  statusLabel: statusLabel
+};
+</wxs>
+
+<view class="detail-container">
+  <!-- 图片轮播 -->
+  <swiper class="image-swiper" indicator-dots indicator-color="rgba(255,255,255,0.4)" indicator-active-color="#ffffff" circular>
+    <swiper-item wx:for="{{item.images}}" wx:key="index">
+      <image class="swiper-image" src="{{item}}" mode="aspectFill" bindtap="previewImage" data-src="{{item}}" />
+    </swiper-item>
+    <swiper-item wx:if="{{item.images.length === 0}}">
+      <image class="swiper-image" src="/images/icons/default-item.png" mode="aspectFill" />
+    </swiper-item>
+  </swiper>
+
+  <!-- 价格和状态 -->
+  <view class="price-section">
+    <view class="price-row">
+      <text class="main-price">{{utils.formatPrice(item.price)}}</text>
+      <text class="original-price" wx:if="{{item.original_price}}">原价 ¥{{item.original_price}}</text>
+    </view>
+    <view class="status-badge status-{{item.status}}">{{utils.statusLabel(item.status)}}</view>
+  </view>
+
+  <!-- 基本信息 -->
+  <view class="info-card">
+    <view class="info-title">{{item.title}}</view>
+    <view class="info-tags">
+      <text class="tag tag-category">{{item.category_label}}</text>
+      <text class="tag tag-condition">{{item.condition_label}}</text>
+    </view>
+    <view class="info-desc">{{item.description}}</view>
+    <view class="info-meta">
+      <text>{{utils.formatTime(item.created_at)}}</text>
+      <text class="meta-dot">·</text>
+      <text>{{item.view_count}} 次浏览</text>
+      <text class="meta-dot">·</text>
+      <text>{{item.want_count}} 人想要</text>
+    </view>
+  </view>
+
+  <!-- 卖家信息 -->
+  <view class="seller-card">
+    <view class="seller-avatar-wrap">
+      <image class="seller-avatar" src="{{item.seller_avatar || '/images/icons/default-avatar.png'}}" mode="aspectFill" />
+    </view>
+    <view class="seller-info">
+      <text class="seller-name">{{item.seller_name}}</text>
+      <text class="seller-contact" wx:if="{{item.seller_contact}}">联系方式：{{item.seller_contact}}</text>
+    </view>
+  </view>
+
+  <!-- 留言区 -->
+  <view class="message-section">
+    <view class="section-title">留言咨询 ({{messages.length}})</view>
+    <block wx:for="{{messages}}" wx:key="_id">
+      <view class="message-item">
+        <text class="msg-name">{{item.sender_name}}</text>
+        <text class="msg-content">{{item.content}}</text>
+        <text class="msg-time">{{utils.formatTime(item.created_at)}}</text>
+      </view>
+    </block>
+    <view class="empty-tip" wx:if="{{messages.length === 0}}">暂无留言，来咨询一下吧~</view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar">
+    <view class="bar-action {{item.is_wanted ? 'wanted' : ''}}" bindtap="toggleWant">
+      <text class="bar-icon">{{item.is_wanted ? '❤️' : '🤍'}}</text>
+      <text class="bar-text">{{item.is_wanted ? '已想要' : '想要'}}</text>
+    </view>
+    <view class="bar-action" bindtap="showReport" wx:if="{{!item.is_owner}}">
+      <text class="bar-icon">🚫</text>
+      <text class="bar-text">举报</text>
+    </view>
+    <view class="bar-main-btn" wx:if="{{item.status === 'on_sale' && !item.is_owner}}" bindtap="onWantBuy">
+      我想要
+    </view>
+    <view class="bar-main-btn disabled" wx:if="{{item.status !== 'on_sale' && !item.is_owner}}">
+      {{item.status === 'reserved' ? '已预留' : item.status === 'sold' ? '已成交' : '已下架'}}
+    </view>
+  </view>
+
+  <!-- 留言弹窗 -->
+  <view class="modal-mask" wx:if="{{showMessageModal}}" bindtap="hideMessageModal">
+    <view class="modal-content" catchtap="">
+      <view class="modal-title">留言咨询</view>
+      <textarea class="msg-textarea" placeholder="输入你的留言..." value="{{messageContent}}" bindinput="onMessageInput" maxlength="200" />
+      <view class="modal-actions">
+        <view class="modal-btn cancel-btn" bindtap="hideMessageModal">取消</view>
+        <view class="modal-btn confirm-btn" bindtap="sendMessage">发送</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 举报弹窗 -->
+  <view class="modal-mask" wx:if="{{showReportModal}}" bindtap="hideReportModal">
+    <view class="modal-content" catchtap="">
+      <view class="modal-title">举报商品</view>
+      <view class="report-reasons">
+        <view class="report-item {{reportReason === '虚假信息' ? 'selected' : ''}}" bindtap="selectReportReason" data-reason="虚假信息">虚假信息</view>
+        <view class="report-item {{reportReason === '违禁物品' ? 'selected' : ''}}" bindtap="selectReportReason" data-reason="违禁物品">违禁物品</view>
+        <view class="report-item {{reportReason === '价格欺诈' ? 'selected' : ''}}" bindtap="selectReportReason" data-reason="价格欺诈">价格欺诈</view>
+        <view class="report-item {{reportReason === '重复发布' ? 'selected' : ''}}" bindtap="selectReportReason" data-reason="重复发布">重复发布</view>
+        <view class="report-item {{reportReason === '其他' ? 'selected' : ''}}" bindtap="selectReportReason" data-reason="其他">其他</view>
+      </view>
+      <textarea class="report-detail" placeholder="补充说明（选填）" value="{{reportDetail}}" bindinput="onReportDetailInput" maxlength="200" />
+      <view class="modal-actions">
+        <view class="modal-btn cancel-btn" bindtap="hideReportModal">取消</view>
+        <view class="modal-btn confirm-btn {{reportReason ? '' : 'disabled'}}" bindtap="submitReport">提交</view>
+      </view>
+    </view>
+  </view>
+</view>

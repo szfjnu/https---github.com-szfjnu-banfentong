@@ -165,3 +165,70 @@
 .btn-search::after {
   border: none;
 }
+
+/* 搜索结果列表 */
+.results-section {
+  background: white;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 200rpx;
+}
+
+.results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.result-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  transition: background 0.2s;
+}
+
+.result-item:active {
+  background: #e6f7ff;
+}
+
+.result-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 16rpx;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  margin-right: 20rpx;
+}
+
+.result-info {
+  flex: 1;
+}
+
+.result-name {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.result-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.result-meta .meta-item {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.result-arrow {
+  font-size: 36rpx;
+  color: #ccc;
+  margin-left: 12rpx;
+}

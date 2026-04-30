@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "聚光点",
+  "navigationBarBackgroundColor": "#667eea",
+  "navigationBarTextStyle": "white",
+  "enablePullDownRefresh": true,
+  "backgroundColor": "#f5f5f5"
+}

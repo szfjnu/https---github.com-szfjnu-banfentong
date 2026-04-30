@@ -1,0 +1,283 @@
+<!--pages/volunteer/volunteer.wxml-->
+<view class="container">
+  <!-- 统计卡片 -->
+  <view class="stats-card">
+    <view class="stats-header">
+      <text class="stats-title">志愿服务统计</text>
+      <!-- 积分规则配置入口（仅管理员/班主任可见） -->
+      <view class="rule-btn" wx:if="{{canEdit}}" bindtap="showScoreRuleModal">
+        <text class="rule-icon">⚙️</text>
+        <text class="rule-text">规则配置</text>
+      </view>
+    </view>
+    <view class="stats-row">
+      <view class="stat-item">
+        <view class="stat-value">{{statistics.totalHours || 0}}</view>
+        <view class="stat-label">总时长(h)</view>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <view class="stat-value">{{statistics.totalScore || 0}}</view>
+        <view class="stat-label">获得积分</view>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <view class="stat-value">{{statistics.recordCount || 0}}</view>
+        <view class="stat-label">服务次数</view>
+      </view>
+    </view>
+    <!-- 当前积分规则提示 -->
+    <view class="rule-tip">
+      <text class="tip-text">💡 当前规则：每服务1小时获得 {{scoreRule.scorePerHour}} 积分</text>
+    </view>
+    <!-- 学生/家长：查看我的记录入口 -->
+    <view class="my-records-entry" wx:if="{{!canEdit}}" bindtap="onViewMyRecords">
+      <text class="entry-text">📋 查看我的提交记录</text>
+      <text class="entry-arrow">›</text>
+    </view>
+  </view>
+
+  <!-- 筛选和搜索 -->
+  <view class="filter-section">
+    <!-- 时间筛选 -->
+    <picker mode="selector" range="{{timeOptions}}" range-key="label" bindchange="onTimeChange">
+      <view class="filter-picker">
+        <text>{{selectedTimeLabel}}</text>
+        <text class="picker-arrow">▼</text>
+      </view>
+    </picker>
+    
+    <!-- 类型筛选 -->
+    <picker mode="selector" range="{{serviceTypes}}" range-key="label" bindchange="onTypeChange">
+      <view class="filter-picker">
+        <text>{{selectedTypeLabel || '全部类型'}}</text>
+        <text class="picker-arrow">▼</text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 搜索框 -->
+  <view class="search-section">
+    <view class="search-box">
+      <text class="search-icon">🔍</text>
+      <input 
+        class="search-input" 
+        type="text" 
+        placeholder="搜索活动名称" 
+        value="{{searchKeyword}}"
+        bindinput="onSearchInput"
+      />
+    </view>
+  </view>
+
+  <!-- 志愿服务列表 -->
+  <view class="volunteer-list" wx:if="{{!loading && records.length > 0}}">
+    <view class="volunteer-card" wx:for="{{records}}" wx:key="_id" bindtap="onRecordDetail" data-id="{{item._id}}">
+      <view class="card-header">
+        <view class="activity-name">{{item.activity_name}}</view>
+        <view class="service-type-tag" style="background-color: {{item.typeColor}}">{{item.service_type}}</view>
+      </view>
+      
+      <view class="card-body">
+        <view class="info-row">
+          <view class="info-item">
+            <text class="info-icon">📅</text>
+            <text>{{item.dateStr}}</text>
+          </view>
+          <view class="info-item">
+            <text class="info-icon">⏱️</text>
+            <text>{{item.duration}}小时</text>
+          </view>
+        </view>
+        
+        <view class="info-row">
+          <view class="info-item">
+            <text class="info-icon">🏢</text>
+            <text>{{item.organization || '未填写'}}</text>
+          </view>
+          <view class="score-badge">
+            <text>+{{item.earned_score}}分</text>
+          </view>
+        </view>
+        
+        <view class="info-row student-info" wx:if="{{item.student_name}}">
+          <view class="info-item">
+            <text class="info-icon">👤</text>
+            <text>{{item.student_name}}</text>
+          </view>
+        </view>
+        
+        <view class="description" wx:if="{{item.description}}">{{item.description}}</view>
+      </view>
+      
+      <view class="card-footer">
+        <view class="recorder-info">
+          <text>记录人: {{item.recorder_name}}</text>
+        </view>
+        <view class="verify-status {{item.is_verified ? 'verified' : 'pending'}}">
+          <text>{{item.is_verified ? '已验证' : '待验证'}}</text>
+        </view>
+      </view>
+      
+      <!-- 删除按钮（仅管理员/班主任可见） -->
+      <view class="card-actions" wx:if="{{canEdit}}" catchtap="">
+        <view class="action-btn delete" catchtap="onDeleteRecord" data-record="{{item}}">
+          <text>删除</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && records.length === 0}}">
+    <text class="empty-icon">📋</text>
+    <view class="empty-text">暂无志愿服务记录</view>
+    <view class="empty-hint">点击右下角按钮添加记录</view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text class="loading-icon">⏳</text>
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <!-- 加载更多 -->
+  <view class="load-more" wx:if="{{!loading && records.length > 0 && hasMore}}">
+    <text>加载更多...</text>
+  </view>
+
+  <!-- 没有更多 -->
+  <view class="no-more" wx:if="{{!loading && records.length > 0 && !hasMore}}">
+    <text>没有更多了</text>
+  </view>
+
+  <!-- 添加按钮 -->
+  <view class="fab-button" bindtap="onAddRecord">
+    <text class="fab-icon">+</text>
+  </view>
+
+  <!-- 自定义日期选择弹窗 -->
+  <view class="modal-mask" wx:if="{{showDatePicker}}" bindtap="onCloseDatePicker">
+    <view class="modal-content date-picker-modal" catchtap>
+      <view class="modal-header">
+        <text class="modal-title">选择日期范围</text>
+        <text class="modal-close" bindtap="onCloseDatePicker">✕</text>
+      </view>
+      
+      <view class="modal-body">
+        <view class="date-item">
+          <text class="date-label">开始日期</text>
+          <picker mode="date" value="{{customDateRange.start}}" bindchange="onStartDateChange">
+            <view class="date-picker">
+              <text>{{customDateRange.start || '请选择'}}</text>
+              <text class="picker-arrow">▼</text>
+            </view>
+          </picker>
+        </view>
+        
+        <view class="date-item">
+          <text class="date-label">结束日期</text>
+          <picker mode="date" value="{{customDateRange.end}}" bindchange="onEndDateChange">
+            <view class="date-picker">
+              <text>{{customDateRange.end || '请选择'}}</text>
+              <text class="picker-arrow">▼</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+      
+      <view class="modal-footer">
+        <button class="cancel-btn" bindtap="onCloseDatePicker">取消</button>
+        <button class="confirm-btn" bindtap="onConfirmDateRange">确定</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 积分规则配置弹窗 -->
+  <view class="modal-mask" wx:if="{{showRuleModal}}" bindtap="hideScoreRuleModal">
+    <!-- 关键修改：将 catchtap="" 改为 catchtap -->
+    <!-- 这样可以阻止点击白色区域时，事件冒泡到灰色背景层导致关闭 -->
+    <view class="modal-content rule-modal" catchtap>
+      <view class="modal-header">
+        <text class="modal-title">积分规则配置</text>
+        <text class="modal-close" bindtap="hideScoreRuleModal">✕</text>
+      </view>
+    
+      <view class="modal-body">
+        <view class="rule-item">
+          <text class="rule-label">每服务1小时获得积分</text>
+          <view class="rule-input-wrapper">
+            <!-- 注意：这里使用 bindinput="onRuleInput" -->
+            <input 
+              class="rule-input" 
+              type="number" 
+              value="{{ruleForm.scorePerHour}}"
+              bindinput="onRuleInput"
+              min="0"
+          />
+          <text class="rule-unit">分</text>
+        </view>
+      </view>
+      
+      <view class="rule-examples">
+        <text class="examples-title">示例：</text>
+        <!-- 注意：这里计算示例时，如果 ruleForm.scorePerHour 为空可能会报错，建议在 JS 中计算或使用默认值 -->
+        <text class="example-item">• 服务2小时 = {{ruleForm.scorePerHour ? ruleForm.scorePerHour * 2 : 0}}积分</text>
+        <text class="example-item">• 服务5小时 = {{ruleForm.scorePerHour ? ruleForm.scorePerHour * 5 : 0}}积分</text>
+      </view>
+      
+      <view class="rule-note">
+        <text class="note-icon">⚠️</text>
+        <text class="note-text">修改规则后，新登记的记录将按新规则计算积分，已有记录不受影响。</text>
+      </view>
+    </view>
+    
+    <view class="modal-footer">
+      <button class="cancel-btn" bindtap="hideScoreRuleModal">取消</button>
+      <button class="confirm-btn" bindtap="saveScoreRule">保存</button>
+    </view>
+  </view>
+</view>
+  
+  <!-- 积分规则配置弹窗 -->
+  <view class="modal-mask" wx:if="{{showRuleModal}}" bindtap="hideScoreRuleModal">
+    <view class="modal-content rule-modal" catchtap>
+      <view class="modal-header">
+        <text class="modal-title">积分规则配置</text>
+        <text class="modal-close" bindtap="hideScoreRuleModal">✕</text>
+      </view>
+      
+      <view class="modal-body">
+        <view class="rule-item">
+          <text class="rule-label">每服务1小时获得积分</text>
+          <view class="rule-input-wrapper">
+            <input 
+              class="rule-input" 
+              type="number" 
+              value="{{ruleForm.scorePerHour}}"
+              bindinput="onRuleInput"
+              min="0"
+            />
+            <text class="rule-unit">分</text>
+          </view>
+        </view>
+        
+        <view class="rule-examples">
+          <text class="examples-title">示例：</text>
+          <text class="example-item">• 服务2小时 = {{ruleForm.scorePerHour * 2}}积分</text>
+          <text class="example-item">• 服务5小时 = {{ruleForm.scorePerHour * 5}}积分</text>
+        </view>
+        
+        <view class="rule-note">
+          <text class="note-icon">⚠️</text>
+          <text class="note-text">修改规则后，新登记的记录将按新规则计算积分，已有记录不受影响。</text>
+        </view>
+      </view>
+      
+      <view class="modal-footer">
+        <button class="cancel-btn" bindtap="hideScoreRuleModal">取消</button>
+        <button class="confirm-btn" bindtap="saveScoreRule">保存</button>
+      </view>
+    </view>
+  </view>
+</view>

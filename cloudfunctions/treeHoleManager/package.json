@@ -1,0 +1,9 @@
+{
+  "name": "treeHoleManager",
+  "version": "1.0.0",
+  "description": "心灵树洞云函数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

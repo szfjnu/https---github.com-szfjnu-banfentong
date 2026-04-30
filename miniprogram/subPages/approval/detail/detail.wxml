@@ -1,0 +1,112 @@
+<!--pages/approval/detail/detail.wxml-->
+<view class="container">
+  <!-- 状态头部 -->
+  <view class="status-header" wx:if="{{approval}}">
+    <view class="status-badge" style="background: {{approval.statusColor}}20;">
+      <text style="color: {{approval.statusColor}}; font-size: 32rpx; font-weight: bold;">{{approval.statusLabel}}</text>
+    </view>
+    <view class="type-info">{{approval.businessTypeLabel}}</view>
+    <view class="time-info">提交时间: {{approval.createdTimeStr}}</view>
+  </view>
+
+  <!-- 业务信息卡片 -->
+  <view class="info-card" wx:if="{{businessRecord}}">
+    <view class="card-title">申请信息</view>
+    <view class="info-row" wx:if="{{businessRecord.activity_name}}">
+      <text class="info-label">活动名称</text>
+      <text class="info-value">{{businessRecord.activity_name}}</text>
+    </view>
+    <view class="info-row" wx:if="{{businessRecord.student_name}}">
+      <text class="info-label">学生姓名</text>
+      <text class="info-value">{{businessRecord.student_name}}</text>
+    </view>
+    <view class="info-row" wx:if="{{businessRecord.duration}}">
+      <text class="info-label">服务时长</text>
+      <text class="info-value">{{businessRecord.duration}}小时</text>
+    </view>
+    <view class="info-row" wx:if="{{businessRecord.earned_score}}">
+      <text class="info-label">获得积分</text>
+      <text class="info-value">+{{businessRecord.earned_score}}分</text>
+    </view>
+    <view class="info-row" wx:if="{{businessRecord.service_type}}">
+      <text class="info-label">服务类型</text>
+      <text class="info-value">{{businessRecord.service_type}}</text>
+    </view>
+    <view class="info-row" wx:if="{{businessRecord.description}}">
+      <text class="info-label">描述</text>
+      <text class="info-value">{{businessRecord.description}}</text>
+    </view>
+    <!-- 证明图片 -->
+    <view class="proof-section" wx:if="{{businessRecord.proof_images && businessRecord.proof_images.length > 0}}">
+      <text class="info-label">证明材料</text>
+      <view class="proof-images">
+        <image wx:for="{{businessRecord.proof_images}}" wx:key="*this"
+          src="{{item}}" mode="aspectFill" class="proof-img"
+          bindtap="onPreviewImage" data-url="{{item}}">
+        </image>
+      </view>
+    </view>
+  </view>
+
+  <!-- 提交者信息 -->
+  <view class="info-card" wx:if="{{approval}}">
+    <view class="card-title">提交信息</view>
+    <view class="info-row">
+      <text class="info-label">提交人</text>
+      <text class="info-value">{{approval.submitter_name}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">提交角色</text>
+      <text class="info-value">{{approval.submitter_role}}</text>
+    </view>
+    <view class="info-row" wx:if="{{approval.submit_note}}">
+      <text class="info-label">备注</text>
+      <text class="info-value">{{approval.submit_note}}</text>
+    </view>
+  </view>
+
+  <!-- 审批流程 -->
+  <view class="info-card" wx:if="{{approval && approval.formattedHistory.length > 0}}">
+    <view class="card-title">审批流程</view>
+    <view class="timeline">
+      <view class="timeline-item" wx:for="{{approval.formattedHistory}}" wx:key="index">
+        <view class="timeline-dot {{item.action === 'approve' ? 'approved' : (item.action === 'reject' ? 'rejected' : 'pending')}}"></view>
+        <view class="timeline-content">
+          <view class="timeline-header">
+            <text class="timeline-step">{{item.stepLabel}}</text>
+            <text class="timeline-action" style="color: {{item.action === 'approve' ? '#52c41a' : (item.action === 'reject' ? '#ff4d4f' : '#1890ff')}}">{{item.actionLabel}}</text>
+          </view>
+          <view class="timeline-info">
+            <text>{{item.operator_name}} ({{item.operator_role}})</text>
+          </view>
+          <view class="timeline-time">{{item.timeStr}}</view>
+          <view class="timeline-note" wx:if="{{item.note}}">{{item.note}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 审批操作 -->
+  <view class="action-bar" wx:if="{{canApprove}}">
+    <button class="btn-reject" bindtap="onReject">驳回</button>
+    <button class="btn-approve" bindtap="onApprove">通过</button>
+  </view>
+
+  <!-- 驳回弹窗 -->
+  <view class="modal-mask" wx:if="{{showRejectModal}}" bindtap="onCancelReject">
+    <view class="modal-content" catchtap="">
+      <view class="modal-title">驳回原因</view>
+      <textarea class="modal-textarea" placeholder="请输入驳回原因" value="{{rejectNote}}" bindinput="onRejectNoteInput" />
+      <view class="modal-actions">
+        <button class="modal-btn cancel" bindtap="onCancelReject">取消</button>
+        <button class="modal-btn confirm" bindtap="onConfirmReject">确认驳回</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-icon"></view>
+    <text>加载中...</text>
+  </view>
+</view>

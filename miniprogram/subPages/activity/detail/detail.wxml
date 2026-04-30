@@ -1,0 +1,89 @@
+<!-- 聚光点 - 活动详情 -->
+<view class="detail-container" wx:if="{{!loading && activity}}">
+  <!-- 封面区 -->
+  <view class="cover-section">
+    <image wx:if="{{activity.cover_image}}" src="{{activity.cover_image}}" mode="aspectFill" class="cover-image"></image>
+    <view wx:else class="cover-placeholder">
+      <text class="cover-emoji">
+        {{activity.category === '体育竞技' ? '⚽' : activity.category === '学习交流' ? '📚' : activity.category === '游戏娱乐' ? '🎮' : activity.category === '兴趣社交' ? '🎨' : '🎯'}}
+      </text>
+    </view>
+    <view class="status-badge" style="background: {{activity.statusColor}};">
+      {{activity.statusText}}
+    </view>
+  </view>
+
+  <!-- 主信息 -->
+  <view class="info-section">
+    <view class="activity-title">{{activity.title}}</view>
+
+    <view class="info-row">
+      <text class="info-icon">🏷</text>
+      <text class="info-text">{{activity.category}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-icon">🕐</text>
+      <text class="info-text">{{activity.timeStr}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-icon">📍</text>
+      <text class="info-text">{{activity.location}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-icon">👤</text>
+      <text class="info-text">{{activity.organizer.name}} 发起</text>
+      <text class="committee-tag" wx:if="{{activity.organizer.is_class_committee}}">班委</text>
+    </view>
+  </view>
+
+  <!-- 报名人数 -->
+  <view class="people-section">
+    <view class="section-header">
+      <text class="section-title">报名情况</text>
+      <view class="people-count">
+        <text class="count-current">{{activity.current_count}}</text>
+        <text class="count-divider">/</text>
+        <text class="count-max">{{activity.max_people > 0 ? activity.max_people : '不限'}}</text>
+      </view>
+    </view>
+
+    <!-- 人员列表 -->
+    <view class="joined-list" wx:if="{{activity.joined_list.length > 0}}">
+      <view class="joined-item" wx:for="{{activity.joined_list}}" wx:key="user_id">
+        <view class="joined-avatar">
+          <text>{{item.name[0]}}</text>
+        </view>
+        <text class="joined-name">{{item.name}}</text>
+        <text class="joined-time" wx:if="{{index === 0}}">发起人</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 审核状态 -->
+  <view class="audit-section" wx:if="{{activity.audit.status !== 1}}">
+    <view class="audit-info" wx:if="{{activity.audit.status === 0}}">
+      <text class="audit-icon">⏳</text>
+      <text class="audit-text">等待审核中</text>
+    </view>
+    <view class="audit-info audit-reject" wx:if="{{activity.audit.status === 2}}">
+      <text class="audit-icon">❌</text>
+      <text class="audit-text">审核未通过：{{activity.audit.reject_reason || '无'}}</text>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar">
+    <button class="btn-join" wx:if="{{canJoin}}" bindtap="onJoin">立即报名</button>
+    <button class="btn-leave" wx:if="{{canLeave}}" bindtap="onLeave">取消报名</button>
+    <button class="btn-joined" wx:if="{{hasJoined && !canLeave}}" disabled>已报名</button>
+    <button class="btn-finish" wx:if="{{canFinish && !canJoin}}" bindtap="onFinish">结束活动</button>
+    <button class="btn-cancel" wx:if="{{canCancel}}" bindtap="onCancel">取消活动</button>
+    <button class="btn-share" open-type="share">分享</button>
+  </view>
+</view>
+
+<!-- 加载 -->
+<view class="loading" wx:if="{{loading}}">
+  <view class="loading-icon"></view>
+  <text class="loading-text">加载中...</text>
+</view>

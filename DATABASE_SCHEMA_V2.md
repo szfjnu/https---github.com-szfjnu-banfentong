@@ -369,22 +369,23 @@
 
 ## 9. `redemption_items` (积分兑换物品)
 
-管理可兑换的物品。
+管理可兑换的物品，支持直接兑换和投标兑换两种模式。
 
 -   `_id`: String (自动生成的主键)
 -   `item_id`: String (物品ID, **业务主键**)
 -   `name`: String (物品名称)
 -   `image_url`: String (物品图片URL)
--   `required_score`: Number (所需积分)
+-   `required_score`: Number (所需积分/最低投标积分)
 -   `redemption_mode`: String ("直接兑换" / "投标模式")
 -   `quantity`: Number (物品数量)
 -   `description`: String (物品描述)
+-   `class_id`: String (关联到classes)
 -   `bid_start_time`: Date (投标开始时间, 投标模式)
 -   `bid_end_time`: Date (投标截止时间, 投标模式)
--   `status`: String ("可兑换", "已兑换", "已取消")
+-   `status`: String ("可兑换" / "已下架" / "已兑换" / "已取消")
 -   `winner_id`: String (中标学生ID)
 -   `winner_bid_score`: Number (中标积分)
-- `created_by`: String (创建人openid)
+-   `created_by`: String (创建人openid)
 -   `created_at`: Date (创建时间)
 -   `updated_at`: Date (更新时间)
 
@@ -392,22 +393,36 @@
 
 ## 10. `redemption_requests` (积分兑换申请/投标记录)
 
-记录兑换申请和投标记录。
+记录兑换申请和投标记录，支持完整流程：学生申请 → 班委初审 → 班主任审批 → 发货 → 收货。
 
 -   `_id`: String (自动生成的主键)
 -   `request_id`: String (请求ID, **业务主键**)
 -   `item_id`: String (关联到redemption_items)
+-   `item_name`: String (物品名称, 冗余存储)
 -   `student_id`: String (关联到students)
--   `redemption_mode`: String ("直接兑换" / "投标")
--   `bid_score`: Number (投标积分, 投标模式)
+-   `student_name`: String (学生姓名, 冗余存储)
+-   `class_name`: String (班级名称, 冗余存储)
+-   `class_id`: String (关联到classes)
+-   `required_score`: Number (物品所需积分)
+-   `redemption_mode`: String ("直接兑换" / "投标模式")
+-   `bid_score`: Number (投标积分, 投标模式下可高于required_score)
 -   `bid_time`: Date (投标时间, 投标模式)
--   `status`: String ("待审批", "已批准", "已拒绝", "已取消", "已中标", "未中标")
+-   `bid_end_time`: Date (投标截止时间, 投标模式)
+-   `bid_result`: String ("winning" / "lost", 投标结果)
+-   `status`: String ("待审批" / "待班主任审批" / "已通过" / "已拒绝" / "已发货" / "已收货" / "已中标" / "未中标")
+-   `shipping_status`: String ("pending" / "shipped" / "received")
+-   `reject_reason`: String (拒绝原因)
 -   `is_winner`: Boolean (是否中标)
+-   `cadre_approver`: String (班委初审人)
+-   `cadre_approval_time`: Date (班委初审时间)
+-   `approver`: String (最终审批人)
 -   `approval_comment`: String (审批意见)
--   `approver_name`: String (审批人)
 -   `approval_time`: Date (审批时间)
+-   `shipped_at`: Date (发货时间)
+-   `received_at`: Date (收货时间)
 -   `cancellation_time`: Date (取消时间)
 -   `created_at`: Date (创建时间)
+-   `updated_at`: Date (更新时间)
 
 ---
 
@@ -570,52 +585,136 @@
 
 ---
 
-## 17. `duty_schedule` (卫生值日表)
+## 17. `duty_task_template` (值日任务类别模板)
 
-管理卫生值日安排。
+定义值日任务的类别模板，如扫地、擦黑板、倒垃圾等，由管理员/卫生委员配置。
 
 -   `_id`: String (自动生成的主键)
--   `schedule_id`: String (值日表ID, **业务主键**)
--   `semester_id`: String (关联到semesters)
--   `week_number`: Number (周数)
--   `start_date`: Date (开始日期)
--   `end_date`: Date (结束日期)
--   `tasks`: Array (值日任务列表)
-    -   `task_id`: String (任务ID)
-    -   `task_type`: String (任务类型, 如: 扫地、擦黑板、倒垃圾)
-    -   `group_id`: String (负责小组ID)
-    -   `student_id`: String (负责学生ID)
-    -   `task_date`: Date (任务日期)
-    -   `status`: String ("待完成", "已完成", "未完成")
-    -   `completion_time`: Date (完成时间)
-    -   `inspection_score`: Number (检查评分, 1-5分)
-    -   `inspector_name`: String (检查人)
-    -   `problems`: String (问题记录)
-    -   `problem_images`: Array (问题图片URL列表)
-    -   `mentioned_users`: Array (@相关人员)
+-   `template_id`: String (模板ID, **业务主键**)
+-   `name`: String (任务名称, 如: 扫地、擦黑板、倒垃圾、整理桌椅、清洁门窗)
+-   `description`: String (任务描述/标准要求)
+-   `category`: String (任务分类: "地面" / "桌面" / "黑板" / "垃圾" / "门窗" / "走廊" / "其他")
+-   `icon`: String (图标emoji, 如: 🧹、🗑️、🪟)
+-   `default_score`: Number (完成该任务默认获得的积分, 正数=加分, 负数=未完成扣分)
+-   `deduction_score`: Number (未完成/不合格扣除的积分)
+-   `requires_inspection`: Boolean (是否需要检查, 默认true)
+-   `sort_order`: Number (排序权重, 默认0)
+-   `is_active`: Boolean (是否启用, 默认true)
+-   `class_id`: String (所属班级ID, **必填**)
+-   `created_by`: String (创建人openid)
 -   `created_at`: Date (创建时间)
 -   `updated_at`: Date (更新时间)
 
+**索引建议:**
+- `{template_id: 1}` (唯一索引)
+- `{class_id: 1, is_active: 1}` (按班级查询启用模板)
+
 ---
 
-## 18. `duty_reminders` (值日提醒记录)
+## 18. `duty_task` (值日任务安排)
 
-记录值日提醒的发送情况。
+记录每一条具体的值日任务安排，每个小组成员可以分派不同的任务，不同成员可分配相同任务。
 
 -   `_id`: String (自动生成的主键)
--   `schedule_id`: String (关联到duty_schedule)
--   `task_id`: String (任务ID)
--   `student_id`: String (学生ID)
--   `leader_id`: String (组长ID)
--   `reminder_type`: String (提醒类型, 如: 任务提醒、未完成提醒、预警通知)
--   `reminder_time`: Date (提醒时间)
--   `reminder_status`: String ("已发送", "发送失败")
--   `consecutive_days`: Number (连续未完成天数)
+-   `task_id`: String (任务ID, **业务主键**)
+-   `template_id`: String (关联到duty_task_template)
+-   `task_name`: String (任务名称, 冗余存储)
+-   `group_id`: String (负责小组ID, 关联到student_groups)
+-   `group_name`: String (小组名称, 冗余存储)
+-   `student_id`: String (负责学生ID, **必填**)
+-   `student_name`: String (负责学生姓名, 冗余存储)
+-   `class_id`: String (所属班级ID, **必填**)
+-   `semester_id`: String (关联学期ID)
+-   `duty_date`: Date (值日日期, **必填**)
+-   `week_number`: Number (第几周)
+-   `weekday`: String (星期几: 一/二/三/四/五/六/日)
+-   `status`: String ("待完成" / "已完成" / "未完成" / "免值")
+-   `score_change`: Number (积分变化, 正数=加分, 负数=扣分, 0=未评分)
+-   `completion_time`: Date (完成时间)
+-   `inspection`: Object (检查信息)
+    -   `is_inspected`: Boolean (是否已检查, 默认false)
+    -   `inspector_id`: String (检查人openid)
+    -   `inspector_name`: String (检查人姓名)
+    -   `inspector_role`: String (检查人角色: "卫生委员" / "值班干部" / "班主任")
+    -   `inspection_time`: Date (检查时间)
+    -   `inspection_score`: Number (检查评分, 1-5)
+    -   `is_qualified`: Boolean (是否合格)
+    -   `problems`: String (问题记录)
+    -   `problem_images`: Array (问题图片URL列表)
+    -   `comment`: String (检查评语)
+-   `related_score_record_id`: String (关联的积分记录ID, 加减分后同步)
 -   `created_at`: Date (创建时间)
+-   `updated_at`: Date (更新时间)
+
+**索引建议:**
+- `{task_id: 1}` (唯一索引)
+- `{class_id: 1, duty_date: -1}` (按班级查询某日值日)
+- `{student_id: 1, duty_date: -1}` (按学生查询值日记录)
+- `{group_id: 1, duty_date: -1}` (按小组查询值日记录)
+- `{class_id: 1, status: 1}` (按班级查询待完成任务)
 
 ---
 
-## 19. `seating_charts` (教室座位表)
+## 19. `duty_reminders` (值日提醒记录)
+
+记录值日提醒的发送情况，任务分派后立即创建提醒记录。
+
+-   `_id`: String (自动生成的主键)
+-   `reminder_id`: String (提醒ID, **业务主键**)
+-   `task_id`: String (关联到duty_task)
+-   `class_id`: String (所属班级ID)
+-   `student_id`: String (被提醒学生ID)
+-   `student_name`: String (被提醒学生姓名)
+-   `group_id`: String (小组ID)
+-   `leader_id`: String (组长学生ID)
+-   `leader_name`: String (组长姓名)
+-   `duty_date`: Date (值日日期)
+-   `task_name`: String (任务名称)
+-   `reminder_type`: String ("任务分配" / "值日提醒" / "未完成提醒" / "检查结果" / "预警通知")
+-   `reminder_content`: String (提醒内容)
+-   `reminder_time`: Date (提醒时间)
+-   `reminder_status`: String ("待发送" / "已发送" / "发送失败")
+-   `is_read`: Boolean (是否已读, 默认false)
+-   `read_time`: Date (已读时间)
+-   `consecutive_incomplete`: Number (连续未完成天数, 预警用)
+-   `created_at`: Date (创建时间)
+
+**索引建议:**
+- `{reminder_id: 1}` (唯一索引)
+- `{student_id: 1, is_read: 1}` (按学生查询未读提醒)
+- `{class_id: 1, reminder_type: 1}` (按班级查询特定类型提醒)
+- `{task_id: 1}` (按任务查询提醒)
+
+---
+
+## 20. `duty_rotation` (值日轮转配置)
+
+配置值日小组的轮转规则和当前轮转状态。
+
+-   `_id`: String (自动生成的主键)
+-   `rotation_id`: String (轮转ID, **业务主键**)
+-   `class_id`: String (所属班级ID, **必填**)
+-   `semester_id`: String (关联学期ID)
+-   `group_ids`: Array (参与轮转的小组ID列表, 按轮转顺序排列)
+    -   `group_id`: String (小组ID)
+    -   `group_name`: String (小组名称)
+-   `current_index`: Number (当前轮转到第几个小组, 默认0)
+-   `rotation_mode`: String ("daily"每日轮换 / "weekly"每周轮换, 默认"daily")
+-   `effective_weekdays`: Array (生效的星期, 如: ["一","二","三","四","五"])
+-   `auto_advance`: Boolean (是否自动轮转, 默认true)
+-   `last_rotation_date`: Date (上次轮转日期)
+-   `is_active`: Boolean (是否启用, 默认true)
+-   `created_by`: String (创建人openid)
+-   `created_at`: Date (创建时间)
+-   `updated_at`: Date (更新时间)
+
+**索引建议:**
+- `{rotation_id: 1}` (唯一索引)
+- `{class_id: 1, is_active: 1}` (按班级查询活跃轮转)
+
+---
+
+## 21. `seating_charts` (教室座位表)
 
 管理教室座位安排。
 

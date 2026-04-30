@@ -1,0 +1,109 @@
+<!-- 树洞帖子详情 -->
+<wxs module="fmt">
+  function timeAgo(dateStr) {
+    if (!dateStr) return '';
+    var now = getDate().getTime();
+    var d = getDate(dateStr).getTime();
+    var diff = now - d;
+    if (diff < 0) diff = 0;
+    var sec = Math.floor(diff / 1000);
+    if (sec < 60) return '刚刚';
+    var min = Math.floor(sec / 60);
+    if (min < 60) return min + '分钟前';
+    var hr = Math.floor(min / 60);
+    if (hr < 24) return hr + '小时前';
+    var day = Math.floor(hr / 24);
+    if (day < 30) return day + '天前';
+    return '';
+  }
+  function moodIcon(mood) {
+    var map = { happy: '😊', sad: '😢', anxious: '😰', angry: '😤', confused: '🤔', peaceful: '😌' };
+    return map[mood] || '';
+  }
+  function moodLabel(mood) {
+    var map = { happy: '开心', sad: '难过', anxious: '焦虑', angry: '生气', confused: '困惑', peaceful: '平静' };
+    return map[mood] || '';
+  }
+  module.exports = { timeAgo: timeAgo, moodIcon: moodIcon, moodLabel: moodLabel };
+</wxs>
+
+<view class="detail-container">
+  <!-- 加载状态 -->
+  <view class="loading-box" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text>加载中...</text>
+  </view>
+
+  <block wx:if="{{!loading && post}}">
+    <!-- 帖子内容 -->
+    <view class="post-section">
+      <view class="post-header">
+        <view class="mood-tag" wx:if="{{post.mood}}">
+          <text>{{fmt.moodIcon(post.mood)}} {{fmt.moodLabel(post.mood)}}</text>
+        </view>
+        <view class="post-time">{{fmt.timeAgo(post.created_at)}}</view>
+      </view>
+
+      <view class="post-content">{{post.content}}</view>
+
+      <view class="post-author">
+        <text wx:if="{{post.is_anonymous}}">🎭 匿名</text>
+        <text wx:else>{{post.author_name || '未知'}}</text>
+      </view>
+
+      <view class="post-stats">
+        <view class="stat-item" bindtap="onToggleHeart">
+          <text class="stat-icon {{hasHearted ? 'hearted' : ''}}">{{hasHearted ? '❤️' : '🤍'}}</text>
+          <text class="stat-text">{{post.hearts_count || 0}} 人鼓励</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-icon">💬</text>
+          <text class="stat-text">{{post.replies_count || 0}} 条回复</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 回复列表 -->
+    <view class="replies-section">
+      <view class="section-title">全部回复</view>
+
+      <view class="reply-list" wx:if="{{replies.length > 0}}">
+        <view class="reply-item" wx:for="{{replies}}" wx:key="_id">
+          <view class="reply-header">
+            <view class="reply-author">
+              <text wx:if="{{item.is_anonymous}}">🎭 匿名</text>
+              <text wx:elif="{{item.is_teacher}}" class="teacher-badge">👨‍🏫 {{item.author_name}}</text>
+              <text wx:else>{{item.author_name || '未知'}}</text>
+            </view>
+            <view class="reply-time">{{fmt.timeAgo(item.created_at)}}</view>
+          </view>
+          <view class="reply-content">{{item.content}}</view>
+        </view>
+      </view>
+
+      <view class="empty-tip" wx:if="{{replies.length === 0}}">
+        暂无回复，来写第一条吧
+      </view>
+    </view>
+  </block>
+
+  <!-- 底部回复栏 -->
+  <view class="reply-bar" wx:if="{{!loading && post}}">
+    <view class="reply-input-wrap">
+      <input class="reply-input"
+        placeholder="写一句温暖的回复..."
+        value="{{replyContent}}"
+        bindinput="onReplyInput"
+        bindconfirm="doReply"
+        confirm-type="send"
+      />
+    </view>
+    <view class="reply-anonymous">
+      <text class="anon-label">匿名</text>
+      <switch checked="{{replyAnonymous}}" bindchange="onReplyAnonChange" color="#667eea" size="mini" />
+    </view>
+    <view class="reply-send-btn {{replyContent.trim() ? '' : 'disabled'}}" bindtap="doReply">
+      发送
+    </view>
+  </view>
+</view>

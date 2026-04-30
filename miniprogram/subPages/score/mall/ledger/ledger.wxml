@@ -1,0 +1,157 @@
+<!--pages/score/mall/ledger/ledger.wxml-->
+<view class="container">
+  <!-- 统计卡片 -->
+  <view class="stats-card">
+    <view class="stat-item">
+      <view class="stat-value warning">{{stats.pendingCount}}</view>
+      <view class="stat-label">待审批</view>
+    </view>
+    <view class="stat-item">
+      <view class="stat-value success">{{stats.approvedCount}}</view>
+      <view class="stat-label">待发货</view>
+    </view>
+    <view class="stat-item">
+      <view class="stat-value primary">{{stats.shippedCount}}</view>
+      <view class="stat-label">已完成</view>
+    </view>
+    <view class="stat-item">
+      <view class="stat-value orange">{{stats.totalScore}}</view>
+      <view class="stat-label">消耗积分</view>
+    </view>
+  </view>
+
+  <!-- 标签页 -->
+  <view class="tabs">
+    <view class="tab-item {{activeTab === 'pending' ? 'active' : ''}}" bindtap="onTabChange" data-tab="pending">
+      待审批
+      <view class="tab-badge" wx:if="{{stats.pendingCount > 0}}">{{stats.pendingCount}}</view>
+    </view>
+    <view class="tab-item {{activeTab === 'approved' ? 'active' : ''}}" bindtap="onTabChange" data-tab="approved">
+      待发货
+      <view class="tab-badge" wx:if="{{stats.approvedCount > 0}}">{{stats.approvedCount}}</view>
+    </view>
+    <view class="tab-item {{activeTab === 'shipped' ? 'active' : ''}}" bindtap="onTabChange" data-tab="shipped">已完成</view>
+    <view class="tab-item {{activeTab === 'all' ? 'active' : ''}}" bindtap="onTabChange" data-tab="all">全部</view>
+  </view>
+
+  <!-- 列表内容 -->
+  <view class="request-list">
+    <!-- 待审批 -->
+    <block wx:if="{{activeTab === 'pending'}}">
+      <view class="request-card" wx:for="{{pendingRequests}}" wx:key="_id">
+        <view class="card-header">
+          <view class="item-name">{{item.item_name}}</view>
+          <view class="mode-tag {{item.redemption_mode === '投标模式' ? 'bid' : 'direct'}}">
+            {{item.redemption_mode === '投标模式' ? '投标' : '直接'}}
+          </view>
+        </view>
+        <view class="card-body">
+          <view class="info-row">
+            <text class="info-label">申请人</text>
+            <text class="info-value">{{item.student_name}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">消耗积分</text>
+            <text class="info-value cost">{{item.bid_score || item.required_score}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">提交时间</text>
+            <text class="info-value">{{item.created_at_text}}</text>
+          </view>
+        </view>
+        <view class="card-actions">
+          <view class="action-btn reject" catchtap="onReject" data-request="{{item}}">拒绝</view>
+          <view class="action-btn approve" catchtap="onApprove" data-request="{{item}}">批准</view>
+        </view>
+      </view>
+      <view class="empty" wx:if="{{pendingRequests.length === 0}}">
+        <text>暂无待审批请求</text>
+      </view>
+    </block>
+
+    <!-- 待发货 -->
+    <block wx:if="{{activeTab === 'approved'}}">
+      <view class="request-card" wx:for="{{approvedRequests}}" wx:key="_id">
+        <view class="card-header">
+          <view class="item-name">{{item.item_name}}</view>
+          <view class="status-tag approved">已通过</view>
+        </view>
+        <view class="card-body">
+          <view class="info-row">
+            <text class="info-label">申请人</text>
+            <text class="info-value">{{item.student_name}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">消耗积分</text>
+            <text class="info-value cost">{{item.bid_score || item.required_score}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">审批时间</text>
+            <text class="info-value">{{item.approval_time_text}}</text>
+          </view>
+        </view>
+        <view class="card-actions">
+          <view class="action-btn ship" catchtap="onShip" data-request="{{item}}">确认发货</view>
+        </view>
+      </view>
+      <view class="empty" wx:if="{{approvedRequests.length === 0}}">
+        <text>暂无待发货请求</text>
+      </view>
+    </block>
+
+    <!-- 已完成 -->
+    <block wx:if="{{activeTab === 'shipped'}}">
+      <view class="request-card" wx:for="{{shippedRequests}}" wx:key="_id">
+        <view class="card-header">
+          <view class="item-name">{{item.item_name}}</view>
+          <view class="status-tag {{item.statusClass}}">{{item.status}}</view>
+        </view>
+        <view class="card-body">
+          <view class="info-row">
+            <text class="info-label">申请人</text>
+            <text class="info-value">{{item.student_name}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">消耗积分</text>
+            <text class="info-value cost">{{item.bid_score || item.required_score}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="empty" wx:if="{{shippedRequests.length === 0}}">
+        <text>暂无已完成请求</text>
+      </view>
+    </block>
+
+    <!-- 全部 -->
+    <block wx:if="{{activeTab === 'all'}}">
+      <view class="request-card" wx:for="{{allRequests}}" wx:key="_id">
+        <view class="card-header">
+          <view class="item-name">{{item.item_name}}</view>
+          <view class="status-tag {{item.statusClass}}">{{item.status}}</view>
+        </view>
+        <view class="card-body">
+          <view class="info-row">
+            <text class="info-label">申请人</text>
+            <text class="info-value">{{item.student_name}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">消耗积分</text>
+            <text class="info-value cost">{{item.bid_score || item.required_score}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">提交时间</text>
+            <text class="info-value">{{item.created_at_text}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="empty" wx:if="{{allRequests.length === 0}}">
+        <text>暂无兑换记录</text>
+      </view>
+    </block>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

@@ -287,17 +287,17 @@ const volunteerApi = {
 const disciplineApi = {
   // 获取处分记录
   getDisciplineRecords: (studentId) => {
-    return db.collection('discipline_record')
-      .where({ student_id: studentId })
-      .orderBy('date', 'desc')
+    return db.collection('discipline_records')
+      .where({ student_id: studentId, is_deleted: db.command.neq(true) })
+      .orderBy('issue_date', 'desc')
       .get();
   },
 
-  // 添加处分记录
+  // 添加处分记录（通过云函数处理，保留此方法兼容）
   addDisciplineRecord: (data) => {
     data.createdAt = db.serverDate();
     data.updatedAt = db.serverDate();
-    return db.collection('discipline_record').add({ data });
+    return db.collection('discipline_records').add({ data });
   }
 };
 
@@ -422,23 +422,23 @@ const classApi = {
     return db.collection('classes').doc(classId).update({ data });
   },
 
-  // 根据班级代码查找班级
+  // 根据班级代码查找班级（兼容无status字段的旧数据）
   getClassByCode: (classCode) => {
     return db.collection('classes')
       .where({
         class_code: classCode,
-        status: 'active'
+        status: _.in(['active', undefined, null, ''])
       })
       .limit(1)
       .get();
   },
 
-  // 根据创建者手机号查找班级
+  // 根据创建者手机号查找班级（兼容无status字段的旧数据）
   getClassesByCreatorPhone: (phone) => {
     return db.collection('classes')
       .where({
         creator_phone: phone,
-        status: 'active'
+        status: _.in(['active', undefined, null, ''])
       })
       .get();
   }
@@ -479,17 +479,22 @@ const userApi = {
  * 积分兑换相关API
  */
 const redemptionApi = {
-  // 获取可兑换物品
-  getRedemptionItems: () => {
+  // 获取可兑换物品（按班级过滤）
+  getRedemptionItems: (classId) => {
+    const query = { status: '可兑换' };
+    if (classId) query.class_id = classId;
     return db.collection('redemption_items')
-      .where({ status: '可兑换' })
+      .where(query)
       .orderBy('created_at', 'desc')
       .get();
   },
 
-  // 获取所有兑换物品
-  getAllItems: () => {
+  // 获取所有兑换物品（按班级过滤）
+  getAllItems: (classId) => {
+    const query = {};
+    if (classId) query.class_id = classId;
     return db.collection('redemption_items')
+      .where(query)
       .orderBy('created_at', 'desc')
       .get();
   },
@@ -513,25 +518,32 @@ const redemptionApi = {
     return db.collection('redemption_requests').add({ data });
   },
 
-  // 获取兑换记录
-  getRedemptionRecords: (studentId) => {
+  // 获取兑换记录（按班级过滤）
+  getRedemptionRecords: (studentId, classId) => {
+    const query = { student_id: studentId };
+    if (classId) query.class_id = classId;
     return db.collection('redemption_requests')
-      .where({ student_id: studentId })
+      .where(query)
       .orderBy('created_at', 'desc')
       .get();
   },
 
-  // 获取所有兑换请求
-  getAllRequests: () => {
+  // 获取所有兑换请求（按班级过滤）
+  getAllRequests: (classId) => {
+    const query = {};
+    if (classId) query.class_id = classId;
     return db.collection('redemption_requests')
+      .where(query)
       .orderBy('created_at', 'desc')
       .get();
   },
 
-  // 获取指定物品的兑换请求
-  getRequestsByItem: (itemId) => {
+  // 获取指定物品的兑换请求（按班级过滤）
+  getRequestsByItem: (itemId, classId) => {
+    const query = { item_id: itemId };
+    if (classId) query.class_id = classId;
     return db.collection('redemption_requests')
-      .where({ item_id: itemId })
+      .where(query)
       .orderBy('created_at', 'desc')
       .get();
   },

@@ -1,0 +1,9 @@
+{
+  "name": "fleaMarketManager",
+  "version": "1.0.0",
+  "description": "校园闲鱼-二手交易管理云函数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

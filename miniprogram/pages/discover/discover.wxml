@@ -1,0 +1,42 @@
+<!-- 发现页面 - 成长探索 -->
+<view class="discover-container">
+  <!-- 顶部 Banner -->
+  <view class="discover-header">
+    <view class="header-bg"></view>
+    <view class="header-content">
+      <view class="header-title">发现更多可能</view>
+      <view class="header-subtitle">探索校园生活，助力全面成长</view>
+    </view>
+  </view>
+
+  <!-- 功能分组 -->
+  <view class="feature-groups">
+    <view class="feature-group" wx:for="{{featureGroups}}" wx:key="title">
+      <view class="group-header">
+        <view class="group-title-wrap">
+          <view class="group-indicator"></view>
+          <text class="group-title">{{item.title}}</text>
+        </view>
+        <text class="group-subtitle">{{item.subtitle}}</text>
+      </view>
+
+      <view class="feature-grid">
+        <view class="feature-card"
+          wx:for="{{item.features}}" wx:for-item="feature" wx:key="id"
+          bindtap="goToFeature" data-url="{{feature.url}}">
+          <view class="feature-icon-wrap" style="background: {{feature.color}}15;">
+            <text class="feature-icon">{{feature.icon}}</text>
+          </view>
+          <view class="feature-info">
+            <text class="feature-title">{{feature.title}}</text>
+            <text class="feature-desc">{{feature.desc}}</text>
+          </view>
+          <text class="feature-arrow">›</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部留白 -->
+  <view class="bottom-space"></view>
+</view>

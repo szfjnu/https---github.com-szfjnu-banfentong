@@ -1,0 +1,74 @@
+<!-- 聚光点 - 发布活动 -->
+<view class="create-container">
+  <view class="form-section">
+    <!-- 封面 -->
+    <view class="cover-section" bindtap="onChooseCover">
+      <block wx:if="{{form.cover_image}}">
+        <image src="{{form.cover_image}}" mode="aspectFill" class="cover-preview"></image>
+        <view class="cover-remove" catchtap="onRemoveCover">✕</view>
+      </block>
+      <view class="cover-upload" wx:else>
+        <text class="upload-icon">📷</text>
+        <text class="upload-text">添加封面</text>
+      </view>
+    </view>
+
+    <!-- 标题 -->
+    <view class="form-item">
+      <text class="form-label">活动标题</text>
+      <input class="form-input" placeholder="如：周五篮球3v3缺1人" value="{{form.title}}" bindinput="onTitleInput" maxlength="50" />
+    </view>
+
+    <!-- 分类 -->
+    <view class="form-item">
+      <text class="form-label">活动分类</text>
+      <picker mode="selector" range="{{categories}}" value="{{categoryIndex}}" bindchange="onCategoryChange">
+        <view class="form-picker">
+          <text>{{form.category}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 时间 -->
+    <view class="form-item">
+      <text class="form-label">活动时间</text>
+      <view class="datetime-row">
+        <picker mode="date" value="{{date}}" start="{{date}}" bindchange="onDateChange">
+          <view class="form-picker half">
+            <text>{{date || '选择日期'}}</text>
+            <text class="picker-arrow">▼</text>
+          </view>
+        </picker>
+        <picker mode="time" value="{{time}}" bindchange="onTimeChange">
+          <view class="form-picker half">
+            <text>{{time || '选择时间'}}</text>
+            <text class="picker-arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+    </view>
+
+    <!-- 地点 -->
+    <view class="form-item">
+      <text class="form-label">活动地点</text>
+      <input class="form-input" placeholder="如：学校北门篮球场" value="{{form.location}}" bindinput="onLocationInput" maxlength="50" />
+    </view>
+
+    <!-- 人数上限 -->
+    <view class="form-item">
+      <text class="form-label">人数上限</text>
+      <view class="people-input-row">
+        <input class="form-input" type="number" placeholder="0 表示不限人数" value="{{form.max_people || ''}}" bindinput="onMaxPeopleInput" />
+      </view>
+      <text class="form-hint">留空或输入 0 表示不限人数</text>
+    </view>
+  </view>
+
+  <!-- 提交按钮 -->
+  <view class="submit-section">
+    <button class="submit-btn" bindtap="onSubmit" disabled="{{submitting}}" loading="{{submitting}}">
+      发布活动
+    </button>
+  </view>
+</view>

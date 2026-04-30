@@ -1,0 +1,280 @@
+/* 聚光点 - 活动详情 */
+.detail-container {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding-bottom: 140rpx;
+}
+
+/* 封面 */
+.cover-section {
+  position: relative;
+  width: 100%;
+  height: 400rpx;
+}
+
+.cover-image {
+  width: 100%;
+  height: 100%;
+}
+
+.cover-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.cover-emoji {
+  font-size: 120rpx;
+}
+
+.status-badge {
+  position: absolute;
+  top: 30rpx;
+  right: 30rpx;
+  padding: 8rpx 24rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  color: white;
+  font-weight: 600;
+}
+
+/* 主信息 */
+.info-section {
+  background: white;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+}
+
+.activity-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 24rpx;
+  line-height: 1.4;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.info-icon {
+  font-size: 30rpx;
+  margin-right: 16rpx;
+  width: 40rpx;
+  text-align: center;
+}
+
+.info-text {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.committee-tag {
+  margin-left: 12rpx;
+  padding: 2rpx 12rpx;
+  background: #667eea15;
+  color: #667eea;
+  font-size: 22rpx;
+  border-radius: 6rpx;
+}
+
+/* 报名情况 */
+.people-section {
+  background: white;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.people-count {
+  display: flex;
+  align-items: baseline;
+  gap: 4rpx;
+}
+
+.count-current {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #667eea;
+}
+
+.count-divider {
+  color: #ccc;
+  font-size: 28rpx;
+}
+
+.count-max {
+  color: #999;
+  font-size: 28rpx;
+}
+
+/* 人员列表 */
+.joined-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+}
+
+.joined-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 120rpx;
+}
+
+.joined-avatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea30, #764ba230);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: #667eea;
+  font-weight: 600;
+  margin-bottom: 8rpx;
+}
+
+.joined-name {
+  font-size: 22rpx;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120rpx;
+  text-align: center;
+}
+
+.joined-time {
+  font-size: 18rpx;
+  color: #999;
+}
+
+/* 审核状态 */
+.audit-section {
+  background: white;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+}
+
+.audit-info {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.audit-icon {
+  font-size: 32rpx;
+}
+
+.audit-text {
+  font-size: 28rpx;
+  color: #fa8c16;
+}
+
+.audit-reject .audit-text {
+  color: #ff4d4f;
+}
+
+/* 底部操作栏 */
+.bottom-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  gap: 16rpx;
+  padding: 20rpx 30rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  background: white;
+  box-shadow: 0 -4rpx 12rpx rgba(0, 0, 0, 0.06);
+  z-index: 100;
+}
+
+.bottom-bar button {
+  flex: 1;
+  height: 80rpx;
+  line-height: 80rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  border-radius: 40rpx;
+  padding: 0;
+  border: none;
+}
+
+.btn-join {
+  background: linear-gradient(135deg, #667eea, #764ba2) !important;
+  color: white !important;
+}
+
+.btn-leave {
+  background: #f5f5f5 !important;
+  color: #666 !important;
+}
+
+.btn-joined {
+  background: #52c41a15 !important;
+  color: #52c41a !important;
+}
+
+.btn-finish {
+  background: #1890ff15 !important;
+  color: #1890ff !important;
+}
+
+.btn-cancel {
+  background: #ff4d4f15 !important;
+  color: #ff4d4f !important;
+}
+
+.btn-share {
+  background: #fa8c1615 !important;
+  color: #fa8c16 !important;
+}
+
+/* 加载 */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+.loading-icon {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #f3f3f3;
+  border-top: 4rpx solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16rpx;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #999;
+}

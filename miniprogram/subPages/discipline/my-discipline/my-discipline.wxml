@@ -1,0 +1,82 @@
+<!-- pages/discipline/my-discipline/my-discipline.wxml -->
+<view class="container">
+  <!-- 统计概览 -->
+  <view class="stats-card">
+    <view class="stats-row">
+      <view class="stat-item">
+        <text class="stat-value">{{stats.total}}</text>
+        <text class="stat-label">总处分</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-value danger">{{stats.active}}</text>
+        <text class="stat-label">生效中</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-value success">{{stats.revoked}}</text>
+        <text class="stat-label">已撤销</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Tab切换 -->
+  <view class="tab-bar">
+    <view class="tab-item {{activeTab === 'active' ? 'active' : ''}}" data-tab="active" bindtap="onTabChange">生效中</view>
+    <view class="tab-item {{activeTab === 'revoked' ? 'active' : ''}}" data-tab="revoked" bindtap="onTabChange">已撤销</view>
+    <view class="tab-item {{activeTab === 'all' ? 'active' : ''}}" data-tab="all" bindtap="onTabChange">全部</view>
+  </view>
+
+  <!-- 记录列表 -->
+  <view class="record-list" wx:if="{{!loading}}">
+    <view class="record-card" wx:for="{{displayList}}" wx:key="record_id" bindtap="onViewDetail" data-id="{{item.record_id}}">
+      <view class="card-header">
+        <view class="level-tag" style="{{item._levelBadgeStyle}}">
+          {{item.discipline_level}}
+        </view>
+        <view class="status-tag {{item.status}}">
+          {{item._statusText}}
+        </view>
+      </view>
+      <view class="card-body">
+        <text class="card-reason">{{item.reason}}</text>
+      </view>
+
+      <!-- 进度条（仅生效中显示） -->
+      <view class="progress-section" wx:if="{{item.status === 'active'}}">
+        <view class="progress-row">
+          <text class="progress-label">思想汇报</text>
+          <view class="progress-bar">
+            <view class="progress-fill" style="width: {{item.thought_reports_required > 0 ? (item.thought_completed / item.thought_reports_required * 100) : 0}}%"></view>
+          </view>
+          <text class="progress-text">{{item.thought_completed}}/{{item.thought_reports_required}}篇</text>
+        </view>
+        <view class="progress-row">
+          <text class="progress-label">服务令</text>
+          <view class="progress-bar">
+            <view class="progress-fill service" style="{{item._serviceProgressWidth}}"></view>
+          </view>
+          <text class="progress-text">{{item.service_completed_hours}}/{{item.service_hours_required}}小时</text>
+        </view>
+      </view>
+
+      <view class="card-footer">
+        <text class="card-date">{{item.issue_date}}</text>
+        <view class="revoke-btn" wx:if="{{item.status === 'active'}}" catchtap="onApplyRevoke" data-id="{{item.record_id}}">
+          申请撤销
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{isCurrentEmpty}}">
+      <text class="empty-icon">{{activeTab === 'active' ? '🎉' : '📋'}}</text>
+      <text class="empty-text">{{activeTab === 'active' ? '暂无生效处分' : '暂无记录'}}</text>
+    </view>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading-state" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

@@ -1,0 +1,101 @@
+<!--pages/duty/template/template.wxml-->
+<view class="container">
+  <!-- 模板列表 -->
+  <view class="template-list" wx:if="{{!loading && templates.length > 0}}">
+    <view class="template-card" wx:for="{{templates}}" wx:key="_id">
+      <view class="template-header">
+        <view class="template-icon">{{item.icon}}</view>
+        <view class="template-info">
+          <text class="template-name">{{item.name}}</text>
+          <text class="template-category">{{item.category}}</text>
+        </view>
+        <view class="template-actions">
+          <view class="action-btn edit" bindtap="onEdit" data-template="{{item}}">编辑</view>
+          <view class="action-btn delete" bindtap="onDelete" data-template="{{item}}">删除</view>
+        </view>
+      </view>
+      <view class="template-desc" wx:if="{{item.description}}">{{item.description}}</view>
+      <view class="template-scores">
+        <view class="score-tag plus">完成 +{{item.default_score}}分</view>
+        <view class="score-tag minus">未完成 {{item.deduction_score}}分</view>
+        <view class="score-tag inspect" wx:if="{{item.requires_inspection}}">需检查</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && templates.length === 0}}">
+    <text class="empty-icon">📝</text>
+    <text class="empty-text">暂无任务模板</text>
+    <text class="empty-hint">点击下方按钮创建第一个任务模板</text>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 添加按钮 -->
+  <view class="fab-btn" bindtap="onShowAdd">
+    <text class="fab-icon">+</text>
+  </view>
+
+  <!-- 添加/编辑弹窗 -->
+  <view class="modal-mask" wx:if="{{showAddModal}}" bindtap="onHideModal">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">{{editingTemplate ? '编辑模板' : '添加模板'}}</text>
+        <text class="modal-close" bindtap="onHideModal">✕</text>
+      </view>
+
+      <view class="form-group">
+        <text class="form-label">任务名称 *</text>
+        <input class="form-input" placeholder="如：扫地、擦黑板" value="{{formData.name}}" bindinput="onInputChange" data-field="name" />
+      </view>
+
+      <view class="form-group">
+        <text class="form-label">任务描述</text>
+        <textarea class="form-textarea" placeholder="任务标准要求" value="{{formData.description}}" bindinput="onInputChange" data-field="description" />
+      </view>
+
+      <view class="form-group">
+        <text class="form-label">任务分类</text>
+        <picker range="{{categories}}" value="{{categories.indexOf(formData.category)}}" bindchange="onCategoryChange">
+          <view class="form-picker">{{formData.category}} ▾</view>
+        </picker>
+      </view>
+
+      <view class="form-group">
+        <text class="form-label">图标</text>
+        <view class="icon-grid">
+          <view class="icon-item {{formData.icon === item ? 'active' : ''}}" wx:for="{{iconOptions}}" wx:key="*this" bindtap="onIconSelect" data-icon="{{item}}">
+            {{item}}
+          </view>
+        </view>
+      </view>
+
+      <view class="form-row">
+        <view class="form-group half">
+          <text class="form-label">完成加分</text>
+          <input class="form-input" type="number" value="{{formData.default_score}}" bindinput="onInputChange" data-field="default_score" />
+        </view>
+        <view class="form-group half">
+          <text class="form-label">未完成扣分</text>
+          <input class="form-input" type="number" value="{{formData.deduction_score}}" bindinput="onInputChange" data-field="deduction_score" />
+        </view>
+      </view>
+
+      <view class="form-group">
+        <view class="switch-row">
+          <text class="form-label" style="margin-bottom:0">需要检查确认</text>
+          <switch checked="{{formData.requires_inspection}}" bindchange="onInspectionChange" color="#1890ff" />
+        </view>
+      </view>
+
+      <view class="form-actions">
+        <view class="btn-cancel" bindtap="onHideModal">取消</view>
+        <view class="btn-confirm" bindtap="onSave">保存</view>
+      </view>
+    </view>
+  </view>
+</view>
