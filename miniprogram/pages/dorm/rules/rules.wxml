@@ -1,0 +1,218 @@
+<view class="container">
+  <!-- 类别筛选器 -->
+  <view class="filter-bar">
+    <picker
+      mode="selector"
+      range="{{categoryOptions}}"
+      value="{{selectedCategoryIndex}}"
+      bindchange="onCategoryChange"
+    >
+      <view class="filter-picker">
+        <text>{{categoryOptions[selectedCategoryIndex]}}</text>
+        <text class="arrow">▼</text>
+      </view>
+    </picker>
+    <picker
+      mode="selector"
+      range="{{semesterOptions}}"
+      value="{{selectedSemesterIndex}}"
+      bindchange="onSemesterChange"
+    >
+      <view class="filter-picker">
+        <text>{{semesterOptions[selectedSemesterIndex]}}</text>
+        <text class="arrow">▼</text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 标签切换 -->
+  <view class="tabs">
+    <view class="tabs-left">
+      <view 
+        class="tab-item {{activeTab === 'deduct' ? 'active' : ''}}" 
+        bindtap="onTabChange" 
+        data-tab="deduct"
+      >
+        扣分项目 ({{deductRules.length}})
+      </view>
+      <view 
+        class="tab-item {{activeTab === 'add' ? 'active' : ''}}" 
+        bindtap="onTabChange" 
+        data-tab="add"
+      >
+        加分项目 ({{addRules.length}})
+      </view>
+    </view>
+    <view class="tabs-right">
+      <button class="add-btn" bindtap="onAddRule">
+        <text>➕ 添加</text>
+      </button>
+    </view>
+  </view>
+
+  <!-- 规则列表 -->
+  <view class="rules-list">
+    <view 
+      class="rule-item" 
+      wx:for="{{currentRules}}" 
+      wx:key="_id"
+      bindtap="onEditRule"
+      data-id="{{item._id}}"
+    >
+      <view class="rule-header">
+        <view class="rule-category-tag">{{item.category}}</view>
+        <view class="rule-score {{item.score_value > 0 ? 'add' : 'deduct'}}">
+          {{item.score_value > 0 ? '+' : ''}}{{item.score_value}}分
+        </view>
+      </view>
+      <view class="rule-name">{{item.rule_name}}</view>
+      <view class="rule-desc" wx:if="{{item.description}}">{{item.description}}</view>
+      <view class="rule-footer">
+        <view class="rule-severity">
+          <text class="severity-label">严重程度：</text>
+          <text class="severity-value {{item.severityClass}}">{{item.severity || '一般'}}</text>
+        </view>
+        <view class="rule-status">
+          <switch 
+            checked="{{item.is_enabled}}" 
+            catchtap="onToggleStatus"
+            data-id="{{item._id}}"
+            color="#1890ff"
+          />
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{currentRules.length === 0 && !loading}}">
+      <text class="empty-icon">📋</text>
+      <text class="empty-text">暂无{{activeTab === 'add' ? '加分' : '扣分'}}规则</text>
+      <button class="empty-btn" bindtap="onAddRule">添加规则</button>
+    </view>
+
+    <!-- 加载更多 -->
+    <view class="load-more" wx:if="{{hasMore && !loading}}" bindtap="onLoadMore">
+      <text>{{loadingMore ? '加载中...' : '点击加载更多'}}</text>
+    </view>
+    <view class="no-more" wx:if="{{!hasMore && currentRules.length > 0}}">
+      <text>已加载全部规则</text>
+    </view>
+  </view>
+
+  <!-- 添加/编辑规则弹窗 -->
+  <view class="modal-mask" wx:if="{{showModal}}" bindtap="onCloseModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">{{editingRule ? '编辑规则' : '添加规则'}}</text>
+        <text class="modal-close" bindtap="onCloseModal">✕</text>
+      </view>
+      
+      <view class="modal-body">
+        <view class="form-item">
+          <text class="form-label">规则名称 *</text>
+          <input 
+            class="form-input" 
+            placeholder="请输入规则名称"
+            value="{{formData.rule_name}}"
+            bindinput="onInputChange"
+            data-field="rule_name"
+          />
+        </view>
+
+        <view class="form-item">
+          <text class="form-label">规则分类 *</text>
+          <picker
+            mode="selector"
+            range="{{categories}}"
+            value="{{formData.categoryIndex}}"
+            bindchange="onCategoryPickerChange"
+          >
+            <view class="form-picker">
+              <text>{{categories[formData.categoryIndex]}}</text>
+              <text class="arrow">▼</text>
+            </view>
+          </picker>
+        </view>
+
+        <view class="form-item">
+          <text class="form-label">适用学期 *</text>
+          <picker
+            mode="selector"
+            range="{{semesterOptions}}"
+            value="{{formData.semesterIndex}}"
+            bindchange="onSemesterPickerChange"
+          >
+            <view class="form-picker">
+              <text>{{semesterOptions[formData.semesterIndex]}}</text>
+              <text class="arrow">▼</text>
+            </view>
+          </picker>
+        </view>
+
+        <view class="form-item">
+          <text class="form-label">分值 *</text>
+          <input 
+            class="form-input" 
+            type="number"
+            placeholder="正数=加分，负数=扣分"
+            value="{{formData.score_value}}"
+            bindinput="onInputChange"
+            data-field="score_value"
+          />
+        </view>
+
+        <view class="form-item">
+          <text class="form-label">严重程度</text>
+          <picker 
+            mode="selector" 
+            range="{{severityOptions}}"
+            value="{{formData.severityIndex}}"
+            bindchange="onSeverityPickerChange"
+          >
+            <view class="form-picker">
+              <text>{{severityOptions[formData.severityIndex]}}</text>
+              <text class="arrow">▼</text>
+            </view>
+          </picker>
+        </view>
+
+        <view class="form-item">
+          <text class="form-label">判定标准</text>
+          <textarea 
+            class="form-textarea" 
+            placeholder="详细描述违规/加分情形"
+            value="{{formData.standard}}"
+            bindinput="onInputChange"
+            data-field="standard"
+          />
+        </view>
+
+        <view class="form-item">
+          <text class="form-label">规则描述</text>
+          <textarea 
+            class="form-textarea" 
+            placeholder="规则详细说明"
+            value="{{formData.description}}"
+            bindinput="onInputChange"
+            data-field="description"
+          />
+        </view>
+
+        <view class="form-item inline">
+          <text class="form-label">需要证明材料</text>
+          <switch 
+            checked="{{formData.requires_proof}}" 
+            bindchange="onSwitchChange"
+            data-field="requires_proof"
+            color="#1890ff"
+          />
+        </view>
+      </view>
+
+      <view class="modal-footer">
+        <button class="btn-cancel" bindtap="onCloseModal">取消</button>
+        <button class="btn-confirm" bindtap="onSubmitForm">确定</button>
+      </view>
+    </view>
+  </view>
+</view>

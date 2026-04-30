@@ -1,0 +1,87 @@
+<view class="container">
+  <!-- 筛选栏 -->
+  <view class="filter-bar">
+    <picker 
+      mode="selector" 
+      range="{{typeOptions}}" 
+      value="{{selectedTypeIndex}}" 
+      bindchange="onTypeChange"
+    >
+      <view class="filter-item">
+        <text>{{typeOptions[selectedTypeIndex]}}</text>
+        <text class="arrow">▼</text>
+      </view>
+    </picker>
+
+    <picker 
+      mode="date" 
+      value="{{selectedDate}}" 
+      start="2020-01-01" 
+      end="2030-12-31"
+      bindchange="onDateChange"
+    >
+      <view class="filter-item">
+        <text>{{selectedDate || '选择日期'}}</text>
+        <text class="arrow">📅</text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 检查记录列表 -->
+  <view class="record-list">
+    <view 
+      class="record-item" 
+      wx:for="{{records}}" 
+      wx:key="_id"
+      bindtap="viewDetail"
+      data-id="{{item._id}}"
+    >
+      <view class="record-header">
+        <view class="record-type-tag">{{item.inspection_type}}</view>
+        <view class="record-score {{item.overall_score >= 60 ? 'pass' : 'fail'}}">
+          {{item.overall_score}}分
+        </view>
+      </view>
+      
+      <view class="record-body">
+        <view class="record-location">
+          <text class="icon">🏠</text>
+          <text>{{item.building}} - {{item.room}}</text>
+        </view>
+        <view class="record-info">
+          <text class="record-date">{{item.inspection_date}}</text>
+          <text class="record-inspector">检查人：{{item.inspector_name}}</text>
+        </view>
+      </view>
+
+      <view class="record-problems" wx:if="{{item.problems && item.problems.length > 0}}">
+        <text class="problem-count">发现 {{item.problems.length}} 个问题</text>
+      </view>
+
+      <view class="record-footer">
+        <text class="record-status {{item.status}}">{{item.status_text}}</text>
+        <text class="record-arrow">></text>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{records.length === 0 && !loading}}">
+      <text class="empty-icon">🔍</text>
+      <text class="empty-text">暂无检查记录</text>
+      <button class="empty-btn" bindtap="goToAdd">新建检查记录</button>
+    </view>
+
+    <!-- 加载更多 -->
+    <view class="load-more" wx:if="{{hasMore && !loading}}" bindtap="onLoadMore">
+      <text>{{loadingMore ? '加载中...' : '点击加载更多'}}</text>
+    </view>
+    <view class="no-more" wx:if="{{!hasMore && records.length > 0}}">
+      <text>已加载全部记录</text>
+    </view>
+  </view>
+
+  <!-- 浮动添加按钮 -->
+  <view class="fab" bindtap="goToAdd">
+    <text>➕</text>
+  </view>
+</view>

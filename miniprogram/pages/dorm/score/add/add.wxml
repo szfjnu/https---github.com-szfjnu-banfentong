@@ -1,0 +1,196 @@
+<!--pages/dorm/score/add/add.wxml-->
+<view class="container">
+  <!-- 标题栏 -->
+  <view class="header">
+    <view class="header-title">添加宿舍积分</view>
+    <view class="header-subtitle">当前学期：{{semesterName}}</view>
+  </view>
+
+  <!-- 折算比例提示 -->
+  <view class="ratio-tip">
+    <text class="tip-icon">💡</text>
+    <text class="tip-text">当前折算比例：{{conversionRatio}}（宿舍1分 = 个人{{conversionRatio}}分）</text>
+  </view>
+
+  <!-- 记录类型选择 -->
+  <view class="card">
+    <view class="card-title">记录类型</view>
+    <view class="type-selector">
+      <view
+        class="type-item {{recordType === 'violation' ? 'active' : ''}}"
+        bindtap="onSelectType"
+        data-type="violation"
+      >
+        <text class="type-icon">⚠️</text>
+        <text class="type-label">违规扣分</text>
+      </view>
+      <view
+        class="type-item {{recordType === 'service' ? 'active' : ''}}"
+        bindtap="onSelectType"
+        data-type="service"
+      >
+        <text class="type-icon">✨</text>
+        <text class="type-label">服务加分</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 选择方式 -->
+  <view class="card">
+    <view class="card-title">选择方式</view>
+    <view class="mode-selector">
+      <view
+        class="mode-item {{selectMode === 'dorm' ? 'active' : ''}}"
+        bindtap="onSelectMode"
+        data-mode="dorm"
+      >
+        <text class="mode-icon">🏠</text>
+        <text class="mode-label">按宿舍选择</text>
+      </view>
+      <view
+        class="mode-item {{selectMode === 'student' ? 'active' : ''}}"
+        bindtap="onSelectMode"
+        data-mode="student"
+      >
+        <text class="mode-icon">👤</text>
+        <text class="mode-label">按学生选择</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 宿舍选择 -->
+  <view class="card" wx:if="{{selectMode === 'dorm'}}">
+    <view class="card-title">选择宿舍</view>
+    <picker mode="selector" range="{{dormOptions}}" range-key="label" bindchange="onDormChange">
+      <view class="picker-box">
+        <text class="picker-text">{{selectedDormLabel || '请选择宿舍'}}</text>
+        <text class="picker-arrow">▼</text>
+      </view>
+    </picker>
+
+    <!-- 宿舍成员列表 -->
+    <view class="member-list" wx:if="{{selectedDormMembers.length > 0}}">
+      <view class="member-header">
+        <text class="member-count">共{{selectedDormMembers.length}}名成员</text>
+        <view class="select-all" bindtap="onSelectAll">
+          <text>{{isAllSelected ? '取消全选' : '全选'}}</text>
+        </view>
+      </view>
+      <view class="member-item" wx:for="{{selectedDormMembers}}" wx:key="student_id">
+        <view class="member-info">
+          <text class="member-name">{{item.name}}</text>
+          <text class="member-id">{{item.student_id}}</text>
+        </view>
+        <view class="member-checkbox {{item.selected ? 'checked' : ''}}" catchtap="onToggleMember" data-id="{{item.student_id}}">
+          <text class="check-icon">{{item.selected ? '✓' : ''}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 学生选择 -->
+  <view class="card" wx:if="{{selectMode === 'student'}}">
+    <view class="card-title">选择学生</view>
+    <view class="search-box">
+      <text class="search-icon">🔍</text>
+      <input
+        class="search-input"
+        type="text"
+        placeholder="搜索学号或姓名"
+        value="{{searchKeyword}}"
+        bindinput="onSearchInput"
+      />
+    </view>
+
+    <view class="student-list">
+      <view class="student-item" wx:for="{{filteredStudents}}" wx:key="student_id" bindtap="onSelectStudent" data-id="{{item.student_id}}">
+        <view class="student-info">
+          <text class="student-name">{{item.name}}</text>
+          <text class="student-meta">{{item.student_id}} · {{item.dorm_info}}</text>
+        </view>
+        <view class="student-checkbox {{item.selected ? 'checked' : ''}}">
+          <text class="check-icon">{{item.selected ? '✓' : ''}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="selected-count" wx:if="{{selectedStudents.length > 0}}">
+      <text>已选择 {{selectedStudents.length}} 名学生</text>
+    </view>
+  </view>
+
+  <!-- 规则选择 -->
+  <view class="card">
+    <view class="card-title">选择规则</view>
+    <picker mode="selector" range="{{ruleOptions}}" range-key="label" bindchange="onRuleChange">
+      <view class="picker-box">
+        <text class="picker-text">{{selectedRuleLabel || '请选择规则'}}</text>
+        <text class="picker-arrow">▼</text>
+      </view>
+    </picker>
+
+    <view class="rule-info" wx:if="{{selectedRule}}">
+      <view class="rule-standard">判定标准：{{selectedRule.standard}}</view>
+      <view class="rule-description" wx:if="{{selectedRule.description}}">{{selectedRule.description}}</view>
+    </view>
+  </view>
+
+  <!-- 关联个人积分 -->
+  <view class="card">
+    <view class="card-title">关联设置</view>
+    <view class="setting-item">
+      <text class="setting-label">关联到个人积分</text>
+      <switch checked="{{linkToPersonal}}" bindchange="onLinkChange" color="#1890ff" />
+    </view>
+    <view class="setting-desc" wx:if="{{linkToPersonal}}">
+      开启后，宿舍积分将按{{conversionRatio}}比例自动折算并记录到个人积分
+    </view>
+  </view>
+
+  <!-- 备注 -->
+  <view class="card">
+    <view class="card-title">备注说明</view>
+    <textarea
+      class="remark-input"
+      placeholder="请输入备注说明（选填）"
+      value="{{remark}}"
+      bindinput="onRemarkInput"
+      maxlength="200"
+    ></textarea>
+  </view>
+
+  <!-- 预览 -->
+  <view class="card preview-card" wx:if="{{showPreview}}">
+    <view class="card-title">记录预览</view>
+    <view class="preview-item">
+      <text class="preview-label">记录类型</text>
+      <text class="preview-value">{{recordType === 'violation' ? '违规扣分' : '服务加分'}}</text>
+    </view>
+    <view class="preview-item">
+      <text class="preview-label">规则名称</text>
+      <text class="preview-value">{{selectedRuleLabel}}</text>
+    </view>
+    <view class="preview-item">
+      <text class="preview-label">宿舍积分</text>
+      <text class="preview-value {{recordType === 'violation' ? 'negative' : 'positive'}}">
+        {{recordType === 'violation' ? '-' : '+'}}{{scoreValue}}分
+      </text>
+    </view>
+    <view class="preview-item" wx:if="{{linkToPersonal}}">
+      <text class="preview-label">个人积分</text>
+      <text class="preview-value {{recordType === 'violation' ? 'negative' : 'positive'}}">
+        {{recordType === 'violation' ? '-' : '+'}}{{calculatedPersonalScore}}分
+      </text>
+    </view>
+    <view class="preview-item">
+      <text class="preview-label">影响人数</text>
+      <text class="preview-value">{{selectedStudents.length}}人</text>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="footer">
+    <button class="footer-btn cancel" bindtap="onCancel">取消</button>
+    <button class="footer-btn primary" bindtap="onSubmit" disabled="{{!canSubmit}}">保存记录</button>
+  </view>
+</view>

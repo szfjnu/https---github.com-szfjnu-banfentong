@@ -1,0 +1,180 @@
+/* pages/dorm/beds/beds.wxss */
+.container {
+  padding: 20rpx;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* 房间信息 */
+.room-info {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
+}
+
+.room-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.room-number {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #fff;
+  margin-right: 15rpx;
+}
+
+.room-floor {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+}
+
+.room-stats {
+  display: flex;
+  gap: 30rpx;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-value {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 6rpx;
+}
+
+.stat-label {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* 床位列表 */
+.bed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15rpx;
+}
+
+.bed-item {
+  background: white;
+  border-radius: 16rpx;
+  padding: 25rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  border: 2rpx solid transparent;
+  transition: all 0.3s;
+}
+
+.bed-item.occupied {
+  border-color: #1890ff;
+}
+
+.bed-item:active {
+  transform: scale(0.98);
+}
+
+/* 床位头部 */
+.bed-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15rpx;
+}
+
+.bed-number {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.bed-status {
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+}
+
+.bed-status.available {
+  background: #f0f5ff;
+  color: #1890ff;
+}
+
+.bed-status.occupied {
+  background: #fff2e8;
+  color: #ff9500;
+}
+
+/* 床位信息 */
+.bed-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  margin-bottom: 15rpx;
+  padding-bottom: 15rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+}
+
+.info-label {
+  font-size: 24rpx;
+  color: #999;
+  margin-right: 10rpx;
+}
+
+.info-value {
+  font-size: 24rpx;
+  color: #333;
+}
+
+/* 床位操作 */
+.bed-actions {
+  display: flex;
+  gap: 15rpx;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 12rpx;
+  background: #f0f5ff;
+  color: #1890ff;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  text-align: center;
+}
+
+.action-btn.release {
+  background: #fff2e8;
+  color: #ff4d4f;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 20rpx;
+}
+
+.empty-icon {
+  font-size: 100rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.5;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
+}

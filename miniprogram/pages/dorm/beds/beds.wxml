@@ -1,0 +1,72 @@
+<!--pages/dorm/beds/beds.wxml-->
+<view class="container">
+  <!-- 房间信息 -->
+  <view class="room-info" wx:if="{{roomInfo}}">
+    <view class="room-header">
+      <text class="room-number">{{roomInfo.room_number}}室</text>
+      <text class="room-floor">{{roomInfo.floor}}层</text>
+    </view>
+    <view class="room-stats">
+      <view class="stat">
+        <text class="stat-value">{{totalBeds}}</text>
+        <text class="stat-label">床位</text>
+      </view>
+      <view class="stat">
+        <text class="stat-value">{{occupiedBeds}}</text>
+        <text class="stat-label">已入住</text>
+      </view>
+      <view class="stat">
+        <text class="stat-value">{{availableBeds}}</text>
+        <text class="stat-label">空闲</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 床位列表 -->
+  <view class="bed-list">
+    <view
+      class="bed-item {{item.occupied ? 'occupied' : ''}}"
+      wx:for="{{beds}}"
+      wx:key="_id"
+      bindtap="onViewDetail"
+      data-id="{{item._id}}"
+    >
+      <view class="bed-header">
+        <view class="bed-number">{{item.bed_number}}</view>
+        <view class="bed-status {{item.occupied ? 'occupied' : 'available'}}">
+          <text>{{item.occupied ? '已入住' : '空闲'}}</text>
+        </view>
+      </view>
+
+      <view class="bed-info" wx:if="{{item.occupied && item.student}}">
+        <view class="info-row">
+          <text class="info-label">学生姓名：</text>
+          <text class="info-value">{{item.student.name}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">学号：</text>
+          <text class="info-value">{{item.student.student_id}}</text>
+        </view>
+        <view class="info-row" wx:if="{{item.student.phone}}">
+          <text class="info-label">联系电话：</text>
+          <text class="info-value">{{item.student.phone}}</text>
+        </view>
+      </view>
+
+      <view class="bed-actions">
+        <view class="action-btn" wx:if="{{!item.occupied}}" catchtap="onAssign" data-id="{{item._id}}">
+          <text>分配</text>
+        </view>
+        <view class="action-btn release" wx:if="{{item.occupied}}" catchtap="onRelease" data-id="{{item._id}}">
+          <text>释放</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{beds.length === 0 && !loading}}">
+      <text class="empty-icon">🛏️</text>
+      <text class="empty-text">暂无床位信息</text>
+    </view>
+  </view>
+</view>

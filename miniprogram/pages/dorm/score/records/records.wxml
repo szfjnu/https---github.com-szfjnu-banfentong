@@ -1,0 +1,163 @@
+<!--pages/dorm/score/records/records.wxml-->
+<view class="container">
+  <!-- 筛选栏 -->
+  <view class="filter-bar">
+    <picker
+      mode="selector"
+      range="{{typeOptions}}"
+      value="{{selectedTypeIndex}}"
+      bindchange="onTypeChange"
+    >
+      <view class="filter-picker">
+        <text>{{typeOptions[selectedTypeIndex]}}</text>
+        <text class="arrow">▼</text>
+      </view>
+    </picker>
+
+    <picker
+      mode="selector"
+      range="{{semesterOptions}}"
+      value="{{selectedSemesterIndex}}"
+      bindchange="onSemesterChange"
+    >
+      <view class="filter-picker">
+        <text>{{semesterOptions[selectedSemesterIndex]}}</text>
+        <text class="arrow">▼</text>
+      </view>
+    </picker>
+
+    <picker
+      mode="date"
+      value="{{startDate}}"
+      start="{{minDate}}"
+      end="{{maxDate}}"
+      bindchange="onStartDateChange"
+    >
+      <view class="filter-picker">
+        <text>{{startDate || '开始日期'}}</text>
+        <text class="arrow">📅</text>
+      </view>
+    </picker>
+
+    <picker
+      mode="date"
+      value="{{endDate}}"
+      start="{{minDate}}"
+      end="{{maxDate}}"
+      bindchange="onEndDateChange"
+    >
+      <view class="filter-picker">
+        <text>{{endDate || '结束日期'}}</text>
+        <text class="arrow">📅</text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 搜索框 -->
+  <view class="search-box">
+    <text class="search-icon">🔍</text>
+    <input
+      class="search-input"
+      type="text"
+      placeholder="搜索学号、姓名或宿舍"
+      value="{{searchKeyword}}"
+      bindinput="onSearchInput"
+      bindconfirm="onSearch"
+    />
+    <button class="search-btn" bindtap="onSearch">搜索</button>
+  </view>
+
+  <!-- 统计卡片 -->
+  <view class="stats-card">
+    <view class="stat-item">
+      <text class="stat-value total">{{totalCount}}</text>
+      <text class="stat-label">总记录数</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-value {{totalScore >= 0 ? 'positive' : 'negative'}}">{{totalScore >= 0 ? '+' : ''}}{{totalScore}}</text>
+      <text class="stat-label">总积分</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-value violation">{{violationCount}}</text>
+      <text class="stat-label">违规次数</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-value service">{{serviceCount}}</text>
+      <text class="stat-label">服务次数</text>
+    </view>
+  </view>
+
+  <!-- 记录列表 -->
+  <view class="record-list">
+    <view class="record-item" wx:for="{{records}}" wx:key="record_id" bindtap="onViewDetail" data-id="{{item.record_id}}">
+      <!-- 头部信息 -->
+      <view class="record-header">
+        <view class="record-type {{item.record_type}}">
+          <text>{{item.record_type === 'violation' ? '违规' : '服务'}}</text>
+        </view>
+        <view class="record-date">
+          <text>{{item.record_date_text}}</text>
+        </view>
+      </view>
+
+      <!-- 规则信息 -->
+      <view class="record-rule">
+        <text class="rule-category">[{{item.rule_category}}]</text>
+        <text class="rule-name">{{item.rule_name}}</text>
+      </view>
+
+      <!-- 学生信息 -->
+      <view class="record-student">
+        <text class="student-name">{{item.student_name}}</text>
+        <text class="student-id">{{item.student_id}}</text>
+        <text class="dorm-info">{{item.dorm_info}}</text>
+      </view>
+
+      <!-- 积分信息 -->
+      <view class="record-score">
+        <view class="score-item">
+          <text class="score-label">宿舍积分</text>
+          <text class="score-value {{item.score_value >= 0 ? 'positive' : 'negative'}}">
+            {{item.score_value >= 0 ? '+' : ''}}{{item.score_value}}
+          </text>
+        </view>
+        <view class="score-item" wx:if="{{item.link_to_personal}}">
+          <text class="score-label">个人积分</text>
+          <text class="score-value {{item.personal_score >= 0 ? 'positive' : 'negative'}}">
+            {{item.personal_score >= 0 ? '+' : ''}}{{item.personal_score}}
+          </text>
+        </view>
+      </view>
+
+      <!-- 备注 -->
+      <view class="record-remark" wx:if="{{item.remark}}">
+        <text class="remark-label">备注：</text>
+        <text class="remark-text">{{item.remark}}</text>
+      </view>
+
+      <!-- 记录人 -->
+      <view class="record-footer">
+        <text class="recorder">记录人：{{item.recorder_name}}</text>
+        <view class="delete-btn" wx:if="{{isAdmin}}" catchtap="onDeleteRecord" data-id="{{item.record_id}}">
+          <text>删除</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{records.length === 0 && !loading}}">
+      <text class="empty-icon">📋</text>
+      <text class="empty-text">暂无记录</text>
+    </view>
+
+    <!-- 加载更多 -->
+    <view class="loading-more" wx:if="{{loadingMore}}">
+      <text>加载中...</text>
+    </view>
+
+    <!-- 没有更多 -->
+    <view class="no-more" wx:if="{{!hasMore && records.length > 0}}">
+      <text>没有更多了</text>
+    </view>
+  </view>
+</view>

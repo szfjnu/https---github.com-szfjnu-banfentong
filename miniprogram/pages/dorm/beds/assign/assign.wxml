@@ -1,0 +1,69 @@
+<!--pages/dorm/beds/assign/assign.wxml-->
+<view class="container">
+  <!-- 床位信息 -->
+  <view class="bed-info" wx:if="{{bedInfo}}">
+    <view class="info-header">
+      <text class="info-title">床位信息</text>
+    </view>
+    <view class="info-details">
+      <view class="detail-item">
+        <text class="detail-label">床位号：</text>
+        <text class="detail-value">{{bedInfo.bed_number}}</text>
+      </view>
+      <view class="detail-item" wx:if="{{roomInfo}}">
+        <text class="detail-label">房间：</text>
+        <text class="detail-value">{{roomInfo.room_number}}室</text>
+      </view>
+      <view class="detail-item" wx:if="{{buildingInfo}}">
+        <text class="detail-label">楼栋：</text>
+        <text class="detail-value">{{buildingInfo.building_name}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 搜索框 -->
+  <view class="search-box">
+    <text class="search-icon">🔍</text>
+    <input
+      class="search-input"
+      type="text"
+      placeholder="搜索学号或姓名"
+      value="{{searchKeyword}}"
+      bindinput="onSearchInput"
+      bindconfirm="onSearch"
+    />
+    <button class="search-btn" bindtap="onSearch">搜索</button>
+  </view>
+
+  <!-- 学生列表 -->
+  <view class="student-list">
+    <view
+      class="student-item"
+      wx:for="{{students}}"
+      wx:key="_id"
+      bindtap="onSelectStudent"
+      data-id="{{item._id}}"
+    >
+      <view class="student-info">
+        <text class="student-name">{{item.name}}</text>
+        <text class="student-id">{{item.student_id}}</text>
+        <text class="student-class">{{item.class_name || ''}}</text>
+      </view>
+      <view class="student-status">
+        <text class="status-text" wx:if="{{item.dorm_info}}">已入住：{{item.dorm_info}}</text>
+        <text class="status-text available" wx:else>未入住</text>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{students.length === 0 && !loading}}">
+      <text class="empty-icon">👤</text>
+      <text class="empty-text">暂无学生</text>
+    </view>
+
+    <!-- 加载中 -->
+    <view class="loading" wx:if="{{loading}}">
+      <text>加载中...</text>
+    </view>
+  </view>
+</view>

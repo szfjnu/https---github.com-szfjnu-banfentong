@@ -147,6 +147,7 @@
 -   `major`: String (专业)
 -   `grade`: String (年级)
 -   `class`: String (班级)
+-   `class_id`: String (班级ID)
 -   `admission_date`: Date (入学日期)
 -   `graduation_date`: Date (预计毕业日期)
 -   `status`: String (学籍状态, 在读/休学/退学/毕业)
@@ -164,6 +165,7 @@
 -   `_id`: String (自动生成的主键)
 -   `student_id`: String (关联到students)
 -   `semester_id`: String (关联到semesters)
+    `class_id`: String (关联到班级ID)
 -   `original_score`: Number (宿舍原始积分, 初始100分)
 -   `converted_score`: Number (已折算到总积分的积分)
 -   `conversion_ratio`: Number (折算比例, 默认0.3)
@@ -181,6 +183,7 @@
 -   `_id`: String (自动生成的主键)
 -   `record_id`: String (记录ID, **业务主键**)
 -   `student_id`: String (关联到students)
+-   `class_id`: String (关联到班级ID)
 -   `item_id`: String (关联到score_items)
 -   `score_change`: Number (本次分数变化, 负数表示扣分)
 -   `reason_detail`: String (具体事由)
@@ -1222,7 +1225,194 @@
 
 ---
 
-## 42. `score_operation_logs` (积分操作审计日志表)
+## 42. `dorm_inspection_records` (宿舍检查记录表)
+
+记录宿舍日常检查情况，不涉及积分变动。
+
+-   `_id`: String (自动生成的主键)
+-   `inspection_id`: String (检查记录ID, **业务主键**)
+-   `class_id`: String (所属班级ID, **必填**)
+-   `semester_id`: String (关联学期ID)
+-   `building`: String (楼栋, **必填**)
+-   `room`: String (房间号, **必填**)
+-   `inspection_date`: Date (检查日期, **必填**)
+-   `inspection_type`: String (检查类型: "卫生检查" / "纪律检查" / "安全检查" / "综合检查")
+-   `inspector_name`: String (检查人姓名, **必填**)
+-   `inspector_openid`: String (检查人openid)
+-   `overall_score`: Number (总体评分, 0-100)
+-   `hygiene_score`: Number (卫生评分, 0-100)
+-   `discipline_score`: Number (纪律评分, 0-100)
+-   `safety_score`: Number (安全评分, 0-100)
+-   `problems`: Array (问题列表)
+    -   `problem_type`: String (问题类型)
+    -   `description`: String (问题描述)
+    -   `severity`: String (严重程度: "轻微" / "一般" / "严重")
+    -   `responsible_students`: Array (责任人学生ID列表)
+-   `images`: Array (检查图片URL列表)
+-   `remarks`: String (备注)
+-   `status`: String (状态: "pending"待处理 / "processed"已处理 / "archived"已归档)
+-   `related_score_records`: Array (关联的积分记录ID列表)
+-   `created_at`: Date (创建时间)
+-   `updated_at`: Date (更新时间)
+
+**索引建议:**
+- `{inspection_id: 1}` (唯一索引)
+- `{class_id: 1, inspection_date: -1}` (按班级查询)
+- `{building: 1, room: 1}` (按房间查询)
+- `{inspection_type: 1}` (按检查类型)
+
+**业务逻辑:**
+1. 检查人员定期进行宿舍检查，填写检查记录
+2. 发现问题时，记录问题详情和责任人
+3. 如需扣分，创建 `dorm_score_records` 记录
+4. `status` 字段跟踪处理进度
+
+---
+
+## 43. `dorm_rules` (宿舍规则配置表)
+
+专门管理宿舍加分/扣分规则，区别于普通积分规则。
+
+-   `_id`: String (自动生成的主键)
+-   `rule_id`: String (规则ID, **业务主键**)
+-   `rule_name`: String (规则名称, **必填**)
+-   `rule_code`: String (规则代码, 用于程序引用)
+-   `category`: String (规则分类: "卫生" / "纪律" / "安全" / "作息" / "公物" / "其他", **必填**)
+-   `score_value`: Number (分值, 正数=加分, 负数=扣分, **必填**)
+-   `description`: String (规则描述)
+-   `standard`: String (判定标准, 详细描述违规/加分情形)
+-   `examples`: Array (案例示例)
+    -   `scenario`: String (场景描述)
+    -   `score`: Number (案例分值)
+-   `severity`: String (严重程度: "轻微" / "一般" / "严重" / "重大")
+-   `requires_proof`: Boolean (是否需要证明材料, 默认false)
+-   `proof_types`: Array (证明材料类型, 如: ["照片", "视频", "书面记录"])
+-   `max_times_per_semester`: Number (每学期最多记录次数, -1表示不限制)
+-   `is_repeatable`: Boolean (是否可重复记录, 默认true)
+-   `is_enabled`: Boolean (是否启用, 默认true)
+-   `effective_date`: Date (生效日期)
+-   `expiry_date`: Date (失效日期)
+-   `class_id`: String (所属班级ID, 空表示全局规则)
+-   `semester_id`: String (所属学期ID, 空表示长期有效)
+-   `created_by`: String (创建人openid)
+-   `created_by_name`: String (创建人姓名)
+-   `created_at`: Date (创建时间)
+-   `updated_at`: Date (更新时间)
+
+**索引建议:**
+- `{rule_id: 1}` (唯一索引)
+- `{class_id: 1, category: 1}` (按班级和分类查询)
+- `{is_enabled: 1}` (查询启用规则)
+
+**预设规则示例:**
+
+| 规则名称 | 分类 | 分值 | 严重程度 | 是否需要证明 |
+|---------|------|------|----------|-------------|
+| 地面不干净 | 卫生 | -2 | 轻微 | 是 |
+| 物品摆放混乱 | 卫生 | -1 | 轻微 | 是 |
+| 违规使用电器 | 安全 | -10 | 严重 | 是 |
+| 晚归 | 作息 | -3 | 一般 | 否 |
+| 主动打扫卫生 | 卫生 | +2 | - | 否 |
+| 宿舍评比优秀 | 综合 | +5 | - | 否 |
+
+---
+
+## 44. `dorm_statistics` (宿舍统计报表表)
+
+汇总统计宿舍积分数据，用于报表展示。
+
+-   `_id`: String (自动生成的主键)
+-   `stat_id`: String (统计ID, **业务主键**)
+-   `class_id`: String (所属班级ID, **必填**)
+-   `semester_id`: String (关联学期ID, **必填**)
+-   `stat_type`: String (统计类型: "daily"日统计 / "weekly"周统计 / "monthly"月统计 / "semester"学期统计)
+-   `stat_date`: Date (统计日期, 对于周/月统计为起始日期)
+-   `building`: String (楼栋, 可选, 为空表示全班级统计)
+-   `room`: String (房间号, 可选, 为空表示全楼栋统计)
+-   `total_deduction_score`: Number (总扣分)
+-   `total_add_score`: Number (总加分)
+-   `net_score`: Number (净积分)
+-   `converted_score`: Number (折算后积分)
+-   `deduction_count`: Number (扣分次数)
+-   `add_count`: Number (加分次数)
+-   `violation_count`: Number (违规次数)
+-   `top_violations`: Array (高频违规Top5)
+    -   `rule_name`: String (规则名称)
+    -   `count`: Number (次数)
+-   `score_distribution`: Object (积分分布)
+    -   `excellent`: Number (优秀人数, 90-100)
+    -   `good`: Number (良好人数, 70-89)
+    -   `pass`: Number (合格人数, 60-69)
+    -   `warning`: Number (预警人数, 40-59)
+    -   `critical`: Number (危险人数, 0-39)
+-   `inspection_stats`: Object (检查统计)
+    -   `total_inspections`: Number (检查总次数)
+    -   `avg_score`: Number (平均分)
+    -   `pass_rate`: Number (合格率, 0-1)
+-   `created_at`: Date (创建时间)
+-   `updated_at`: Date (更新时间)
+
+**索引建议:**
+- `{stat_id: 1}` (唯一索引)
+- `{class_id: 1, semester_id: 1, stat_type: 1}` (复合索引)
+- `{stat_date: -1}` (按日期查询)
+
+**业务逻辑:**
+1. 云函数定时任务每日/每周/每月生成统计报表
+2. 前端展示页面从该表读取统计数据
+3. 支持按楼栋、房间维度统计
+4. 提供积分分布、违规趋势等分析数据
+
+---
+
+## 45. `dorm_warnings` (宿舍积分预警表)
+
+记录宿舍积分预警信息，支持自动化预警流程。
+
+-   `_id`: String (自动生成的主键)
+-   `warning_id`: String (预警ID, **业务主键**)
+-   `student_id`: String (学生学号, **必填**)
+-   `student_name`: String (学生姓名)
+-   `class_id`: String (所属班级ID, **必填**)
+-   `semester_id`: String (关联学期ID)
+-   `building`: String (楼栋)
+-   `room`: String (房间号)
+-   `warning_type`: String (预警类型: "score_warning"积分预警 / "trend_warning"趋势预警 / "behavior_warning"行为预警)
+-   `warning_level`: String (预警等级: "yellow"黄色预警 / "orange"橙色预警 / "red"红色预警)
+-   `trigger_score`: Number (触发预警的积分值)
+-   `current_score`: Number (当前宿舍积分)
+-   `deduction_count`: Number (近期扣分次数, 如近7天)
+-   `deduction_trend`: Number (扣分趋势, 正数表示上升)
+-   `suggestions`: Array (改进建议)
+    -   `suggestion`: String (建议内容)
+    -   `priority`: Number (优先级)
+-   `is_notified`: Boolean (是否已通知学生)
+-   `notified_at`: Date (通知时间)
+-   `parent_notified`: Boolean (是否已通知家长)
+-   `parent_notified_at`: Date (家长通知时间)
+-   `teacher_notified`: Boolean (是否已通知班主任)
+-   `teacher_notified_at`: Date (班主任通知时间)
+-   `status`: String (状态: "active"生效中 / "resolved"已解决 / "expired"已过期)
+-   `resolved_at`: Date (解决时间)
+-   `resolved_by`: String (解决人)
+-   `resolution_note`: String (解决说明)
+-   `created_at`: Date (创建时间)
+-   `updated_at`: Date (更新时间)
+
+**索引建议:**
+- `{warning_id: 1}` (唯一索引)
+- `{student_id: 1, status: 1}` (按学生查询)
+- `{class_id: 1, warning_level: 1}` (按班级查询预警等级)
+- `{semester_id: 1, warning_type: 1}` (按学期查询)
+
+**预警规则示例:**
+- **黄色预警**: 宿舍积分 < 70 分
+- **橙色预警**: 宿舍积分 < 50 分，或近7天扣分 ≥ 3次
+- **红色预警**: 宿舍积分 < 40 分（退宿阈值），或近7天扣分 ≥ 5次
+
+---
+
+## 46. `score_operation_logs` (积分操作审计日志表)
 
 记录所有积分操作的详细审计日志。
 
@@ -1299,9 +1489,27 @@
 - 所有collection的 `created_at` 字段
 - 所有外键关联字段
 
+### dorm_inspection_records
+- `inspection_id` (唯一索引)
+- `{class_id: 1, inspection_date: -1}` (复合索引)
+
+### dorm_rules
+- `rule_id` (唯一索引)
+- `{class_id: 1, category: 1}` (复合索引)
+
+### dorm_statistics
+- `stat_id` (唯一索引)
+- `{class_id: 1, semester_id: 1, stat_type: 1}` (复合索引)
+
+### dorm_warnings
+- `warning_id` (唯一索引)
+- `{student_id: 1, status: 1}` (复合索引)
+
 ---
 
-**版本**: 2.1  
-**最后更新**: 2026-03-18  
-**基于需求文档**: 25个详细需求  
-**更新内容**: 新增 classes 和 user_class_relation 集合，优化登录流程和数据隔离机制
+**版本**: 2.2  
+**最后更新**: 2026-04-02  
+**基于需求文档**: 25个详细需求 + 宿舍管理需求  
+**更新内容**: 
+- V2.2: 新增宿舍管理功能模块，包括 dorm_inspection_records、dorm_rules、dorm_statistics、dorm_warnings 四张新表
+- V2.1: 新增 classes 和 user_class_relation 集合，优化登录流程和数据隔离机制

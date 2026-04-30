@@ -1,0 +1,175 @@
+<!--pages/dorm/dorm.wxml-->
+<view class="container">
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-icon"></view>
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <!-- 未启用提示 -->
+  <view class="disabled-tip" wx:if="{{!loading && !isEnabled}}">
+    <view class="tip-icon">🏠</view>
+    <view class="tip-text">宿舍管理功能未启用</view>
+    <view class="tip-desc">请在班级设置中开启宿舍管理功能</view>
+    <button class="tip-btn" bindtap="goToSettings" wx:if="{{isAdmin}}">前往设置</button>
+  </view>
+
+  <!-- 主内容区 -->
+  <view class="main-content" wx:if="{{!loading && isEnabled}}">
+    <!-- 操作按钮栏 -->
+    <view class="action-bar">
+      <button class="action-btn" bindtap="goToInspection">
+        <image class="btn-icon" src="/images/icons/record.png" mode="aspectFit"></image>
+        <text>积分记录</text>
+      </button>
+      <button class="action-btn primary" bindtap="goToInspectionAdd" wx:if="{{isAdmin}}">
+        <image class="btn-icon" src="/images/icons/add.png" mode="aspectFit"></image>
+        <text>添加积分</text>
+      </button>
+    </view>
+
+    <!-- 管理员功能区 -->
+    <view class="admin-section" wx:if="{{isAdmin}}">
+      <view class="section-title">管理功能</view>
+      <view class="admin-btns">
+        <view class="admin-btn" bindtap="goToBuildings">
+          <text class="btn-icon-text">🏢</text>
+          <text>楼栋管理</text>
+        </view>
+        <view class="admin-btn" bindtap="goToRules">
+          <text class="btn-icon-text">📋</text>
+          <text>宿舍规则</text>
+        </view>
+        <view class="admin-btn" bindtap="goToStatistics">
+          <text class="btn-icon-text">📊</text>
+          <text>积分统计</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 统计卡片 -->
+    <view class="stats-card">
+      <view class="stats-header">
+        <text class="stats-title">宿舍积分概览</text>
+        <text class="stats-badge">{{semesterName}}</text>
+      </view>
+      <view class="stats-row">
+        <view class="stat-item">
+          <view class="stat-value">{{stats.totalStudents || 0}}</view>
+          <view class="stat-label">住宿生总数</view>
+        </view>
+        <view class="stat-divider"></view>
+        <view class="stat-item">
+          <view class="stat-value warning">{{stats.warningCount || 0}}</view>
+          <view class="stat-label">预警人数</view>
+        </view>
+        <view class="stat-divider"></view>
+        <view class="stat-item">
+          <view class="stat-value">{{stats.avgScore || 0}}</view>
+          <view class="stat-label">平均分</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 搜索栏 -->
+    <view class="search-bar">
+      <view class="search-input">
+        <image class="search-icon" src="/images/icons/search.png" mode="aspectFit"></image>
+        <input
+          type="text"
+          placeholder="搜索宿舍号或学生姓名"
+          value="{{searchKeyword}}"
+          bindconfirm="onSearch"
+          bindinput="onSearchInput"
+        />
+        <image
+          class="clear-icon"
+          wx:if="{{searchKeyword}}"
+          src="/images/icons/clear.png"
+          mode="aspectFit"
+          bindtap="onClearSearch"
+        ></image>
+      </view>
+    </view>
+
+    <!-- 筛选功能 -->
+    <view class="filter-section">
+      <picker mode="selector" range="{{buildingOptions}}" range-key="label" bindchange="onBuildingChange">
+        <view class="filter-picker">
+          <text>{{selectedBuildingLabel || '全部楼栋'}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+
+      <picker mode="selector" range="{{scoreOptions}}" range-key="label" bindchange="onScoreChange">
+        <view class="filter-picker">
+          <text>{{selectedScoreLabel || '全部状态'}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 最近检查记录 -->
+    <view class="card">
+      <view class="card-header">
+        <text class="card-title">最近检查记录</text>
+        <text class="card-more" bindtap="goToInspection">查看全部 ></text>
+      </view>
+      <view class="record-list" wx:if="{{recentRecords.length > 0}}">
+        <view
+          class="record-item"
+          wx:for="{{recentRecords}}"
+          wx:key="_id"
+          bindtap="viewRecordDetail"
+          data-id="{{item._id}}"
+        >
+          <view class="record-left">
+            <view class="record-type">{{item.inspection_type}}</view>
+            <view class="record-info">
+              <view class="record-room">{{item.building}} - {{item.room}}</view>
+              <view class="record-date">{{item.inspection_date}}</view>
+            </view>
+          </view>
+          <view class="record-right">
+            <view class="record-score">{{item.overall_score}}分</view>
+            <text class="record-arrow">›</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 空状态 -->
+      <view class="empty" wx:else>
+        <image class="empty-icon" src="/images/icons/empty.png" mode="aspectFit"></image>
+        <view class="empty-text">暂无检查记录</view>
+      </view>
+    </view>
+
+    <!-- 预警提醒 -->
+    <view class="card warning-card" wx:if="{{warnings.length > 0}}">
+      <view class="card-header">
+        <text class="card-title">⚠️ 积分预警</text>
+        <text class="card-more" bindtap="goToWarnings">查看全部 ></text>
+      </view>
+      <view class="warning-list">
+        <view
+          class="warning-item"
+          wx:for="{{warnings}}"
+          wx:key="_id"
+          bindtap="viewStudentDetail"
+          data-id="{{item.student_id}}"
+        >
+          <view class="warning-left">
+            <view class="warning-level {{item.warning_level}}"></view>
+            <view class="warning-info">
+              <view class="warning-name">{{item.student_name}}</view>
+              <view class="warning-score">宿舍积分：{{item.current_score}}分</view>
+            </view>
+          </view>
+          <view class="warning-right">
+            <text class="warning-badge">{{item.warning_level_text}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

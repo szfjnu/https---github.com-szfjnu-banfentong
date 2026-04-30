@@ -709,6 +709,14 @@ fetchWeather: async function (location) {
           disabled: false
         },
         { 
+          title: '宿舍管理', 
+          icon: 'dorm', 
+          color: '#faad14', 
+          colorDark: '#d48806',
+          url: '/pages/dorm/dorm',
+          disabled: false
+        },
+        { 
           title: '学期管理', 
           icon: 'semester', 
           color: '#722ed1', 

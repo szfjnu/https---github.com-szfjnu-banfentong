@@ -1,0 +1,216 @@
+<view class="container">
+  <view class="form-section">
+    <!-- 基本信息 -->
+    <view class="section-title">基本信息</view>
+    
+    <view class="form-item">
+      <text class="form-label required">检查日期</text>
+      <picker 
+        mode="date" 
+        value="{{formData.inspection_date}}" 
+        bindchange="onDateChange"
+      >
+        <view class="form-picker">
+          <text>{{formData.inspection_date || '请选择日期'}}</text>
+          <text class="arrow">📅</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="form-label required">检查类型</text>
+      <picker 
+        mode="selector" 
+        range="{{typeOptions}}" 
+        value="{{formData.typeIndex}}" 
+        bindchange="onTypeChange"
+      >
+        <view class="form-picker">
+          <text>{{typeOptions[formData.typeIndex]}}</text>
+          <text class="arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="form-label required">楼栋</text>
+      <input 
+        class="form-input" 
+        placeholder="如：1号楼"
+        value="{{formData.building}}"
+        bindinput="onInputChange"
+        data-field="building"
+      />
+    </view>
+
+    <view class="form-item">
+      <text class="form-label required">房间号</text>
+      <input 
+        class="form-input" 
+        placeholder="如：301"
+        value="{{formData.room}}"
+        bindinput="onInputChange"
+        data-field="room"
+      />
+    </view>
+  </view>
+
+  <!-- 评分 -->
+  <view class="form-section">
+    <view class="section-title">评分情况</view>
+    
+    <view class="score-item">
+      <text class="score-label">总体评分</text>
+      <input 
+        class="score-input" 
+        type="number"
+        placeholder="0-100"
+        value="{{formData.overall_score}}"
+        bindinput="onScoreChange"
+        data-field="overall_score"
+      />
+      <text class="score-unit">分</text>
+    </view>
+
+    <view class="score-item">
+      <text class="score-label">卫生评分</text>
+      <input 
+        class="score-input" 
+        type="number"
+        placeholder="0-100"
+        value="{{formData.hygiene_score}}"
+        bindinput="onScoreChange"
+        data-field="hygiene_score"
+      />
+      <text class="score-unit">分</text>
+    </view>
+
+    <view class="score-item">
+      <text class="score-label">纪律评分</text>
+      <input 
+        class="score-input" 
+        type="number"
+        placeholder="0-100"
+        value="{{formData.discipline_score}}"
+        bindinput="onScoreChange"
+        data-field="discipline_score"
+      />
+      <text class="score-unit">分</text>
+    </view>
+
+    <view class="score-item">
+      <text class="score-label">安全评分</text>
+      <input 
+        class="score-input" 
+        type="number"
+        placeholder="0-100"
+        value="{{formData.safety_score}}"
+        bindinput="onScoreChange"
+        data-field="safety_score"
+      />
+      <text class="score-unit">分</text>
+    </view>
+  </view>
+
+  <!-- 问题记录 -->
+  <view class="form-section">
+    <view class="section-header">
+      <text class="section-title">问题记录</text>
+      <button class="add-problem-btn" bindtap="addProblem">➕ 添加问题</button>
+    </view>
+
+    <view class="problem-list" wx:if="{{formData.problems.length > 0}}">
+      <view class="problem-item" wx:for="{{formData.problems}}" wx:key="index">
+        <view class="problem-header">
+          <text class="problem-index">问题 {{index + 1}}</text>
+          <text class="problem-delete" bindtap="deleteProblem" data-index="{{index}}">删除</text>
+        </view>
+        
+        <view class="form-item">
+          <text class="form-label">问题类型</text>
+          <input 
+            class="form-input" 
+            placeholder="如：地面不干净"
+            value="{{item.problem_type}}"
+            bindinput="onProblemChange"
+            data-index="{{index}}"
+            data-field="problem_type"
+          />
+        </view>
+
+        <view class="form-item">
+          <text class="form-label">问题描述</text>
+          <textarea 
+            class="form-textarea" 
+            placeholder="详细描述问题情况"
+            value="{{item.description}}"
+            bindinput="onProblemChange"
+            data-index="{{index}}"
+            data-field="description"
+          />
+        </view>
+
+        <view class="form-item">
+          <text class="form-label">严重程度</text>
+          <picker 
+            mode="selector" 
+            range="{{severityOptions}}" 
+            value="{{item.severityIndex}}" 
+            bindchange="onProblemSeverityChange"
+            data-index="{{index}}"
+          >
+            <view class="form-picker">
+              <text>{{severityOptions[item.severityIndex]}}</text>
+              <text class="arrow">▼</text>
+            </view>
+          </picker>
+        </view>
+
+        <view class="form-item">
+          <text class="form-label">责任人（选填）</text>
+          <button class="select-student-btn" bindtap="selectStudent" data-index="{{index}}">
+            已选择 {{item.responsible_students.length}} 人
+          </button>
+        </view>
+      </view>
+    </view>
+
+    <view class="empty-tip" wx:else>
+      <text>暂无问题记录</text>
+    </view>
+  </view>
+
+  <!-- 备注 -->
+  <view class="form-section">
+    <view class="section-title">备注</view>
+    <textarea 
+      class="form-textarea large" 
+      placeholder="检查备注信息"
+      value="{{formData.remarks}}"
+      bindinput="onInputChange"
+      data-field="remarks"
+    />
+  </view>
+
+  <!-- 照片上传 -->
+  <view class="form-section">
+    <view class="section-title">检查照片</view>
+    <view class="image-upload">
+      <view class="image-list">
+        <view class="image-item" wx:for="{{formData.images}}" wx:key="index">
+          <image src="{{item}}" mode="aspectFill" bindtap="previewImage" data-url="{{item}}"></image>
+          <view class="image-delete" bindtap="deleteImage" data-index="{{index}}">✕</view>
+        </view>
+      </view>
+      <view class="upload-btn" bindtap="chooseImage" wx:if="{{formData.images.length < 9}}">
+        <text class="upload-icon">➕</text>
+        <text class="upload-text">上传照片</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 提交按钮 -->
+  <view class="submit-bar">
+    <button class="submit-btn" bindtap="onSubmit">提交检查记录</button>
+  </view>
+</view>

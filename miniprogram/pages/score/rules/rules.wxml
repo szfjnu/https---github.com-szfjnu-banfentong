@@ -7,6 +7,21 @@
   </view>
 
   <block wx:else>
+    <!-- 类别筛选器 -->
+    <view class="filter-bar">
+      <picker 
+        mode="selector" 
+        range="{{categoryOptions}}" 
+        value="{{selectedCategory === '全部类别' ? 0 : categoryOptions.indexOf(selectedCategory)}}" 
+        bindchange="onCategoryFilterChange"
+      >
+        <view class="filter-picker">
+          <text>{{selectedCategory || '全部类别'}}</text>
+          <text class="arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
     <!-- 标签切换 -->
     <view class="tabs">
       <view class="tabs-left">
@@ -99,6 +114,15 @@
       <view class="empty" wx:if="{{(activeTab === 'add' && addRules.length === 0) || (activeTab === 'deduct' && deductRules.length === 0)}}">
         <text class="empty-icon">📋</text>
         <text class="empty-text">暂无{{activeTab === 'add' ? '加分' : '扣分'}}项目</text>
+      </view>
+
+      <!-- 加载更多 -->
+      <view class="load-more" wx:if="{{hasMore && !loading}}" bindtap="onLoadMore">
+        <text wx:if="{{loadingMore}}">加载中...</text>
+        <text wx:else>点击加载更多</text>
+      </view>
+      <view class="no-more" wx:if="{{!hasMore && rules.length > 0}}">
+        <text>已加载全部规则</text>
       </view>
     </view>
 

@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "房间管理",
+  "navigationBarBackgroundColor": "#1890ff",
+  "navigationBarTextStyle": "white",
+  "enablePullDownRefresh": true
+}

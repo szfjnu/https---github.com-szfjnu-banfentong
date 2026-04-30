@@ -1,0 +1,88 @@
+<!--pages/dorm/buildings/add/add.wxml-->
+<view class="container">
+  <!-- 标题栏 -->
+  <view class="header">
+    <view class="header-title">{{editingBuilding ? '编辑楼栋' : '添加楼栋'}}</view>
+  </view>
+
+  <!-- 表单 -->
+  <view class="form-card">
+    <view class="form-section-title">基本信息</view>
+
+    <view class="form-item">
+      <text class="form-label required">所属校区</text>
+      <input
+        class="form-input"
+        type="text"
+        placeholder="如：南校区"
+        value="{{formData.campus}}"
+        bindinput="onInputChange"
+        data-field="campus"
+      />
+    </view>
+
+    <view class="form-item">
+      <text class="form-label required">楼栋名称</text>
+      <input
+        class="form-input"
+        type="text"
+        placeholder="如：1号楼"
+        value="{{formData.building_name}}"
+        bindinput="onInputChange"
+        data-field="building_name"
+      />
+    </view>
+
+    <view class="form-item">
+      <text class="form-label required">楼栋编号</text>
+      <input
+        class="form-input"
+        type="text"
+        placeholder="如：A栋、1号"
+        value="{{formData.building_code}}"
+        bindinput="onInputChange"
+        data-field="building_code"
+      />
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">楼层数</text>
+      <input
+        class="form-input"
+        type="number"
+        placeholder="请输入楼层数"
+        value="{{formData.floor_count}}"
+        bindinput="onInputChange"
+        data-field="floor_count"
+      />
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">备注说明</text>
+      <textarea
+        class="form-textarea"
+        placeholder="请输入备注说明（选填）"
+        value="{{formData.description}}"
+        bindinput="onInputChange"
+        data-field="description"
+        maxlength="200"
+      ></textarea>
+    </view>
+  </view>
+
+  <!-- 提示信息 -->
+  <view class="tips-card" wx:if="{{!editingBuilding}}">
+    <view class="tips-title">💡 温馨提示</view>
+    <view class="tips-content">
+      <text>• 添加楼栋后，可以在楼栋详情中添加房间</text>
+      <text>• 每个房间可以设置多个床位</text>
+      <text>• 学生入住时可以直接选择具体的床位</text>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="footer">
+    <button class="footer-btn cancel" bindtap="onCancel">取消</button>
+    <button class="footer-btn primary" bindtap="onSubmit" disabled="{{!canSubmit}}">保存</button>
+  </view>
+</view>

@@ -1,0 +1,131 @@
+<view class="container">
+  <!-- 标签切换 -->
+  <view class="tabs">
+    <view 
+      class="tab-item {{activeTab === 'overview' ? 'active' : ''}}" 
+      bindtap="onTabChange" 
+      data-tab="overview"
+    >
+      总体统计
+    </view>
+    <view 
+      class="tab-item {{activeTab === 'ranking' ? 'active' : ''}}" 
+      bindtap="onTabChange" 
+      data-tab="ranking"
+    >
+      积分排名
+    </view>
+    <view 
+      class="tab-item {{activeTab === 'warnings' ? 'active' : ''}}" 
+      bindtap="onTabChange" 
+      data-tab="warnings"
+    >
+      预警列表
+    </view>
+  </view>
+
+  <!-- 总体统计 -->
+  <view class="tab-content" wx:if="{{activeTab === 'overview'}}">
+    <!-- 统计卡片 -->
+    <view class="stats-cards">
+      <view class="stat-card">
+        <text class="stat-value">{{stats.totalStudents}}</text>
+        <text class="stat-label">住宿生总数</text>
+      </view>
+      <view class="stat-card">
+        <text class="stat-value">{{stats.avgScore}}</text>
+        <text class="stat-label">平均分</text>
+      </view>
+      <view class="stat-card warning">
+        <text class="stat-value">{{stats.warningCount}}</text>
+        <text class="stat-label">预警人数</text>
+      </view>
+      <view class="stat-card danger">
+        <text class="stat-value">{{stats.criticalCount}}</text>
+        <text class="stat-label">危险人数</text>
+      </view>
+    </view>
+
+    <!-- 积分分布 -->
+    <view class="section">
+      <view class="section-title">积分分布</view>
+      <view class="distribution">
+        <view class="dist-item" wx:for="{{distribution}}" wx:key="label">
+          <view class="dist-header">
+            <text class="dist-label">{{item.label}}</text>
+            <text class="dist-count">{{item.count}}人</text>
+          </view>
+          <view class="dist-bar-bg">
+            <view class="dist-bar {{item.class}}" style="width: {{item.percent}}%"></view>
+          </view>
+          <text class="dist-percent">{{item.percent}}%</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 高频违规 -->
+    <view class="section">
+      <view class="section-title">高频违规 TOP5</view>
+      <view class="violation-list">
+        <view class="violation-item" wx:for="{{topViolations}}" wx:key="rule_name">
+          <view class="violation-rank">{{index + 1}}</view>
+          <view class="violation-info">
+            <text class="violation-name">{{item.rule_name}}</text>
+            <text class="violation-count">发生 {{item.count}} 次</text>
+          </view>
+        </view>
+      </view>
+      <view class="empty-tip" wx:if="{{topViolations.length === 0}}">
+        <text>暂无违规记录</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 积分排名 -->
+  <view class="tab-content" wx:if="{{activeTab === 'ranking'}}">
+    <view class="ranking-list">
+      <view class="ranking-item" wx:for="{{rankingList}}" wx:key="student_id">
+        <view class="ranking-left">
+          <view class="ranking-medal" wx:if="{{index < 3}}">
+            <text>{{['🥇', '🥈', '🥉'][index]}}</text>
+          </view>
+          <view class="ranking-number" wx:else>{{index + 1}}</view>
+          <view class="ranking-info">
+            <text class="ranking-name">{{item.student_name}}</text>
+            <text class="ranking-room">{{item.building}} - {{item.room}}</text>
+          </view>
+        </view>
+        <view class="ranking-right">
+          <text class="ranking-score">{{item.dorm_score}}</text>
+          <text class="ranking-unit">分</text>
+        </view>
+      </view>
+    </view>
+    <view class="empty-tip" wx:if="{{rankingList.length === 0}}">
+      <text>暂无住宿生数据</text>
+    </view>
+  </view>
+
+  <!-- 预警列表 -->
+  <view class="tab-content" wx:if="{{activeTab === 'warnings'}}">
+    <view class="warning-list">
+      <view class="warning-item" wx:for="{{warningList}}" wx:key="_id" bindtap="viewStudentDetail" data-id="{{item.student_id}}">
+        <view class="warning-left">
+          <view class="warning-badge {{item.warning_level}}"></view>
+          <view class="warning-info">
+            <text class="warning-name">{{item.student_name}}</text>
+            <text class="warning-room">{{item.building}} - {{item.room}}</text>
+            <text class="warning-score">宿舍积分：{{item.current_score}}分</text>
+          </view>
+        </view>
+        <view class="warning-right">
+          <text class="warning-level-text">{{item.warning_level_text}}</text>
+          <text class="warning-arrow">></text>
+        </view>
+      </view>
+    </view>
+    <view class="empty-tip" wx:if="{{warningList.length === 0}}">
+      <text>暂无预警学生</text>
+    </view>
+  </view>
+</view>

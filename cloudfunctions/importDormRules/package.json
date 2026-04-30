@@ -1,0 +1,9 @@
+{
+  "name": "importDormRules",
+  "version": "1.0.0",
+  "description": "导入宿舍规则数据",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

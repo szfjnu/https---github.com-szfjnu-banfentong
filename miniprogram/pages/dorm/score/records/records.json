@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "宿舍积分记录",
+  "navigationBarBackgroundColor": "#1890ff",
+  "navigationBarTextStyle": "white",
+  "enablePullDownRefresh": true
+}

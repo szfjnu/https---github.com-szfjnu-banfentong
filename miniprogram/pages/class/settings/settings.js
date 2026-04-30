@@ -11,7 +11,8 @@ Page({
       volunteer_enabled: true,
       attendance_enabled: false,
       mall_enabled: true,
-      discipline_enabled: true
+      discipline_enabled: true,
+      enable_dorm_management: false
     },
     loading: true
   },
@@ -29,19 +30,50 @@ Page({
 
     try {
       const db = wx.cloud.database();
-      const res = await db.collection('classes').doc(this.data.classId).get();
 
-      if (res.data) {
-        const classInfo = res.data;
-        this.setData({
-          classInfo: {
-            ...classInfo,
-            created_at: classInfo.created_at ? util.formatDate(new Date(classInfo.created_at)) : ''
-          },
-          settings: classInfo.settings || this.data.settings,
-          loading: false
-        });
+      // 加载班级基本信息
+      const classRes = await db.collection('classes').doc(this.data.classId).get();
+
+      if (!classRes.data) {
+        this.setData({ loading: false });
+        util.showError('班级不存在');
+        return;
       }
+
+      const classInfo = classRes.data;
+
+      // 加载班级设置（从 class_settings 集合）
+      let settings = this.data.settings;
+      try {
+        const settingsRes = await db.collection('class_settings')
+          .where({ class_id: this.data.classId })
+          .get();
+
+        if (settingsRes.data && settingsRes.data.length > 0) {
+          const classSettings = settingsRes.data[0];
+
+          // 将 class_settings 的字段映射到 settings 对象
+          settings = {
+            score_enabled: classSettings.score_rules !== undefined,
+            volunteer_enabled: classSettings.feature_flags?.enable_volunteer !== false,
+            attendance_enabled: classSettings.feature_flags?.enable_duty !== false,
+            mall_enabled: true,
+            discipline_enabled: true,
+            enable_dorm_management: classSettings.feature_flags?.enable_dorm || false
+          };
+        }
+      } catch (settingsErr) {
+        console.error('加载班级设置失败，使用默认值:', settingsErr);
+      }
+
+      this.setData({
+        classInfo: {
+          ...classInfo,
+          created_at: classInfo.created_at ? util.formatDate(new Date(classInfo.created_at)) : ''
+        },
+        settings,
+        loading: false
+      });
     } catch (err) {
       console.error('加载数据失败:', err);
       this.setData({ loading: false });
@@ -54,18 +86,68 @@ Page({
     const key = e.currentTarget.dataset.key;
     const value = e.detail.value;
 
+    // 先保存原始值，以便失败时恢复
+    const originalValue = this.data.settings[key];
+
+    // 立即更新UI
     this.setData({
       [`settings.${key}`]: value
     });
 
     try {
       const db = wx.cloud.database();
-      await db.collection('classes').doc(this.data.classId).update({
-        data: {
-          [`settings.${key}`]: value,
-          updated_at: db.serverDate()
-        }
-      });
+
+      // 先检查是否已存在 class_settings 记录
+      const existingRes = await db.collection('class_settings')
+        .where({ class_id: this.data.classId })
+        .get();
+
+      // 获取当前的settings值（使用更新后的值）
+      const currentSettings = { ...this.data.settings, [key]: value };
+      // 优先使用数据库中原本存在的值（existingRes），如果不存在则使用当前页面的值
+      const existingFeatureFlags = existingRes.data?.[0]?.feature_flags || {};
+
+      // 构建要保存的 feature_flags 数据
+      const featureFlags = {
+      enable_volunteer: currentSettings.volunteer_enabled,
+      // 修复点：这里直接取 value，不要用三元表达式覆盖
+      enable_dorm: value, 
+      enable_competition: false,
+      enable_duty: currentSettings.attendance_enabled
+      };
+
+      // 构建完整的 class_settings 数据
+      const classSettingsData = {
+        class_id: this.data.classId,
+        volunteer_score_per_hour: 2,
+        score_rules: currentSettings.score_enabled ? {
+          max_score_per_day: -1,
+          min_score_per_action: 1,
+          score_expire_days: -1
+        } : undefined,
+        feature_flags: featureFlags,
+        notification_settings: {
+          remind_before_days: 1,
+          notify_on_birthday: true,
+          notify_on_schedule: true
+        },
+        updated_at: db.serverDate()
+      };
+
+      if (existingRes.data && existingRes.data.length > 0) {
+        // 更新现有记录
+        await db.collection('class_settings').doc(existingRes.data[0]._id).update({
+          data: classSettingsData
+        });
+      } else {
+        // 创建新记录
+        await db.collection('class_settings').add({
+          data: {
+            ...classSettingsData,
+            created_at: db.serverDate()
+          }
+        });
+      }
 
       util.showSuccess('设置已保存');
     } catch (err) {
@@ -73,7 +155,7 @@ Page({
       util.showError('保存失败');
       // 恢复原值
       this.setData({
-        [`settings.${key}`]: !value
+        [`settings.${key}`]: originalValue
       });
     }
   },

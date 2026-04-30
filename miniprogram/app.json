@@ -36,6 +36,18 @@
     "pages/group/group",
     "pages/group/add/add",
     "pages/semester/semester",
+    "pages/dorm/dorm",
+    "pages/dorm/rules/rules",
+    "pages/dorm/score/add/add",
+    "pages/dorm/score/records/records",
+    "pages/dorm/buildings/buildings",
+    "pages/dorm/buildings/add/add",
+    "pages/dorm/rooms/rooms",
+    "pages/dorm/rooms/add/add",
+    "pages/dorm/beds/beds",
+    "pages/dorm/beds/assign/assign",
+    "pages/dorm/statistics/statistics",
+    "pages/dorm/detail/detail",
     "pages/debug/debug"
   ],
   "window": {

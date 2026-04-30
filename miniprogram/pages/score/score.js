@@ -24,16 +24,14 @@ Page({
   },
 
   onShow: function () {
-    // 【修改】切换回来时也检查一下班级ID（防止切换班级后数据未更新）
+    // 【修复】切换回来时总是刷新数据（与index页面保持一致）
     const newClassId = app.globalData.class_id || '';
-    const shouldRefresh = newClassId !== this.data.currentClassId;
     this.setData({ 
       userRole: app.globalData.role,
       currentClassId: newClassId
     });
-    if (shouldRefresh) {
-      this.loadRanking();
-    }
+    // 每次显示都重新加载排行榜，确保数据实时性
+    this.loadRanking();
   },
 
   // 加载积分排行榜

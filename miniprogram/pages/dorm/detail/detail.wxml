@@ -1,0 +1,81 @@
+<view class="container">
+  <!-- 学生信息卡片 -->
+  <view class="student-card">
+    <view class="student-header">
+      <view class="student-avatar">{{student.name[0]}}</view>
+      <view class="student-info">
+        <text class="student-name">{{student.name}}</text>
+        <text class="student-class">{{student.class_name}}</text>
+      </view>
+    </view>
+    
+    <view class="student-dorm">
+      <view class="dorm-item">
+        <text class="dorm-label">楼栋：</text>
+        <text class="dorm-value">{{student.dorm_info.building || '-'}}</text>
+      </view>
+      <view class="dorm-item">
+        <text class="dorm-label">房间：</text>
+        <text class="dorm-value">{{student.dorm_info.room || '-'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 积分卡片 -->
+  <view class="score-card">
+    <view class="score-main">
+      <text class="score-label">当前宿舍积分</text>
+      <text class="score-value {{student.dorm_score >= 60 ? 'good' : 'warning'}}">{{student.dorm_score || 100}}</text>
+    </view>
+    <view class="score-details">
+      <view class="score-detail-item">
+        <text class="detail-label">原始积分</text>
+        <text class="detail-value">{{accounts.original_score || 100}}</text>
+      </view>
+      <view class="score-divider"></view>
+      <view class="score-detail-item">
+        <text class="detail-label">折算积分</text>
+        <text class="detail-value">{{accounts.converted_score || 0}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 积分变动记录 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">积分变动记录</text>
+      <text class="section-filter" bindtap="onFilterChange">筛选</text>
+    </view>
+
+    <view class="record-list">
+      <view class="record-item" wx:for="{{records}}" wx:key="_id">
+        <view class="record-left">
+          <view class="record-icon {{item.score_change > 0 ? 'add' : 'deduct'}}">
+            {{item.score_change > 0 ? '+' : ''}}{{item.score_change}}
+          </view>
+          <view class="record-info">
+            <text class="record-reason">{{item.reason_detail}}</text>
+            <text class="record-date">{{item.date}} · {{item.recorder_name}}</text>
+          </view>
+        </view>
+        <view class="record-right">
+          <text class="record-after">剩余 {{item.score_after}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="empty-tip" wx:if="{{records.length === 0}}">
+      <text>暂无积分变动记录</text>
+    </view>
+
+    <view class="load-more" wx:if="{{hasMore}}" bindtap="onLoadMore">
+      <text>{{loadingMore ? '加载中...' : '点击加载更多'}}</text>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-bar">
+    <button class="action-btn primary" bindtap="goToAdjust">调整积分</button>
+    <button class="action-btn secondary" bindtap="goToHistory">查看统计</button>
+  </view>
+</view>

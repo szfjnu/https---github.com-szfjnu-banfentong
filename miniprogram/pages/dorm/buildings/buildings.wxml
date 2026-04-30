@@ -1,0 +1,118 @@
+<!--pages/dorm/buildings/buildings.wxml-->
+<view class="container">
+  <!-- 统计卡片 -->
+  <view class="stats-card">
+    <view class="stat-item">
+      <text class="stat-value">{{totalBuildings}}</text>
+      <text class="stat-label">楼栋总数</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-value">{{totalRooms}}</text>
+      <text class="stat-label">房间总数</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-value">{{totalBeds}}</text>
+      <text class="stat-label">床位总数</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-value">{{occupiedBeds}}</text>
+      <text class="stat-label">已入住</text>
+    </view>
+  </view>
+
+  <!-- 顶部添加按钮 -->
+  <view class="top-add-bar">
+    <button class="top-add-btn" bindtap="onAdd">
+      <text class="btn-icon">➕</text>
+      <text>添加楼栋</text>
+    </button>
+  </view>
+
+  <!-- 搜索框 -->
+  <view class="search-box">
+    <text class="search-icon">🔍</text>
+    <input
+      class="search-input"
+      type="text"
+      placeholder="搜索楼栋名称"
+      value="{{searchKeyword}}"
+      bindinput="onSearchInput"
+      bindconfirm="onSearch"
+    />
+    <button class="search-btn" bindtap="onSearch">搜索</button>
+  </view>
+
+  <!-- 楼栋列表 -->
+  <view class="building-list">
+    <view class="building-item" wx:for="{{buildings}}" wx:key="_id" bindtap="onViewDetail" data-id="{{item._id}}">
+      <!-- 楼栋信息 -->
+      <view class="building-header">
+        <view class="building-name">{{item.building_name}}</view>
+        <view class="building-actions">
+          <view class="action-btn" catchtap="onEdit" data-id="{{item._id}}">
+            <text>编辑</text>
+          </view>
+          <view class="action-btn delete" catchtap="onDelete" data-id="{{item._id}}" wx:if="{{isAdmin}}">
+            <text>删除</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 楼栋详情 -->
+      <view class="building-info">
+        <view class="info-item">
+          <text class="info-label">所属校区：</text>
+          <text class="info-value">{{item.campus}}</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">楼栋编号：</text>
+          <text class="info-value">{{item.building_code}}</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">房间数：</text>
+          <text class="info-value">{{item.room_count || 0}}</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">床位数：</text>
+          <text class="info-value">{{item.bed_count || 0}}</text>
+        </view>
+        <view class="info-item" wx:if="{{item.description}}">
+          <text class="info-label">备注：</text>
+          <text class="info-value">{{item.description}}</text>
+        </view>
+      </view>
+
+      <!-- 房间预览 -->
+      <view class="room-preview" wx:if="{{item.room_count > 0}}">
+        <text class="preview-label">房间分布：</text>
+        <view class="preview-tags">
+          <view class="tag" wx:for="{{item.floors}}" wx:key="index" wx:for-item="floor">
+            <text>{{floor}}层</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{buildings.length === 0 && !loading}}">
+      <text class="empty-icon">🏢</text>
+      <text class="empty-text">暂无楼栋信息</text>
+      <button class="empty-btn" bindtap="onAdd">添加楼栋</button>
+    </view>
+
+    <!-- 加载更多 -->
+    <view class="loading-more" wx:if="{{loadingMore}}">
+      <text>加载中...</text>
+    </view>
+
+    <!-- 没有更多 -->
+    <view class="no-more" wx:if="{{!hasMore && buildings.length > 0}}">
+      <text>没有更多了</text>
+    </view>
+  </view>
+
+  <!-- 添加按钮（始终显示） -->
+  <view class="fab-button" bindtap="onAdd">
+    <text class="fab-icon">➕</text>
+  </view>
+</view>

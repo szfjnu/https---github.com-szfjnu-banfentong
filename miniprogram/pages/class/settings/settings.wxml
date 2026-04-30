@@ -61,6 +61,13 @@
         </view>
         <switch checked="{{settings.discipline_enabled}}" bindchange="onToggleSetting" data-key="discipline_enabled" color="#1890ff" />
       </view>
+      <view class="setting-item">
+        <view class="setting-left">
+          <text class="setting-icon">🏠</text>
+          <text class="setting-name">宿舍管理</text>
+        </view>
+        <switch checked="{{settings.enable_dorm_management}}" bindchange="onToggleSetting" data-key="enable_dorm_management" color="#1890ff" />
+      </view>
     </view>
   </view>
 

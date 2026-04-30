@@ -1,0 +1,316 @@
+/* pages/dorm/score/records/records.wxss */
+.container {
+  padding: 20rpx;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* 筛选栏 */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15rpx;
+  margin-bottom: 20rpx;
+}
+
+.filter-picker {
+  flex: 1;
+  min-width: 150rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx;
+  background: white;
+  border-radius: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  font-size: 26rpx;
+  color: #333;
+}
+
+.filter-picker .arrow {
+  font-size: 20rpx;
+  color: #999;
+}
+
+/* 搜索框 */
+.search-box {
+  display: flex;
+  align-items: center;
+  padding: 15rpx 20rpx;
+  background: white;
+  border-radius: 12rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.search-icon {
+  font-size: 32rpx;
+  margin-right: 12rpx;
+}
+
+.search-input {
+  flex: 1;
+  font-size: 26rpx;
+}
+
+.search-btn {
+  padding: 10rpx 25rpx;
+  background: #1890ff;
+  color: white;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  border: none;
+}
+
+/* 统计卡片 */
+.stats-card {
+  display: flex;
+  gap: 15rpx;
+  margin-bottom: 20rpx;
+}
+
+.stat-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 25rpx 15rpx;
+  background: white;
+  border-radius: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.stat-value {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 8rpx;
+}
+
+.stat-value.total {
+  color: #1890ff;
+}
+
+.stat-value.positive {
+  color: #52c41a;
+}
+
+.stat-value.negative {
+  color: #ff4d4f;
+}
+
+.stat-value.violation {
+  color: #ff9500;
+}
+
+.stat-value.service {
+  color: #722ed1;
+}
+
+.stat-label {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 记录列表 */
+.record-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15rpx;
+}
+
+.record-item {
+  background: white;
+  border-radius: 16rpx;
+  padding: 25rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+}
+
+.record-item:active {
+  transform: scale(0.98);
+}
+
+/* 头部信息 */
+.record-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15rpx;
+}
+
+.record-type {
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  font-weight: 500;
+}
+
+.record-type.violation {
+  background: #fff2e8;
+  color: #ff9500;
+}
+
+.record-type.service {
+  background: #f9f0ff;
+  color: #722ed1;
+}
+
+.record-date {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 规则信息 */
+.record-rule {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15rpx;
+  padding-bottom: 15rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.rule-category {
+  font-size: 24rpx;
+  color: #1890ff;
+  margin-right: 10rpx;
+}
+
+.rule-name {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+/* 学生信息 */
+.record-student {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15rpx;
+}
+
+.student-name {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+  margin-right: 15rpx;
+}
+
+.student-id {
+  font-size: 24rpx;
+  color: #999;
+  margin-right: 15rpx;
+}
+
+.dorm-info {
+  padding: 4rpx 12rpx;
+  background: #f6f8fa;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  color: #666;
+}
+
+/* 积分信息 */
+.record-score {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 15rpx;
+}
+
+.score-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 15rpx;
+  background: #f6f8fa;
+  border-radius: 12rpx;
+}
+
+.score-label {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 8rpx;
+}
+
+.score-value {
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.score-value.positive {
+  color: #52c41a;
+}
+
+.score-value.negative {
+  color: #ff4d4f;
+}
+
+/* 备注 */
+.record-remark {
+  padding: 15rpx;
+  background: #fff8e8;
+  border-radius: 8rpx;
+  margin-bottom: 15rpx;
+}
+
+.remark-label {
+  font-size: 24rpx;
+  color: #ff9500;
+  margin-right: 8rpx;
+}
+
+.remark-text {
+  font-size: 24rpx;
+  color: #666;
+  line-height: 1.5;
+}
+
+/* 记录人 */
+.record-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 15rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.recorder {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.delete-btn {
+  padding: 8rpx 20rpx;
+  background: #fff2e8;
+  color: #ff4d4f;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+}
+
+.empty-icon {
+  font-size: 100rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.5;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+/* 加载更多 */
+.loading-more,
+.no-more {
+  text-align: center;
+  padding: 30rpx 0;
+  font-size: 24rpx;
+  color: #999;
+}

@@ -1,0 +1,9 @@
+{
+  "name": "deleteDormRecord",
+  "version": "1.0.0",
+  "description": "删除宿舍记录并关联删除个人积分",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

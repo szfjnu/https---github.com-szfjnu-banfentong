@@ -207,6 +207,7 @@ Page({
       const res = await db.collection('score_items')
         .where(baseQuery)
         .orderBy('created_at', 'desc')
+        .limit(1000) // 增加limit参数，突破20条限制
         .get();
       
       const now = new Date();

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>修复班级设置数据</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .description {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .button {
+            background-color: #1890ff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .button:hover {
+            background-color: #40a9ff;
+        }
+        .button:disabled {
+            background-color: #d9d9d9;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 4px;
+            background-color: #f0f0f0;
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .success {
+            background-color: #f6ffed;
+            border: 1px solid #b7eb8f;
+            color: #52c41a;
+        }
+        .error {
+            background-color: #fff2f0;
+            border: 1px solid #ffccc7;
+            color: #ff4d4f;
+        }
+        .warning {
+            background-color: #fffbe6;
+            border: 1px solid #ffe58f;
+            color: #faad14;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 修复班级设置数据工具</h1>
+
+        <div class="description">
+            <h3>功能说明：</h3>
+            <ul>
+                <li>删除 <code>class_id</code> 为空的无效数据</li>
+                <li>为所有活跃班级创建或更新 <code>class_settings</code> 记录</li>
+                <li>确保每个班级都有完整的 <code>feature_flags</code> 配置</li>
+                <li>修复宿舍管理功能开关的读取问题</li>
+            </ul>
+
+            <h3>当前问题：</h3>
+            <ul>
+                <li>❌ 存在 <code>class_id</code> 为空的无效记录</li>
+                <li>❌ 部分班级缺少 <code>feature_flags</code> 字段</li>
+                <li>❌ 宿舍管理功能开关无法正常工作</li>
+            </ul>
+
+            <h3>执行步骤：</h3>
+            <ol>
+                <li>点击下方"执行修复"按钮</li>
+                <li>等待云函数执行完成</li>
+                <li>查看修复结果</li>
+                <li>重新测试宿舍管理功能</li>
+            </ol>
+        </div>
+
+        <button class="button" id="executeBtn" onclick="executeFix()">执行修复</button>
+        <button class="button" id="checkBtn" onclick="checkData()">检查数据</button>
+
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        function showResult(message, type = 'info') {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result ' + type;
+            resultDiv.textContent = message;
+        }
+
+        function executeFix() {
+            const btn = document.getElementById('executeBtn');
+            btn.disabled = true;
+            btn.textContent = '执行中...';
+
+            showResult('正在执行修复，请稍候...', 'warning');
+
+            // 这里需要替换为实际的云函数调用
+            // 由于这是HTML页面，需要在微信小程序中调用
+            console.log('请在微信小程序中调用 fixClassSettings 云函数');
+
+            setTimeout(() => {
+                showResult('模拟执行完成！\n\n实际使用时，请在微信小程序中调用云函数：\nwx.cloud.callFunction({\n  name: \'fixClassSettings\',\n  success: res => {\n    console.log(\'修复结果:\', res.result)\n  }\n})', 'success');
+                btn.disabled = false;
+                btn.textContent = '执行修复';
+            }, 2000);
+        }
+
+        function checkData() {
+            const btn = document.getElementById('checkBtn');
+            btn.disabled = true;
+            btn.textContent = '检查中...';
+
+            showResult('正在检查数据，请稍候...', 'warning');
+
+            setTimeout(() => {
+                showResult('模拟检查完成！\n\n实际使用时，请在微信小程序中查询数据：\nwx.cloud.database().collection(\'class_settings\').get().then(res => {\n  console.log(\'班级设置数据:\', res.data)\n})', 'success');
+                btn.disabled = false;
+                btn.textContent = '检查数据';
+            }, 1500);
+        }
+    </script>
+</body>
+</html>

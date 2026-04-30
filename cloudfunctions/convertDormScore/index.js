@@ -55,8 +55,8 @@ exports.main = async (event, context) => {
       dormAccount = accountRes.data[0]
     }
 
-    // 3. 计算折算积分
-    const convertedScoreChange = Math.round(dorm_score_change * conversionRatio)
+    // 3. 计算折算积分（保留两位小数）
+    const convertedScoreChange = Math.round(dorm_score_change * conversionRatio * 100) / 100
 
     // 4. 更新宿舍积分账户
     await db.collection('dorm_score_accounts').doc(dormAccount._id).update({

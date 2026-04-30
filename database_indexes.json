@@ -1,0 +1,81 @@
+class_settings{
+  "indexes": [
+    {
+      "collection": "attendance_statistics",
+      "description": "考勤统计数据索引 - 用于按班级和日期查询",
+      "fields": [
+        { "field": "class_id", "order": "asc" },
+        { "field": "date", "order": "asc" }
+      ]
+    },
+    {
+      "collection": "attendance_statistics",
+      "description": "考勤统计数据索引 - 用于按班级查询并按日期降序排列",
+      "fields": [
+        { "field": "class_id", "order": "asc" },
+        { "field": "date", "order": "desc" }
+      ]
+    },
+    {
+      "collection": "class_schedules",
+      "description": "课程表索引 - 用于按班级、星期、状态查询并按节次排序",
+      "fields": [
+        { "field": "class_id", "order": "asc" },
+        { "field": "weekday", "order": "asc" },
+        { "field": "status", "order": "asc" },
+        { "field": "period", "order": "asc" }
+      ],
+      "note": "注意：使用 neq 操作符可能影响索引效率"
+    },
+    {
+      "collection": "students",
+      "description": "学生表索引 - 用于按班级和状态查询并按积分排序",
+      "fields": [
+        { "field": "class_id", "order": "asc" },
+        { "field": "status", "order": "asc" },
+        { "field": "current_score", "order": "desc" }
+      ]
+    },
+    {
+      "collection": "score_records",
+      "description": "积分记录索引 - 用于按班级、学生和创建时间查询",
+      "fields": [
+        { "field": "class_id", "order": "asc" },
+        { "field": "student_id", "order": "asc" },
+        { "field": "created_at", "order": "desc" }
+      ]
+    },
+    {
+      "collection": "class_settings",
+      "description": "班级设置索引 - 用于按班级ID查询",
+      "fields": [
+        { "field": "class_id", "order": "asc" }
+      ]
+    },
+    {
+      "collection": "dorm_inspection_records",
+      "description": "宿舍检查记录索引 - 用于按班级和检查日期查询",
+      "fields": [
+        { "field": "class_id", "order": "asc" },
+        { "field": "inspection_date", "order": "desc" }
+      ]
+    },
+    {
+      "collection": "dorm_warnings",
+      "description": "宿舍预警索引 - 用于按班级和状态查询",
+      "fields": [
+        { "field": "class_id", "order": "asc" },
+        { "field": "status", "order": "asc" },
+        { "field": "created_at", "order": "desc" }
+      ]
+    },
+    {
+      "collection": "volunteer_records",
+      "description": "志愿服务记录索引 - 用于按学生查询",
+      "fields": [
+        { "field": "student_id", "order": "asc" },
+        { "field": "created_at", "order": "desc" }
+      ]
+    }
+  ]
+}

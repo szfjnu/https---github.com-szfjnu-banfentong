@@ -1,0 +1,203 @@
+.container {
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding-bottom: 100rpx;
+}
+
+/* 筛选栏 */
+.filter-bar {
+  display: flex;
+  gap: 20rpx;
+  padding: 20rpx;
+  background: #fff;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.filter-item {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f5f7fa;
+  padding: 20rpx;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+}
+
+.arrow {
+  font-size: 20rpx;
+  color: #999;
+}
+
+/* 记录列表 */
+.record-list {
+  padding: 20rpx;
+}
+
+.record-item {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+}
+
+.record-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.record-type-tag {
+  background: #e8f4ff;
+  color: #1890ff;
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+}
+
+.record-score {
+  font-size: 36rpx;
+  font-weight: bold;
+}
+
+.record-score.pass {
+  color: #52c41a;
+}
+
+.record-score.fail {
+  color: #ff4d4f;
+}
+
+.record-body {
+  margin-bottom: 16rpx;
+}
+
+.record-location {
+  display: flex;
+  align-items: center;
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 12rpx;
+}
+
+.icon {
+  margin-right: 10rpx;
+  font-size: 32rpx;
+}
+
+.record-info {
+  display: flex;
+  gap: 30rpx;
+  font-size: 26rpx;
+  color: #999;
+}
+
+.record-problems {
+  background: #fff7e6;
+  padding: 16rpx;
+  border-radius: 8rpx;
+  margin-bottom: 16rpx;
+}
+
+.problem-count {
+  font-size: 26rpx;
+  color: #fa8c16;
+}
+
+.record-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.record-status {
+  font-size: 24rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+}
+
+.record-status.pending {
+  background: #fff7e6;
+  color: #fa8c16;
+}
+
+.record-status.processed {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.record-status.archived {
+  background: #f5f5f5;
+  color: #999;
+}
+
+.record-arrow {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 100rpx 40rpx;
+}
+
+.empty-icon {
+  font-size: 120rpx;
+  margin-bottom: 30rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
+  margin-bottom: 30rpx;
+}
+
+.empty-btn {
+  background: #1890ff;
+  color: #fff;
+  border: none;
+  padding: 20rpx 60rpx;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+}
+
+/* 加载更多 */
+.load-more, .no-more {
+  text-align: center;
+  padding: 30rpx;
+  font-size: 28rpx;
+  color: #1890ff;
+}
+
+.no-more {
+  color: #999;
+}
+
+/* 浮动按钮 */
+.fab {
+  position: fixed;
+  right: 30rpx;
+  bottom: 100rpx;
+  width: 100rpx;
+  height: 100rpx;
+  background: #1890ff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 20rpx rgba(24, 144, 255, 0.3);
+  font-size: 48rpx;
+  color: #fff;
+  z-index: 100;
+}
+
+.fab:active {
+  transform: scale(0.9);
+}

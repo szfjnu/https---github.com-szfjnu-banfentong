@@ -323,6 +323,7 @@ Page({
     try {
       const db = wx.cloud.database();
       const _ = db.command;
+      const { isAddScore } = this.data;
 
       // 1. 先从 score_categories 集合拉取真正的分类定义
       const categoriesRes  = await db.collection('score_categories')
@@ -334,77 +335,170 @@ Page({
 
       // 2.从 score_items 集合查询积分规则数据
       const itemsRes = await db.collection('score_items')
-        .where({
-          record_type: 'rule',
-          is_enabled: _.neq(false) // 只查询启用的规则
-        })
+        .where(_.or([
+          // 新结构: record_type='rule' 且 is_enabled 不为 false
+          {
+            record_type: 'rule',
+            is_enabled: _.neq(false)
+          },
+          // 旧结构: 没有 record_type 字段 且 is_active 为 true
+          {
+            record_type: _.exists(false),
+            is_active: true
+          }
+        ]))
         .orderBy('created_at', 'desc')
+        .limit(1000)
         .get();
 
       const categoryList = categoriesRes.data || [];
       const allItems = itemsRes.data || [];
       
-      // 3.按类别分组
-      const categoryMap = {};
-      // 初始化映射表，确保分类表里的每个分类在 map 里都有个位置（即便暂时没规则）
-      categoryList.forEach(cat => {
-
-        categoryMap[cat.category_name] = [];
-
+      // 3. 过滤出符合当前操作类型的项目
+      const filteredItems = allItems.filter(item => {
+        const scoreValue = item.score_value || item.default_score || 0;
+        // 加分操作：只显示分值>0的项目；扣分操作：只显示分值<0的项目
+        return isAddScore ? scoreValue > 0 : scoreValue < 0;
       });
+      
+      // 4. 按类别分组
+      const categoryMap = {};
+      // 初始化映射表
+      categoryList.forEach(cat => {
+        categoryMap[cat.category_name] = [];
+      });
+      
       // 将规则归类到对应的分类中
-      allItems.forEach(item => {
-        const catName = (item.rule_category || '其他').trim();
+      filteredItems.forEach(item => {
+        const catName = (item.rule_category || item.category || '其他').trim();
+        const scoreValue = item.score_value || item.default_score || 0;
+        const ruleName = item.rule_name || item.name || item.item_name || '未命名项目';
+
+        const normalizedItem = {
+          ...item,
+          rule_category: catName,
+          score_value: scoreValue,
+          rule_name: ruleName
+        };
+
         if (!categoryMap[catName]) {
           categoryMap[catName] = [];
         }
-        categoryMap[catName].push(item);
+        categoryMap[catName].push(normalizedItem);
       });
-      // 4. 提取最终的分类名称列表（优先使用分类表里的名称）
-      const finalCategories = categoryList.map(c => c.category_name);
-      // 如果有些规则的分类不在分类表里，也补进去
+      
+      // 5. 提取有效的分类名称列表（只包含有项目的分类）
+      const validCategories = [];
+      const finalCategories = [];
+      
+      categoryList.forEach(c => {
+        if (categoryMap[c.category_name] && categoryMap[c.category_name].length > 0) {
+          finalCategories.push(c.category_name);
+        }
+      });
+      
+      // 补充未在分类表中但有项目的分类
       Object.keys(categoryMap).forEach(name => {
-        if (!finalCategories.includes(name)) {
+        if (categoryMap[name].length > 0 && !finalCategories.includes(name)) {
           finalCategories.push(name);
         }
-       });  
-      //const categories = Object.keys(categoryMap);
+      });
       
-      // 5. 构建级联选择器数据 [第一列, 第二列]
-
+      // 6. 构建级联选择器数据
       const firstCategory = finalCategories[0] || '其他';
       const firstItems = categoryMap[firstCategory] || [];
       
       const cascaderData = [
         finalCategories.map(name => ({ name })),
         firstItems.map(item => ({
-          name: item.rule_name || item.name || item.item_name || '未命名项目',
-          score: item.score_value || 0,
-          type: (item.score_value || 0) > 0 ? '加分' : '扣分',
+          name: item.rule_name,
+          score: item.score_value,
+          type: item.score_value > 0 ? '加分' : '扣分',
           item: item
         }))
       ];  
 
-
       this.setData({
-        scoreItems: allItems,
+        scoreItems: allItems,           // 保存所有项目用于切换
+        filteredScoreItems: filteredItems, // 保存过滤后的项目
         categories: finalCategories,
         categoryMap: categoryMap,
         cascaderData: cascaderData,
         selectedCategory: firstCategory,
-        cascaderValue: [0, 0] // 强制重置索引
+        cascaderValue: [0, 0]
       });
 
-      //  6. 默认选择第一个项目
+      // 7. 默认选择第一个项目
       if (firstItems.length > 0) {
         this.updateSelectedItem(firstItems[0]);
       }
       
-      console.log('加载积分规则成功, 共', allItems.length, '条');
+      console.log('加载积分规则成功, 共', allItems.length, '条, 当前显示', filteredItems.length, '条');
 
     } catch (err) {
       console.error('加载积分项目失败:', err);
       util.showError('积分配置加载失败');
+    }
+  },
+  
+  // 重新构建级联选择器数据（用于切换加分/扣分时）
+  rebuildCascaderData: function() {
+    const { scoreItems, isAddScore, categoryMap } = this.data;
+    
+    // 重新过滤项目
+    const filteredItems = scoreItems.filter(item => {
+      const scoreValue = item.score_value || item.default_score || 0;
+      return isAddScore ? scoreValue > 0 : scoreValue < 0;
+    });
+    
+    // 重新构建categoryMap
+    const newCategoryMap = {};
+    Object.keys(categoryMap).forEach(catName => {
+      newCategoryMap[catName] = [];
+    });
+    
+    filteredItems.forEach(item => {
+      const catName = item.rule_category || '其他';
+      if (!newCategoryMap[catName]) {
+        newCategoryMap[catName] = [];
+      }
+      newCategoryMap[catName].push(item);
+    });
+    
+    // 提取有效分类
+    const finalCategories = [];
+    Object.keys(newCategoryMap).forEach(name => {
+      if (newCategoryMap[name].length > 0) {
+        finalCategories.push(name);
+      }
+    });
+    
+    // 构建级联选择器数据
+    const firstCategory = finalCategories[0] || '其他';
+    const firstItems = newCategoryMap[firstCategory] || [];
+    
+    const cascaderData = [
+      finalCategories.map(name => ({ name })),
+      firstItems.map(item => ({
+        name: item.rule_name,
+        score: item.score_value,
+        type: item.score_value > 0 ? '加分' : '扣分',
+        item: item
+      }))
+    ];
+    
+    this.setData({
+      filteredScoreItems: filteredItems,
+      categories: finalCategories,
+      categoryMap: newCategoryMap,
+      cascaderData: cascaderData,
+      selectedCategory: firstCategory,
+      cascaderValue: [0, 0]
+    });
+    
+    // 选择第一个项目
+    if (firstItems.length > 0) {
+      this.updateSelectedItem(firstItems[0]);
     }
   },
   // 提取一个通用的更新方法，避免直接 setData(undefined)
@@ -505,28 +599,41 @@ Page({
       // 第一列变化，更新第二列
       const selectedCategory = categories[value];
       const items = categoryMap[selectedCategory] || [];
-      
+
+      // 处理空分类情况
+      if (items.length === 0) {
+        this.setData({
+          'cascaderData[1]': [{ name: '该分类暂无项目', score: 0, type: '加分', item: null }],
+          cascaderValue: [value, 0]
+        });
+        return;
+      }
+
       // 构造新的第二列数据
       const newItemsColumn = items.map(item => ({
-        name: item.item_name || item.rule_name || item.name || '未命名项目',
-        score: item.score_value || item.default_score || 0,
-        type: item.type || (item.score_value > 0 ? '加分' : '扣分'),
+        name: item.rule_name,
+        score: item.score_value,
+        type: item.score_value > 0 ? '加分' : '扣分',
         item: item
       }));
 
       this.setData({
         'cascaderData[1]': newItemsColumn,
         // 关键：切换分类时，把第二列的索引强行指回 0
-        cascaderValue: [value, 0] 
+        cascaderValue: [value, 0]
       });
     }
   },
 
   // 切换加分/扣分
   onToggleScoreType: function () {
+    const newIsAddScore = !this.data.isAddScore;
     this.setData({
-      isAddScore: !this.data.isAddScore
+      isAddScore: newIsAddScore
     });
+    
+    // 重新构建级联选择器数据
+    this.rebuildCascaderData();
   },
 
   // 来源类型选择
