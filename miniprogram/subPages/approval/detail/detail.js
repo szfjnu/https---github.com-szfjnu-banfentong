@@ -218,5 +218,7 @@ Page({
   getStepLabel: function (step) {
     const map = { submit: '提交', cadre: '班委审核', teacher: '班主任审核' };
     return map[step] || step;
-  }
+  },
+
+  preventBubble() {},
 });

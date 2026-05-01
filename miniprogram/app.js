@@ -37,6 +37,19 @@ App({
 
     // 检查登录状态并恢复数据
     this.checkLoginStatus();
+
+    // 应用字体大小设置
+    this.applyFontSize();
+  },
+
+  applyFontSize: function () {
+    const fontSizeSetting = wx.getStorageSync('display_font_size') || 'medium';
+    const fontSizeMap = { small: '24rpx', medium: '28rpx', large: '32rpx' };
+    const fontSize = fontSizeMap[fontSizeSetting] || '28rpx';
+    const pages = getCurrentPages();
+    if (pages.length > 0) {
+      pages[0].setData({ _fontSizeBase: fontSize });
+    }
   },
 
   // 获取云开发环境ID
@@ -220,19 +233,19 @@ App({
       student: {
         profile: ['read'],
         score: ['read'],
+        duty: ['read'],
         volunteer: ['read', 'write'],
         redemption: ['read', 'write'],
         notification: ['read'],
         settings: ['read', 'write'],
-        // 数据隔离范围：仅本人数据
       },
       parent: {
         profile: ['read'],
         score: ['read'],
+        duty: ['read'],
         attendance: ['read'],
         notification: ['read'],
         settings: ['read'],
-        // 数据隔离范围：关联学生数据
       }
     };
 
@@ -321,29 +334,32 @@ App({
   // 获取当前学期
   getCurrentSemester: function () {
     return new Promise((resolve, reject) => {
-      const db = wx.cloud.database();
-      db.collection('semesters')
-        .where({
-          status: 'active'
-        })
-        .get()
-        .then(res => {
-          if (res.data.length > 0) {
-            const semester = res.data[0];
+      const classId = this.globalData.class_id;
+      wx.cloud.callFunction({
+        name: 'manageSemester',
+        data: {
+          action: 'getSemesterConfig',
+          data: { class_id: classId || '' }
+        },
+        success: res => {
+          if (res.result && res.result.success && res.result.data) {
+            const semester = res.result.data;
             this.globalData.currentSemester = semester;
             this.globalData.currentSemesterId = semester._id || semester.semester_id || '';
-            this.globalData.currentSemesterName = semester.name || '';
-            console.log('已获取当前学期:', semester.name, 'ID:', this.globalData.currentSemesterId);
+            this.globalData.currentSemesterName = semester.semester_name || semester.name || '';
+            wx.setStorageSync('currentSemesterId', this.globalData.currentSemesterId);
+            console.log('已获取当前学期:', this.globalData.currentSemesterName, 'ID:', this.globalData.currentSemesterId);
             resolve(semester);
           } else {
             console.warn('未找到当前学期');
             resolve(null);
           }
-        })
-        .catch(err => {
+        },
+        fail: err => {
           console.error('获取当前学期失败:', err);
           reject(err);
-        });
+        }
+      });
     });
   },
 

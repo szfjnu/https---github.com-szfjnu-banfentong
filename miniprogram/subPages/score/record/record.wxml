@@ -181,7 +181,7 @@
 
   <!-- 日期选择弹窗 -->
   <view class="modal-mask" wx:if="{{showDatePicker}}" bindtap="onCloseDatePicker">
-    <view class="modal-content date-picker-modal" catchtap="">
+    <view class="modal-content date-picker-modal" catchtap="preventBubble">
       <view class="modal-header">
         <text class="modal-title">选择日期范围</text>
         <text class="modal-close" bindtap="onCloseDatePicker">✕</text>

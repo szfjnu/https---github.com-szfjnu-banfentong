@@ -36,10 +36,22 @@ Page({
   },
 
   onLoad() {
-    const classId = wx.getStorageSync('currentClassId') || ''
+    const classId = app.globalData.class_id || wx.getStorageSync('class_id') || ''
     const userInfo = wx.getStorageSync('userInfo') || {}
     this.setData({ classId, role: userInfo.role || 'student' })
+    if (!classId) {
+      this.setData({ loading: false })
+      return
+    }
     this.loadItems()
+  },
+
+  onShow() {
+    const classId = app.globalData.class_id || wx.getStorageSync('class_id') || ''
+    if (classId && classId !== this.data.classId) {
+      this.setData({ classId, page: 1, items: [], hasMore: true })
+      this.loadItems()
+    }
   },
 
   onPullDownRefresh() {
@@ -134,6 +146,8 @@ Page({
   hidePublishModal() {
     this.setData({ showPublish: false })
   },
+
+  preventBubble() {},
 
   onPublishInput(e) {
     const field = e.currentTarget.dataset.field

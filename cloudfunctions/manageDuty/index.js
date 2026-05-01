@@ -64,6 +64,10 @@ exports.main = async (event, context) => {
       case 'getMyReminders': return await getMyReminders(data);
       case 'markReminderRead': return await markReminderRead(data);
 
+      // ========== 值日任务修改/删除 ==========
+      case 'updateDutyTask': return await updateDutyTask(data, OPENID);
+      case 'deleteDutyTask': return await deleteDutyTask(data, OPENID);
+
       // ========== 值日统计 ==========
       case 'getDutyStats': return await getDutyStats(data);
 
@@ -174,10 +178,23 @@ async function saveRotation(data, openid) {
   if (!group_ids || group_ids.length === 0) return { success: false, message: '请选择参与轮转的小组' };
 
   // 获取学期ID
+  let semesterQuery = { status: 'active' };
+  if (class_id) {
+    semesterQuery = { class_id: class_id, status: 'active' };
+  }
   const semesterRes = await db.collection('semesters')
-    .where({ status: 'active' })
+    .where(semesterQuery)
     .limit(1)
     .get();
+  if (semesterRes.data.length === 0 && class_id) {
+    const fallbackRes = await db.collection('semesters')
+      .where({ status: 'active' })
+      .limit(1)
+      .get();
+    if (fallbackRes.data.length > 0) {
+      semesterRes.data = fallbackRes.data;
+    }
+  }
   const semester_id = semesterRes.data && semesterRes.data.length > 0 ? semesterRes.data[0]._id : '';
 
   const now = db.serverDate();
@@ -263,7 +280,17 @@ async function arrangeDuty(data, openid) {
   }
 
   // 获取学期信息
-  const semesterRes = await db.collection('semesters').where({ status: 'active' }).limit(1).get();
+  let semesterQuery = { status: 'active' };
+  if (class_id) {
+    semesterQuery = { class_id: class_id, status: 'active' };
+  }
+  const semesterRes = await db.collection('semesters').where(semesterQuery).limit(1).get();
+  if (semesterRes.data.length === 0 && class_id) {
+    const fallbackRes = await db.collection('semesters').where({ status: 'active' }).limit(1).get();
+    if (fallbackRes.data.length > 0) {
+      semesterRes.data = fallbackRes.data;
+    }
+  }
   const semester_id = semesterRes.data && semesterRes.data.length > 0 ? semesterRes.data[0]._id : '';
   const semester_start = semesterRes.data && semesterRes.data.length > 0 ? semesterRes.data[0].start_date : null;
 
@@ -366,6 +393,19 @@ async function arrangeDuty(data, openid) {
 
     await db.collection('duty_reminders').add({ data: reminderData });
     createdReminders.push(reminder_id);
+
+    // 异步发送微信订阅消息（不阻塞主流程）
+    sendDutyReminder(reminderData, student_id, class_id).catch(err => {
+      console.error('发送订阅消息失败(不阻塞主流程):', err);
+      // 推送失败则更新reminder状态
+      db.collection('duty_reminders').where({ reminder_id }).limit(1).get().then(r => {
+        if (r.data && r.data.length > 0) {
+          db.collection('duty_reminders').doc(r.data[0]._id).update({
+            data: { reminder_status: '推送失败' }
+          });
+        }
+      });
+    });
   }
 
   return {
@@ -459,28 +499,28 @@ async function inspectTask(data, openid) {
     comment: comment || ''
   };
 
+  // 先同步积分到学生个人积分（如果失败则不更新任务状态）
+  let scoreRecordId = '';
+  if (finalScoreChange !== 0) {
+    try {
+      scoreRecordId = await syncScoreToStudent(task, finalScoreChange, inspectionData, openid);
+    } catch (scoreErr) {
+      console.error('积分同步失败:', scoreErr);
+      return { success: false, message: '积分同步失败，请重试: ' + (scoreErr.message || '') };
+    }
+  }
+
+  // 积分同步成功后，才更新任务状态
   await db.collection('duty_task').doc(task._id).update({
     data: {
       status: newStatus,
       score_change: finalScoreChange,
       completion_time: is_qualified ? now : null,
       inspection: inspectionData,
+      related_score_record_id: scoreRecordId || '',
       updated_at: now
     }
   });
-
-  // 同步积分到学生个人积分
-  let scoreRecordId = '';
-  if (finalScoreChange !== 0) {
-    scoreRecordId = await syncScoreToStudent(task, finalScoreChange, inspectionData, openid);
-  }
-
-  // 更新任务的关联积分记录ID
-  if (scoreRecordId) {
-    await db.collection('duty_task').doc(task._id).update({
-      data: { related_score_record_id: scoreRecordId }
-    });
-  }
 
   // 创建检查结果提醒
   const reminderContent = is_qualified
@@ -544,14 +584,25 @@ async function syncScoreToStudent(task, scoreChange, inspection, openid) {
   const record_id = generateId('sr');
 
   // 获取学期
-  const semesterRes = await db.collection('semesters').where({ status: 'active' }).limit(1).get();
+  const { class_id } = task;
+  let semesterQuery = { status: 'active' };
+  if (class_id) {
+    semesterQuery = { class_id: class_id, status: 'active' };
+  }
+  const semesterRes = await db.collection('semesters').where(semesterQuery).limit(1).get();
+  if (semesterRes.data.length === 0 && class_id) {
+    const fallbackRes = await db.collection('semesters').where({ status: 'active' }).limit(1).get();
+    if (fallbackRes.data.length > 0) {
+      semesterRes.data = fallbackRes.data;
+    }
+  }
   const semester_id = semesterRes.data && semesterRes.data.length > 0 ? semesterRes.data[0]._id : '';
 
   // 获取积分项目
   const scoreItemRes = await db.collection('score_items')
     .where({
       $or: [
-        { name: _.regex(/卫生/) },
+        { name: db.RegExp({ regexp: '卫生', options: 'i' }) },
         { category: '卫生' }
       ],
       is_active: _.neq(false)
@@ -587,22 +638,32 @@ async function syncScoreToStudent(task, scoreChange, inspection, openid) {
   });
 
   // 更新学生积分
-  const studentRes = await db.collection('students')
-    .where({ student_id: task.student_id })
-    .limit(1)
-    .get();
-
-  if (studentRes.data && studentRes.data.length > 0) {
-    const student = studentRes.data[0];
-    const currentScore = student.current_score || 100;
-    const newScore = currentScore + scoreChange;
-
-    await db.collection('students').doc(student._id).update({
-      data: {
-        current_score: newScore,
-        updated_at: now
-      }
-    });
+  try {
+    await db.collection('students')
+      .where({ student_id: task.student_id })
+      .update({
+        data: {
+          current_score: _.inc(scoreChange),
+          updated_at: now
+        }
+      });
+  } catch (updateErr) {
+    console.error('更新学生总积分失败，尝试补偿:', updateErr);
+    const studentRes = await db.collection('students')
+      .where({ student_id: task.student_id })
+      .limit(1)
+      .get();
+    if (studentRes.data && studentRes.data.length > 0) {
+      const student = studentRes.data[0];
+      const currentScore = student.current_score || 100;
+      const newScore = currentScore + scoreChange;
+      await db.collection('students').doc(student._id).update({
+        data: {
+          current_score: newScore,
+          updated_at: now
+        }
+      });
+    }
   }
 
   return record_id;
@@ -692,6 +753,139 @@ async function markReminderRead(data) {
   return { success: true };
 }
 
+// ==================== 值日任务修改/删除 ====================
+
+async function updateDutyTask(data, openid) {
+  const { task_id, class_id, role, task_name, duty_date, student_id, student_name, score_for_qualified, deduction_for_unqualified, group_name } = data;
+  if (!task_id || !class_id) return { success: false, message: '缺少必要参数' };
+
+  if (role !== 'admin' && role !== 'head_teacher' && role !== 'class_cadre') {
+    return { success: false, message: '无权限修改值日任务' };
+  }
+
+  const taskRes = await db.collection('duty_task').where({ task_id, class_id }).limit(1).get();
+  if (!taskRes.data || taskRes.data.length === 0) {
+    return { success: false, message: '任务不存在' };
+  }
+
+  const task = taskRes.data[0];
+  const now = db.serverDate();
+
+  const updateData = { updated_at: now };
+  if (task_name !== undefined) updateData.task_name = task_name;
+  if (duty_date !== undefined) updateData.duty_date = duty_date;
+  if (student_id !== undefined) updateData.student_id = student_id;
+  if (student_name !== undefined) updateData.student_name = student_name;
+  if (score_for_qualified !== undefined) {
+    if (!updateData.inspection) updateData.inspection = { ...task.inspection };
+    updateData.inspection.default_score = score_for_qualified;
+  }
+  if (deduction_for_unqualified !== undefined) {
+    if (!updateData.inspection) updateData.inspection = { ...task.inspection };
+    updateData.inspection.deduction_score = deduction_for_unqualified;
+  }
+  if (group_name !== undefined) updateData.group_name = group_name;
+
+  await db.collection('duty_task').doc(task._id).update({ data: updateData });
+
+  if (duty_date !== undefined && duty_date !== task.duty_date) {
+    const reminderRes = await db.collection('duty_reminders')
+      .where({ task_id, class_id })
+      .get();
+    if (reminderRes.data && reminderRes.data.length > 0) {
+      const weekday = getWeekday(duty_date);
+      for (const reminder of reminderRes.data) {
+        const newContent = `你被分配了值日任务【${task_name || task.task_name}】，日期：${duty_date}（${weekday}），请按时完成。`;
+        await db.collection('duty_reminders').doc(reminder._id).update({
+          data: {
+            duty_date,
+            task_name: task_name || task.task_name,
+            reminder_content: newContent,
+            reminder_time: now
+          }
+        });
+      }
+    }
+  }
+
+  if (student_id !== undefined && student_id !== task.student_id) {
+    const reminderRes = await db.collection('duty_reminders')
+      .where({ task_id, class_id })
+      .get();
+    if (reminderRes.data && reminderRes.data.length > 0) {
+      for (const reminder of reminderRes.data) {
+        await db.collection('duty_reminders').doc(reminder._id).update({
+          data: {
+            student_id,
+            student_name: student_name || '',
+            reminder_time: now
+          }
+        });
+      }
+    }
+  }
+
+  return { success: true, data: { task_id } };
+}
+
+async function deleteDutyTask(data, openid) {
+  const { task_id, class_id, role } = data;
+  if (!task_id || !class_id) return { success: false, message: '缺少必要参数' };
+
+  if (role !== 'admin' && role !== 'head_teacher' && role !== 'class_cadre') {
+    return { success: false, message: '无权限删除值日任务' };
+  }
+
+  const taskRes = await db.collection('duty_task').where({ task_id, class_id }).limit(1).get();
+  if (!taskRes.data || taskRes.data.length === 0) {
+    return { success: false, message: '任务不存在' };
+  }
+
+  const task = taskRes.data[0];
+  const now = db.serverDate();
+
+  if ((task.status === '已完成' || task.status === '未完成') && task.score_change !== 0) {
+    if (task.related_score_record_id) {
+      const scoreRecordRes = await db.collection('score_records')
+        .where({ record_id: task.related_score_record_id })
+        .limit(1)
+        .get();
+      if (scoreRecordRes.data && scoreRecordRes.data.length > 0) {
+        await db.collection('score_records').doc(scoreRecordRes.data[0]._id).remove();
+      }
+    } else {
+      const scoreRecordRes = await db.collection('score_records')
+        .where({ source_type: '卫生值日', source_record_id: task_id })
+        .limit(1)
+        .get();
+      if (scoreRecordRes.data && scoreRecordRes.data.length > 0) {
+        await db.collection('score_records').doc(scoreRecordRes.data[0]._id).remove();
+      }
+    }
+
+    try {
+      await db.collection('students')
+        .where({ student_id: task.student_id })
+        .update({
+          data: {
+            current_score: _.inc(-task.score_change),
+            updated_at: now
+          }
+        });
+    } catch (rollbackErr) {
+      console.error('积分回退失败:', rollbackErr);
+    }
+  }
+
+  await db.collection('duty_reminders')
+    .where({ task_id, class_id })
+    .remove();
+
+  await db.collection('duty_task').doc(task._id).remove();
+
+  return { success: true, data: { task_id, score_rolled_back: (task.status === '已完成' || task.status === '未完成') && task.score_change !== 0 } };
+}
+
 // ==================== 值日统计 ====================
 
 async function getDutyStats(data) {
@@ -759,4 +953,76 @@ async function getDutyStats(data) {
       taskTypeStats
     }
   };
+}
+
+// ==================== 订阅消息推送 ====================
+
+async function sendDutyReminder(reminderData, student_id, class_id) {
+  // 通过 user_class_relation 获取学生的 openid
+  let studentOpenid = '';
+
+  // 先尝试通过 user_openid 字段查询
+  let userRes = await db.collection('user_class_relation')
+    .where({ student_id, class_id, user_openid: _.neq(null) })
+    .limit(1)
+    .get();
+
+  if (userRes.data && userRes.data.length > 0 && userRes.data[0].user_openid) {
+    studentOpenid = userRes.data[0].user_openid;
+  } else {
+    // fallback: 通过 _openid 查询
+    userRes = await db.collection('user_class_relation')
+      .where({ student_id, class_id, _openid: _.neq(null) })
+      .limit(1)
+      .get();
+
+    if (userRes.data && userRes.data.length > 0 && userRes.data[0]._openid) {
+      studentOpenid = userRes.data[0]._openid;
+    }
+  }
+
+  if (!studentOpenid) {
+    console.warn('未找到学生的openid，无法推送订阅消息, student_id:', student_id);
+    return;
+  }
+
+  // 发送微信订阅消息
+  // 注意：需要在小程序管理后台配置对应的模板ID
+  // 模板ID需要在实际部署时替换
+  const templateId = process.env.DUTY_REMINDER_TEMPLATE_ID || '';
+
+  if (!templateId) {
+    console.warn('未配置DUTY_REMINDER_TEMPLATE_ID，跳过订阅消息推送');
+    return;
+  }
+
+  try {
+    await cloud.openapi.subscribeMessage.send({
+      touser: studentOpenid,
+      templateid: templateId,
+      page: `subPages/duty/myduty/myduty`,
+      data: {
+        thing1: { value: reminderData.task_name || '卫生值日' },
+        thing2: { value: reminderData.duty_date },
+        thing3: { value: reminderData.reminder_content.length > 20 ? reminderData.reminder_content.substring(0, 20) : reminderData.reminder_content }
+      }
+    });
+
+    // 推送成功，更新reminder状态
+    const reminderRes = await db.collection('duty_reminders')
+      .where({ reminder_id: reminderData.reminder_id })
+      .limit(1)
+      .get();
+
+    if (reminderRes.data && reminderRes.data.length > 0) {
+      await db.collection('duty_reminders').doc(reminderRes.data[0]._id).update({
+        data: { reminder_status: '推送成功' }
+      });
+    }
+
+    console.log('订阅消息推送成功, student_id:', student_id);
+  } catch (sendErr) {
+    console.error('订阅消息推送失败:', sendErr);
+    throw sendErr;
+  }
 }

@@ -65,7 +65,7 @@
 
   <!-- 添加/编辑弹窗 -->
   <view class="modal-mask" wx:if="{{showAddModal}}" bindtap="onCloseModal">
-    <view class="modal-content" catchtap="">
+    <view class="modal-content" catchtap="preventBubble">
       <view class="modal-header">
         <text class="modal-title">{{editingCategory ? '编辑类别' : '添加类别'}}</text>
         <text class="modal-close" catchtap="onCloseModal">✕</text>

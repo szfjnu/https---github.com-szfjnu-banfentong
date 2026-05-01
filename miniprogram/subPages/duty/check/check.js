@@ -34,6 +34,14 @@ Page({
   },
 
   onLoad: function (options) {
+    // 权限校验：仅管理员/班主任/班干部可访问
+    const role = app.globalData.role;
+    if (role !== 'admin' && role !== 'head_teacher' && role !== 'class_cadre') {
+      wx.showToast({ title: '无权限访问', icon: 'none', duration: 2000 });
+      setTimeout(() => wx.navigateBack(), 1500);
+      return;
+    }
+
     const today = new Date();
     const todayStr = this.formatDate(today);
 

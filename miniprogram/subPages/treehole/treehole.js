@@ -210,6 +210,8 @@ Page({
     this.setData({ showPublishModal: false });
   },
 
+  preventBubble: function () {},
+
   // 选择心情
   onSelectMood: function (e) {
     const mood = e.currentTarget.dataset.mood;

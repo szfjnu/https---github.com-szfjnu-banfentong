@@ -63,9 +63,11 @@ exports.main = async (event, context) => {
       await db.collection('semesters').add({
         data: {
           name: `${year}-${year + 1}第一学期`,
+          semester_name: `${year}-${year + 1}第一学期`,
           start_date: new Date(year, 8, 1), // 9月1日
           end_date: new Date(year + 1, 1, 15), // 次年2月15日
           status: 'active',
+          is_current: true,
           description: '系统自动创建的学期',
           initial_score: 100,
           dorm_initial_score: 100,
@@ -73,6 +75,7 @@ exports.main = async (event, context) => {
           dorm_warning_threshold: 60,
           dorm_critical_threshold: 40,
           is_initialized: false,
+          class_id: '',
           created_at: db.serverDate(),
           updated_at: db.serverDate()
         }

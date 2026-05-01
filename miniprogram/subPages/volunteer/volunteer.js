@@ -564,5 +564,7 @@ Page({
       wx.hideLoading();
       util.showError('删除失败');
     }
-  }
+  },
+
+  preventBubble() {},
 });

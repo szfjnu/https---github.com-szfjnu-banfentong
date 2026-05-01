@@ -101,15 +101,17 @@ Page({
   // 加载当前学期
   loadCurrentSemester: async function () {
     try {
-      const res = await db.collection('semesters')
-        .where({ is_current: true })
-        .get();
+      const classId = app.globalData.class_id;
+      const res = await wx.cloud.callFunction({
+        name: 'manageSemester',
+        data: { action: 'getSemesterConfig', data: { class_id: classId || '' } }
+      });
 
-      if (res.data && res.data.length > 0) {
-        const semester = res.data[0];
+      if (res.result && res.result.success && res.result.data) {
+        const semester = res.result.data;
         this.setData({
           semesterId: semester._id,
-          semesterName: semester.semester_name,
+          semesterName: semester.semester_name || semester.name,
           conversionRatio: semester.dorm_conversion_ratio || 0.2
         });
       } else {
@@ -503,7 +505,8 @@ Page({
 
       // 计算个人积分
       const dormScore = parseFloat(scoreValue);
-      const personalScore = linkToPersonal ? (dormScore * conversionRatio).toFixed(2) : 0;
+      const dormScoreChange = recordType === 'violation' ? -dormScore : dormScore;
+      const personalScore = linkToPersonal ? (dormScoreChange * conversionRatio).toFixed(2) : 0;
 
       // 创建宿舍积分记录
       const dormRecord = {
@@ -530,9 +533,6 @@ Page({
       });
 
       const dormRecordId = dormRes._id;
-
-      // 计算带符号的宿舍积分变化值
-      const dormScoreChange = recordType === 'violation' ? -dormScore : dormScore;
 
       // 更新每个受影响学生的宿舍积分
       for (const studentId of selectedStudents) {

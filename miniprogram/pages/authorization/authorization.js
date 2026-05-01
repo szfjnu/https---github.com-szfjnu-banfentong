@@ -50,9 +50,11 @@ Page({
     showSingleModal: false,
     currentStudent: null,
     currentModuleList: [],
+    currentPermMap: {},
     // 批量授权弹窗
     showBatchModal: false,
     batchPermissions: {},
+    batchPermMap: {},
     submitting: false,
     // 选中状态
     selectedStudentIds: [],
@@ -202,42 +204,64 @@ Page({
       currentActions: [...(permissions[m.key] || [])]
     }));
 
+    // 扁平化权限映射：{ "score_read": true, "score_write": false, ... }
+    const permMap = {};
+    PERMISSION_MODULES.forEach(m => {
+      const modPerms = permissions[m.key] || [];
+      m.actions.forEach(a => {
+        permMap[`${m.key}_${a}`] = modPerms.includes(a);
+      });
+    });
+
     this.setData({
       showSingleModal: true,
       currentStudent: { ...student },
-      currentModuleList: moduleList
+      currentModuleList: moduleList,
+      currentPermMap: permMap
     });
   },
 
-  // 复选框切换 - 带级联逻辑
+  // 复选框切换 - 带级联逻辑（扁平化权限映射驱动视图）
   onCheckPermission: function (e) {
     const { module: moduleKey, action } = e.currentTarget.dataset;
-    const moduleList = this.data.currentModuleList.map(m => {
-      if (m.key !== moduleKey) {
-        // 未修改的模块也要返回新对象，确保 setData 检测到变化
-        return { ...m, currentActions: [...(m.currentActions || [])] };
-      }
-      const actions = [...(m.currentActions || [])];
-      const isChecked = actions.includes(action);
+    console.log('[权限调试] onCheckPermission触发, module:', moduleKey, 'action:', action);
 
-      let newActions;
-      if (isChecked) {
-        // 取消勾选 → 级联取消高级权限
-        const cascadeRemove = CASCADE_ON_UNCHECK[action] || [];
-        const toRemove = [action, ...cascadeRemove];
-        newActions = actions.filter(a => !toRemove.includes(a));
-      } else {
-        // 勾选 → 级联勾选低级权限
-        const cascadeAdd = CASCADE_ON_CHECK[action] || [];
-        const toAdd = [action, ...cascadeAdd];
-        toAdd.forEach(a => {
-          if (!actions.includes(a)) actions.push(a);
-        });
-        newActions = actions;
-      }
-      return { ...m, currentActions: newActions };
-    });
-    this.setData({ currentModuleList: moduleList });
+    const permMap = { ...this.data.currentPermMap };
+    const permKey = `${moduleKey}_${action}`;
+    const isChecked = !!permMap[permKey];
+
+    const updateData = {};
+
+    if (isChecked) {
+      // 取消勾选 → 级联取消高级权限
+      const cascadeRemove = CASCADE_ON_UNCHECK[action] || [];
+      const toRemove = [action, ...cascadeRemove];
+      toRemove.forEach(a => {
+        const key = `${moduleKey}_${a}`;
+        permMap[key] = false;
+        updateData[`currentPermMap.${key}`] = false;
+      });
+    } else {
+      // 勾选 → 级联勾选低级权限
+      const cascadeAdd = CASCADE_ON_CHECK[action] || [];
+      const toAdd = [action, ...cascadeAdd];
+      toAdd.forEach(a => {
+        const key = `${moduleKey}_${a}`;
+        permMap[key] = true;
+        updateData[`currentPermMap.${key}`] = true;
+      });
+    }
+
+    // 同步更新 currentModuleList（供保存时读取）
+    const moduleIndex = this.data.currentModuleList.findIndex(m => m.key === moduleKey);
+    if (moduleIndex !== -1) {
+      const module = this.data.currentModuleList[moduleIndex];
+      const newActions = module.actions.filter(a => !!permMap[`${moduleKey}_${a}`]);
+      updateData[`currentModuleList[${moduleIndex}].currentActions`] = newActions;
+    }
+
+    console.log('[权限调试] 更新permMap:', JSON.stringify(permMap));
+    this.setData(updateData);
   },
 
   // 保存单个学生权限（前端直写数据库）
@@ -250,6 +274,7 @@ Page({
         permissions[m.key] = [...m.currentActions];
       }
     });
+    console.log('[权限调试] 保存权限, student:', student?.student_id, 'permissions:', JSON.stringify(permissions));
 
     wx.showLoading({ title: '保存中...' });
     try {
@@ -297,41 +322,55 @@ Page({
       wx.showToast({ title: '请先选择学生', icon: 'none' });
       return;
     }
-    this.setData({ showBatchModal: true, batchPermissions: {} });
+    this.setData({ showBatchModal: true, batchPermissions: {}, batchPermMap: {} });
   },
 
   onHideBatchModal: function () {
     this.setData({ showBatchModal: false });
   },
 
-  // 批量授权 - 复选框切换（带级联）
+  // 批量授权 - 复选框切换（带级联，扁平化驱动视图）
   onBatchCheckPermission: function (e) {
     const { module: moduleKey, action } = e.currentTarget.dataset;
-    // 深拷贝
-    const permissions = {};
-    for (const [k, v] of Object.entries(this.data.batchPermissions)) {
-      permissions[k] = [...v];
-    }
+    console.log('[权限调试] onBatchCheckPermission触发, module:', moduleKey, 'action:', action);
 
-    if (!permissions[moduleKey]) permissions[moduleKey] = [];
-    const actions = [...permissions[moduleKey]];
-    const isChecked = actions.includes(action);
+    const permMap = { ...this.data.batchPermMap };
+    const permKey = `${moduleKey}_${action}`;
+    const isChecked = !!permMap[permKey];
+
+    const updateData = {};
 
     if (isChecked) {
       const cascadeRemove = CASCADE_ON_UNCHECK[action] || [];
       const toRemove = [action, ...cascadeRemove];
-      permissions[moduleKey] = actions.filter(a => !toRemove.includes(a));
-      if (permissions[moduleKey].length === 0) delete permissions[moduleKey];
+      toRemove.forEach(a => {
+        const key = `${moduleKey}_${a}`;
+        permMap[key] = false;
+        updateData[`batchPermMap.${key}`] = false;
+      });
     } else {
       const cascadeAdd = CASCADE_ON_CHECK[action] || [];
       const toAdd = [action, ...cascadeAdd];
       toAdd.forEach(a => {
-        if (!actions.includes(a)) actions.push(a);
+        const key = `${moduleKey}_${a}`;
+        permMap[key] = true;
+        updateData[`batchPermMap.${key}`] = true;
       });
-      permissions[moduleKey] = actions;
     }
 
-    this.setData({ batchPermissions: permissions });
+    // 同步 batchPermissions（供保存时读取）
+    const permissions = { ...this.data.batchPermissions };
+    PERMISSION_MODULES.forEach(m => {
+      const modPerms = m.actions.filter(a => !!permMap[`${m.key}_${a}`]);
+      if (modPerms.length > 0) {
+        permissions[m.key] = modPerms;
+      } else {
+        delete permissions[m.key];
+      }
+    });
+    updateData.batchPermissions = permissions;
+
+    this.setData(updateData);
   },
 
   // 执行批量授权（前端直写数据库）

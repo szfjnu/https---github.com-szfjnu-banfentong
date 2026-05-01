@@ -128,7 +128,7 @@
 
   <!-- 确认弹窗 -->
   <view class="modal-mask" wx:if="{{showConfirmModal}}" bindtap="hideConfirmDialog">
-    <view class="modal-content" catchtap="">
+    <view class="modal-content" catchtap="preventBubble">
       <view class="modal-header">
         <text class="modal-title">确认清零</text>
         <text class="modal-close" bindtap="hideConfirmDialog">✕</text>

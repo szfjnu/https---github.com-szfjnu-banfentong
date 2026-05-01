@@ -62,10 +62,17 @@ async function publishPost(data, openId) {
   }
 
   // 验证用户是否属于该班级
-  const relationRes = await db.collection('user_class_relation')
-    .where({ _openid: openId, class_id: class_id })
+  let relationRes = await db.collection('user_class_relation')
+    .where({ user_openid: openId, class_id: class_id })
     .limit(1)
     .get();
+
+  if (!relationRes.data || relationRes.data.length === 0) {
+    relationRes = await db.collection('user_class_relation')
+      .where({ _openid: openId, class_id: class_id })
+      .limit(1)
+      .get();
+  }
 
   if (!relationRes.data || relationRes.data.length === 0) {
     return { success: false, message: '您不属于该班级', code: 403 };
@@ -126,10 +133,17 @@ async function getPosts(data, openId) {
   }
 
   // 验证用户是否属于该班级
-  const relationRes = await db.collection('user_class_relation')
-    .where({ _openid: openId, class_id: class_id })
+  let relationRes = await db.collection('user_class_relation')
+    .where({ user_openid: openId, class_id: class_id })
     .limit(1)
     .get();
+
+  if (!relationRes.data || relationRes.data.length === 0) {
+    relationRes = await db.collection('user_class_relation')
+      .where({ _openid: openId, class_id: class_id })
+      .limit(1)
+      .get();
+  }
 
   if (!relationRes.data || relationRes.data.length === 0) {
     return { success: false, message: '您不属于该班级', code: 403 };

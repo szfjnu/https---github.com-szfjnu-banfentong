@@ -80,6 +80,9 @@ Page({
           displaySettings: settings.display_settings || this.data.displaySettings,
           loading: false
         });
+        if (settings.display_settings && settings.display_settings.font_size) {
+          wx.setStorageSync('display_font_size', settings.display_settings.font_size);
+        }
       }
 
       // 加载用户信息
@@ -91,7 +94,7 @@ Page({
         const profile = profileRes.result.data;
         this.setData({
           userInfo: profile,
-          nickname: profile.nickname || '',
+          nickname: profile.nickname || profile.nickName || '',
           phone: profile.phone || '',
           email: profile.email || '',
           membershipLevel: (profile.membership && profile.membership.level) || 'free'
@@ -142,9 +145,16 @@ Page({
       wx.hideLoading();
       if (res.result && res.result.success) {
         wx.showToast({ title: '保存成功', icon: 'success' });
-        // 更新全局用户信息
+        this.setData({
+          'userInfo.nickname': this.data.nickname,
+          'userInfo.phone': this.data.phone,
+          'userInfo.email': this.data.email
+        });
         if (app.globalData.userInfo) {
+          app.globalData.userInfo.nickname = this.data.nickname;
           app.globalData.userInfo.nickName = this.data.nickname;
+          app.globalData.userInfo.phone = this.data.phone;
+          app.globalData.userInfo.email = this.data.email;
           wx.setStorageSync('userInfo', app.globalData.userInfo);
         }
       } else {
@@ -208,6 +218,8 @@ Page({
     displaySettings.font_size = value;
     this.setData({ displaySettings });
 
+    wx.setStorageSync('display_font_size', value);
+
     try {
       await wx.cloud.callFunction({
         name: 'manageUserCenter',
@@ -216,6 +228,8 @@ Page({
           data: { display_settings: displaySettings }
         }
       });
+
+      wx.showToast({ title: '字体大小已更新，重启后生效', icon: 'none', duration: 2000 });
     } catch (err) {
       console.error('更新显示设置失败:', err);
     }

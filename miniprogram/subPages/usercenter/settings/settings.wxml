@@ -38,7 +38,7 @@
     <view class="form-section">
       <view class="form-item static">
         <text class="form-label">角色</text>
-        <text class="form-value">{{userInfo.role === 'admin' ? '管理员' : userInfo.role === 'head_teacher' ? '班主任' : userInfo.role === 'subject_teacher' ? '科任老师' : userInfo.role === 'class_cadre' ? '班干部' : userInfo.role === 'student' ? '学生' : '家长'}}</text>
+        <text class="form-value">{{!userInfo.role ? '未设置' : userInfo.role === 'admin' ? '管理员' : userInfo.role === 'head_teacher' ? '班主任' : userInfo.role === 'subject_teacher' ? '科任老师' : userInfo.role === 'class_cadre' ? '班干部' : userInfo.role === 'student' ? '学生' : userInfo.role === 'parent' ? '家长' : userInfo.role}}</text>
       </view>
       <view class="form-item static">
         <text class="form-label">班级</text>

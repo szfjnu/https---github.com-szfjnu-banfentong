@@ -92,12 +92,12 @@ Page({
       // 获取班级名称用于构建选项
       const className = await this.getClassNameById(classId);
       this.setData({
-        selectedClass: className || '',  // 使用班级名称而非ID
-        selectedClassIndex: className ? 1 : 0,
+        selectedClass: classId,
+        selectedClassIndex: classId ? 1 : 0,
         managedClasses: [classId],
         classOptions: [
           { value: '', label: '全部班级' },
-          { value: className, label: className || '我的班级' }
+          { value: classId, label: className || '我的班级' }
         ]
       });
     } else if (role === 'admin' || role === 'subject_teacher') {
@@ -143,7 +143,7 @@ Page({
     const role = app.globalData.role;
     this.setData({ userRole: role });
     
-    if (role !== 'admin' && role !== 'head_teacher' && role !== 'teacher') {
+    if (role !== 'admin' && role !== 'head_teacher' && role !== 'teacher' && role !== 'class_cadre') {
       wx.showToast({
         title: '无权限操作',
         icon: 'none',
@@ -192,12 +192,12 @@ Page({
   },
 
   // 加载学生列表
-  loadStudents: async function (filterByClassName = null) {
+  loadStudents: async function (filterByClassId = null) {
     try {
       const role = app.globalData.role;
       const { currentClassId, managedClasses, currentSemesterId } = this.data;
       
-      console.log('【加载学生开始】role:', role, 'currentClassId:', currentClassId, 'managedClasses:', managedClasses, 'filterByClassName:', filterByClassName);
+      console.log('【加载学生开始】role:', role, 'currentClassId:', currentClassId, 'managedClasses:', managedClasses, 'filterByClassId:', filterByClassId);
       
       const db = wx.cloud.database();
       const _ = db.command;
@@ -205,18 +205,11 @@ Page({
       
       // 数据隔离:根据角色过滤学生
       if (role === 'head_teacher') {
-        // 班主任：优先使用 currentClassId 获取班级名称
-        let targetClassName = '';
+        // 班主任：使用 currentClassId 直接按 class_id 查询
         if (currentClassId) {
-          // 通过班级ID查询班级名称
-          const classRes = await db.collection('classes')
-            .doc(currentClassId)
-            .field({ class_name: true })
-            .get();
-          targetClassName = classRes.data?.class_name || '';
-        }
-        
-        if (!targetClassName) {
+          query.class_id = currentClassId;
+          console.log('【班主任】按class_id筛选:', currentClassId);
+        } else {
           // 尝试从关系表获取
           const relationRes = await db.collection('user_class_relation')
             .where({
@@ -228,20 +221,11 @@ Page({
             .get();
           if (relationRes.data.length > 0) {
             const classId = relationRes.data[0].class_id;
-            const classRes = await db.collection('classes')
-              .doc(classId)
-              .field({ class_name: true })
-              .get();
-            targetClassName = classRes.data?.class_name || '';
-            console.log('从关系表获取到班级名称:', targetClassName);
+            query.class_id = classId;
+            console.log('【班主任】从关系表获取class_id:', classId);
+          } else {
+            console.warn('班主任未找到关联班级，将尝试加载所有学生');
           }
-        }
-        
-        if (targetClassName) {
-          query.class_name = targetClassName;  // 学生表使用 class_name 而非 class_id
-          console.log('【班主任】按班级名称筛选:', targetClassName);
-        } else {
-          console.warn('班主任未找到关联班级，将尝试加载所有学生');
         }
       } else if (role === 'subject_teacher') {
         // 科任老师：获取所教班级的学生
@@ -260,16 +244,8 @@ Page({
         }
         
         if (targetClassIds.length > 0) {
-          // 查询班级名称列表
-          const classRes = await db.collection('classes')
-            .where({
-              _id: _.in(targetClassIds)
-            })
-            .field({ class_name: true })
-            .get();
-          const classNames = classRes.data.map(c => c.class_name);
-          query.class_name = _.in(classNames);  // 学生表使用 class_name
-          console.log('【科任老师】按班级名称筛选:', classNames);
+          query.class_id = _.in(targetClassIds);
+          console.log('【科任老师】按class_id筛选:', targetClassIds);
         } else {
           console.warn('科任老师未找到关联班级');
           this.setData({ students: [] });
@@ -277,9 +253,25 @@ Page({
         }
       } else if (role === 'admin') {
         // 管理员可以查看所有学生
-        // 如果传入了 filterByClassName，则按班级名称筛选
-        if (filterByClassName) {
-          query.class_name = filterByClassName;
+        if (filterByClassId) {
+          query.class_id = filterByClassId;
+        }
+      } else if (role === 'class_cadre') {
+        // 班干部：获取所在班级的学生列表
+        const relationRes = await db.collection('user_class_relation')
+          .where({
+            user_openid: app.globalData.openid,
+            status: 'joined'
+          })
+          .limit(1)
+          .get();
+        if (relationRes.data.length > 0) {
+          const classId = relationRes.data[0].class_id;
+          query.class_id = classId;
+          console.log('【班干部】按class_id筛选:', classId);
+        } else if (app.globalData.class_id) {
+          query.class_id = app.globalData.class_id;
+          console.log('【班干部】从全局数据获取class_id:', app.globalData.class_id);
         }
       } else {
         // 其他角色不允许加载学生
@@ -353,7 +345,7 @@ Page({
       const classOptions = [
         { value: '', label: '全部班级' },
         ...res.data.map(item => ({
-          value: item.class_name,
+          value: item._id,
           label: item.class_name
         }))
       ];
@@ -393,34 +385,22 @@ Page({
       const _ = db.command;
       const { isAddScore } = this.data;
 
-      // 1. 先从 score_categories 集合拉取真正的分类定义
-      const categoriesRes  = await db.collection('score_categories')
-        .where({
-          is_active: true 
+      // 1. 使用云函数获取类别和规则，突破小程序端20条限制
+      const classId = this.data.currentClassId || app.globalData.class_id || '';
+
+      const [catCfRes, itemCfRes] = await Promise.all([
+        wx.cloud.callFunction({
+          name: 'scoreManager',
+          data: { action: 'getScoreCategories', data: { classId } }
+        }),
+        wx.cloud.callFunction({
+          name: 'scoreManager',
+          data: { action: 'getScoreItems', data: { classId, semesterId: app.globalData.currentSemesterId || '' } }
         })
-        .orderBy('sort_order', 'asc')
-        .get();
+      ]);
 
-      // 2.从 score_items 集合查询积分规则数据
-      const itemsRes = await db.collection('score_items')
-        .where(_.or([
-          // 新结构: record_type='rule' 且 is_enabled 不为 false
-          {
-            record_type: 'rule',
-            is_enabled: _.neq(false)
-          },
-          // 旧结构: 没有 record_type 字段 且 is_active 为 true
-          {
-            record_type: _.exists(false),
-            is_active: true
-          }
-        ]))
-        .orderBy('created_at', 'desc')
-        .limit(1000)
-        .get();
-
-      const categoryList = categoriesRes.data || [];
-      const allItems = itemsRes.data || [];
+      const categoryList = (catCfRes.result && catCfRes.result.data) || [];
+      const allItems = (itemCfRes.result && itemCfRes.result.data) || [];
       
       // 3. 过滤出符合当前操作类型的项目
       const filteredItems = allItems.filter(item => {
@@ -609,20 +589,18 @@ Page({
   onClassChange: async function (e) {
     const index = e.detail.value;
     const selectedOption = this.data.classOptions[index];
-    const className = selectedOption.value; // class_name 或空字符串
+    const classIdOrEmpty = selectedOption.value;
     
-    console.log('班级选择变化:', className, 'label:', selectedOption.label);
+    console.log('班级选择变化:', classIdOrEmpty, 'label:', selectedOption.label);
     
     this.setData({
-      selectedClass: className,
+      selectedClass: classIdOrEmpty,
       selectedClassIndex: index
     });
     
-    // 如果是管理员且选择了特定班级，重新加载该班级的学生
-    if (app.globalData.role === 'admin' && className) {
-      await this.loadStudents(className);
-    } else if (!className) {
-      // 选择"全部班级"，重新加载所有学生
+    if (app.globalData.role === 'admin' && classIdOrEmpty) {
+      await this.loadStudents(classIdOrEmpty);
+    } else if (!classIdOrEmpty) {
       await this.loadStudents();
     }
   },
@@ -856,7 +834,7 @@ Page({
     let filteredStudents = students;
 
     if (selectedClass) {
-      filteredStudents = filteredStudents.filter(s => s.class_name === selectedClass);
+      filteredStudents = filteredStudents.filter(s => s.class_id === selectedClass);
     }
 
     if (selectedGroup) {

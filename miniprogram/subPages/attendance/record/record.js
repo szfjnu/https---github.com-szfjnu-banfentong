@@ -748,18 +748,58 @@ Page({
         
         if (existRes.data && existRes.data.length > 0) {
           // 更新现有记录
+          const existingRecord = existRes.data[0];
+          const oldScoreChange = existingRecord.score_change || 0;
+          const newScoreChange = category.score_deduction || 0;
+          const scoreDiff = newScoreChange - oldScoreChange;
+
           await db.collection('attendance_records')
-            .doc(existRes.data[0]._id)
+            .doc(existingRecord._id)
             .update({
               data: {
                 category_id: selectedCategoryId,
                 category_code: categoryCode,
                 category_name: category.category_name,
-                score_change: category.score_deduction || 0,
+                score_change: newScoreChange,
                 semester_id: app.globalData.currentSemesterId || '',
                 updated_at: db.serverDate()
               }
             });
+
+          // 如果积分有变化，同步更新积分记录和学生总积分
+          if (scoreDiff !== 0) {
+            const scoreRecordId = `SR${Date.now()}${Math.random().toString(36).substr(2, 9)}`;
+            await db.collection('score_records').add({
+              data: {
+                record_id: scoreRecordId,
+                record_type: 'record',
+                student_id: student.student_id,
+                student_name: student.name,
+                class_id: this.data.classId,
+                item_id: `attendance_${categoryCode}`,
+                item_name: `考勤-${category.category_name}`,
+                score_change: scoreDiff,
+                score_value: scoreDiff,
+                reason_detail: `${selectedDate} ${category.category_name}(调整，原${oldScoreChange}→新${newScoreChange})`,
+                date: selectedDate,
+                recorder_openid: app.globalData.openid,
+                recorder_name: app.globalData.userInfo.nickName,
+                semester_id: app.globalData.currentSemesterId || '',
+                source_type: '考勤',
+                approval_status: '已通过',
+                created_at: db.serverDate()
+              }
+            });
+
+            await db.collection('students')
+              .where({ student_id: student.student_id })
+              .update({
+                data: {
+                  current_score: db.command.inc(scoreDiff),
+                  updated_at: db.serverDate()
+                }
+              });
+          }
         } else {
           // 创建新记录
           const recordId = `AR${Date.now()}${Math.random().toString(36).substr(2, 9)}`;

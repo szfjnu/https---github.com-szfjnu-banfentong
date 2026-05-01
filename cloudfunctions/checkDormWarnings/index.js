@@ -16,10 +16,24 @@ exports.main = async (event, context) => {
     console.log('参数:', { class_id, check_type, student_id })
 
     // 1. 获取当前学期
+    let semesterQuery = { status: 'active' };
+    if (class_id) {
+      semesterQuery = { class_id: class_id, status: 'active' };
+    }
     const semesterRes = await db.collection('semesters')
-      .where({ status: 'active' })
+      .where(semesterQuery)
       .limit(1)
       .get()
+
+    if (semesterRes.data.length === 0 && class_id) {
+      const fallbackRes = await db.collection('semesters')
+        .where({ status: 'active' })
+        .limit(1)
+        .get()
+      if (fallbackRes.data.length > 0) {
+        semesterRes.data = fallbackRes.data;
+      }
+    }
 
     if (semesterRes.data.length === 0) {
       return { success: false, message: '未找到当前学期' }

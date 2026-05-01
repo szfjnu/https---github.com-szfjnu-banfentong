@@ -79,6 +79,9 @@ exports.main = async (event, context) => {
       // ========== 通知类型定义 ==========
       case 'getNotificationTypes': return { success: true, data: NOTIFICATION_TYPES };
 
+      // ========== 学生信息管理 ==========
+      case 'updateStudentInfo': return await updateStudentInfo(data, OPENID);
+
       default:
         return { success: false, message: `未知操作: ${action}` };
     }
@@ -91,21 +94,86 @@ exports.main = async (event, context) => {
 // ==================== 用户信息 ====================
 
 async function getUserProfile(data, openid) {
-  const res = await db.collection('users')
+  let res = await db.collection('users')
     .where({ _openid: openid })
     .limit(1)
     .get();
+
+  if (!res.data || res.data.length === 0) {
+    res = await db.collection('users')
+      .where({ user_id: openid })
+      .limit(1)
+      .get();
+  }
+
+  if (!res.data || res.data.length === 0) {
+    res = await db.collection('users')
+      .where({ openid: openid })
+      .limit(1)
+      .get();
+  }
 
   if (!res.data || res.data.length === 0) {
     return { success: false, message: '用户不存在' };
   }
 
   const user = res.data[0];
+
+  // 获取用户角色（从 user_class_relation 集合）
+  let role = user.role || '';
+  if (!role) {
+    const relationRes = await db.collection('user_class_relation')
+      .where({
+        user_openid: openid,
+        status: 'joined'
+      })
+      .limit(1)
+      .get();
+    if (relationRes.data && relationRes.data.length > 0) {
+      role = relationRes.data[0].role || '';
+    }
+    if (!role) {
+      const relationRes2 = await db.collection('user_class_relation')
+        .where({
+          _openid: openid,
+          status: 'joined'
+        })
+        .limit(1)
+        .get();
+      if (relationRes2.data && relationRes2.data.length > 0) {
+        role = relationRes2.data[0].role || '';
+      }
+    }
+  }
+
   // 获取班级信息
   let classInfo = null;
-  if (user.class_name) {
+  let classId = user.class_id || '';
+  let className = user.class_name || '';
+
+  if (!classId && role) {
+    const relForClass = await db.collection('user_class_relation')
+      .where({ user_openid: openid, status: 'joined' })
+      .limit(1)
+      .get();
+    if (relForClass.data && relForClass.data.length > 0) {
+      classId = relForClass.data[0].class_id || classId;
+    }
+  }
+
+  if (classId && !className) {
+    try {
+      const classByIdRes = await db.collection('classes').doc(classId).get();
+      if (classByIdRes.data) {
+        className = classByIdRes.data.class_name || '';
+        classInfo = classByIdRes.data;
+      }
+    } catch (e) {}
+  }
+
+  if (className && !classInfo) {
     const classRes = await db.collection('classes')
-      .where({ class_name: user.class_name, status: 'active' })
+      .where({ class_name: className, status: 'active' })
       .limit(1)
       .get();
     if (classRes.data && classRes.data.length > 0) {
@@ -117,6 +185,9 @@ async function getUserProfile(data, openid) {
     success: true,
     data: {
       ...user,
+      role: role || user.role || '',
+      class_id: classId || user.class_id || '',
+      class_name: className || user.class_name || '',
       classInfo,
       membershipLevel: user.membership?.level || 'free',
       membershipStatus: user.membership?.status || 'active'
@@ -132,13 +203,35 @@ async function updateUserProfile(data, openid) {
   if (phone !== undefined) updateData.phone = phone;
   if (email !== undefined) updateData.email = email;
 
-  const userRes = await db.collection('users')
+  let userRes = await db.collection('users')
     .where({ _openid: openid })
     .limit(1)
     .get();
 
   if (!userRes.data || userRes.data.length === 0) {
-    return { success: false, message: '用户不存在' };
+    userRes = await db.collection('users')
+      .where({ user_id: openid })
+      .limit(1)
+      .get();
+  }
+
+  if (!userRes.data || userRes.data.length === 0) {
+    userRes = await db.collection('users')
+      .where({ openid: openid })
+      .limit(1)
+      .get();
+  }
+
+  if (!userRes.data || userRes.data.length === 0) {
+    const addData = {
+      _openid: openid,
+      user_id: openid,
+      ...updateData,
+      created_at: db.serverDate()
+    };
+    if (nickname !== undefined) addData.nickname = nickname;
+    await db.collection('users').add({ data: addData });
+    return { success: true };
   }
 
   await db.collection('users').doc(userRes.data[0]._id).update({ data: updateData });
@@ -307,6 +400,7 @@ async function publishNotification(data, openid) {
     updated_at: now
   };
 
+  await ensureCollection('notifications');
   await db.collection('notifications').add({ data: notificationData });
 
   // 创建用户通知关联记录
@@ -316,9 +410,24 @@ async function publishNotification(data, openid) {
 }
 
 // 创建用户通知关联
+async function ensureCollection(collectionName) {
+  try {
+    await db.collection(collectionName).limit(1).get();
+  } catch (err) {
+    if (err.message && (err.message.includes('no such collection') || err.message.includes('not exist'))) {
+      await db.createCollection(collectionName);
+      console.log(`集合 ${collectionName} 已自动创建`);
+    } else {
+      throw err;
+    }
+  }
+}
+
 async function createUserNotifications(notificationId, classId, targetType, targetIds, senderOpenid, now) {
   const batchPromises = [];
   const userQuery = {};
+
+  await ensureCollection('user_notifications');
 
   switch (targetType) {
     case 'all_class': {
@@ -761,4 +870,131 @@ async function sendSystemNotification(data) {
   const count = await createUserNotifications(notification_id, class_id, target_type || 'all_class', target_ids || [], 'system', now);
 
   return { success: true, data: { notification_id, recipient_count: count } };
+}
+
+// ==================== 学生信息管理 ====================
+
+async function updateStudentInfo(data, openid) {
+  const { _id, ...updateData } = data;
+  if (!_id) return { success: false, message: '缺少学生记录ID' };
+
+  const allowedRoles = ['admin', 'head_teacher', 'class_teacher'];
+  const userRes = await db.collection('users')
+    .where({ _openid: openid })
+    .limit(1)
+    .get();
+
+  let userRole = '';
+  let userId = '';
+  if (userRes.data && userRes.data.length > 0) {
+    userRole = userRes.data[0].role;
+    userId = userRes.data[0]._id;
+  }
+
+  let isAdminOrTeacher = allowedRoles.includes(userRole);
+  if (!isAdminOrTeacher) {
+    const relRes = await db.collection('user_class_relation')
+      .where({ user_openid: openid, role: _.in(['head_teacher', 'class_teacher', 'admin']), status: 'joined' })
+      .limit(1)
+      .get();
+    if (relRes.data && relRes.data.length > 0) {
+      isAdminOrTeacher = true;
+    }
+  }
+
+  let isSelfOrParent = false;
+  if (userRole === 'student' || userRole === 'parent') {
+    try {
+      const docRes = await db.collection('students').doc(_id).get().catch(() => null);
+      let studentRecord = docRes && docRes.data ? docRes.data : null;
+      if (!studentRecord) {
+        const byStudentId = await db.collection('students').where({ student_id: _id }).limit(1).get();
+        studentRecord = byStudentId.data && byStudentId.data.length > 0 ? byStudentId.data[0] : null;
+      }
+      if (!studentRecord) {
+        const byOpenid = await db.collection('students').where({ _openid: _id }).limit(1).get();
+        studentRecord = byOpenid.data && byOpenid.data.length > 0 ? byOpenid.data[0] : null;
+      }
+      if (studentRecord) {
+        if (userRole === 'student' && (studentRecord._openid === openid || studentRecord.user_openid === openid)) {
+          isSelfOrParent = true;
+        }
+        if (userRole === 'parent') {
+          const studentIdVal = studentRecord.student_id;
+          if (studentIdVal) {
+            const relCheck = await db.collection('user_class_relation')
+              .where({ user_openid: openid, student_id: studentIdVal, status: 'joined' })
+              .limit(1)
+              .get();
+            if (relCheck.data && relCheck.data.length > 0) {
+              isSelfOrParent = true;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.error('updateStudentInfo self-check error:', e);
+    }
+  }
+
+  if (!isAdminOrTeacher && !isSelfOrParent) {
+    return { success: false, message: '无权限修改学生信息' };
+  }
+
+  let allowedFields;
+  if (isAdminOrTeacher) {
+    allowedFields = [
+      'name', 'gender', 'date_of_birth', 'ethnicity', 'political_status',
+      'enrollment_date', 'phone_number', 'parent_phone_number', 'home_address',
+      'is_boarding', 'dorm_info', 'position', 'class_name', 'class_id'
+    ];
+  } else {
+    allowedFields = [
+      'date_of_birth', 'ethnicity', 'political_status',
+      'enrollment_date', 'phone_number', 'parent_phone_number', 'home_address',
+      'is_boarding', 'dorm_info'
+    ];
+  }
+
+  const filteredData = {};
+  for (const key of allowedFields) {
+    if (updateData[key] !== undefined) {
+      filteredData[key] = updateData[key];
+    }
+  }
+  filteredData.updated_at = db.serverDate();
+
+  if (Object.keys(filteredData).length <= 1) {
+    return { success: false, message: '没有可更新的字段' };
+  }
+
+  try {
+    let studentDocId = _id;
+    const docRes = await db.collection('students').doc(_id).get().catch(() => null);
+    if (!docRes) {
+      const byOpenid = await db.collection('students')
+        .where({ user_openid: _id })
+        .limit(1)
+        .get();
+      if (byOpenid.data && byOpenid.data.length > 0) {
+        studentDocId = byOpenid.data[0]._id;
+      } else {
+        const byOpenid2 = await db.collection('students')
+          .where({ _openid: _id })
+          .limit(1)
+          .get();
+        if (byOpenid2.data && byOpenid2.data.length > 0) {
+          studentDocId = byOpenid2.data[0]._id;
+        } else {
+          return { success: false, message: '找不到学生记录' };
+        }
+      }
+    }
+
+    await db.collection('students').doc(studentDocId).update({ data: filteredData });
+    return { success: true };
+  } catch (err) {
+    console.error('updateStudentInfo error:', err);
+    return { success: false, message: err.message || '更新失败' };
+  }
 }

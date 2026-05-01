@@ -112,7 +112,7 @@
 
   <!-- 发布弹窗 -->
   <view class="modal-mask" wx:if="{{showPublishModal}}" bindtap="hidePublish">
-    <view class="modal-content" catchtap="">
+    <view class="modal-content" catchtap="preventBubble">
       <view class="modal-header">
         <text class="modal-title">发布通知</text>
         <text class="modal-close" bindtap="hidePublish">✕</text>

@@ -24,17 +24,26 @@ const CONDITIONS = {
 
 // 验证用户班级身份
 async function verifyUser(openid, classId) {
-  const rel = await db.collection('user_class_relation')
-    .where({ user_id: openid, class_id: classId })
+  let rel = await db.collection('user_class_relation')
+    .where({ user_openid: openid, class_id: classId })
+    .count()
+  if (rel.total > 0) return true
+  rel = await db.collection('user_class_relation')
+    .where({ _openid: openid, class_id: classId })
     .count()
   return rel.total > 0
 }
 
 // 获取用户角色
 async function getUserRole(openid, classId) {
-  const rel = await db.collection('user_class_relation')
-    .where({ user_id: openid, class_id: classId })
+  let rel = await db.collection('user_class_relation')
+    .where({ user_openid: openid, class_id: classId })
     .get()
+  if (rel.data.length === 0) {
+    rel = await db.collection('user_class_relation')
+      .where({ _openid: openid, class_id: classId })
+      .get()
+  }
   if (rel.data.length === 0) return null
   return rel.data[0].role || 'student'
 }
@@ -83,11 +92,14 @@ async function publishItem(event, openid) {
 
   // 获取卖家信息
   const userRes = await db.collection('user_class_relation')
-    .where({ user_id: openid, class_id: classId })
+    .where({ user_openid: openid, class_id: classId })
     .get()
-  if (userRes.data.length === 0) return { code: 403, msg: '非班级成员' }
+  const sellerRel = userRes.data.length > 0 ? userRes : await db.collection('user_class_relation')
+    .where({ _openid: openid, class_id: classId })
+    .get()
+  if (sellerRel.data.length === 0) return { code: 403, msg: '非班级成员' }
 
-  const sellerName = userRes.data[0].real_name || '匿名'
+  const sellerName = sellerRel.data[0].real_name || '匿名'
 
   const item = {
     title,
@@ -349,9 +361,12 @@ async function addMessage(event, openid) {
 
   // 获取用户名
   const userRes = await db.collection('user_class_relation')
-    .where({ user_id: openid, class_id: classId })
+    .where({ user_openid: openid, class_id: classId })
     .get()
-  const senderName = userRes.data.length > 0 ? (userRes.data[0].real_name || '匿名') : '匿名'
+  const senderRel = userRes.data.length > 0 ? userRes : await db.collection('user_class_relation')
+    .where({ _openid: openid, class_id: classId })
+    .get()
+  const senderName = senderRel.data.length > 0 ? (senderRel.data[0].real_name || '匿名') : '匿名'
 
   await db.collection('flea_messages').add({
     data: {

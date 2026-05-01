@@ -26,7 +26,7 @@
 .header-content {
   position: relative;
   z-index: 1;
-  padding: 56rpx 40rpx;
+  padding: 56rpx 32rpx 32rpx;
   color: #fff;
 }
 
@@ -45,7 +45,7 @@
 /* 功能分组 */
 .feature-groups {
   padding: 0 24rpx;
-  margin-top: -32rpx;
+  margin-top: -20rpx;
   position: relative;
   z-index: 2;
 }

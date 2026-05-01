@@ -1,6 +1,6 @@
 ﻿// pages/discipline/my-discipline/my-discipline.js - 学生端我的处分
 const app = getApp();
-const dh = require('./discipline-helper.js');
+const dh = require('../discipline-helper.js');
 
 Page({
   data: {

@@ -339,18 +339,10 @@ async function addDisciplineRecord(data, openid) {
         .where({ record_id })
         .update({ data: { related_score_record_id: scoreRecordId } });
 
-      // 同步扣减学生表的 current_score
-      const studentRes = await db.collection('students')
+      // 同步扣减学生表的 current_score（使用原子操作）
+      await db.collection('students')
         .where({ student_id })
-        .limit(1)
-        .get();
-      if (studentRes.data && studentRes.data.length > 0) {
-        const currentScore = studentRes.data[0].current_score || 100;
-        const newScore = Math.max(0, currentScore - score_deduction);
-        await db.collection('students')
-          .where({ student_id })
-          .update({ data: { current_score: newScore, updated_at: now } });
-      }
+        .update({ data: { current_score: _.inc(-score_deduction), updated_at: now } });
     } catch (err) {
       console.error('积分扣减失败:', err);
     }
@@ -431,18 +423,10 @@ async function deleteDisciplineRecord(data) {
         }
       }
 
-      // 恢复学生积分
-      const studentRes = await db.collection('students')
+      // 恢复学生积分（使用原子操作）
+      await db.collection('students')
         .where({ student_id })
-        .limit(1)
-        .get();
-      if (studentRes.data && studentRes.data.length > 0) {
-        const currentScore = studentRes.data[0].current_score || 100;
-        const newScore = currentScore + score_deduction; // score_deduction 是正数，加回来
-        await db.collection('students')
-          .where({ student_id })
-          .update({ data: { current_score: newScore, updated_at: now } });
-      }
+        .update({ data: { current_score: _.inc(score_deduction), updated_at: now } });
     } catch (err) {
       console.error('恢复积分失败:', err);
       // 不中断流程，积分恢复失败只记日志

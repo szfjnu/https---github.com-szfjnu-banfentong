@@ -1,6 +1,6 @@
 ﻿// pages/discipline/level-config/level-config.js - 处分级别配置
 const app = getApp();
-const dh = require('./discipline-helper.js');
+const dh = require('../discipline-helper.js');
 
 Page({
   data: {

@@ -132,9 +132,13 @@ Page({
     try {
       const db = wx.cloud.database();
       const _ = db.command;
+      const { currentClassId, currentSemesterId } = this.data;
       
-      // 获取所有学期
+      const query = currentClassId
+        ? { class_id: _.in([currentClassId, '', null]) }
+        : {};
       const semesterRes = await db.collection('semesters')
+        .where(query)
         .orderBy('created_at', 'desc')
         .limit(5)
         .get();

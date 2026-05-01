@@ -106,6 +106,10 @@
             {{item.status}}
           </text>
         </view>
+        <view class="task-actions">
+          <view class="task-btn edit-btn" catchtap="onEditTask" data-task="{{item}}">编辑</view>
+          <view class="task-btn delete-btn" catchtap="onDeleteTask" data-task="{{item}}">删除</view>
+        </view>
       </view>
     </view>
 
@@ -120,5 +124,47 @@
     <text class="tip-icon">💡</text>
     <text class="tip-text">请先创建任务模板，再安排值日</text>
     <view class="tip-btn" bindtap="onGoTemplate">创建模板</view>
+  </view>
+
+  <!-- 编辑弹窗 -->
+  <view class="modal-mask" wx:if="{{showEditModal}}" bindtap="onEditCancel">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">编辑值日任务</text>
+        <view class="modal-close" bindtap="onEditCancel">✕</view>
+      </view>
+      <view class="modal-body">
+        <view class="form-item">
+          <text class="form-label">任务名称</text>
+          <input class="form-input" value="{{editForm.task_name}}" bindinput="onEditFormChange" data-field="task_name" placeholder="请输入任务名称" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">值日日期</text>
+          <picker mode="date" value="{{editForm.duty_date}}" bindchange="onEditFormChange" data-field="duty_date">
+            <view class="form-picker">{{editForm.duty_date || '选择日期'}}</view>
+          </picker>
+        </view>
+        <view class="form-item">
+          <text class="form-label">负责人</text>
+          <input class="form-input" value="{{editForm.student_name}}" bindinput="onEditFormChange" data-field="student_name" placeholder="请输入负责人姓名" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">合格加分</text>
+          <input class="form-input" type="number" value="{{editForm.score_for_qualified}}" bindinput="onEditFormChange" data-field="score_for_qualified" placeholder="2" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">不合格扣分</text>
+          <input class="form-input" type="number" value="{{editForm.deduction_for_unqualified}}" bindinput="onEditFormChange" data-field="deduction_for_unqualified" placeholder="-2" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">小组名称</text>
+          <input class="form-input" value="{{editForm.group_name}}" bindinput="onEditFormChange" data-field="group_name" placeholder="请输入小组名称" />
+        </view>
+      </view>
+      <view class="modal-footer">
+        <view class="modal-btn cancel" bindtap="onEditCancel">取消</view>
+        <view class="modal-btn confirm {{editSubmitting ? 'disabled' : ''}}" bindtap="onEditSubmit">{{editSubmitting ? '保存中...' : '保存'}}</view>
+      </view>
+    </view>
   </view>
 </view>

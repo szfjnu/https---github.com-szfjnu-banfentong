@@ -1,6 +1,6 @@
 ﻿// pages/discipline/revoke-admin/revoke-admin.js - 撤销申请管理（班主任端汇总页）
 const app = getApp();
-const dh = require('./discipline-helper.js');
+const dh = require('../discipline-helper.js');
 
 Page({
   data: {

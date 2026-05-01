@@ -1,6 +1,6 @@
 ﻿// pages/discipline/revoke-review/revoke-review.js - 撤销审核（班主任端）
 const app = getApp();
-const dh = require('./discipline-helper.js');
+const dh = require('../discipline-helper.js');
 
 Page({
   data: {

@@ -10,15 +10,28 @@ exports.main = async (event, context) => {
   console.log('开始导入宿舍规则...')
 
   try {
+    const { class_id } = event
     // 获取当前学期
+    let semesterQuery = { is_current: true };
+    if (class_id) {
+      semesterQuery = { class_id: class_id, is_current: true };
+    }
     const semesterRes = await db.collection('semesters')
-      .where({ is_current: true })
+      .where(semesterQuery)
       .limit(1)
       .get()
 
     let currentSemesterId = ''
     if (semesterRes.data && semesterRes.data.length > 0) {
       currentSemesterId = semesterRes.data[0]._id
+    } else if (class_id) {
+      const fallbackRes = await db.collection('semesters')
+        .where({ is_current: true })
+        .limit(1)
+        .get()
+      if (fallbackRes.data && fallbackRes.data.length > 0) {
+        currentSemesterId = fallbackRes.data[0]._id
+      }
     }
 
     // 规则数据 - 使用与现有页面兼容的分类
@@ -92,7 +105,7 @@ exports.main = async (event, context) => {
         await db.collection('dorm_rules').add({
           data: {
             ...rule,
-            class_id: '',                          // 空字符串表示全局规则
+            class_id: class_id || '',                          // 空字符串表示全局规则
             semester_id: currentSemesterId,         // 关联当前学期
             is_enabled: true,
             created_at: db.serverDate(),

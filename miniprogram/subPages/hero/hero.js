@@ -294,6 +294,8 @@ Page({
     this.setData({ showAwardModal: false });
   },
 
+  preventBubble: function () {},
+
   onTemplateChange: function (e) {
     const index = e.detail.value;
     const template = this.data.templates[index];

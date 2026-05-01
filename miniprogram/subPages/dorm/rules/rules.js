@@ -74,7 +74,11 @@ Page({
   loadSemesters: async function () {
     try {
       const db = wx.cloud.database();
+      const _ = db.command;
+      const { classId } = this.data;
+      const query = classId ? { class_id: _.in([classId, '', null]) } : {};
       const res = await db.collection('semesters')
+        .where(query)
         .orderBy('created_at', 'desc')
         .get();
 

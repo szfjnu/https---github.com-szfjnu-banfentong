@@ -329,6 +329,13 @@ Page({
     if (role === 'student') {
       const studentMenuItems = [
         {
+          id: 'complete_info',
+          title: '信息补全',
+          icon: '📝',
+          color: '#1890ff',
+          url: '/subPages/usercenter/complete/complete'
+        },
+        {
           id: 'my_discipline',
           title: '我的处分',
           icon: '⚠️',
@@ -376,6 +383,13 @@ Page({
           icon: '📊',
           color: '#722ed1',
           url: '/subPages/grade/grade'
+        },
+        {
+          id: 'my_duty',
+          title: '我的值日',
+          icon: '🧹',
+          color: '#13c2c2',
+          url: '/subPages/duty/myduty/myduty'
         }
       ];
 
@@ -389,6 +403,18 @@ Page({
     }
     if (role === 'parent') {
       menuGroups.push({
+        title: '孩子信息',
+        items: [
+          {
+            id: 'complete_info',
+            title: '信息补全',
+            icon: '📝',
+            color: '#1890ff',
+            url: '/subPages/usercenter/complete/complete'
+          }
+        ]
+      });
+      menuGroups.push({
         title: '孩子记录',
         items: [
           {
@@ -397,6 +423,13 @@ Page({
             icon: '⚠️',
             color: '#ff4d4f',
             url: '/subPages/discipline/my-discipline/my-discipline'
+          },
+          {
+            id: 'child_duty',
+            title: '值日信息',
+            icon: '🧹',
+            color: '#13c2c2',
+            url: '/subPages/duty/myduty/myduty'
           }
         ]
       });

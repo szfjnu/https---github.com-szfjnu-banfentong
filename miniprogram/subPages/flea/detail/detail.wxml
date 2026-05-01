@@ -108,7 +108,7 @@ module.exports = {
 
   <!-- 留言弹窗 -->
   <view class="modal-mask" wx:if="{{showMessageModal}}" bindtap="hideMessageModal">
-    <view class="modal-content" catchtap="">
+    <view class="modal-content" catchtap="preventBubble">
       <view class="modal-title">留言咨询</view>
       <textarea class="msg-textarea" placeholder="输入你的留言..." value="{{messageContent}}" bindinput="onMessageInput" maxlength="200" />
       <view class="modal-actions">
@@ -120,7 +120,7 @@ module.exports = {
 
   <!-- 举报弹窗 -->
   <view class="modal-mask" wx:if="{{showReportModal}}" bindtap="hideReportModal">
-    <view class="modal-content" catchtap="">
+    <view class="modal-content" catchtap="preventBubble">
       <view class="modal-title">举报商品</view>
       <view class="report-reasons">
         <view class="report-item {{reportReason === '虚假信息' ? 'selected' : ''}}" bindtap="selectReportReason" data-reason="虚假信息">虚假信息</view>

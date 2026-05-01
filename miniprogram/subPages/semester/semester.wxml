@@ -15,9 +15,14 @@
   <!-- 学期列表 -->
   <view class="section-header">
     <view class="section-title">学期列表</view>
-    <view class="add-btn" bindtap="onAddSemester">
-      <text class="add-icon">+</text>
-      <text>新建学期</text>
+    <view class="header-actions">
+      <view class="add-btn" bindtap="onInitClassSemester" wx:if="{{classId}}">
+        <text>初始化</text>
+      </view>
+      <view class="add-btn" bindtap="onAddSemester">
+        <text class="add-icon">+</text>
+        <text>新建</text>
+      </view>
     </view>
   </view>
 

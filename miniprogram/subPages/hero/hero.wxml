@@ -149,7 +149,7 @@
 
   <!-- ===== 颁发荣誉弹窗 ===== -->
   <view class="modal-mask" wx:if="{{showAwardModal}}" bindtap="closeAwardModal">
-    <view class="modal-content award-modal" catchtap="">
+    <view class="modal-content award-modal" catchtap="preventBubble">
       <view class="modal-title">🏅 颁发荣誉</view>
 
       <!-- 选择模板 -->
@@ -212,7 +212,7 @@
 
   <!-- ===== 学生选择弹窗 ===== -->
   <view class="modal-mask" wx:if="{{showStudentPicker}}" bindtap="closeStudentPicker">
-    <view class="modal-content picker-modal" catchtap="">
+    <view class="modal-content picker-modal" catchtap="preventBubble">
       <view class="modal-title">选择学生</view>
       <input class="search-input" placeholder="搜索学生姓名" value="{{searchKeyword}}" bindinput="onSearchStudent" />
       <view class="student-picker-list">
@@ -233,7 +233,7 @@
 
   <!-- ===== 管理操作弹窗 ===== -->
   <view class="modal-mask" wx:if="{{showAdminModal}}" bindtap="closeAdminModal">
-    <view class="modal-content" catchtap="">
+    <view class="modal-content" catchtap="preventBubble">
       <view class="modal-title">管理操作</view>
       <view class="admin-actions">
         <view class="admin-action-btn" bindtap="onPinHonor" wx:if="{{!adminPostPinned}}">

@@ -13,6 +13,8 @@ exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext();
 
   try {
+    await ensureCollection('grades');
+
     switch (action) {
       case 'batchInput':
         return await batchInput(data, OPENID);
@@ -406,4 +408,17 @@ async function getStats(data, openId) {
       overall: overall
     }
   };
+}
+
+async function ensureCollection(collectionName) {
+  try {
+    await db.collection(collectionName).limit(1).get();
+  } catch (err) {
+    if (err.message && (err.message.includes('no such collection') || err.message.includes('not exist'))) {
+      await db.createCollection(collectionName);
+      console.log(`集合 ${collectionName} 已自动创建`);
+    } else {
+      throw err;
+    }
+  }
 }

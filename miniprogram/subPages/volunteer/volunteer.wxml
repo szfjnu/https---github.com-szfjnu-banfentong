@@ -120,7 +120,7 @@
       </view>
       
       <!-- 删除按钮（仅管理员/班主任可见） -->
-      <view class="card-actions" wx:if="{{canEdit}}" catchtap="">
+      <view class="card-actions" wx:if="{{canEdit}}" catchtap="preventBubble">
         <view class="action-btn delete" catchtap="onDeleteRecord" data-record="{{item}}">
           <text>删除</text>
         </view>
@@ -158,7 +158,7 @@
 
   <!-- 自定义日期选择弹窗 -->
   <view class="modal-mask" wx:if="{{showDatePicker}}" bindtap="onCloseDatePicker">
-    <view class="modal-content date-picker-modal" catchtap>
+    <view class="modal-content date-picker-modal" catchtap="preventBubble">
       <view class="modal-header">
         <text class="modal-title">选择日期范围</text>
         <text class="modal-close" bindtap="onCloseDatePicker">✕</text>
@@ -195,9 +195,8 @@
 
   <!-- 积分规则配置弹窗 -->
   <view class="modal-mask" wx:if="{{showRuleModal}}" bindtap="hideScoreRuleModal">
-    <!-- 关键修改：将 catchtap="" 改为 catchtap -->
-    <!-- 这样可以阻止点击白色区域时，事件冒泡到灰色背景层导致关闭 -->
-    <view class="modal-content rule-modal" catchtap>
+    <!-- preventBubble: 阻止点击白色区域时，事件冒泡到灰色背景层导致关闭 -->
+    <view class="modal-content rule-modal" catchtap="preventBubble">
       <view class="modal-header">
         <text class="modal-title">积分规则配置</text>
         <text class="modal-close" bindtap="hideScoreRuleModal">✕</text>
@@ -241,7 +240,7 @@
   
   <!-- 积分规则配置弹窗 -->
   <view class="modal-mask" wx:if="{{showRuleModal}}" bindtap="hideScoreRuleModal">
-    <view class="modal-content rule-modal" catchtap>
+    <view class="modal-content rule-modal" catchtap="preventBubble">
       <view class="modal-header">
         <text class="modal-title">积分规则配置</text>
         <text class="modal-close" bindtap="hideScoreRuleModal">✕</text>

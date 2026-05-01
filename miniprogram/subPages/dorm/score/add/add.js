@@ -58,26 +58,18 @@ Page({
   // 加载学期和折算比例
   loadSemesterAndRatio: async function () {
     try {
-      // 获取当前学期
-      const semesterRes = await db.collection('semesters')
-        .where({ is_current: true })
-        .limit(1)
-        .get();
+      const classId = app.globalData.class_id;
+      const res = await wx.cloud.callFunction({
+        name: 'manageSemester',
+        data: { action: 'getSemesterConfig', data: { class_id: classId || '' } }
+      });
 
-      let semesterName = '';
-      let currentSemesterId = '';
-
-      if (semesterRes.data && semesterRes.data.length > 0) {
-        semesterName = semesterRes.data[0].semester_name;
-        currentSemesterId = semesterRes.data[0]._id;
-
-        // 获取折算比例
-        const conversionRatio = semesterRes.data[0].dorm_conversion_ratio || 0.2;
-
+      if (res.result && res.result.success && res.result.data) {
+        const semester = res.result.data;
         this.setData({
-          semesterName,
-          currentSemesterId,
-          conversionRatio
+          semesterName: semester.semester_name || semester.name,
+          currentSemesterId: semester._id,
+          conversionRatio: semester.dorm_conversion_ratio || 0.2
         });
       } else {
         wx.showToast({
@@ -485,7 +477,7 @@ Page({
 
     if (selectedRule && selectedStudents.length > 0) {
       const calculatedPersonalScore = linkToPersonal
-        ? (Math.abs(scoreValue) * conversionRatio).toFixed(2)
+        ? (scoreValue * conversionRatio).toFixed(2)
         : 0;
 
       this.setData({
@@ -541,7 +533,7 @@ Page({
       for (const student of selectedStudents) {
         const recordId = `DSR-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
         // 修复浮点数精度问题：保留两位小数
-        const personalScore = linkToPersonal ? Math.round(Math.abs(selectedRule.score_value) * conversionRatio * 100) / 100 : 0;
+        const personalScore = linkToPersonal ? Math.round(selectedRule.score_value * conversionRatio * 100) / 100 : 0;
 
         // 创建宿舍积分记录
         const dormRecordData = {
@@ -635,7 +627,7 @@ Page({
             rule_name: `宿舍${recordType === 'violation' ? '扣分' : '加分'}: ${selectedRule.rule_name}`,
             rule_category: '宿舍管理',
             rule_code: 'DORM_SCORE',
-            score_change: recordType === 'violation' ? -personalScore : personalScore,
+            score_change: personalScore,
             score_value: personalScore,
             reason_detail: `${dormInfoStr} ${selectedRule.rule_name}，${remark ? remark : ''}`,
             date: new Date(),
@@ -657,7 +649,7 @@ Page({
             student_id: student.student_id
           }).update({
             data: {
-              current_score: _.inc(recordType === 'violation' ? -personalScore : personalScore),
+              current_score: _.inc(personalScore),
               updated_at: db.serverDate()
             }
           });

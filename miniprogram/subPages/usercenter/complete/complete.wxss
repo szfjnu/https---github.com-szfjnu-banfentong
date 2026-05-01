@@ -1,0 +1,149 @@
+.container {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding-bottom: 40rpx;
+}
+
+.loading-mask {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+.tip-bar {
+  display: flex;
+  align-items: center;
+  margin: 20rpx 24rpx 0;
+  padding: 16rpx 24rpx;
+  background: #fff7e6;
+  border: 1rpx solid #ffe58f;
+  border-radius: 12rpx;
+}
+
+.tip-bar.tip-ok {
+  background: #f6ffed;
+  border-color: #b7eb8f;
+}
+
+.tip-icon {
+  width: 36rpx;
+  height: 36rpx;
+  line-height: 36rpx;
+  text-align: center;
+  font-size: 24rpx;
+  font-weight: bold;
+  color: #faad14;
+  background: #faad1420;
+  border-radius: 50%;
+  margin-right: 12rpx;
+  flex-shrink: 0;
+}
+
+.tip-ok .tip-icon {
+  color: #52c41a;
+  background: #52c41a20;
+}
+
+.tip-text {
+  font-size: 26rpx;
+  color: #8c8c8c;
+}
+
+.tip-ok .tip-text {
+  color: #52c41a;
+}
+
+.form-section {
+  margin: 20rpx 24rpx 0;
+  background: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.section-label {
+  padding: 20rpx 28rpx 8rpx;
+  font-size: 26rpx;
+  color: #999;
+}
+
+.form-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 28rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.form-item:last-child {
+  border-bottom: none;
+}
+
+.form-item-textarea {
+  align-items: flex-start;
+}
+
+.form-label {
+  width: 160rpx;
+  font-size: 28rpx;
+  color: #333;
+  flex-shrink: 0;
+}
+
+.form-value {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.form-value.readonly {
+  color: #999;
+}
+
+.form-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+  text-align: right;
+}
+
+.form-textarea {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+  min-height: 120rpx;
+  width: auto;
+}
+
+.picker-value {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+  text-align: right;
+}
+
+.picker-value.placeholder {
+  color: #bfbfbf;
+}
+
+.btn-section {
+  margin: 40rpx 24rpx 0;
+}
+
+.save-btn {
+  background: linear-gradient(135deg, #1890ff, #096dd9);
+  color: #fff;
+  border: none;
+  border-radius: 16rpx;
+  font-size: 32rpx;
+  height: 96rpx;
+  line-height: 96rpx;
+}
+
+.save-btn::after {
+  border: none;
+}

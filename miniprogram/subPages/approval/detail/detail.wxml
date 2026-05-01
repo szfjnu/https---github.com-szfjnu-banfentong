@@ -94,7 +94,7 @@
 
   <!-- 驳回弹窗 -->
   <view class="modal-mask" wx:if="{{showRejectModal}}" bindtap="onCancelReject">
-    <view class="modal-content" catchtap="">
+    <view class="modal-content" catchtap="preventBubble">
       <view class="modal-title">驳回原因</view>
       <textarea class="modal-textarea" placeholder="请输入驳回原因" value="{{rejectNote}}" bindinput="onRejectNoteInput" />
       <view class="modal-actions">

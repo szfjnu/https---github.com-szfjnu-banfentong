@@ -252,7 +252,77 @@ async function joinClass(openid, data) {
 
   await db.collection('user_class_relation').add({ data: relationData })
 
-  // 4. 获取班级信息用于返回
+  // 4. 如果是班主任加入，自动为班级初始化学期
+  if (role === 'head_teacher' || role === 'teacher') {
+    try {
+      const existSemesterRes = await db.collection('semesters')
+        .where({ class_id: classId, status: 'active' })
+        .limit(1)
+        .get()
+
+      if (existSemesterRes.data.length === 0) {
+        const now = new Date()
+        const year = now.getFullYear()
+        let semesterName, startDate, endDate
+
+        if (now.getMonth() >= 8) {
+          semesterName = `${year}-${year + 1}第一学期`
+          startDate = new Date(year, 8, 1)
+          endDate = new Date(year + 1, 1, 15)
+        } else {
+          semesterName = `${year - 1}-${year}第二学期`
+          startDate = new Date(year - 1, 1, 16)
+          endDate = new Date(year, 6, 30)
+        }
+
+        let defaults = {
+          initial_score: 100,
+          dorm_initial_score: 100,
+          dorm_conversion_ratio: 0.3,
+          dorm_warning_threshold: 60,
+          dorm_critical_threshold: 40
+        }
+
+        const globalRes = await db.collection('semesters')
+          .where({ status: 'active' })
+          .limit(1)
+          .get()
+
+        if (globalRes.data && globalRes.data.length > 0) {
+          const g = globalRes.data[0]
+          defaults = {
+            initial_score: g.initial_score || 100,
+            dorm_initial_score: g.dorm_initial_score || 100,
+            dorm_conversion_ratio: g.dorm_conversion_ratio || 0.3,
+            dorm_warning_threshold: g.dorm_warning_threshold || 60,
+            dorm_critical_threshold: g.dorm_critical_threshold || 40
+          }
+        }
+
+        await db.collection('semesters').add({
+          data: {
+            semester_name: semesterName,
+            name: semesterName,
+            start_date: startDate,
+            end_date: endDate,
+            status: 'active',
+            is_current: true,
+            ...defaults,
+            description: '班主任加入班级时自动创建',
+            is_initialized: true,
+            class_id: classId,
+            created_at: db.serverDate(),
+            updated_at: db.serverDate()
+          }
+        })
+        console.log('已为班级自动初始化学期:', classId)
+      }
+    } catch (semErr) {
+      console.error('自动初始化学期失败:', semErr)
+    }
+  }
+
+  // 5. 获取班级信息用于返回
   const classRes = await db.collection('classes').doc(classId).get()
 
   return {

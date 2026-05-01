@@ -62,32 +62,20 @@ Page({
   // 加载当前学期信息
   loadCurrentSemester: async function () {
     try {
-      const db = wx.cloud.database();
-      const res = await db.collection('semesters')
-        .where({
-          is_current: true
-        })
-        .limit(1)
-        .get();
-      
-      if (res.data.length > 0) {
-        const semester = res.data[0];
+      const app = getApp();
+      const classId = app.globalData.class_id;
+      const res = await wx.cloud.callFunction({
+        name: 'manageSemester',
+        data: { action: 'getSemesterConfig', data: { class_id: classId || '' } }
+      });
+
+      if (res.result && res.result.success && res.result.data) {
+        const semester = res.result.data;
         this.setData({
           currentSemester: semester,
           currentSemesterId: semester._id || semester.semester_id,
           'formData.semester_id': semester._id || semester.semester_id
         });
-      } else if (this.data.currentSemesterId) {
-        // 如果没有标记为current的学期，使用全局的semester_id
-        const semRes = await db.collection('semesters')
-          .doc(this.data.currentSemesterId)
-          .get();
-        
-        if (semRes.data) {
-          this.setData({
-            currentSemester: semRes.data
-          });
-        }
       }
     } catch (err) {
       console.error('加载当前学期失败:', err);
@@ -97,26 +85,21 @@ Page({
   // 加载积分类别（从score_categories集合）
   loadCategories: async function () {
     try {
-      const db = wx.cloud.database();
-      const _ = db.command;
+      const { userClassId } = this.data;
       
-      // 查询积分类别，包括全局类别和当前班级的类别
-      const res = await db.collection('score_categories')
-        .where(_.or([
-          { class_id: _.exists(false) },  // 全局类别
-          { class_id: '' },                // 全局类别
-          { class_id: this.data.userClassId }  // 本班类别
-        ]))
-        .where({
-          is_active: true
-        })
-        .orderBy('sort_order', 'asc')
-        .get();
-      
-      if (res.data.length > 0) {
-        const categories = res.data.map(c => c.category_name);
+      const cfRes = await wx.cloud.callFunction({
+        name: 'scoreManager',
+        data: {
+          action: 'getScoreCategories',
+          data: { classId: userClassId || '' }
+        }
+      });
+
+      const result = cfRes.result || {};
+      if (result.success && result.data && result.data.length > 0) {
+        const categories = result.data.map(c => c.category_name);
         const categoryMap = {};
-        res.data.forEach(c => {
+        result.data.forEach(c => {
           categoryMap[c.category_name] = c;
         });
         
@@ -127,7 +110,6 @@ Page({
       }
     } catch (err) {
       console.error('加载积分类别失败:', err);
-      // 如果集合不存在，使用默认类别
     }
   },
   
@@ -183,32 +165,26 @@ Page({
     this.setData({ loading: true });
 
     try {
-      const db = wx.cloud.database();
-      const _ = db.command;
       const { userRole, userClassId, currentSemesterId } = this.data;
       
-      // 构建基础查询条件
-      let baseQuery = {
-        record_type: 'rule'
-      };
-      
-      // 班主任只能看到本班规则，管理员可以看到所有规则
-      if (userRole === 'head_teacher' && userClassId) {
-        // 匹配本班规则或无班级归属的全局规则
-        baseQuery.class_id = _.in([userClassId, '', null]);
+      // 使用云函数查询，突破小程序端20条限制
+      const cfRes = await wx.cloud.callFunction({
+        name: 'scoreManager',
+        data: {
+          action: 'getScoreItems',
+          data: {
+            classId: (userRole === 'head_teacher' && userClassId) ? userClassId : '',
+            semesterId: currentSemesterId || ''
+          }
+        }
+      });
+
+      const res = cfRes.result || {};
+      if (!res.success) {
+        console.error('云函数获取积分规则失败:', res.message);
+        this.setData({ loading: false });
+        return;
       }
-      
-      // 按学期过滤（如果存在当前学期）
-      if (currentSemesterId) {
-        baseQuery.semester_id = _.in([currentSemesterId, '', null]);
-      }
-      
-      // 从 score_items 集合查询规则数据
-      const res = await db.collection('score_items')
-        .where(baseQuery)
-        .orderBy('created_at', 'desc')
-        .limit(1000) // 增加limit参数，突破20条限制
-        .get();
       
       const now = new Date();
       
@@ -216,7 +192,7 @@ Page({
       const semesterMap = await this.loadSemesterMap();
       
       // 过滤出有效的规则（在有效期内）并添加学期名称
-      const rules = res.data.filter(rule => {
+      const rules = (res.data || []).filter(rule => {
         // 检查是否启用
         if (rule.is_enabled === false) return false;
         
@@ -279,7 +255,12 @@ Page({
   loadSemesterMap: async function () {
     try {
       const db = wx.cloud.database();
+      const _ = db.command;
+      const app = getApp();
+      const classId = app.globalData.class_id;
+      const query = classId ? { class_id: _.in([classId, '', null]) } : {};
       const res = await db.collection('semesters')
+        .where(query)
         .field({
           _id: true,
           semester_id: true,

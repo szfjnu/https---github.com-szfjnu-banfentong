@@ -363,8 +363,6 @@ Page({
   // 加载统计数据
   loadStatistics: async function () {
     try {
-      const db = wx.cloud.database();
-      const _ = db.command;
       const role = app.globalData.role;
       let studentId = this.data.selectedStudent;
 
@@ -372,35 +370,19 @@ Page({
         studentId = app.globalData.student_id;
       }
 
-      // 构建OR查询条件（参考学生详情页）
-      let query = _.or([
-        // 旧格式：record_type + status
-        {
-          record_type: 'record',
-          status: '已确认',
-          class_id: this.data.currentClassId,
-          ...(studentId ? { student_id: studentId } : {})
-        },
-        // 新格式：approval_status
-        {
-          approval_status: '已通过',
-          class_id: this.data.currentClassId,
-          ...(studentId ? { student_id: studentId } : {})
-        },
-        // 兼容：只有student_id的记录
-        {
-          approval_status: _.exists(false),
-          record_type: _.exists(false),
-          class_id: this.data.currentClassId,
-          ...(studentId ? { student_id: studentId } : {})
+      const res = await wx.cloud.callFunction({
+        name: 'scoreManager',
+        data: {
+          action: 'getScoreRecords',
+          data: {
+            classId: this.data.currentClassId,
+            studentId: studentId || '',
+            needAll: true
+          }
         }
-      ]);
-      
-      const res = await db.collection('score_records')
-        .where(query)
-        .get();
-      
-      const records = res.data || [];
+      });
+
+      const records = (res.result && res.result.data) || [];
       const totalAdd = records.filter(r => (r.score_change || r.score_value || 0) > 0)
         .reduce((sum, r) => sum + (r.score_change || r.score_value || 0), 0);
       const totalDeduct = records.filter(r => (r.score_change || r.score_value || 0) < 0)
@@ -832,5 +814,7 @@ Page({
     wx.navigateTo({
       url: '/subPages/score/anomaly/anomaly'
     });
-  }
+  },
+
+  preventBubble() {},
 });

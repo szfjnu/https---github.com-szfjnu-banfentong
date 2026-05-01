@@ -71,6 +71,7 @@
   font-size: 28rpx;
   color: #333;
   width: 140rpx;
+  flex-shrink: 0;
 }
 
 .form-input {
@@ -78,6 +79,11 @@
   text-align: right;
   font-size: 28rpx;
   color: #666;
+  min-width: 0;
+  margin-left: 20rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .form-right {
@@ -95,6 +101,12 @@
 .form-value {
   font-size: 28rpx;
   color: #999;
+  flex: 1;
+  text-align: right;
+  margin-left: 20rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .arrow {

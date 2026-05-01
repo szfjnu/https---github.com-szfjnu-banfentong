@@ -50,6 +50,10 @@ Page({
     }
   },
 
+  onPullDownRefresh: function () {
+    this.loadPageData().then(() => wx.stopPullDownRefresh());
+  },
+
   loadPageData: async function () {
     this.setData({ loading: true });
     try {
@@ -141,6 +145,7 @@ Page({
   // Tab切换
   onTabChange: function (e) {
     this.setData({ activeTab: e.currentTarget.dataset.tab });
+    this.updateCurrentTasks();
   },
 
   // 标记提醒已读

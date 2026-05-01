@@ -82,6 +82,7 @@
         "usercenter/settings/settings",
         "usercenter/notifications/notifications",
         "usercenter/notification-detail/notification-detail",
+        "usercenter/complete/complete",
         "debug/debug",
         "grade/grade",
         "treehole/treehole",

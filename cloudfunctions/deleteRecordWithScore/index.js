@@ -5,9 +5,9 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 /**
  * 删除记录并回退积分的云函数
- * 支持：考勤记录、志愿服务记录
+ * 支持：考勤记录、志愿服务记录、卫生值日记录
  * 
- * @param {string} recordType - 记录类型：attendance(考勤) 或 volunteer(志愿服务)
+ * @param {string} recordType - 记录类型：attendance(考勤) 或 volunteer(志愿服务) 或 duty(卫生值日)
  * @param {string} recordId - 记录ID
  */
 exports.main = async (event, context) => {
@@ -28,10 +28,12 @@ exports.main = async (event, context) => {
     let scoreChange = 0
     let collectionName = ''
     let relatedScoreRecordId = ''
+    let sourceTypeLabel = ''
 
     // 根据记录类型获取记录信息
     if (recordType === 'attendance') {
       collectionName = 'attendance_records'
+      sourceTypeLabel = '考勤'
       const res = await db.collection('attendance_records').doc(recordId).get()
       if (!res.data) {
         return { success: false, message: '考勤记录不存在' }
@@ -42,9 +44,21 @@ exports.main = async (event, context) => {
       relatedScoreRecordId = record.related_score_record_id || ''
     } else if (recordType === 'volunteer') {
       collectionName = 'volunteer_records'
+      sourceTypeLabel = '志愿服务'
       const res = await db.collection('volunteer_records').doc(recordId).get()
       if (!res.data) {
         return { success: false, message: '志愿服务记录不存在' }
+      }
+      record = res.data
+      studentId = record.student_id
+      scoreChange = record.score_change || 0
+      relatedScoreRecordId = record.related_score_record_id || ''
+    } else if (recordType === 'duty') {
+      collectionName = 'duty_tasks'
+      sourceTypeLabel = '卫生值日'
+      const res = await db.collection('duty_tasks').doc(recordId).get()
+      if (!res.data) {
+        return { success: false, message: '值日记录不存在' }
       }
       record = res.data
       studentId = record.student_id
@@ -65,12 +79,11 @@ exports.main = async (event, context) => {
       await db.collection('score_records').doc(relatedScoreRecordId).remove()
       console.log('关联积分记录已删除:', relatedScoreRecordId)
     } else {
-      // 如果没有关联ID，尝试通过学生ID和日期查找
       const scoreRecordsRes = await db.collection('score_records')
         .where({
           student_id: studentId,
-          source_type: recordType === 'attendance' ? '考勤' : '志愿服务',
-          date: record.date
+          source_type: sourceTypeLabel,
+          source_record_id: recordId
         })
         .get()
       
@@ -82,24 +95,35 @@ exports.main = async (event, context) => {
       }
     }
 
-    // 3. 回退学生积分（积分变化是负数时需要加回去，正数时需要减回去）
+    // 3. 回退学生积分（使用原子操作）
     if (scoreChange !== 0) {
-      const reverseChange = -scoreChange // 取反
-      const studentRes = await db.collection('students')
-        .where({ student_id: studentId })
-        .get()
-      
-      if (studentRes.data && studentRes.data.length > 0) {
-        const student = studentRes.data[0]
-        const newScore = Math.max(0, (student.current_score || 100) + reverseChange)
-        
-        await db.collection('students').doc(student._id).update({
-          data: {
-            current_score: newScore,
-            updated_at: db.serverDate()
-          }
-        })
-        console.log('学生积分已回退:', student.current_score, '->', newScore)
+      const reverseChange = -scoreChange
+      try {
+        await db.collection('students')
+          .where({ student_id: studentId })
+          .update({
+            data: {
+              current_score: _.inc(reverseChange),
+              updated_at: db.serverDate()
+            }
+          })
+        console.log('学生积分已回退(原子操作):', reverseChange)
+      } catch (incErr) {
+        console.error('原子操作回退失败，尝试补偿:', incErr)
+        const studentRes = await db.collection('students')
+          .where({ student_id: studentId })
+          .get()
+        if (studentRes.data && studentRes.data.length > 0) {
+          const student = studentRes.data[0]
+          const newScore = Math.max(0, (student.current_score || 100) + reverseChange)
+          await db.collection('students').doc(student._id).update({
+            data: {
+              current_score: newScore,
+              updated_at: db.serverDate()
+            }
+          })
+          console.log('学生积分已回退(补偿):', student.current_score, '->', newScore)
+        }
       }
     }
 

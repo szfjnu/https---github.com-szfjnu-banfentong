@@ -1,6 +1,6 @@
 ﻿// pages/discipline/revoke-apply/revoke-apply.js - 撤销申请（学生端）
 const app = getApp();
-const dh = require('./discipline-helper.js');
+const dh = require('../discipline-helper.js');
 
 Page({
   data: {

@@ -70,11 +70,11 @@
         <view class="perm-module" wx:for="{{currentModuleList}}" wx:key="key">
           <view class="perm-module-title">{{item.label}}</view>
           <view class="perm-checkboxes">
-            <label class="perm-checkbox" wx:for="{{item.actions}}" wx:for-item="action" wx:key="*this"
+            <view class="perm-checkbox" wx:for="{{item.actions}}" wx:for-item="action" wx:key="*this"
                    catchtap="onCheckPermission" data-module="{{item.key}}" data-action="{{action}}">
-              <view class="checkbox {{item.currentActions.indexOf(action) >= 0 ? 'checked' : ''}}"></view>
-              <text class="checkbox-label {{action === 'approve' && item.currentActions.indexOf(action) >= 0 ? 'approve-label' : ''}}">{{actionLabels[action] || action}}</text>
-            </label>
+              <view class="checkbox {{currentPermMap[item.key + '_' + action] ? 'checked' : ''}}"></view>
+              <text class="checkbox-label {{currentPermMap[item.key + '_' + action] && action === 'approve' ? 'approve-label' : ''}}">{{actionLabels[action] || action}}</text>
+            </view>
           </view>
         </view>
       </scroll-view>
@@ -97,11 +97,11 @@
         <view class="perm-module" wx:for="{{permissionModules}}" wx:key="key">
           <view class="perm-module-title">{{item.label}}</view>
           <view class="perm-checkboxes">
-            <label class="perm-checkbox" wx:for="{{item.actions}}" wx:for-item="action" wx:key="*this"
+            <view class="perm-checkbox" wx:for="{{item.actions}}" wx:for-item="action" wx:key="*this"
                    catchtap="onBatchCheckPermission" data-module="{{item.key}}" data-action="{{action}}">
-              <view class="checkbox {{batchPermissions[item.key] && batchPermissions[item.key].indexOf(action) >= 0 ? 'checked' : ''}}"></view>
-              <text class="checkbox-label {{action === 'approve' && batchPermissions[item.key] && batchPermissions[item.key].indexOf(action) >= 0 ? 'approve-label' : ''}}">{{actionLabels[action] || action}}</text>
-            </label>
+              <view class="checkbox {{batchPermMap[item.key + '_' + action] ? 'checked' : ''}}"></view>
+              <text class="checkbox-label {{batchPermMap[item.key + '_' + action] && action === 'approve' ? 'approve-label' : ''}}">{{actionLabels[action] || action}}</text>
+            </view>
           </view>
         </view>
       </scroll-view>

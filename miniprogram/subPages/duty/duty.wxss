@@ -285,3 +285,133 @@
   border-radius: 20rpx;
   font-size: 24rpx;
 }
+
+/* 任务操作按钮 */
+.task-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  margin-left: 16rpx;
+}
+
+.task-btn {
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  text-align: center;
+}
+
+.edit-btn {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.delete-btn {
+  background: #fff1f0;
+  color: #ff4d4f;
+}
+
+/* 编辑弹窗 */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  width: 85%;
+  background: white;
+  border-radius: 20rpx;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.modal-close {
+  font-size: 36rpx;
+  color: #999;
+  padding: 8rpx;
+}
+
+.modal-body {
+  padding: 30rpx;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.form-item {
+  margin-bottom: 24rpx;
+}
+
+.form-item .form-label {
+  display: block;
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 10rpx;
+}
+
+.form-input {
+  width: 100%;
+  height: 72rpx;
+  padding: 0 20rpx;
+  border: 1rpx solid #d9d9d9;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.form-picker {
+  height: 72rpx;
+  line-height: 72rpx;
+  padding: 0 20rpx;
+  border: 1rpx solid #d9d9d9;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.modal-footer {
+  display: flex;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.modal-btn {
+  flex: 1;
+  text-align: center;
+  padding: 26rpx 0;
+  font-size: 30rpx;
+}
+
+.modal-btn.cancel {
+  color: #666;
+  border-right: 1rpx solid #f0f0f0;
+}
+
+.modal-btn.confirm {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.modal-btn.confirm.disabled {
+  color: #999;
+}

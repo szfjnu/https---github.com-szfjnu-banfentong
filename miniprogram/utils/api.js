@@ -305,47 +305,118 @@ const disciplineApi = {
  * 学期相关API
  */
 const semesterApi = {
-  // 获取当前学期
-  getCurrentSemester: () => {
-    return db.collection('semesters')
-      .where({ status: 'active' })
-      .limit(1)
-      .get();
+  getCurrentSemester: async (classId) => {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'manageSemester',
+        data: { action: 'getSemesterConfig', data: { class_id: classId || '' } }
+      });
+      if (res.result && res.result.success) {
+        return { data: [res.result.data] };
+      }
+      return { data: [] };
+    } catch (err) {
+      console.error('getCurrentSemester云函数调用失败:', err);
+      return { data: [] };
+    }
   },
 
-  // 获取所有学期
-  getSemesters: () => {
+  getSemesters: (classId) => {
+    const query = {};
+    if (classId) {
+      const _ = wx.cloud.database().command;
+      query.class_id = _.in([classId, '', null, undefined]);
+    }
     return db.collection('semesters')
+      .where(query)
       .orderBy('start_date', 'desc')
       .get();
   },
 
-  // 获取所有学期(旧方法,保留兼容)
   getAllSemesters: () => {
     return db.collection('semesters')
       .orderBy('start_date', 'desc')
       .get();
   },
 
-  // 添加学期
-  addSemester: (data) => {
-    data.created_at = db.serverDate();
-    data.updated_at = db.serverDate();
-    return db.collection('semesters').add({ data });
+  addSemester: async (data) => {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'manageSemester',
+        data: { action: 'addSemester', data: data }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('addSemester云函数调用失败:', err);
+      throw err;
+    }
   },
 
-  // 更新学期
-  updateSemester: (semesterId, data) => {
-    data.updated_at = db.serverDate();
-    return db.collection('semesters').doc(semesterId).update({ data });
+  updateSemester: async (semesterId, data) => {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'manageSemester',
+        data: { action: 'updateSemester', data: { _id: semesterId, ...data } }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('updateSemester云函数调用失败:', err);
+      throw err;
+    }
   },
 
-  // 删除学期
-  deleteSemester: (semesterId) => {
-    return db.collection('semesters').doc(semesterId).remove();
+  setCurrentSemester: async (semesterId, classId) => {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'manageSemester',
+        data: { action: 'setCurrentSemester', data: { semester_id: semesterId, class_id: classId || '' } }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('setCurrentSemester云函数调用失败:', err);
+      throw err;
+    }
   },
 
-  // 获取学期详情
+  initClassSemester: async (classId) => {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'manageSemester',
+        data: { action: 'initClassSemester', data: { class_id: classId } }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('initClassSemester云函数调用失败:', err);
+      throw err;
+    }
+  },
+
+  getSemesterConfig: async (classId) => {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'manageSemester',
+        data: { action: 'getSemesterConfig', data: { class_id: classId || '' } }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('getSemesterConfig云函数调用失败:', err);
+      return { success: false, message: err.message };
+    }
+  },
+
+  deleteSemester: async (semesterId) => {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'manageSemester',
+        data: { action: 'deleteSemester', data: { semester_id: semesterId } }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('deleteSemester云函数调用失败:', err);
+      return { success: false, message: err.message || '删除失败' };
+    }
+  },
+
   getSemesterDetail: (semesterId) => {
     return db.collection('semesters').doc(semesterId).get();
   }

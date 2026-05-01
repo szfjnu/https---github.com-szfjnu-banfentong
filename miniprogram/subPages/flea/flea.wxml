@@ -122,7 +122,7 @@ module.exports = {
 
   <!-- ===== 发布弹窗 ===== -->
   <view class="modal-mask" wx:if="{{showPublish}}" bindtap="hidePublishModal">
-    <view class="modal-content publish-modal" catchtap="">
+    <view class="modal-content publish-modal" catchtap="preventBubble">
       <view class="modal-title">发布商品</view>
       <scroll-view scroll-y class="publish-scroll">
         <!-- 标题 -->
@@ -199,7 +199,7 @@ module.exports = {
 
   <!-- ===== 我的发布弹窗 ===== -->
   <view class="modal-mask" wx:if="{{showMyItems}}" bindtap="hideMyItems">
-    <view class="modal-content my-modal" catchtap="">
+    <view class="modal-content my-modal" catchtap="preventBubble">
       <view class="modal-title">我的发布</view>
       <scroll-view scroll-y class="my-scroll">
         <block wx:for="{{myItems}}" wx:key="_id">

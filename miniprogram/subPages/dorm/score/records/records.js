@@ -59,7 +59,11 @@ Page({
   // 加载学期
   loadSemesters: async function () {
     try {
+      const userClassId = app.globalData.class_id || '';
+      const _ = db.command;
+      const query = userClassId ? { class_id: _.in([userClassId, '', null]) } : {};
       const res = await db.collection('semesters')
+        .where(query)
         .orderBy('created_at', 'desc')
         .get();
 

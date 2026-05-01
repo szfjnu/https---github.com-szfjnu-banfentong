@@ -58,7 +58,7 @@
           <text class="meta-divider">|</text>
           <text class="meta-period">考察{{item.probation_months}}月</text>
         </view>
-        <view class="record-actions" catchtap="">
+        <view class="record-actions" catchtap="preventBubble">
           <view class="del-btn" catchtap="onDeleteRecord" data-record="{{item}}">删除</view>
         </view>
       </view>

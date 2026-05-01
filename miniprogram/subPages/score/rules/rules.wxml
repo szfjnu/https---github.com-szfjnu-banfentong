@@ -171,7 +171,7 @@
             value="{{formData.categoryIndex}}" 
             bindchange="onCategoryChange"
           >
-            <view class="picker-value" catchtap="">
+            <view class="picker-value" catchtap="preventBubble">
               <text>{{categories[formData.categoryIndex] || formData.rule_category || '请选择'}}</text>
               <text class="arrow">▼</text>
             </view>
@@ -187,7 +187,7 @@
             value="{{formData.classIndex}}" 
             bindchange="onClassChange"
           >
-            <view class="picker-value" catchtap="">
+            <view class="picker-value" catchtap="preventBubble">
               <text>{{classNames[formData.classIndex] || '全局规则'}}</text>
               <text class="arrow">▼</text>
             </view>

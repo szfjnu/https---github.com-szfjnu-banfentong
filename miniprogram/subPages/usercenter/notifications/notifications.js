@@ -356,5 +356,7 @@ Page({
     if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前';
     if (diff < 604800000) return Math.floor(diff / 86400000) + '天前';
     return `${d.getMonth() + 1}月${d.getDate()}日`;
-  }
+  },
+
+  preventBubble() {},
 });

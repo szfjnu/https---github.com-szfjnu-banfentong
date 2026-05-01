@@ -14,9 +14,19 @@ exports.main = async (event, context) => {
 
   try {
     // 1. 获取当前学期信息
-    const semesterRes = await db.collection('semesters').where({
-      status: 'active'
-    }).get()
+    const { class_id } = event
+    let semesterQuery = { status: 'active' };
+    if (class_id) {
+      semesterQuery = { class_id: class_id, status: 'active' };
+    }
+    let semesterRes = await db.collection('semesters').where(semesterQuery).get()
+    
+    if (semesterRes.data.length === 0 && class_id) {
+      const fallbackRes = await db.collection('semesters').where({ status: 'active' }).get()
+      if (fallbackRes.data.length > 0) {
+        semesterRes = fallbackRes;
+      }
+    }
     
     if (semesterRes.data.length === 0) {
       return {

@@ -128,7 +128,7 @@
 
   <!-- 发帖弹窗 -->
   <view class="modal-mask" wx:if="{{showPublishModal}}" bindtap="closePublishModal">
-    <view class="modal-content publish-modal" catchtap="">
+    <view class="modal-content publish-modal" catchtap="preventBubble">
       <view class="modal-title">倾诉心事</view>
 
       <!-- 心情选择 -->
@@ -169,7 +169,7 @@
 
   <!-- 举报弹窗 -->
   <view class="modal-mask" wx:if="{{showReportModal}}" bindtap="closeReportModal">
-    <view class="modal-content report-modal" catchtap="">
+    <view class="modal-content report-modal" catchtap="preventBubble">
       <view class="modal-title">举报帖子</view>
       <view class="report-hint">请选择举报原因：</view>
       <view class="report-options">
@@ -197,7 +197,7 @@
 
   <!-- 管理员操作弹窗 -->
   <view class="modal-mask" wx:if="{{showAdminModal}}" bindtap="closeAdminModal">
-    <view class="modal-content" catchtap="">
+    <view class="modal-content" catchtap="preventBubble">
       <view class="modal-title">管理操作</view>
       <view class="admin-actions">
         <view class="admin-action-btn" bindtap="onHidePost" wx:if="{{adminPostStatus === 'normal'}}">

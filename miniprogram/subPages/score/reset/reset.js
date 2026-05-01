@@ -361,5 +361,7 @@ Page({
       content: `时间: ${util.formatDateTime(new Date(history.executed_at))}\n影响人数: ${history.affected_count}\n重置积分: ${history.total_score_reset}`,
       showCancel: false
     });
-  }
+  },
+
+  preventBubble() {},
 });

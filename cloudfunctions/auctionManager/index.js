@@ -14,26 +14,39 @@ const CATEGORIES = {
 
 // 验证用户班级身份
 async function verifyUser(openid, classId) {
-  const rel = await db.collection('user_class_relation')
-    .where({ user_id: openid, class_id: classId })
+  let rel = await db.collection('user_class_relation')
+    .where({ user_openid: openid, class_id: classId })
     .count()
+  if (rel.total === 0) {
+    rel = await db.collection('user_class_relation')
+      .where({ _openid: openid, class_id: classId })
+      .count()
+  }
   return rel.total > 0
 }
 
-// 获取用户角色
 async function getUserRole(openid, classId) {
-  const rel = await db.collection('user_class_relation')
-    .where({ user_id: openid, class_id: classId })
+  let rel = await db.collection('user_class_relation')
+    .where({ user_openid: openid, class_id: classId })
     .get()
+  if (rel.data.length === 0) {
+    rel = await db.collection('user_class_relation')
+      .where({ _openid: openid, class_id: classId })
+      .get()
+  }
   if (rel.data.length === 0) return null
   return rel.data[0].role || 'student'
 }
 
-// 获取用户姓名
 async function getUserName(openid, classId) {
-  const rel = await db.collection('user_class_relation')
-    .where({ user_id: openid, class_id: classId })
+  let rel = await db.collection('user_class_relation')
+    .where({ user_openid: openid, class_id: classId })
     .get()
+  if (rel.data.length === 0) {
+    rel = await db.collection('user_class_relation')
+      .where({ _openid: openid, class_id: classId })
+      .get()
+  }
   if (rel.data.length === 0) return '未知'
   return rel.data[0].real_name || '匿名'
 }

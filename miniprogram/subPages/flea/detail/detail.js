@@ -1,3 +1,5 @@
+const app = getApp()
+
 Page({
   data: {
     classId: '',
@@ -16,9 +18,13 @@ Page({
   },
 
   onLoad(options) {
-    const classId = options.classId || wx.getStorageSync('currentClassId') || ''
+    const classId = options.classId || app.globalData.class_id || wx.getStorageSync('class_id') || ''
     const itemId = options.itemId || ''
     this.setData({ classId, itemId })
+    if (!classId) {
+      this.setData({ loading: false })
+      return
+    }
     this.loadDetail()
     this.loadMessages()
   },
@@ -174,5 +180,7 @@ Page({
     } catch (err) {
       wx.showToast({ title: '举报失败', icon: 'none' })
     }
-  }
+  },
+
+  preventBubble() {},
 })

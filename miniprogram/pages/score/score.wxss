@@ -34,17 +34,16 @@
 }
 
 .score-nav-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12rpx;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
 }
 
 .score-nav-grid .nav-item {
-  width: calc(33.33% - 8rpx);
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 16rpx 0 20rpx;
+  padding: 20rpx 0 16rpx;
   border-radius: 16rpx;
   transition: all 0.2s;
 }

@@ -240,5 +240,7 @@ Page({
         }
       }
     });
-  }
+  },
+
+  preventBubble() {},
 });

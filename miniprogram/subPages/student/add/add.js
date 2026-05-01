@@ -273,10 +273,18 @@ Page({
       };
 
       if (this.data.isEdit) {
-        // 更新 - 使用数据库 _id 而不是学号
+        // 更新 - 使用云函数绕过安全规则限制
         console.log('更新学生, _id:', this.data.studentDocId);
-        await api.studentApi.updateStudent(this.data.studentDocId, saveData);
-        util.showSuccess('更新成功');
+        const res = await wx.cloud.callFunction({
+          name: 'manageUserCenter',
+          data: { action: 'updateStudentInfo', data: { _id: this.data.studentDocId, ...saveData } }
+        });
+        if (res.result && res.result.success) {
+          util.showSuccess('更新成功');
+        } else {
+          util.showError(res.result?.message || '更新失败');
+          return;
+        }
       } else {
         // 添加
         saveData.created_at = db.serverDate();

@@ -443,5 +443,7 @@ Page({
       title: '成绩管理中心',
       path: '/subPages/grade/grade'
     };
-  }
+  },
+
+  preventBubble() {},
 });

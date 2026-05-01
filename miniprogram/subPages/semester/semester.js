@@ -9,6 +9,7 @@ Page({
     semesterCount: 0,
     currentSemesterName: '',
     loading: true,
+    classId: '',
     // 新建弹窗
     showAddModal: false,
     formData: {
@@ -41,6 +42,7 @@ Page({
   },
 
   onLoad: function () {
+    this.setData({ classId: app.globalData.class_id || '' });
     this.loadData();
   },
 
@@ -58,7 +60,8 @@ Page({
     this.setData({ loading: true });
 
     try {
-      const res = await api.semesterApi.getSemesters();
+      const { classId } = this.data;
+      const res = await api.semesterApi.getSemesters(classId);
       const now = new Date();
       const today = util.formatDate(now);
 
@@ -242,7 +245,8 @@ Page({
         dorm_conversion_ratio: formData.dorm_conversion_ratio || 0.3,
         dorm_warning_threshold: formData.dorm_warning_threshold || 60,
         dorm_critical_threshold: formData.dorm_critical_threshold || 40,
-        is_initialized: false
+        is_initialized: false,
+        class_id: this.data.classId
       });
 
       wx.hideLoading();
@@ -362,7 +366,7 @@ Page({
     try {
       wx.showLoading({ title: '保存中...', mask: true });
 
-      await api.semesterApi.updateSemester(editFormData._id, {
+      const res = await api.semesterApi.updateSemester(editFormData._id, {
         semester_name: editFormData.name.trim(),
         start_date: new Date(editFormData.start_date),
         end_date: new Date(editFormData.end_date),
@@ -375,9 +379,14 @@ Page({
       });
 
       wx.hideLoading();
-      this.setData({ showEditModal: false });
-      util.showSuccess('保存成功');
-      this.loadData();
+
+      if (res && res.success) {
+        this.setData({ showEditModal: false });
+        util.showSuccess('保存成功');
+        this.loadData();
+      } else {
+        util.showError((res && res.message) || '保存失败');
+      }
     } catch (err) {
       wx.hideLoading();
       console.error('保存学期失败:', err);
@@ -400,26 +409,11 @@ Page({
           try {
             wx.showLoading({ title: '设置中...', mask: true });
 
-            // 先将所有学期设为非当前
-            const allIds = this.data.allSemesters.map(s => s._id);
-            for (const id of allIds) {
-              if (id !== semesterId) {
-                await api.semesterApi.updateSemester(id, { 
-                  is_current: false,
-                  status: 'inactive' 
-                });
-              }
-            }
-
-            // 再将目标学期设为当前
-            await api.semesterApi.updateSemester(semesterId, { 
-              is_current: true,
-              status: 'active' 
-            });
+            const { classId } = this.data;
+            await api.semesterApi.setCurrentSemester(semesterId, classId);
 
             wx.hideLoading();
 
-            // 立即更新本地数据，无需等待数据库同步
             const updatedSemesters = this.data.allSemesters.map(s => ({
               ...s,
               status: s._id === semesterId ? 'active' : 'inactive'
@@ -431,7 +425,6 @@ Page({
 
             util.showSuccess('设置成功');
 
-            // 稍后再从服务器刷新确认数据
             setTimeout(() => {
               this.loadData();
             }, 500);
@@ -469,10 +462,14 @@ Page({
         if (res.confirm) {
           try {
             wx.showLoading({ title: '删除中...' });
-            await api.semesterApi.deleteSemester(semesterId);
+            const result = await api.semesterApi.deleteSemester(semesterId);
             wx.hideLoading();
-            util.showSuccess('删除成功');
-            this.loadData();
+            if (result && result.success) {
+              util.showSuccess('删除成功');
+              this.loadData();
+            } else {
+              util.showError((result && result.message) || '删除失败');
+            }
           } catch (err) {
             wx.hideLoading();
             console.error('删除学期失败:', err);
@@ -486,11 +483,44 @@ Page({
   // 查看详情
   onViewDetail: function (e) {
     const id = e.currentTarget.dataset.id;
-    // 可以跳转到详情页，这里暂用编辑功能
     const semester = this.data.allSemesters.find(s => s._id === id);
     if (semester) {
       this.onEditSemester({ currentTarget: { dataset: { item: semester } } });
     }
+  },
+
+  // 初始化班级学期配置
+  onInitClassSemester: async function () {
+    const { classId } = this.data;
+    if (!classId) {
+      util.showError('请先选择班级');
+      return;
+    }
+
+    wx.showModal({
+      title: '初始化学期配置',
+      content: '将为当前班级创建默认学期配置，已有活跃学期则跳过。确定继续？',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            wx.showLoading({ title: '初始化中...', mask: true });
+            const result = await api.semesterApi.initClassSemester(classId);
+            wx.hideLoading();
+
+            if (result.success) {
+              util.showSuccess(result.message || '初始化成功');
+              this.loadData();
+            } else {
+              util.showError(result.message || '初始化失败');
+            }
+          } catch (err) {
+            wx.hideLoading();
+            console.error('初始化学期失败:', err);
+            util.showError('初始化失败');
+          }
+        }
+      }
+    });
   },
 
   // ==================== 工具方法 ====================

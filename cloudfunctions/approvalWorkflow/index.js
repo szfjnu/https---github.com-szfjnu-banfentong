@@ -58,7 +58,7 @@ exports.main = async (event, context) => {
 
 // 获取用户在班级中的角色
 async function getUserRole(openid, classId) {
-  const res = await db.collection('user_class_relation')
+  let res = await db.collection('user_class_relation')
     .where({
       user_openid: openid,
       class_id: classId,
@@ -66,6 +66,17 @@ async function getUserRole(openid, classId) {
     })
     .limit(1)
     .get()
+
+  if (res.data.length === 0) {
+    res = await db.collection('user_class_relation')
+      .where({
+        _openid: openid,
+        class_id: classId,
+        status: 'joined'
+      })
+      .limit(1)
+      .get()
+  }
 
   if (res.data.length > 0) {
     return res.data[0].role

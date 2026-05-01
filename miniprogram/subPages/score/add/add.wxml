@@ -130,7 +130,7 @@
           class="student-item {{item.selected ? 'selected' : ''}}"
           wx:for="{{students}}" 
           wx:key="_id"
-          wx:if="{{(selectedClass === '' || item.class_name === selectedClass) && (searchKeyword === '' || item.name.includes(searchKeyword) || item.student_id.includes(searchKeyword))}}"
+          wx:if="{{(selectedClass === '' || item.class_id === selectedClass) && (searchKeyword === '' || item.name.includes(searchKeyword) || item.student_id.includes(searchKeyword))}}"
           bindtap="onToggleStudent"
           data-id="{{item.student_id}}"
         >

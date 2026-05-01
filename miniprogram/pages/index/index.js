@@ -713,6 +713,7 @@ fetchWeather: async function (location) {
         { title: '住宿积分', icon: 'dorm', color: '#13c2c2', colorDark: '#08979c', url: '/subPages/dorm/mydorm/mydorm', disabled: false, isDorm: true },
         { title: '我的值日', icon: 'duty', color: '#eb2f96', colorDark: '#c41d7f', url: '/subPages/duty/myduty/myduty', disabled: false },
         { title: '我的处分', icon: 'record', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/discipline/my-discipline/my-discipline', disabled: false },
+        { title: '个人设置', icon: 'settings', color: '#8c8c8c', colorDark: '#595959', url: '/subPages/usercenter/settings/settings', disabled: false },
         { title: '通知中心', icon: 'notification', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/usercenter/notifications/notifications', disabled: false }
       ];
     } else if (role === 'parent') {
@@ -722,6 +723,7 @@ fetchWeather: async function (location) {
         { title: '积分商城', icon: 'mall', color: '#fa8c16', colorDark: '#d46b08', url: '/subPages/score/mall/mall', disabled: false },
         { title: '孩子值日', icon: 'duty', color: '#eb2f96', colorDark: '#c41d7f', url: '/subPages/duty/myduty/myduty', disabled: false },
         { title: '孩子处分', icon: 'record', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/discipline/my-discipline/my-discipline', disabled: false },
+        { title: '个人设置', icon: 'settings', color: '#8c8c8c', colorDark: '#595959', url: '/subPages/usercenter/settings/settings', disabled: false },
         { title: '通知中心', icon: 'notification', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/usercenter/notifications/notifications', disabled: false }
       ];
     }

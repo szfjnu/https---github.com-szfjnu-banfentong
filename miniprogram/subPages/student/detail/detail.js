@@ -168,36 +168,25 @@ Page({
       const studentId = this.data.studentId;
       console.log('加载积分记录, student_id:', studentId);
       
-      const db = wx.cloud.database();
-      const _ = db.command;
-      
-      // 查询所有该学生的积分记录（包括志愿服务、处分、技能证书等来源）
-      const res = await db.collection('score_records')
-        .where(_.or([
-          // 旧格式：record_type + status
-          {
-            student_id: studentId,
-            record_type: 'record',
-            status: '已确认'
-          },
-          // 新格式：approval_status
-          {
-            student_id: studentId,
-            approval_status: '已通过'
-          },
-          // 兼容：只有student_id的记录
-          {
-            student_id: studentId,
-            approval_status: _.exists(false),
-            record_type: _.exists(false)
+      const res = await wx.cloud.callFunction({
+        name: 'scoreManager',
+        data: {
+          action: 'getScoreRecords',
+          data: {
+            studentId: studentId,
+            needAll: true
           }
-        ]))
-        .orderBy('created_at', 'desc')
-        .limit(100)
-        .get();
-      console.log('积分记录查询结果:', res);
+        }
+      });
+      const rawRecords = (res.result && res.result.data) || [];
+      rawRecords.sort((a, b) => {
+        const ta = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const tb = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return tb - ta;
+      });
+      console.log('积分记录查询结果:', rawRecords);
 
-      const records = res.data.map(item => {
+      const records = rawRecords.map(item => {
         // 日期处理：兼容多种日期字段
         let dateStr = '';
         if (item.record_date) {

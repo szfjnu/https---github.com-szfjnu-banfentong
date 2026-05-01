@@ -150,7 +150,7 @@
 
   <!-- 批量导入弹窗 -->
   <view class="modal-mask" wx:if="{{showImportModal}}" bindtap="closeImportModal">
-    <view class="modal-content" catchtap="">
+    <view class="modal-content" catchtap="preventBubble">
       <view class="modal-title">批量录入成绩</view>
 
       <!-- 科目选择 -->
