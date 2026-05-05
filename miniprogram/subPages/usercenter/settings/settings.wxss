@@ -81,9 +81,9 @@
   color: #666;
   min-width: 0;
   margin-left: 20rpx;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  padding: 0;
+  border: none;
+  background: transparent;
 }
 
 .form-right {

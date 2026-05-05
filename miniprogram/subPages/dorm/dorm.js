@@ -1,7 +1,7 @@
 ﻿const app = getApp();
 const db = wx.cloud.database();
 const _ = db.command;
-const batchQuery = require('../../../utils/batchQuery.js');
+const batchQuery = require('../../utils/batchQuery.js');
 
 Page({
   data: {
