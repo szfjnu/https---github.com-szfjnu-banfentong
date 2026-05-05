@@ -252,6 +252,40 @@
   border-radius: 6rpx;
 }
 
+.excel-file-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+  padding: 40rpx 0;
+}
+
+.excel-tip {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.excel-file-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  padding: 24rpx;
+  background: #f0f9ff;
+  border-radius: 12rpx;
+}
+
+.excel-file-name {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: bold;
+}
+
+.excel-file-status {
+  font-size: 24rpx;
+  color: #52c41a;
+}
+
 .preview-detail {
   display: flex;
   gap: 16rpx;

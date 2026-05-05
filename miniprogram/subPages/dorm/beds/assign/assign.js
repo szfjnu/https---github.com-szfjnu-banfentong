@@ -116,25 +116,25 @@ Page({
         return;
       }
 
-      let query = db.collection('students').where({
-        class_id: classId
+      // 通过云函数获取全量学生
+      const cfRes = await wx.cloud.callFunction({
+        name: 'manageAuthorization',
+        data: { action: 'getStudents', data: { class_id: classId } }
       });
+      let students = (cfRes.result && cfRes.result.success) ? cfRes.result.data : [];
 
       // 搜索
       if (this.data.searchKeyword.trim()) {
-        const keyword = this.data.searchKeyword.trim();
-        query = query.where(_.or([
-          { name: db.RegExp({ regexp: keyword, options: 'i' }) },
-          { student_id: db.RegExp({ regexp: keyword, options: 'i' }) }
-        ]));
+        const keyword = this.data.searchKeyword.trim().toLowerCase();
+        students = students.filter(s =>
+          (s.name || '').toLowerCase().includes(keyword) ||
+          (s.student_id || '').toLowerCase().includes(keyword)
+        );
       }
 
-      const res = await query
-        .orderBy('student_id', 'asc')
-        .limit(50)
-        .get();
+      // 按student_id排序
+      students.sort((a, b) => (a.student_id || '').localeCompare(b.student_id || ''));
 
-      const students = res.data || [];
       console.log('学生列表:', students);
       console.log('学生数量:', students.length);
 

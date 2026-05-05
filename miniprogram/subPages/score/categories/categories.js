@@ -1,6 +1,7 @@
 // pages/score/categories/categories.js
 const app = getApp();
 const util = require('../../../utils/util.js');
+const batchQuery = require('../../../utils/batchQuery.js');
 
 Page({
   data: {
@@ -77,16 +78,10 @@ Page({
       const _ = db.command;
       
       // 查询当前班级和全局的积分类别
-      const res = await db.collection('score_categories')
-        .where({
-          is_active: _.neq(false),
-          class_id: _.in([this.data.currentClassId, '', null])
-        })
-        .orderBy('sort_order', 'asc')
-        .limit(100)
-        .get();
-      
-      const categories = res.data || [];
+      const categories = await batchQuery.getAllRecords('score_categories', {
+        is_active: _.neq(false),
+        class_id: _.in([this.data.currentClassId, '', null])
+      }, 'sort_order', 'asc');
       
       this.setData({
         categories,

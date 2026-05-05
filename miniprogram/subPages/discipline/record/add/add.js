@@ -67,17 +67,12 @@ Page({
 
   loadStudents: async function () {
     try {
-      const db = wx.cloud.database();
-      const res = await db.collection('students')
-        .where({
-          class_id: this.data.classId,
-          status: db.command.neq('graduated')
-        })
-        .orderBy('name', 'asc')
-        .limit(200)
-        .get();
+      const res = await wx.cloud.callFunction({
+        name: 'manageAuthorization',
+        data: { action: 'getStudents', data: { class_id: this.data.classId } }
+      });
 
-      const students = (res.data || []).map(s => ({
+      const students = ((res.result && res.result.success ? res.result.data : []) || []).map(s => ({
         ...s,
         name: s.name || s.student_name || ''
       }));

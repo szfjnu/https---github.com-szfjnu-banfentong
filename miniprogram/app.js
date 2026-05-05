@@ -16,7 +16,8 @@ App({
     envId: null,
     // 会员相关
     membership: null, // 会员信息
-    membershipPermissions: null // 会员权限
+    membershipPermissions: null, // 会员权限
+    authorizations: {} // 用户授权权限（从student_authorizations加载）
   },
 
   // 小程序初始化
@@ -93,6 +94,8 @@ App({
       }
       // 异步获取最新学期信息
       this.getCurrentSemester();
+      // 异步加载用户授权权限
+      this.loadUserAuthorizations();
     } else {
       console.log('用户未登录');
     }
@@ -194,6 +197,12 @@ App({
     const role = this.globalData.role;
     if (!role) return false;
 
+    // 先检查授权记录中的权限（优先级高于基础角色权限）
+    const auths = this.globalData.authorizations || {};
+    if (auths[module] && Array.isArray(auths[module])) {
+      if (auths[module].includes(action)) return true;
+    }
+
     // 权限配置表
     const permissions = {
       admin: {
@@ -255,6 +264,38 @@ App({
       return permissions[role][module].includes(action);
     }
     return false;
+  },
+
+  // 加载用户授权权限（从student_authorizations集合）
+  loadUserAuthorizations: async function () {
+    const role = this.globalData.role;
+    const studentId = this.globalData.student_id;
+    const classId = this.globalData.class_id;
+
+    // 仅学生/家长/班干部需要加载授权记录
+    if (!studentId || !classId || (role !== 'student' && role !== 'parent' && role !== 'class_cadre')) {
+      this.globalData.authorizations = {};
+      return;
+    }
+
+    try {
+      const db = wx.cloud.database();
+      const res = await db.collection('student_authorizations')
+        .where({ class_id: classId, student_id: studentId })
+        .limit(1)
+        .get();
+
+      if (res.data && res.data.length > 0 && res.data[0].permissions) {
+        this.globalData.authorizations = res.data[0].permissions;
+        console.log('已加载授权权限:', JSON.stringify(this.globalData.authorizations));
+      } else {
+        this.globalData.authorizations = {};
+        console.log('无授权记录，使用基础角色权限');
+      }
+    } catch (err) {
+      console.error('加载授权权限失败:', err);
+      this.globalData.authorizations = {};
+    }
   },
 
   // 构建数据隔离查询条件

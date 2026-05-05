@@ -1,0 +1,12 @@
+{
+  "student_id": { "label": "学号", "aliases": ["student_id", "学号", "学生编号", "学生ID", "Student ID"] },
+  "name": { "label": "姓名", "aliases": ["name", "姓名", "学生姓名", "学生名称", "Name"] },
+  "gender": { "label": "性别", "aliases": ["gender", "性别", "Sex"] },
+  "is_boarding": { "label": "住宿", "aliases": ["is_boarding", "住宿", "是否住宿", "住校", "Boarding"] },
+  "position": { "label": "班干部", "aliases": ["position", "班干部", "职务", "班委", "Position"] },
+  "phone": { "label": "联系电话", "aliases": ["phone", "联系电话", "手机号", "电话", "Phone"] },
+  "parent_name": { "label": "家长姓名", "aliases": ["parent_name", "家长姓名", "家长", "Parent Name"] },
+  "parent_phone": { "label": "家长电话", "aliases": ["parent_phone", "家长电话", "家长手机", "Parent Phone"] },
+  "address": { "label": "家庭住址", "aliases": ["address", "家庭住址", "住址", "地址", "Address"] },
+  "initial_score": { "label": "初始积分", "aliases": ["initial_score", "初始积分", "起始积分", "Initial Score"] }
+}

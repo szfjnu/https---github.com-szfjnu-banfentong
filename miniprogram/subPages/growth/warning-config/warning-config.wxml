@@ -1,0 +1,53 @@
+<view class="warning-config-page">
+  <view class="section">
+    <view class="section-title">预警规则列表</view>
+    <view class="rule-list" wx:if="{{rules.length > 0}}">
+      <view class="rule-item" wx:for="{{rules}}" wx:key="rule_id">
+        <view class="rule-header">
+          <text class="rule-desc">{{item.description || item.indicator + ' ' + item.operator + ' ' + item.threshold}}</text>
+          <switch checked="{{item.enabled}}" bindchange="onToggleRule" data-id="{{item.rule_id}}" color="#667eea" />
+        </view>
+        <view class="rule-detail">
+          <text class="rule-indicator">{{item.indicator}}</text>
+          <text class="rule-op">{{item.operator}}</text>
+          <text class="rule-threshold">{{item.threshold}}</text>
+        </view>
+        <view class="rule-ops" wx:if="{{!item.is_default}}">
+          <view class="op-link" bindtap="onEditRule" data-index="{{index}}">编辑</view>
+          <view class="op-link delete" bindtap="onDeleteRule" data-id="{{item.rule_id}}">删除</view>
+        </view>
+      </view>
+    </view>
+    <view class="empty-tip" wx:else>
+      <text>暂无预警规则</text>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">{{editingIndex >= 0 ? '编辑规则' : '新增规则'}}</view>
+    <view class="form-row">
+      <text class="form-label">指标</text>
+      <picker mode="selector" range="{{indicatorOptions}}" range-key="label" value="{{indicatorIndex}}" bindchange="onIndicatorChange">
+        <view class="picker-value">{{indicatorOptions[indicatorIndex].label}}</view>
+      </picker>
+    </view>
+    <view class="form-row">
+      <text class="form-label">运算符</text>
+      <picker mode="selector" range="{{operatorOptions}}" range-key="label" value="{{operatorIndex}}" bindchange="onOperatorChange">
+        <view class="picker-value">{{operatorOptions[operatorIndex].label}}</view>
+      </picker>
+    </view>
+    <view class="form-row">
+      <text class="form-label">阈值</text>
+      <input class="form-input" type="digit" value="{{thresholdValue}}" bindinput="onThresholdInput" placeholder="输入阈值" />
+    </view>
+    <view class="form-row">
+      <text class="form-label">描述</text>
+      <input class="form-input" value="{{ruleDescription}}" bindinput="onDescriptionInput" placeholder="规则描述" />
+    </view>
+    <view class="form-btns">
+      <view class="form-btn primary" bindtap="onSaveRule">保存规则</view>
+      <view class="form-btn" bindtap="onCancelEdit" wx:if="{{editingIndex >= 0}}">取消</view>
+    </view>
+  </view>
+</view>

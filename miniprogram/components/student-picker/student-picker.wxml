@@ -1,0 +1,42 @@
+<view class="student-picker">
+  <view class="picker-title" wx:if="{{title}}">
+    <text>{{title}}</text>
+  </view>
+
+  <view class="picker-search">
+    <input
+      class="search-input"
+      placeholder="搜索学生姓名"
+      value="{{searchText}}"
+      bindinput="onSearchInput"
+    />
+  </view>
+
+  <view class="picker-group" wx:if="{{showGroup && groups.length > 0}}">
+    <picker mode="selector" range="{{groups}}" range-key="group_name" bindchange="onGroupChange">
+      <view class="group-picker-btn">
+        <text>{{currentGroup || '全部分组'}}</text>
+        <text class="arrow">▼</text>
+      </view>
+    </picker>
+  </view>
+
+  <view class="picker-list">
+    <view
+      class="student-item {{selectedId === item.student_id ? 'selected' : ''}}"
+      wx:for="{{filteredList}}" wx:key="student_id"
+      bindtap="onStudentTap"
+      data-id="{{item.student_id}}"
+      data-name="{{item.student_name}}"
+      data-gender="{{item.gender}}"
+      data-height="{{item.height}}"
+    >
+      <text class="student-name">{{item.student_name}}</text>
+      <text class="student-group" wx:if="{{item.group_name}}">{{item.group_name}}</text>
+      <text class="select-mark" wx:if="{{selectedId === item.student_id}}">✓</text>
+    </view>
+    <view class="empty-tip" wx:if="{{filteredList.length === 0}}">
+      <text>无可用学生</text>
+    </view>
+  </view>
+</view>

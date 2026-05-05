@@ -218,7 +218,7 @@ Page({
           status: db.command.in(['待审批', '已批准', '已中标', '未中标'])
         })
         .orderBy('bid_score', 'desc')
-        .limit(20)
+        .limit(100)
         .get();
 
       // 处理投标列表
@@ -504,7 +504,7 @@ Page({
         })
         .orderBy('vote_count', 'desc')
         .orderBy('created_at', 'desc')
-        .limit(20)
+        .limit(100)
         .get();
 
       const wishList = (res.data || []).map(wish => ({

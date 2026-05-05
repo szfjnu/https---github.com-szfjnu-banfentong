@@ -1,0 +1,62 @@
+<view class="arrange-page">
+  <view class="loading-wrap" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <block wx:if="{{!loading}}">
+    <view class="no-layout" wx:if="{{!hasLayout}}">
+      <text>请先设置座位布局</text>
+    </view>
+
+    <block wx:if="{{hasLayout}}">
+      <view class="mode-tabs">
+        <view class="mode-tab {{arrangeMode === 'random' ? 'active' : ''}}" bindtap="onModeChange" data-mode="random">一键随机</view>
+        <view class="mode-tab {{arrangeMode === 'group' ? 'active' : ''}}" bindtap="onModeChange" data-mode="group">按组区块</view>
+        <view class="mode-tab {{arrangeMode === 'manual' ? 'active' : ''}}" bindtap="onModeChange" data-mode="manual">手动安排</view>
+      </view>
+
+      <view class="action-area" wx:if="{{arrangeMode === 'random'}}">
+        <view class="action-btn primary {{arranging ? 'disabled' : ''}}" bindtap="doRandomArrange">
+          <text>{{arranging ? '安排中...' : '一键随机安排'}}</text>
+        </view>
+      </view>
+
+      <view class="action-area" wx:if="{{arrangeMode === 'group'}}">
+        <view class="group-info" wx:if="{{groups.length > 0}}">
+          <text>共{{groups.length}}个分组</text>
+        </view>
+        <view class="group-info" wx:else>
+          <text class="warn">无分组数据</text>
+        </view>
+        <view class="action-btn primary {{arranging ? 'disabled' : ''}}" bindtap="doGroupArrange">
+          <text>{{arranging ? '安排中...' : '按组区块安排'}}</text>
+        </view>
+      </view>
+
+      <view class="manual-area" wx:if="{{arrangeMode === 'manual'}}">
+        <view class="manual-hint">
+          <text>选择学生后点击空座位安排</text>
+        </view>
+        <student-picker
+          id="studentPicker"
+          students="{{students}}"
+          assignedIds="{{assignedIds}}"
+          showGroup="{{true}}"
+          groups="{{groups}}"
+          title="选择学生"
+          bind:select="onStudentSelect"
+          bind:deselect="onStudentDeselect"
+        />
+      </view>
+
+      <view class="grid-section">
+        <seat-grid
+          layout="{{layout}}"
+          arrangement="{{arrangement}}"
+          mode="edit"
+          bind:seatclick="onSeatClick"
+        />
+      </view>
+    </block>
+  </block>
+</view>

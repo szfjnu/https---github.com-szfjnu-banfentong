@@ -1,6 +1,7 @@
 ﻿const app = getApp();
 const db = wx.cloud.database();
 const _ = db.command;
+const batchQuery = require('../../../utils/batchQuery.js');
 
 Page({
   data: {
@@ -69,17 +70,10 @@ Page({
   loadStats: async function () {
     const { classId } = this.data;
     
-    const res = await db.collection('students')
-      .where({
-        class_id: classId,
-        is_boarding: true
-      })
-      .field({
-        dorm_score: true
-      })
-      .get();
-    
-    const students = res.data;
+    const students = await batchQuery.getAllRecords('students', {
+      class_id: classId,
+      is_boarding: true
+    });
     const totalStudents = students.length;
     const totalScore = students.reduce((sum, s) => sum + (s.dorm_score || 100), 0);
     const avgScore = totalStudents > 0 ? Math.round(totalScore / totalStudents) : 0;
@@ -100,17 +94,10 @@ Page({
   loadDistribution: async function () {
     const { classId } = this.data;
     
-    const res = await db.collection('students')
-      .where({
-        class_id: classId,
-        is_boarding: true
-      })
-      .field({
-        dorm_score: true
-      })
-      .get();
-    
-    const students = res.data;
+    const students = await batchQuery.getAllRecords('students', {
+      class_id: classId,
+      is_boarding: true
+    });
     const total = students.length;
     
     const excellent = students.filter(s => (s.dorm_score || 100) >= 90).length;
@@ -174,23 +161,12 @@ Page({
   loadRanking: async function () {
     const { classId } = this.data;
     
-    const res = await db.collection('students')
-      .where({
-        class_id: classId,
-        is_boarding: true
-      })
-      .field({
-        student_id: true,
-        name: true,
-        dorm_score: true,
-        'dorm_info.building': true,
-        'dorm_info.room': true
-      })
-      .orderBy('dorm_score', 'desc')
-      .limit(50)
-      .get();
+    const res = await batchQuery.getAllRecords('students', {
+      class_id: classId,
+      is_boarding: true
+    }, 'dorm_score', 'desc');
     
-    const rankingList = res.data.map(s => ({
+    const rankingList = res.map(s => ({
       ...s,
       building: s.dorm_info?.building || '-',
       room: s.dorm_info?.room || '-'
@@ -203,15 +179,12 @@ Page({
   loadWarnings: async function () {
     const { classId } = this.data;
     
-    const res = await db.collection('dorm_warnings')
-      .where({
-        class_id: classId,
-        status: 'active'
-      })
-      .orderBy('created_at', 'desc')
-      .get();
+    const warningData = await batchQuery.getAllRecords('dorm_warnings', {
+      class_id: classId,
+      status: 'active'
+    }, 'created_at', 'desc');
     
-    const warningList = res.data.map(w => ({
+    const warningList = warningData.map(w => ({
       ...w,
       warning_level_text: this.getWarningLevelText(w.warning_level)
     }));

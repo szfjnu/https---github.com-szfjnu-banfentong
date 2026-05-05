@@ -1,6 +1,7 @@
 ﻿const app = getApp();
 const db = wx.cloud.database();
 const _ = db.command;
+const batchQuery = require('../../../utils/batchQuery.js');
 
 Page({
   data: {
@@ -202,14 +203,9 @@ Page({
         query.record_type = 'service';
       }
 
-      const res = await db.collection('dorm_score_records')
-        .where(query)
-        .orderBy('record_date', 'desc')
-        .orderBy('date', 'desc')
-        .limit(50)
-        .get();
+      const res = await batchQuery.getAllRecords('dorm_score_records', query, 'record_date', 'desc');
 
-      const records = this.calculateScoreAfter(res.data || []);
+      const records = this.calculateScoreAfter(res || []);
 
       this.setData({
         records,

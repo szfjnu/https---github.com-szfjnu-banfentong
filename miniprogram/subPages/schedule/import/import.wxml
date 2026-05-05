@@ -1,0 +1,95 @@
+<view class="import-page">
+  <view class="info-section">
+    <text class="info-text">班级: {{className}}</text>
+    <text class="info-text">学期: {{semesterName || '未设置'}}</text>
+  </view>
+
+  <!-- 导入方式切换 -->
+  <view class="method-tabs">
+    <view class="method-tab {{importMethod === 'json' ? 'active' : ''}}" data-method="json" bindtap="onMethodChange">
+      <text>JSON导入</text>
+    </view>
+    <view class="method-tab {{importMethod === 'excel' ? 'active' : ''}} {{canUseExcel ? '' : 'disabled'}}" data-method="excel" bindtap="{{canUseExcel ? 'onMethodChange' : ''}}">
+      <text>Excel导入</text>
+      <text class="vip-tag" wx:if="{{!canUseExcel}}">PRO</text>
+    </view>
+  </view>
+
+  <!-- JSON导入区域 -->
+  <block wx:if="{{importMethod === 'json'}}">
+    <view class="input-section">
+      <view class="section-header">
+        <text class="section-title">粘贴JSON数据</text>
+        <text class="sample-btn" bindtap="useSampleData">使用示例</text>
+      </view>
+      <textarea
+        class="json-input"
+        placeholder="请粘贴课程表JSON数组数据..."
+        value="{{jsonText}}"
+        bindinput="onInputChange"
+        auto-height
+        maxlength="-1"
+      ></textarea>
+    </view>
+
+    <view class="action-section">
+      <view class="action-btn validate-btn {{validating ? 'disabled' : ''}}" bindtap="validateData">
+        <text>{{validating ? '校验中...' : '校验数据'}}</text>
+      </view>
+      <view class="action-btn import-btn {{!validated || importing ? 'disabled' : ''}}" bindtap="doImport">
+        <text>{{importing ? '导入中...' : '开始导入'}}</text>
+      </view>
+      <view class="action-btn fix-btn {{fixing ? 'disabled' : ''}}" bindtap="fixExistingData">
+        <text>{{fixing ? '修复中...' : '修复历史数据'}}</text>
+      </view>
+    </view>
+  </block>
+
+  <!-- Excel导入区域 -->
+  <block wx:if="{{importMethod === 'excel'}}">
+    <view class="excel-section">
+      <view class="excel-choose-btn" bindtap="onChooseExcel">
+        <text class="excel-icon">📄</text>
+        <text>选择Excel文件</text>
+      </view>
+      <text class="excel-hint">支持 .xlsx / .xls 格式</text>
+    </view>
+
+    <view class="action-section" wx:if="{{excelPreviewCount > 0}}">
+      <view class="action-btn import-btn {{excelImporting ? 'disabled' : ''}}" bindtap="doExcelImport">
+        <text>{{excelImporting ? '导入中...' : '确认导入 (' + excelPreviewCount + '条)'}}</text>
+      </view>
+    </view>
+  </block>
+
+  <view class="preview" wx:if="{{previewCount > 0 && validateErrors.length === 0}}">
+    <text class="preview-text">校验通过: {{previewCount}}条数据</text>
+  </view>
+
+  <view class="error-section" wx:if="{{validateErrors.length > 0}}">
+    <text class="error-title">校验错误:</text>
+    <view class="error-item" wx:for="{{validateErrors}}" wx:key="*this">
+      <text>{{item}}</text>
+    </view>
+  </view>
+
+  <view class="result-section" wx:if="{{importResult}}">
+    <view class="result-header">
+      <text class="result-title">导入完成</text>
+    </view>
+    <view class="result-summary">
+      <text class="result-success">成功: {{importResult.successCount || importResult.success}}条</text>
+      <text class="result-failed">失败: {{importResult.failCount || importResult.failed}}条</text>
+      <text class="result-skip" wx:if="{{importResult.skipCount}}">跳过: {{importResult.skipCount}}条</text>
+    </view>
+    <view class="fail-details" wx:if="{{importResult.errors && importResult.errors.length > 0}}">
+      <text class="fail-title">失败明细:</text>
+      <view class="fail-item" wx:for="{{importResult.errors}}" wx:key="*this">
+        <text>{{item}}</text>
+      </view>
+    </view>
+    <view class="result-btn" bindtap="goBack">
+      <text>返回课程表</text>
+    </view>
+  </view>
+</view>

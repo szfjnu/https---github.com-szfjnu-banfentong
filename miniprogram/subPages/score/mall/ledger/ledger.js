@@ -1,6 +1,7 @@
 // pages/score/mall/ledger/ledger.js
 const app = getApp();
 const util = require('../../../../utils/util.js');
+const batchQuery = require('../../../../utils/batchQuery.js');
 
 Page({
   data: {
@@ -62,13 +63,9 @@ Page({
       const db = wx.cloud.database();
       const classId = app.globalData.class_id;
 
-      const res = await db.collection('redemption_requests')
-        .where({ class_id: classId })
-        .orderBy('created_at', 'desc')
-        .limit(200)
-        .get();
+      const allData = await batchQuery.getAllRecords('redemption_requests', { class_id: classId }, 'created_at', 'desc');
 
-      const allRequests = (res.data || []).map(item => ({
+      const allRequests = (allData || []).map(item => ({
         ...item,
         created_at_text: item.created_at ? util.formatDateTime(new Date(item.created_at)) : '',
         approval_time_text: item.approval_time ? util.formatDateTime(new Date(item.approval_time)) : '',

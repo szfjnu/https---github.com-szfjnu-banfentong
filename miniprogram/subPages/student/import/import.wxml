@@ -57,8 +57,29 @@
       <view class="tab-item {{importMethod === 'paste' ? 'active' : ''}}" data-method="paste" bindtap="onMethodChange">
         粘贴数据
       </view>
+      <view class="tab-item {{importMethod === 'excel' ? 'active' : ''}}" data-method="excel" bindtap="onMethodChange">
+        Excel导入
+      </view>
       <view class="tab-item {{importMethod === 'template' ? 'active' : ''}}" data-method="template" bindtap="onMethodChange">
         查看模板
+      </view>
+    </view>
+
+    <!-- Excel导入方式 -->
+    <view class="section" wx:if="{{importMethod === 'excel'}}">
+      <view class="section-header">
+        <text class="section-title">从Excel导入</text>
+        <text class="section-tip">支持.xlsx/.xls格式，从微信聊天选择文件</text>
+      </view>
+      <view class="excel-file-area" wx:if="{{!excelFileID}}">
+        <button class="btn-primary" bindtap="onChooseExcel" disabled="{{excelUploading}}">
+          {{excelUploading ? '上传中...' : '选择Excel文件'}}
+        </button>
+        <text class="excel-tip">请先在聊天中接收Excel文件，然后点击选择</text>
+      </view>
+      <view class="excel-file-info" wx:if="{{excelFileID}}">
+        <text class="excel-file-name">{{excelFileName}}</text>
+        <text class="excel-file-status">已上传，解析完成</text>
       </view>
     </view>
 

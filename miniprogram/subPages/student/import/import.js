@@ -1,6 +1,7 @@
 // pages/student/import/import.js
 const app = getApp();
 const util = require('../../../utils/util.js');
+const excelTransfer = require('../../utils/excelTransfer.js');
 
 Page({
   data: {
@@ -8,8 +9,11 @@ Page({
     className: '',
     
     // 导入相关
-    importMethod: 'manual', // manual, paste, file
+    importMethod: 'manual', // manual, paste, file, excel
     pasteContent: '',
+    excelFileID: '',
+    excelFileName: '',
+    excelUploading: false,
     
     // 预览数据
     previewData: [],
@@ -323,9 +327,36 @@ Page({
     });
   },
 
-  // 确认导入
+  onChooseExcel: async function () {
+    try {
+      const file = await excelTransfer.chooseExcelFile()
+      this.setData({ excelUploading: true, excelFileName: file.name })
+      const uploadRes = await excelTransfer.uploadToCloud(file.path)
+      this.setData({ excelUploading: false, excelFileID: uploadRes.fileID })
+      wx.showLoading({ title: '解析中...', mask: true })
+      const res = await excelTransfer.callDataTransfer('importStudent', {
+        fileID: uploadRes.fileID,
+        classId: this.data.classId,
+        className: this.data.className,
+        confirm: false
+      })
+      wx.hideLoading()
+      if (res.data && res.data.rows) {
+        const rows = res.data.rows
+        const validCount = res.data.validCount || 0
+        const invalidCount = res.data.invalidCount || 0
+        this.setData({ previewData: rows, validCount, invalidCount })
+        util.showSuccess(`解析完成：${validCount}条有效，${invalidCount}条无效`)
+      }
+    } catch (err) {
+      wx.hideLoading()
+      this.setData({ excelUploading: false })
+      util.showError(err.message || 'Excel导入失败')
+    }
+  },
+
   onConfirmImport: async function () {
-    const { previewData, classId, validCount } = this.data;
+    const { previewData, classId, validCount, importMethod } = this.data;
     
     if (validCount === 0) {
       util.showError('没有有效数据可导入');
@@ -337,10 +368,48 @@ Page({
       content: `即将导入 ${validCount} 条学生数据，是否继续？`,
       success: async (res) => {
         if (res.confirm) {
-          await this.doImport();
+          if (importMethod === 'excel') {
+            await this.doExcelImport();
+          } else {
+            await this.doImport();
+          }
         }
       }
     });
+  },
+
+  doExcelImport: async function () {
+    const { previewData, classId, className, excelFileID } = this.data
+    this.setData({ importing: true, importProgress: 0 })
+    wx.showLoading({ title: '导入中...', mask: true })
+    try {
+      const res = await excelTransfer.callDataTransfer('importStudent', {
+        fileID: excelFileID,
+        classId,
+        className,
+        confirm: true,
+        previewData
+      })
+      wx.hideLoading()
+      const result = res.data || {}
+      this.setData({
+        importing: false,
+        importProgress: 100,
+        importResult: {
+          successCount: result.successCount || 0,
+          failCount: result.failCount || 0,
+          skipCount: result.skipCount || 0,
+          errors: result.errors || []
+        }
+      })
+      if (result.successCount > 0) {
+        util.showSuccess(`成功导入 ${result.successCount} 名学生`)
+      }
+    } catch (err) {
+      wx.hideLoading()
+      this.setData({ importing: false })
+      util.showError(err.message || '导入失败')
+    }
   },
 
   // 执行导入

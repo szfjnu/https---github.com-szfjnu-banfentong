@@ -2,6 +2,7 @@
 const app = getApp();
 const api = require('../../../utils/api.js');
 const util = require('../../../utils/util.js');
+const excelTransfer = require('../../utils/excelTransfer.js');
 
 // 异常预警阈值
 const ANOMALY_THRESHOLDS = {
@@ -810,6 +811,40 @@ Page({
   },
 
   // 查看异常记录
+  onExportScoreRecords: async function () {
+    const perm = excelTransfer.checkExportPermission()
+    if (!perm.allowed) {
+      wx.showToast({ title: perm.reason, icon: 'none' })
+      return
+    }
+    if (!this.data.canExport) {
+      wx.showToast({ title: '无导出权限', icon: 'none' })
+      return
+    }
+    wx.showLoading({ title: '导出中...', mask: true })
+    try {
+      const now = new Date()
+      const endDate = now.toISOString().slice(0, 10)
+      const start = new Date(now.getTime() - 30 * 24 * 3600 * 1000)
+      const startDate = start.toISOString().slice(0, 10)
+      const res = await excelTransfer.callDataTransfer('exportScoreRecords', {
+        classId: this.data.currentClassId,
+        className: this.data.currentClassName || '',
+        startDate,
+        endDate
+      })
+      wx.hideLoading()
+      if (res.data && res.data.fileID) {
+        await excelTransfer.downloadExcel(res.data.fileID)
+      } else {
+        wx.showToast({ title: '导出失败', icon: 'none' })
+      }
+    } catch (err) {
+      wx.hideLoading()
+      wx.showToast({ title: err.message || '导出失败', icon: 'none' })
+    }
+  },
+
   onViewAnomalies: function () {
     wx.navigateTo({
       url: '/subPages/score/anomaly/anomaly'

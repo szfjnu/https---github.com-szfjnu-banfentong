@@ -1,0 +1,42 @@
+<view class="seat-page">
+  <view class="loading-wrap" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <block wx:if="{{!loading}}">
+    <view class="no-layout" wx:if="{{!hasLayout}}">
+      <text class="no-text">请先设置座位布局</text>
+      <view class="action-btn" bindtap="goLayout" wx:if="{{canEdit}}">
+        <text>设置布局</text>
+      </view>
+    </view>
+
+    <block wx:if="{{hasLayout}}">
+      <view class="toolbar" wx:if="{{canEdit}}">
+        <view class="tool-btn" bindtap="goLayout">设置布局</view>
+        <view class="tool-btn" bindtap="goArrange">安排座位</view>
+        <view class="tool-btn" bindtap="goRotate">轮换设置</view>
+        <view class="tool-btn" bindtap="goHistory">历史记录</view>
+        <view class="tool-btn" bindtap="exportImage">导出图片</view>
+        <view class="tool-btn tool-btn-danger" bindtap="resetSeats">一键重置</view>
+      </view>
+
+      <view class="no-arrangement" wx:if="{{!hasArrangement}}">
+        <text class="no-text">暂无座位安排</text>
+      </view>
+
+      <view class="grid-section" wx:if="{{hasArrangement}}">
+        <seat-grid
+          id="seatGrid"
+          layout="{{layout}}"
+          arrangement="{{arrangement}}"
+          highlightSeat="{{highlightSeat}}"
+          mode="view"
+          className="{{className}}"
+          studentExtraInfo="{{studentExtraInfo}}"
+          bind:seatclick="onSeatClick"
+        />
+      </view>
+    </block>
+  </block>
+</view>

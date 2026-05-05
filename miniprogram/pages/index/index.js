@@ -2,6 +2,7 @@
 const app = getApp();
 const api = require('../../utils/api.js');
 const util = require('../../utils/util.js');
+const batchQuery = require('../../utils/batchQuery.js');
 
 Page({
   data: {
@@ -24,7 +25,12 @@ Page({
     // 今日课程
     todayCourses: [],
     coursesLoading: true,
-    courseViewType: 'class', // 'class' 班级课程 / 'teacher' 教师课程
+    courseViewType: 'class',
+    currentCourses: [],
+    upcomingCourses: [],
+    finishedCourses: [],
+    showFinishedCourses: false,
+    allCoursesFinished: false,
     
     // 今日生日学生
     birthdayStudents: [],
@@ -37,6 +43,15 @@ Page({
 
   onShow: function () {
     this.loadData();
+    this._startCourseRefreshTimer();
+  },
+
+  onHide: function () {
+    this._stopCourseRefreshTimer();
+  },
+
+  onUnload: function () {
+    this._stopCourseRefreshTimer();
   },
 
   // 检查登录状态
@@ -73,6 +88,11 @@ Page({
     this.setData({ loading: true });
 
     try {
+      // 确保授权权限已加载
+      if (Object.keys(app.globalData.authorizations || {}).length === 0 && app.globalData.student_id) {
+        await app.loadUserAuthorizations();
+      }
+
       // 获取当前学期
       await this.getCurrentSemester();
 
@@ -123,11 +143,12 @@ Page({
     try {
       if (role === 'admin' || role === 'head_teacher' || role === 'subject_teacher') {
         // 管理员和教师统计
-        // 2. 关键修改：将 classId 传入 API
-        const studentsRes = await api.studentApi.getStudents({ 
-          limit: 1000,
-          class_id: classId // <--- 传入班级ID
+        // 2. 关键修改：通过云函数获取全量学生
+        const studentsCfRes = await wx.cloud.callFunction({
+          name: 'manageAuthorization',
+          data: { action: 'getStudents', data: { class_id: classId } }
         });
+        const studentsRes = { data: (studentsCfRes.result && studentsCfRes.result.success) ? studentsCfRes.result.data : [] };
       
         const students = studentsRes.data;
 
@@ -484,39 +505,52 @@ fetchWeather: async function (location) {
     this.setData({ coursesLoading: true });
     
     try {
-      const db = wx.cloud.database();
-      const _ = db.command;
-      
-      // 获取今天是星期几 (0=周日, 1=周一, ...)
       const today = new Date().getDay();
-      const weekday = ['日', '一', '二', '三', '四', '五', '六'][today];
-      
-      // 查询课程表
+      if (today === 0 || today === 6) {
+        this.setData({ todayCourses: [], coursesLoading: false });
+        return;
+      }
+
       const classId = app.globalData.class_id;
       if (!classId) {
         this.setData({ coursesLoading: false });
         return;
       }
 
-      const scheduleRes = await db.collection('class_schedules')
-        .where({
-          class_id: classId,
-          weekday: weekday,
-          status: db.command.neq('cancelled')
-        })
-        .orderBy('period', 'asc')
-        .get();
+      const semesterName = app.globalData.currentSemesterName || '';
+      const courseViewType = this.data.courseViewType;
 
-      const courses = (scheduleRes.data || []).map(course => ({
-        ...course,
-        time: this.getPeriodTime(course.period),
-        status: this.getCourseStatus(course.period)
-      }));
+      const res = await wx.cloud.callFunction({
+        name: 'manageSchedule',
+        data: {
+          action: 'getSchedule',
+          data: {
+            class_id: classId,
+            semester_name: semesterName,
+            week_day: today,
+            course_view_type: courseViewType
+          }
+        }
+      });
+
+      let courses = [];
+      if (res.result && res.result.success) {
+        courses = (res.result.data || []).filter(c => c.status !== 'cancelled').map(course => ({
+          ...course,
+          period: course.section,
+          time: course.time_range || this.getPeriodTime(course.section),
+          course_name: course.course_name || course.subject_name || '未设置',
+          status: this.getCourseStatus(course)
+        }));
+      }
 
       this.setData({ 
         todayCourses: courses,
         coursesLoading: false 
       });
+
+      this.filterCourseDisplay(courses);
+      this._startCourseRefreshTimer();
     } catch (err) {
       console.error('加载课程失败:', err);
       this.setData({ coursesLoading: false });
@@ -538,30 +572,108 @@ fetchWeather: async function (location) {
     return timeMap[period] || '';
   },
 
-  // 获取课程状态
-  getCourseStatus: function (period) {
-    const now = new Date();
-    const hours = now.getHours();
-    const minutes = now.getMinutes();
-    const currentTime = hours * 60 + minutes;
+  timeToMinutes: function (timeStr) {
+    if (!timeStr || typeof timeStr !== 'string') return -1
+    const parts = timeStr.split(':')
+    if (parts.length < 2) return -1
+    const h = parseInt(parts[0], 10)
+    const m = parseInt(parts[1], 10)
+    if (isNaN(h) || isNaN(m)) return -1
+    return h * 60 + m
+  },
 
-    const periodTimes = {
-      1: { start: 8 * 60, end: 8 * 60 + 45 },
-      2: { start: 8 * 60 + 55, end: 9 * 60 + 40 },
-      3: { start: 10 * 60, end: 10 * 60 + 45 },
-      4: { start: 10 * 60 + 55, end: 11 * 60 + 40 },
-      5: { start: 14 * 60, end: 14 * 60 + 45 },
-      6: { start: 14 * 60 + 55, end: 15 * 60 + 40 },
-      7: { start: 16 * 60, end: 16 * 60 + 45 },
-      8: { start: 16 * 60 + 55, end: 17 * 60 + 40 }
-    };
+  getCourseStatus: function (course) {
+    const now = new Date()
+    const currentTime = now.getHours() * 60 + now.getMinutes()
 
-    const time = periodTimes[period];
-    if (!time) return '';
+    let startTime = -1
+    let endTime = -1
 
-    if (currentTime < time.start) return '未开始';
-    if (currentTime >= time.start && currentTime <= time.end) return '进行中';
-    return '已结束';
+    if (course.start_time && course.end_time) {
+      startTime = this.timeToMinutes(course.start_time)
+      endTime = this.timeToMinutes(course.end_time)
+    }
+
+    if (startTime === -1 || endTime === -1) {
+      const periodTimes = {
+        1: { start: 8 * 60, end: 8 * 60 + 45 },
+        2: { start: 8 * 60 + 55, end: 9 * 60 + 40 },
+        3: { start: 10 * 60, end: 10 * 60 + 45 },
+        4: { start: 10 * 60 + 55, end: 11 * 60 + 40 },
+        5: { start: 14 * 60, end: 14 * 60 + 45 },
+        6: { start: 14 * 60 + 55, end: 15 * 60 + 40 },
+        7: { start: 16 * 60, end: 16 * 60 + 45 },
+        8: { start: 16 * 60 + 55, end: 17 * 60 + 40 }
+      }
+      const section = course.section || course.period
+      const time = periodTimes[section]
+      if (!time) return ''
+      startTime = time.start
+      endTime = time.end
+    }
+
+    if (currentTime < startTime) return '未开始'
+    if (currentTime < endTime) return '进行中'
+    return '已结束'
+  },
+
+  filterCourseDisplay: function (courses) {
+    const current = []
+    const upcoming = []
+    const finished = []
+
+    for (const course of courses) {
+      if (course.status === '进行中') {
+        current.push(course)
+      } else if (course.status === '未开始') {
+        if (upcoming.length < 2) {
+          upcoming.push(course)
+        }
+      } else if (course.status === '已结束') {
+        finished.push(course)
+      }
+    }
+
+    const allFinished = current.length === 0 && upcoming.length === 0 && finished.length > 0
+
+    this.setData({
+      currentCourses: current,
+      upcomingCourses: upcoming,
+      finishedCourses: finished,
+      allCoursesFinished: allFinished,
+      showFinishedCourses: false
+    })
+  },
+
+  toggleFinishedCourses: function () {
+    this.setData({ showFinishedCourses: !this.data.showFinishedCourses })
+  },
+
+  _startCourseRefreshTimer: function () {
+    this._stopCourseRefreshTimer()
+    this._courseRefreshTimer = setInterval(() => {
+      this._refreshCourseStatus()
+    }, 5 * 60 * 1000)
+  },
+
+  _stopCourseRefreshTimer: function () {
+    if (this._courseRefreshTimer) {
+      clearInterval(this._courseRefreshTimer)
+      this._courseRefreshTimer = null
+    }
+  },
+
+  _refreshCourseStatus: function () {
+    const courses = this.data.todayCourses
+    if (!courses || courses.length === 0) return
+
+    const updated = courses.map(course => ({
+      ...course,
+      status: this.getCourseStatus(course)
+    }))
+
+    this.setData({ todayCourses: updated })
+    this.filterCourseDisplay(updated)
   },
 
   // 切换课程视图类型
@@ -660,6 +772,7 @@ fetchWeather: async function (location) {
   // 加载快捷操作
   loadQuickActions: function () {
     const role = this.data.role;
+    const authorizations = app.globalData.authorizations || {};
     let actions = [];
 
     if (role === 'admin' || role === 'head_teacher') {
@@ -676,7 +789,9 @@ fetchWeather: async function (location) {
         { title: '处分管理', icon: 'record', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/discipline/record/record', disabled: false },
         { title: '审批中心', icon: 'approval', color: '#722ed1', colorDark: '#531dab', url: '/subPages/approval/approval', disabled: false },
         { title: '学期管理', icon: 'semester', color: '#722ed1', colorDark: '#531dab', url: '/subPages/semester/semester', disabled: false },
-        { title: '通知中心', icon: 'notification', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/usercenter/notifications/notifications', disabled: false }
+        { title: '通知中心', icon: 'notification', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/usercenter/notifications/notifications', disabled: false },
+        { title: '座位管理', icon: 'duty', color: '#faad14', colorDark: '#d48806', url: '/subPages/seat/seat/seat', disabled: false },
+        { title: '成长档案', icon: 'score', color: '#52c41a', colorDark: '#389e0d', url: '/pages/growth/profile', disabled: false }
       ];
     } else if (role === 'subject_teacher') {
       // 科任老师：可查看班级信息、学生、积分、志愿服务、审批
@@ -686,7 +801,8 @@ fetchWeather: async function (location) {
         { title: '积分查看', icon: 'score', color: '#52c41a', colorDark: '#389e0d', url: '/pages/score/score', disabled: false },
         { title: '志愿服务', icon: 'volunteer', color: '#fa8c16', colorDark: '#d46b08', url: '/subPages/volunteer/volunteer', disabled: false },
         { title: '审批中心', icon: 'approval', color: '#722ed1', colorDark: '#531dab', url: '/subPages/approval/approval', disabled: false },
-        { title: '通知中心', icon: 'notification', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/usercenter/notifications/notifications', disabled: false }
+        { title: '通知中心', icon: 'notification', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/usercenter/notifications/notifications', disabled: false },
+        { title: '成长档案', icon: 'score', color: '#52c41a', colorDark: '#389e0d', url: '/pages/growth/profile', disabled: false }
       ];
     } else if (role === 'class_cadre') {
       // 班干部：可管理值日、查看学生、提交志愿服务、审批
@@ -712,6 +828,8 @@ fetchWeather: async function (location) {
         { title: '积分商城', icon: 'mall', color: '#fa8c16', colorDark: '#d46b08', url: '/subPages/score/mall/mall', disabled: false },
         { title: '住宿积分', icon: 'dorm', color: '#13c2c2', colorDark: '#08979c', url: '/subPages/dorm/mydorm/mydorm', disabled: false, isDorm: true },
         { title: '我的值日', icon: 'duty', color: '#eb2f96', colorDark: '#c41d7f', url: '/subPages/duty/myduty/myduty', disabled: false },
+        { title: '我的座位', icon: 'duty', color: '#faad14', colorDark: '#d48806', url: '/subPages/seat/seat/seat', disabled: false },
+        { title: '成长档案', icon: 'score', color: '#52c41a', colorDark: '#389e0d', url: '/pages/growth/profile', disabled: false },
         { title: '我的处分', icon: 'record', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/discipline/my-discipline/my-discipline', disabled: false },
         { title: '个人设置', icon: 'settings', color: '#8c8c8c', colorDark: '#595959', url: '/subPages/usercenter/settings/settings', disabled: false },
         { title: '通知中心', icon: 'notification', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/usercenter/notifications/notifications', disabled: false }
@@ -722,10 +840,54 @@ fetchWeather: async function (location) {
         { title: '志愿服务', icon: 'volunteer', color: '#52c41a', colorDark: '#389e0d', url: '/subPages/volunteer/volunteer', disabled: false },
         { title: '积分商城', icon: 'mall', color: '#fa8c16', colorDark: '#d46b08', url: '/subPages/score/mall/mall', disabled: false },
         { title: '孩子值日', icon: 'duty', color: '#eb2f96', colorDark: '#c41d7f', url: '/subPages/duty/myduty/myduty', disabled: false },
+        { title: '孩子座位', icon: 'duty', color: '#faad14', colorDark: '#d48806', url: '/subPages/seat/seat/seat', disabled: false },
+        { title: '成长档案', icon: 'score', color: '#52c41a', colorDark: '#389e0d', url: '/pages/growth/profile', disabled: false },
         { title: '孩子处分', icon: 'record', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/discipline/my-discipline/my-discipline', disabled: false },
         { title: '个人设置', icon: 'settings', color: '#8c8c8c', colorDark: '#595959', url: '/subPages/usercenter/settings/settings', disabled: false },
         { title: '通知中心', icon: 'notification', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/usercenter/notifications/notifications', disabled: false }
       ];
+    }
+
+    // 基于授权权限动态注入管理类快捷操作（学生/家长/班干部）
+    if (role === 'student' || role === 'parent' || role === 'class_cadre') {
+      const authActions = [];
+      // 积分管理授权
+      if (authorizations.score && (authorizations.score.includes('write') || authorizations.score.includes('approve'))) {
+        authActions.push({ title: '积分管理', icon: 'score', color: '#52c41a', colorDark: '#389e0d', url: '/pages/score/score', disabled: false });
+      }
+      // 考勤管理授权
+      if (authorizations.attendance && (authorizations.attendance.includes('write') || authorizations.attendance.includes('approve'))) {
+        authActions.push({ title: '考勤管理', icon: 'attendance', color: '#722ed1', colorDark: '#531dab', url: '/subPages/attendance/attendance', disabled: false });
+      }
+      // 值日管理授权
+      if (authorizations.duty && (authorizations.duty.includes('write') || authorizations.duty.includes('approve'))) {
+        authActions.push({ title: '值日检查', icon: 'duty', color: '#13c2c2', colorDark: '#08979c', url: '/subPages/duty/check/check', disabled: false });
+      }
+      // 宿舍管理授权
+      if (authorizations.dorm && (authorizations.dorm.includes('write') || authorizations.dorm.includes('approve'))) {
+        authActions.push({ title: '宿舍管理', icon: 'dorm', color: '#faad14', colorDark: '#d48806', url: '/subPages/dorm/dorm', disabled: false });
+      }
+      // 志愿服务管理授权
+      if (authorizations.volunteer && (authorizations.volunteer.includes('write') || authorizations.volunteer.includes('approve'))) {
+        authActions.push({ title: '志愿管理', icon: 'volunteer', color: '#fa8c16', colorDark: '#d46b08', url: '/subPages/volunteer/volunteer', disabled: false });
+      }
+      // 处分管理授权
+      if (authorizations.discipline && (authorizations.discipline.includes('write') || authorizations.discipline.includes('approve'))) {
+        authActions.push({ title: '处分管理', icon: 'record', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/discipline/record/record', disabled: false });
+      }
+      // 通知管理授权
+      if (authorizations.notification && authorizations.notification.includes('write')) {
+        authActions.push({ title: '发布通知', icon: 'notification', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/usercenter/notifications/notifications?tab=publish', disabled: false });
+      }
+      // 学生管理授权（查看学生列表）
+      if (authorizations.score && authorizations.score.includes('read') && !actions.find(a => a.url === '/pages/student/student')) {
+        authActions.push({ title: '学生名单', icon: 'student', color: '#1890ff', colorDark: '#096dd9', url: '/pages/student/student', disabled: false });
+      }
+
+      // 将授权操作插入到已有操作列表前面
+      if (authActions.length > 0) {
+        actions = [...authActions, ...actions];
+      }
     }
 
     this.setData({ quickActions: actions });
@@ -821,7 +983,7 @@ fetchWeather: async function (location) {
   // 查看课程表
   goToSchedule: function () {
     wx.navigateTo({
-      url: '/pages/schedule/schedule'
+      url: '/subPages/schedule/schedule/schedule'
     });
   }
 });

@@ -56,8 +56,10 @@
   <view class="student-section" wx:if="{{!loading}}">
     <view class="section-header">
       <text class="section-title">学生全勤情况</text>
-      <view class="export-btn" bindtap="onExportStats">
-        <text>导出</text>
+      <view class="export-btn-group">
+        <view class="export-btn" bindtap="onExportStats">
+          <text>导出Excel</text>
+        </view>
       </view>
     </view>
 

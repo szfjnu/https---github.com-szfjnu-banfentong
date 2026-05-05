@@ -34,6 +34,9 @@
     <view class="export-btn" bindtap="onExportTop10" wx:if="{{canExport}}">
       <text>导出TOP10</text>
     </view>
+    <view class="export-btn export-excel-btn" bindtap="onExportScoreRecords" wx:if="{{canExport}}">
+      <text>导出Excel</text>
+    </view>
   </view>
 
   <!-- 快速筛选栏 -->

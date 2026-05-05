@@ -1,0 +1,44 @@
+<view class="layout-page">
+  <view class="section">
+    <view class="section-title">网格设置</view>
+    <view class="input-row">
+      <view class="input-item">
+        <text class="input-label">行数</text>
+        <input class="input-field" type="number" min="2" max="12" value="{{rows}}" bindinput="onRowsChange" />
+      </view>
+      <view class="input-item">
+        <text class="input-label">列数</text>
+        <input class="input-field" type="number" min="2" max="12" value="{{cols}}" bindinput="onColsChange" />
+      </view>
+    </view>
+    <text class="input-hint">范围2-12</text>
+  </view>
+
+  <view class="section">
+    <view class="section-title">教室标识</view>
+    <view class="special-toggles">
+      <view class="sp-row">
+        <text class="sp-label">讲台</text>
+        <switch checked="{{hasPodium}}" bindchange="onTogglePodium" color="#1890ff" />
+      </view>
+      <view class="sp-row">
+        <text class="sp-label">前门</text>
+        <switch checked="{{hasFrontDoor}}" bindchange="onToggleFrontDoor" color="#1890ff" />
+      </view>
+      <view class="sp-row">
+        <text class="sp-label">后门</text>
+        <switch checked="{{hasBackDoor}}" bindchange="onToggleBackDoor" color="#1890ff" />
+      </view>
+    </view>
+    <text class="hint-text">标识将固定显示在座位图上方和两侧</text>
+  </view>
+
+  <view class="section">
+    <view class="section-title">预览</view>
+    <seat-grid layout="{{layout}}" arrangement="{{arrangement}}" mode="layout" />
+  </view>
+
+  <view class="save-btn {{saving ? 'disabled' : ''}}" bindtap="saveLayout">
+    <text>{{saving ? '保存中...' : '保存布局'}}</text>
+  </view>
+</view>

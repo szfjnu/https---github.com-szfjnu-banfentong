@@ -1,0 +1,9 @@
+<view class="load-more-container" wx:if="{{listLength > 0}}">
+  <view class="load-more-btn" bindtap="onLoadMore" wx:if="{{hasMore}}">
+    <text wx:if="{{!loadingMore}}">加载更多</text>
+    <text wx:else>加载中...</text>
+  </view>
+  <view class="all-loaded-text" wx:if="{{!hasMore}}">
+    <text>已加载全部</text>
+  </view>
+</view>

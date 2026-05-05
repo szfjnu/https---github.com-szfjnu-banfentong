@@ -8,7 +8,8 @@
     "pages/join/join",
     "pages/discover/discover",
     "pages/usercenter/usercenter",
-    "pages/authorization/authorization"
+    "pages/authorization/authorization",
+    "pages/growth/profile"
   ],
   "subPackages": [
     {
@@ -95,7 +96,15 @@
         "activity/detail/detail",
         "activity/create/create",
         "activity/audit/audit",
-        "activity/myactivity/myactivity"
+        "activity/myactivity/myactivity",
+        "schedule/schedule/schedule",
+        "schedule/import/import",
+        "seat/seat/seat",
+        "seat/layout/layout",
+        "seat/arrange/arrange",
+        "seat/rotate/rotate",
+        "seat/history/history",
+        "growth/warning-config/warning-config"
       ]
     }
   ],

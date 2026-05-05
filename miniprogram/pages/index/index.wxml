@@ -198,7 +198,7 @@
   </view>
 
   <!-- 今日提醒区域 -->
-  <view class="reminder-section" wx:if="{{!loading && (role === 'admin' || role === 'head_teacher' || role === 'subject_teacher')}}">
+  <view class="reminder-section" wx:if="{{!loading}}">
     <view class="reminder-cards">
       <!-- 今日课程提醒 -->
       <view class="reminder-card course-card">
@@ -208,23 +208,90 @@
             <text>今日课程</text>
           </view>
           <view class="reminder-actions">
-            <text class="switch-btn" bindtap="switchCourseView">
+            <text class="switch-btn" bindtap="switchCourseView" wx:if="{{role === 'admin' || role === 'head_teacher' || role === 'subject_teacher'}}">
               {{courseViewType === 'class' ? '班级课程' : '我的课程'}}
             </text>
             <text class="more-btn" bindtap="goToSchedule">更多</text>
           </view>
         </view>
         <view class="course-list" wx:if="{{!coursesLoading && todayCourses.length > 0}}">
-          <view class="course-item {{item.status === '进行中' ? 'active' : ''}}" wx:for="{{todayCourses}}" wx:key="period">
-            <view class="course-time">
-              <text class="period">第{{item.period}}节</text>
-              <text class="time">{{item.time}}</text>
+          <!-- 进行中 -->
+          <view class="course-group" wx:if="{{currentCourses.length > 0}}">
+            <view class="course-group-label current-label">进行中</view>
+            <view class="course-item active" wx:for="{{currentCourses}}" wx:key="period">
+              <view class="course-time">
+                <text class="period">第{{item.period}}节</text>
+                <text class="time">{{item.time}}</text>
+              </view>
+              <view class="course-info">
+                <text class="course-name">{{item.course_name || item.subject_name || '未设置'}}</text>
+                <text class="course-teacher" wx:if="{{item.teacher_name}}">{{item.teacher_name}}</text>
+                <text class="course-room" wx:if="{{item.room}}">{{item.room}}</text>
+              </view>
+              <view class="course-status active">进行中</view>
             </view>
-            <view class="course-info">
-              <text class="course-name">{{item.course_name || item.subject || '未设置'}}</text>
-              <text class="course-teacher" wx:if="{{item.teacher_name}}">{{item.teacher_name}}</text>
+          </view>
+
+          <!-- 即将开始 -->
+          <view class="course-group" wx:if="{{upcomingCourses.length > 0}}">
+            <view class="course-group-label upcoming-label">即将开始</view>
+            <view class="course-item upcoming" wx:for="{{upcomingCourses}}" wx:key="period">
+              <view class="course-time">
+                <text class="period">第{{item.period}}节</text>
+                <text class="time">{{item.time}}</text>
+              </view>
+              <view class="course-info">
+                <text class="course-name">{{item.course_name || item.subject_name || '未设置'}}</text>
+                <text class="course-teacher" wx:if="{{item.teacher_name}}">{{item.teacher_name}}</text>
+                <text class="course-room" wx:if="{{item.room}}">{{item.room}}</text>
+              </view>
+              <view class="course-status upcoming">未开始</view>
             </view>
-            <view class="course-status {{item.status === '进行中' ? 'active' : ''}}">{{item.status}}</view>
+          </view>
+
+          <!-- 已结束(折叠) -->
+          <view class="course-group" wx:if="{{finishedCourses.length > 0 && !allCoursesFinished}}">
+            <view class="finished-toggle" bindtap="toggleFinishedCourses">
+              <text>已结束 ({{finishedCourses.length}}节)</text>
+              <text class="toggle-icon">{{showFinishedCourses ? '收起' : '展开'}}</text>
+            </view>
+            <block wx:if="{{showFinishedCourses}}">
+              <view class="course-item finished" wx:for="{{finishedCourses}}" wx:key="period">
+                <view class="course-time">
+                  <text class="period">第{{item.period}}节</text>
+                  <text class="time">{{item.time}}</text>
+                </view>
+                <view class="course-info">
+                  <text class="course-name">{{item.course_name || item.subject_name || '未设置'}}</text>
+                  <text class="course-teacher" wx:if="{{item.teacher_name}}">{{item.teacher_name}}</text>
+                  <text class="course-room" wx:if="{{item.room}}">{{item.room}}</text>
+                </view>
+                <view class="course-status finished">已结束</view>
+              </view>
+            </block>
+          </view>
+
+          <!-- 全部已结束 -->
+          <view class="course-group" wx:if="{{allCoursesFinished}}">
+            <view class="course-group-label finished-label">今日课程已结束</view>
+            <view class="finished-toggle" bindtap="toggleFinishedCourses">
+              <text>查看课程 ({{finishedCourses.length}}节)</text>
+              <text class="toggle-icon">{{showFinishedCourses ? '收起' : '展开'}}</text>
+            </view>
+            <block wx:if="{{showFinishedCourses}}">
+              <view class="course-item finished" wx:for="{{finishedCourses}}" wx:key="period">
+                <view class="course-time">
+                  <text class="period">第{{item.period}}节</text>
+                  <text class="time">{{item.time}}</text>
+                </view>
+                <view class="course-info">
+                  <text class="course-name">{{item.course_name || item.subject_name || '未设置'}}</text>
+                  <text class="course-teacher" wx:if="{{item.teacher_name}}">{{item.teacher_name}}</text>
+                  <text class="course-room" wx:if="{{item.room}}">{{item.room}}</text>
+                </view>
+                <view class="course-status finished">已结束</view>
+              </view>
+            </block>
           </view>
         </view>
         <view class="reminder-empty" wx:if="{{!coursesLoading && todayCourses.length === 0}}">

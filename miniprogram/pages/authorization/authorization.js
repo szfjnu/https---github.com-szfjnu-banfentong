@@ -89,15 +89,12 @@ Page({
 
   loadStudents: async function () {
     try {
-      const db = wx.cloud.database();
-      const _ = db.command;
-      const res = await db.collection('students')
-        .where({ class_id: this.data.classId, status: _.neq('graduated') })
-        .orderBy('name', 'asc')
-        .limit(200)
-        .get();
+      const res = await wx.cloud.callFunction({
+        name: 'manageAuthorization',
+        data: { action: 'getStudents', data: { class_id: this.data.classId } }
+      });
 
-      const students = (res.data || []).map(s => ({
+      const students = ((res.result && res.result.data) || []).map(s => ({
         ...s,
         name: s.name || s.student_name || '',
         isSelected: false,
@@ -111,14 +108,13 @@ Page({
 
   loadAuthorizations: async function () {
     try {
-      const db = wx.cloud.database();
-      const res = await db.collection('student_authorizations')
-        .where({ class_id: this.data.classId })
-        .limit(200)
-        .get();
+      const res = await wx.cloud.callFunction({
+        name: 'manageAuthorization',
+        data: { action: 'getAuthorizations', data: { class_id: this.data.classId } }
+      });
 
       const authMap = {};
-      (res.data || []).forEach(auth => {
+      ((res.result && res.result.data) || []).forEach(auth => {
         authMap[auth.student_id] = auth.permissions || {};
       });
 

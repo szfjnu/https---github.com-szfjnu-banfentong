@@ -1,0 +1,104 @@
+<view class="schedule-page">
+  <view class="week-selector">
+    <view class="week-btn" bindtap="prevWeek">
+      <text wx:if="{{currentWeek > 1}}">◀</text>
+    </view>
+    <view class="week-info">
+      <text class="week-text">第{{currentWeek}}周</text>
+      <text class="current-week-btn" bindtap="goCurrentWeek">本周</text>
+    </view>
+    <view class="week-btn" bindtap="nextWeek">
+      <text wx:if="{{currentWeek < totalWeeks}}">▶</text>
+    </view>
+  </view>
+
+  <view class="view-switch" wx:if="{{canSwitchView}}">
+    <view class="switch-item {{courseViewType === 'class' ? 'active' : ''}}" bindtap="switchCourseView" data-type="class">
+      <text>班级课程</text>
+    </view>
+    <view class="switch-item {{courseViewType === 'teacher' ? 'active' : ''}}" bindtap="switchCourseView" data-type="teacher">
+      <text>我的课程</text>
+    </view>
+  </view>
+
+  <view class="view-type-switch">
+    <view class="type-item {{viewType === 'week' ? 'active' : ''}}" bindtap="switchViewType">周视图</view>
+    <view class="type-item {{viewType === 'day' ? 'active' : ''}}" bindtap="switchViewType">日视图</view>
+  </view>
+
+  <view class="loading-wrap" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <block wx:if="{{!loading && viewType === 'week'}}">
+    <view class="schedule-grid">
+      <view class="grid-header">
+        <view class="grid-corner">节次</view>
+        <view class="grid-day-header" wx:for="{{weekDays}}" wx:key="*this" bindtap="onDayHeaderTap" data-day="{{index + 1}}">
+          {{item}}
+        </view>
+      </view>
+      <view class="grid-row" wx:for="{{scheduleGrid}}" wx:key="index" wx:for-index="rowIdx">
+        <view class="grid-section-label">{{sections[rowIdx]}}</view>
+        <view class="grid-cell-wrap" wx:for="{{item}}" wx:key="index" wx:for-index="colIdx">
+          <view
+            class="grid-cell {{item.status === 'cancelled' ? 'cancelled' : ''}} {{item.schedule_type === '活动' ? 'activity' : ''}} {{item.is_override ? 'override' : ''}} {{item.status === 'empty' ? 'empty' : ''}}"
+            bindtap="onCellTap"
+            data-row="{{rowIdx}}"
+            data-col="{{colIdx}}"
+          >
+            <text class="cell-course">{{item.course_name || item.subject_name || ''}}</text>
+            <text class="cell-room" wx:if="{{item.room}}">{{item.room}}</text>
+            <text class="cell-teacher" wx:if="{{item.teacher_name}}">{{item.teacher_name}}</text>
+            <view class="cell-override-mark" wx:if="{{item.is_override}}"></view>
+            <text class="cell-cancel-mark" wx:if="{{item.status === 'cancelled'}}">已取消</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <block wx:if="{{!loading && viewType === 'day'}}">
+    <view class="day-selector">
+      <view class="day-item {{selectedDay === (index + 1) ? 'active' : ''}}" wx:for="{{weekDays}}" wx:key="*this" bindtap="onDayHeaderTap" data-day="{{index + 1}}">
+        {{item}}
+      </view>
+    </view>
+    <view class="day-list">
+      <view class="day-course-item {{item.status === 'cancelled' ? 'cancelled' : ''}} {{item.is_override ? 'override' : ''}}" wx:for="{{dayCourses}}" wx:key="section">
+        <view class="day-section">第{{item.section}}节</view>
+        <view class="day-info">
+          <text class="day-course-name">{{item.course_name || item.subject_name || '未设置'}}</text>
+          <text class="day-time" wx:if="{{item.time_range}}">{{item.time_range}}</text>
+          <text class="day-room" wx:if="{{item.room}}">📍 {{item.room}}</text>
+          <text class="day-teacher" wx:if="{{item.teacher_name}}">👤 {{item.teacher_name}}</text>
+          <text class="day-building" wx:if="{{item.building}}">🏫 {{item.building}}</text>
+          <text class="day-campus" wx:if="{{item.campus}}">🏛 {{item.campus}}</text>
+        </view>
+        <text class="day-cancel-tag" wx:if="{{item.status === 'cancelled'}}">已取消</text>
+      </view>
+      <view class="day-empty" wx:if="{{dayCourses.length === 0}}">
+        <text>当日无课程安排</text>
+      </view>
+    </view>
+  </block>
+
+  <view class="bottom-bar" wx:if="{{canEdit && !isEditing}}">
+    <view class="bar-btn import-btn" bindtap="goToImport">
+      <text>📥 导入</text>
+    </view>
+    <view class="bar-btn edit-btn" bindtap="startEditing">
+      <text>✏️ 微调</text>
+    </view>
+  </view>
+
+  <view class="bottom-bar editing-bar" wx:if="{{isEditing}}">
+    <view class="bar-btn cancel-btn" bindtap="cancelEditing">
+      <text>取消</text>
+    </view>
+    <view class="edit-count" wx:if="{{editChanges.length > 0}}">{{editChanges.length}}项变更</view>
+    <view class="bar-btn save-btn" bindtap="saveEditing">
+      <text>保存</text>
+    </view>
+  </view>
+</view>

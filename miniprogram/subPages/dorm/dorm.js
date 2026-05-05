@@ -1,6 +1,7 @@
 ﻿const app = getApp();
 const db = wx.cloud.database();
 const _ = db.command;
+const batchQuery = require('../../../utils/batchQuery.js');
 
 Page({
   data: {
@@ -171,19 +172,15 @@ Page({
       const _ = db.command;
 
       // 并行加载多个统计数据
-      const [studentRes, rulesRes, recordsRes, warningsRes, accountsRes] = await Promise.all([
-        // 1. 统计住宿生数量
-        db.collection('students')
-          .where({
-            class_id: classId,
-            is_boarding: true
-          })
-          .field({
-            student_id: true,
-            name: true
-          })
-          .get(),
+      // 1. 统计住宿生数量（通过云函数获取全量学生后过滤）
+      const studentsCfRes = await wx.cloud.callFunction({
+        name: 'manageAuthorization',
+        data: { action: 'getStudents', data: { class_id: classId } }
+      });
+      const allClassStudents = (studentsCfRes.result && studentsCfRes.result.success) ? studentsCfRes.result.data : [];
+      const boardingStudents = allClassStudents.filter(s => s.is_boarding === true);
 
+      const [rulesRes, recordsRes, warningsRes] = await Promise.all([
         // 2. 统计宿舍规则数量
         db.collection('dorm_rules')
           .where({
@@ -222,16 +219,21 @@ Page({
             current_score: true,
             original_score: true
           })
-          .limit(1000)
           .get()
       ]);
 
+      // 5. 查询宿舍积分账户获取实时平均分（使用batchQuery全量加载）
+      const accountsQuery = {
+        class_id: classId
+      };
+      if (semesterId) accountsQuery.semester_id = semesterId;
+      const accounts = await batchQuery.getAllRecords('dorm_score_accounts', accountsQuery, 'created_at', 'desc');
+
       // 计算统计数据
-      const students = studentRes.data;
+      const students = boardingStudents;
       const totalStudents = students.length;
       
       // 从宿舍积分账户计算实时平均分
-      const accounts = accountsRes.data || [];
       const totalScore = accounts.reduce((sum, a) => sum + (a.current_score || a.original_score || 100), 0);
       const avgScore = accounts.length > 0 ? Math.round(totalScore / accounts.length) : 100;
 

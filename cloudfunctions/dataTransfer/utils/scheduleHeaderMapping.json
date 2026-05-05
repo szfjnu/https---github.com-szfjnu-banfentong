@@ -1,0 +1,15 @@
+{
+  "schedule_id": { "label": "课表编号", "aliases": ["schedule_id", "课表编号", "课程编号", "排课ID", "Schedule ID"] },
+  "class_name": { "label": "班级名称", "aliases": ["class_name", "班级名称", "班级", "班级名", "Class"] },
+  "course_name": { "label": "课程名称", "aliases": ["course_name", "课程名称", "课程", "科目名称", "科目", "Course"] },
+  "week_day": { "label": "星期", "aliases": ["week_day", "星期", "周几", "星期几", "Week Day"] },
+  "section": { "label": "节次", "aliases": ["section", "节次", "第几节", "课时", "Section"] },
+  "start_time": { "label": "开始时间", "aliases": ["start_time", "开始时间", "上课时间", "Start Time"] },
+  "end_time": { "label": "结束时间", "aliases": ["end_time", "结束时间", "下课时间", "End Time"] },
+  "room": { "label": "教室", "aliases": ["room", "教室", "教室名称", "Room"] },
+  "building": { "label": "教学楼", "aliases": ["building", "教学楼", "楼栋", "Building"] },
+  "campus": { "label": "校区", "aliases": ["campus", "校区", "Campus"] },
+  "teacher_name": { "label": "教师", "aliases": ["teacher_name", "教师", "教师姓名", "授课教师", "Teacher"] },
+  "schedule_type": { "label": "类型", "aliases": ["schedule_type", "类型", "课程类型", "排课类型", "Type"] },
+  "remark": { "label": "备注", "aliases": ["remark", "备注", "说明", "Remark"] }
+}

@@ -76,19 +76,21 @@ const DEFAULT_PERMISSIONS = {
     can_export_data: true,
     can_use_advanced_analytics: true,
     can_use_ai_features: false,
+    can_import_schedule_excel: true,
     storage_quota_mb: 2048,
     history_retention_days: 365
   },
   [MEMBERSHIP_LEVELS.ENTERPRISE]: {
     can_create_class: true,
-    max_classes: -1, // 无限
-    max_students_per_class: -1, // 无限
+    max_classes: -1,
+    max_students_per_class: -1,
     can_authorize_admin: true,
     can_export_data: true,
     can_use_advanced_analytics: true,
     can_use_ai_features: true,
+    can_import_schedule_excel: true,
     storage_quota_mb: 10240,
-    history_retention_days: -1 // 永久
+    history_retention_days: -1
   }
 };
 
@@ -212,6 +214,11 @@ async function checkFeatureAccess(openid, featureCode) {
         reason = allowed ? '' : 'AI功能仅限企业版会员使用';
         break;
 
+      case 'import_schedule_excel':
+        allowed = permissions.can_import_schedule_excel || false;
+        reason = allowed ? '' : '课表Excel导入功能仅限专业版及以上会员使用';
+        break;
+
       default:
         allowed = false;
         reason = '未知功能';
@@ -322,7 +329,8 @@ async function logFeatureAccess(openid, featureCode, allowed, reason) {
       'authorize_admin': '授权管理',
       'export_data': '数据导出',
       'advanced_analytics': '高级分析',
-      'ai_features': 'AI功能'
+      'ai_features': 'AI功能',
+      'import_schedule_excel': '课表Excel导入'
     };
 
     await db.collection('feature_access_logs').add({

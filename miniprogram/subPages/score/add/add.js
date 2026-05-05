@@ -2,6 +2,7 @@
 const app = getApp();
 const api = require('../../../utils/api.js');
 const util = require('../../../utils/util.js');
+const batchQuery = require('../../../utils/batchQuery.js');
 
 Page({
   data: {
@@ -282,15 +283,15 @@ Page({
 
       // 执行查询
       console.log('【loadStudents】执行学生查询, query:', query);
-      const res = await db.collection('students')
-        .where(query)
-        .limit(1000)
-        .orderBy('created_at', 'desc')
-        .get();
-      console.log('【loadStudents】查询到学生数量:', res.data.length, '数据:', res.data);
+      const res = await wx.cloud.callFunction({
+        name: 'manageAuthorization',
+        data: { action: 'getStudents', data: { class_id: query.class_id || app.globalData.class_id } }
+      });
+      const studentsData = (res.result && res.result.success) ? res.result.data : [];
+      console.log('【loadStudents】查询到学生数量:', studentsData.length, '数据:', studentsData);
 
       // 处理学生数据
-      let students = res.data.map(student => ({
+      let students = studentsData.map(student => ({
         ...student, 
         selected: false, 
         scoreLevel: util.getScoreLevel(student.current_score || 100)
@@ -674,17 +675,14 @@ Page({
       console.log('【成员ID列表】:', memberIds);
       
       // 3. 反查学生表获取详细信息
-      const studentsRes = await db.collection('students')
-        .where({
-          student_id: _.in(memberIds)
-        })
-        .limit(1000)
-        .get();
+      const studentsResData = await batchQuery.getAllRecords('students', {
+        student_id: _.in(memberIds)
+      });
 
-      console.log('【学生查询结果】数量:', studentsRes.data.length, '数据:', studentsRes.data);
+      console.log('【学生查询结果】数量:', studentsResData.length, '数据:', studentsResData);
 
       // 4. 处理学生数据
-      let students = studentsRes.data.map(student => ({
+      let students = studentsResData.map(student => ({
         ...student,
         selected: false,
         scoreLevel: util.getScoreLevel(student.current_score || 100)

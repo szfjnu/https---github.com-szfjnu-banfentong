@@ -1,0 +1,44 @@
+<view class="history-page">
+  <view class="loading-wrap" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <block wx:if="{{!loading}}">
+    <view class="history-list">
+      <view class="history-item" wx:for="{{historyList}}" wx:key="_id" bindtap="onHistoryTap" data-id="{{item._id}}">
+        <view class="history-type">{{item.typeText}}</view>
+        <view class="history-info">
+          <text class="history-operator">{{item.operator_name}}</text>
+          <text class="history-remark" wx:if="{{item.remark}}">{{item.remark}}</text>
+        </view>
+        <text class="history-time">{{item.timeText}}</text>
+      </view>
+
+      <view class="empty-tip" wx:if="{{historyList.length === 0}}">
+        <text>暂无变更记录</text>
+      </view>
+
+      <view class="load-more" wx:if="{{hasMore}}" bindtap="loadMore">
+        <text>{{loadingMore ? '加载中...' : '加载更多'}}</text>
+      </view>
+    </view>
+  </block>
+
+  <view class="detail-overlay" wx:if="{{selectedHistory}}" catchtap="closeDetail">
+    <view class="detail-panel" catchtap="preventBubble">
+      <view class="detail-header">
+        <text class="detail-title">变更详情</text>
+        <text class="detail-close" bindtap="closeDetail">✕</text>
+      </view>
+      <view class="detail-info">
+        <text>操作类型: {{selectedHistory.typeText || selectedHistory.operation_type}}</text>
+        <text>操作人: {{selectedHistory.operator_name}}</text>
+        <text>备注: {{selectedHistory.remark || '无'}}</text>
+      </view>
+      <view class="detail-snapshot" wx:if="{{snapshotArrangement}}">
+        <view class="detail-subtitle">变更后快照</view>
+        <seat-grid layout="{{snapshotLayout}}" arrangement="{{snapshotArrangement}}" mode="snapshot" />
+      </view>
+    </view>
+  </view>
+</view>

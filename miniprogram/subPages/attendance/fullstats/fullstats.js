@@ -1,6 +1,8 @@
 // pages/attendance/fullstats/fullstats.js
 const app = getApp();
 const util = require('../../../utils/util.js');
+const excelTransfer = require('../../utils/excelTransfer.js');
+const batchQuery = require('../../../utils/batchQuery.js');
 
 Page({
   data: {
@@ -126,29 +128,23 @@ Page({
       const { classId, statType, currentPeriod } = this.data;
       
       // 获取班级学生总数
-      const studentsRes = await db.collection('students')
-        .where({
-          class_id: classId,
-          status: _.neq('graduated')
-        })
-        .get();
+      const studentsResData = await wx.cloud.callFunction({
+        name: 'manageAuthorization',
+        data: { action: 'getStudents', data: { class_id: classId } }
+      });
+      const totalStudents = (studentsResData.result && studentsResData.result.success) ? studentsResData.result.data : [];
       
-      const totalStudents = studentsRes.data || [];
       const totalStudentIds = totalStudents.map(s => s.student_id);
       
       // 根据统计类型计算时间范围
       const { startDate, endDate } = this.getDateRange();
       
       // 获取该时间范围内的考勤记录
-      const attendanceRes = await db.collection('attendance_records')
-        .where({
-          class_id: classId,
-          student_id: _.in(totalStudentIds),
-          date: _.gte(startDate).and(_.lte(endDate))
-        })
-        .get();
-      
-      const attendanceRecords = attendanceRes.data || [];
+      const attendanceRecords = await batchQuery.getAllRecords('attendance_records', {
+        class_id: classId,
+        student_id: _.in(totalStudentIds),
+        date: _.gte(startDate).and(_.lte(endDate))
+      });
       
       // 统计每个学生的考勤情况
       const studentStats = {};
@@ -342,17 +338,53 @@ Page({
   },
 
   // 导出统计
-  onExportStats: function () {
+  onExportStats: async function () {
+    const perm = excelTransfer.checkExportPermission()
+    if (!perm.allowed) {
+      util.showError(perm.reason)
+      return
+    }
+
+    const { studentList, statistics, statType, currentPeriodLabel, classId } = this.data
+    if (!studentList || studentList.length === 0) {
+      util.showError('暂无数据可导出')
+      return
+    }
+
     wx.showModal({
-      title: '导出统计',
-      content: '是否导出全勤统计数据？',
-      success: (res) => {
-        if (res.confirm) {
-          // TODO: 实现导出功能
-          util.showSuccess('导出功能开发中');
+      title: '导出考勤统计',
+      content: `将导出「${currentPeriodLabel}」的考勤统计到Excel，是否继续？`,
+      success: async (res) => {
+        if (!res.confirm) return
+
+        wx.showLoading({ title: '正在生成Excel...', mask: true })
+        try {
+          const result = await excelTransfer.callDataTransfer('exportAttendance', {
+            class_id: classId,
+            stat_type: statType,
+            period_label: currentPeriodLabel,
+            student_list: studentList,
+            summary: {
+              total_students: statistics.total_students,
+              full_attendance_count: statistics.full_attendance_count,
+              full_attendance_rate: statistics.full_attendance_rate
+            }
+          })
+
+          wx.hideLoading()
+          if (result.fileID) {
+            await excelTransfer.downloadExcel(result.fileID)
+            util.showSuccess('导出成功')
+          } else {
+            util.showError('导出失败：未获取到文件')
+          }
+        } catch (err) {
+          wx.hideLoading()
+          console.error('导出考勤统计失败:', err)
+          util.showError(err.message || '导出失败')
         }
       }
-    });
+    })
   },
 
   // 获取周起始日期（周一）

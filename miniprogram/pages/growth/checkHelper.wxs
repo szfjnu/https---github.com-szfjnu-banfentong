@@ -1,0 +1,11 @@
+function isChecked(ids, sid) {
+  if (!ids || !sid) return false
+  for (var i = 0; i < ids.length; i++) {
+    if (ids[i] === sid) return true
+  }
+  return false
+}
+
+module.exports = {
+  isChecked: isChecked
+}

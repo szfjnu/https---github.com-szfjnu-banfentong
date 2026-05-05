@@ -5,6 +5,7 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
+const batchQuery = require('./utils/batchQuery');
 
 // 生成唯一ID
 function generateId(prefix) {
@@ -700,20 +701,16 @@ async function getConsecutiveIncomplete(studentId, classId) {
 // ==================== 我的值日（学生端） ====================
 
 async function getMyDutyTasks(data) {
-  const { student_id, class_id, status, limit } = data;
+  const { student_id, class_id, status } = data;
   if (!student_id) return { success: false, message: '缺少学生ID' };
 
   const query = { student_id };
   if (class_id) query.class_id = class_id;
   if (status) query.status = status;
 
-  const res = await db.collection('duty_task')
-    .where(query)
-    .orderBy('duty_date', 'desc')
-    .limit(limit || 30)
-    .get();
+  const tasks = await batchQuery.getAllRecords('duty_task', query, 'duty_date', 'desc');
 
-  return { success: true, data: res.data };
+  return { success: true, data: tasks };
 }
 
 async function getMyReminders(data) {

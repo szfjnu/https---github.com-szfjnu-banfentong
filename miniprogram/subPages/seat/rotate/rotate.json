@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "轮换设置",
+  "usingComponents": {
+    "seat-grid": "/components/seat-grid/seat-grid"
+  }
+}

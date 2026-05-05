@@ -395,6 +395,56 @@
   border-left: 4rpx solid #1890ff;
 }
 
+.course-item.upcoming {
+  background: #fff7e6;
+  border-left: 4rpx solid #faad14;
+}
+
+.course-item.finished {
+  opacity: 0.6;
+}
+
+.course-group {
+  margin-bottom: 8rpx;
+}
+
+.course-group-label {
+  font-size: 22rpx;
+  padding: 4rpx 16rpx;
+  margin-bottom: 8rpx;
+  font-weight: 500;
+}
+
+.current-label {
+  color: #1890ff;
+}
+
+.upcoming-label {
+  color: #faad14;
+}
+
+.finished-label {
+  color: #999;
+  font-size: 24rpx;
+  padding: 8rpx 0;
+}
+
+.finished-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8rpx 16rpx;
+  font-size: 22rpx;
+  color: #999;
+  background: #f9f9f9;
+  border-radius: 8rpx;
+}
+
+.toggle-icon {
+  color: #1890ff;
+  font-size: 22rpx;
+}
+
 .course-time {
   text-align: center;
   min-width: 80rpx;
@@ -429,6 +479,12 @@
   color: #999;
 }
 
+.course-room {
+  display: block;
+  font-size: 20rpx;
+  color: #999;
+}
+
 .course-status {
   font-size: 20rpx;
   color: #999;
@@ -440,6 +496,16 @@
 .course-status.active {
   background: #52c41a;
   color: white;
+}
+
+.course-status.upcoming {
+  background: #faad14;
+  color: white;
+}
+
+.course-status.finished {
+  background: #f0f0f0;
+  color: #bbb;
 }
 
 /* 生日列表 */

@@ -1,0 +1,49 @@
+<view class="seat-grid-wrap">
+  <canvas type="2d" id="seatCanvas" class="seat-canvas" style="width:0;height:0;position:absolute;left:-9999px;"></canvas>
+
+  <view class="grid-container" style="width:{{cols * cellSize}}px;">
+    <view class="podium-row" wx:if="{{hasPodium}}">
+      <view class="podium-bar">讲 台</view>
+    </view>
+
+    <view class="door-row" wx:if="{{hasFrontDoor || hasBackDoor}}">
+      <view class="door-left" wx:if="{{hasFrontDoor}}">
+        <text class="door-label">前门</text>
+      </view>
+      <view class="door-spacer"></view>
+      <view class="door-right" wx:if="{{hasBackDoor}}">
+        <text class="door-label">后门</text>
+      </view>
+    </view>
+
+    <view class="grid-row" wx:for="{{gridData}}" wx:key="row" wx:for-item="rowArr" wx:for-index="rowIdx">
+      <view
+        class="grid-cell {{item.genderClass}} {{item.isEmpty ? 'empty' : ''}} {{item.isLocked ? 'locked' : ''}} {{item.isHighlight ? 'highlight' : ''}}"
+        wx:for="{{rowArr}}" wx:key="col"
+        style="width:{{cellSize}}px; height:{{cellSize * 0.85}}px;"
+        bindtap="onSeatTap"
+        bindlongpress="onSeatLongPress"
+        data-row="{{item.row}}"
+        data-col="{{item.col}}"
+      >
+        <block wx:if="{{item.studentName}}">
+          <text class="cell-name">{{item.studentName}}</text>
+          <text class="cell-seat-no">{{item.seatNo}}</text>
+          <view class="cell-info">
+            <text class="cell-score" wx:if="{{item.score !== undefined && item.score !== null}}">{{item.score}}分</text>
+            <text class="cell-height" wx:if="{{item.height}}">{{item.height}}cm</text>
+          </view>
+          <text class="cell-group" wx:if="{{item.groupName}}">{{item.groupName}}</text>
+          <text class="cell-lock" wx:if="{{item.isLocked}}">🔒</text>
+        </block>
+        <text class="cell-empty" wx:elif="{{item.isEmpty && mode !== 'view'}}">+</text>
+        <text class="cell-seat-no-empty" wx:elif="{{item.isEmpty}}">{{item.seatNo}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="legend" wx:if="{{mode !== 'layout'}}">
+    <view class="legend-item"><view class="legend-dot male"></view><text>男生</text></view>
+    <view class="legend-item"><view class="legend-dot female"></view><text>女生</text></view>
+  </view>
+</view>

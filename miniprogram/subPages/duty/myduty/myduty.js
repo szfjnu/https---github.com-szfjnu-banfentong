@@ -78,8 +78,7 @@ Page({
           action: 'getMyDutyTasks',
           data: {
             student_id: this.data.studentId,
-            class_id: this.data.classId,
-            limit: 50
+            class_id: this.data.classId
           }
         }
       });

@@ -149,12 +149,22 @@
   color: #333;
 }
 
+.export-btn-group {
+  display: flex;
+  gap: 12rpx;
+}
+
 .export-btn {
   padding: 10rpx 24rpx;
   background: #f5f7fa;
   border-radius: 8rpx;
   font-size: 26rpx;
   color: #667eea;
+}
+
+.export-btn.active {
+  background: #667eea;
+  color: #fff;
 }
 
 /* 分类标题 */

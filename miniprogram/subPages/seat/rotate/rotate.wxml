@@ -1,0 +1,49 @@
+<view class="rotate-page">
+  <view class="section">
+    <view class="section-title">轮换方向</view>
+    <picker mode="selector" range="{{directionOptions}}" range-key="label" value="{{directionIndex}}" bindchange="onDirectionChange">
+      <view class="picker-btn">
+        <text>{{directionLabel}}</text>
+        <text class="arrow">▼</text>
+      </view>
+    </picker>
+  </view>
+
+  <view class="section">
+    <view class="section-title">轮换周期</view>
+    <picker mode="selector" range="{{periodOptions}}" range-key="label" value="{{periodIndex}}" bindchange="onPeriodChange">
+      <view class="picker-btn">
+        <text>{{periodLabel}}</text>
+        <text class="arrow">▼</text>
+      </view>
+    </picker>
+  </view>
+
+  <view class="section">
+    <view class="section-title">步长</view>
+    <input class="step-input" type="number" min="1" value="{{step}}" bindinput="onStepChange" />
+  </view>
+
+  <view class="actions">
+    <view class="action-btn save-btn {{saving ? 'disabled' : ''}}" bindtap="saveConfig">
+      <text>{{saving ? '保存中...' : '保存配置'}}</text>
+    </view>
+    <view class="action-btn rotate-btn {{rotating ? 'disabled' : ''}}" bindtap="executeRotate">
+      <text>{{rotating ? '轮换中...' : '立即轮换'}}</text>
+    </view>
+  </view>
+
+  <view class="grid-section" wx:if="{{hasLayout && hasArrangement}}">
+    <view class="section-title">座位预览（长按可锁定/解锁）</view>
+    <seat-grid
+      layout="{{layout}}"
+      arrangement="{{arrangement}}"
+      mode="edit"
+      bind:seatlongpress="onSeatLongPress"
+    />
+  </view>
+
+  <view class="no-data" wx:if="{{!hasArrangement}}">
+    <text>请先安排座位</text>
+  </view>
+</view>

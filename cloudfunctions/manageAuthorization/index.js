@@ -6,6 +6,7 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
+const batchQuery = require('./utils/batchQuery');
 
 // 允许授权的模块和操作定义（白名单）
 const ALLOWED_MODULES = {
@@ -39,6 +40,7 @@ exports.main = async (event, context) => {
     }
 
     switch (action) {
+      case 'getStudents': return await getStudents(data);
       case 'getAuthorizations': return await getAuthorizations(data);
       case 'updateStudentAuthorization': return await updateStudentAuthorization(data);
       case 'batchAuthorize': return await batchAuthorize(data);
@@ -53,17 +55,26 @@ exports.main = async (event, context) => {
   }
 };
 
+async function getStudents(data) {
+  const { class_id } = data;
+  if (!class_id) return { success: false, message: '缺少班级ID' };
+
+  const students = await batchQuery.getAllRecords('students', {
+    class_id: class_id,
+    status: _.neq('graduated')
+  });
+
+  return { success: true, data: students };
+}
+
 // 获取班级所有授权
 async function getAuthorizations(data) {
   const { class_id } = data;
   if (!class_id) return { success: false, message: '缺少班级ID' };
 
-  const res = await db.collection('student_authorizations')
-    .where({ class_id })
-    .limit(200)
-    .get();
+  const auths = await batchQuery.getAllRecords('student_authorizations', { class_id });
 
-  return { success: true, data: res.data || [] };
+  return { success: true, data: auths };
 }
 
 // 更新单个学生授权

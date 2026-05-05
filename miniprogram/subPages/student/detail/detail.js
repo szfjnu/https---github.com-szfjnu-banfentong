@@ -2,6 +2,7 @@
 const app = getApp();
 const api = require('../../../utils/api.js');
 const util = require('../../../utils/util.js');
+const batchQuery = require('../../../utils/batchQuery.js');
 
 Page({
   data: {
@@ -246,13 +247,10 @@ Page({
       const studentId = this.data.studentId;
       console.log('加载志愿服务记录, student_id:', studentId);
       
-      const res = await api.volunteerApi.getRecords({
-        student_id: studentId,
-        limit: 50
-      });
-      console.log('志愿服务记录查询结果:', res);
+      const volunteerData = await batchQuery.getAllRecords('volunteer_records', { student_id: studentId }, 'date', 'desc');
+      console.log('志愿服务记录查询结果:', volunteerData);
 
-      const records = res.data.map(item => ({
+      const records = volunteerData.map(item => ({
         ...item,
         date: util.formatDate(new Date(item.date)),
         typeColor: this.getTypeColor(item.service_type)
@@ -329,13 +327,7 @@ Page({
       let query = { student_id: studentId };
       if (semesterId) query.semester_id = semesterId;
 
-      const res = await db.collection('attendance_records')
-        .where(query)
-        .orderBy('date', 'desc')
-        .limit(200)
-        .get();
-
-      const records = res.data || [];
+      const records = await batchQuery.getAllRecords('attendance_records', query, 'date', 'desc');
 
       // 按类型统计
       const stats = { sick_leave: 0, personal_leave: 0, late: 0, early_leave: 0, absent: 0, total_leave: 0 };
