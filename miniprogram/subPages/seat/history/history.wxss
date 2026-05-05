@@ -1,30 +1,30 @@
 .history-page {
   padding: 20rpx 30rpx;
   min-height: 100vh;
-  background: #f5f7fa;
+  background: var(--background-color);
 }
 
 .loading-wrap {
   text-align: center;
   padding: 100rpx 0;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .history-list {
-  background: #fff;
+  background: var(--white);
   border-radius: 12rpx;
   overflow: hidden;
 }
 
 .history-item {
   padding: 24rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .history-type {
   font-size: 28rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 8rpx;
 }
 
@@ -41,19 +41,19 @@
 
 .history-remark {
   font-size: 24rpx;
-  color: #666;
+  color: var(--text-color-secondary);
 }
 
 .history-time {
   font-size: 22rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .empty-tip {
   text-align: center;
   padding: 60rpx 0;
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .load-more {
@@ -79,7 +79,7 @@
 .detail-panel {
   width: 90%;
   max-height: 80vh;
-  background: #fff;
+  background: var(--white);
   border-radius: 12rpx;
   padding: 24rpx;
   overflow-y: auto;
@@ -95,12 +95,12 @@
 .detail-title {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
 }
 
 .detail-close {
   font-size: 36rpx;
-  color: #999;
+  color: var(--text-color-light);
   padding: 8rpx;
 }
 
@@ -109,18 +109,18 @@
   flex-direction: column;
   gap: 8rpx;
   font-size: 26rpx;
-  color: #666;
+  color: var(--text-color-secondary);
   margin-bottom: 20rpx;
 }
 
 .detail-subtitle {
   font-size: 28rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 12rpx;
 }
 
 .detail-snapshot {
-  border-top: 1rpx solid #eee;
+  border-top: 1rpx solid var(--border-color);
   padding-top: 16rpx;
 }

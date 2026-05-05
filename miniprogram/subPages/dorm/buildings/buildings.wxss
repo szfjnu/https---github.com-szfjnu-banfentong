@@ -1,7 +1,7 @@
 /* pages/dorm/buildings/buildings.wxss */
 .container {
   padding: 20rpx;
-  background: #f5f5f5;
+  background: var(--background-color);
   min-height: 100vh;
   padding-bottom: 120rpx;
 }
@@ -15,11 +15,12 @@
 
 .stat-item {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 25rpx 15rpx;
-  background: white;
+  background: var(--white);
   border-radius: 12rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
 }
@@ -27,13 +28,13 @@
 .stat-value {
   font-size: 36rpx;
   font-weight: bold;
-  color: #1890ff;
+  color: var(--primary-color);
   margin-bottom: 8rpx;
 }
 
 .stat-label {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 搜索框 */
@@ -41,7 +42,7 @@
   display: flex;
   align-items: center;
   padding: 15rpx 20rpx;
-  background: white;
+  background: var(--white);
   border-radius: 12rpx;
   margin-bottom: 20rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
@@ -54,13 +55,14 @@
 
 .search-input {
   flex: 1;
+  min-width: 0;
   font-size: 26rpx;
 }
 
 .search-btn {
   padding: 10rpx 25rpx;
-  background: #1890ff;
-  color: white;
+  background: var(--primary-color);
+  color: var(--white);
   border-radius: 8rpx;
   font-size: 24rpx;
   border: none;
@@ -74,7 +76,7 @@
 }
 
 .building-item {
-  background: white;
+  background: var(--white);
   border-radius: 16rpx;
   padding: 25rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
@@ -92,13 +94,13 @@
   align-items: center;
   margin-bottom: 20rpx;
   padding-bottom: 15rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .building-name {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
 }
 
 .building-actions {
@@ -109,14 +111,14 @@
 .action-btn {
   padding: 8rpx 20rpx;
   background: #f0f5ff;
-  color: #1890ff;
+  color: var(--primary-color);
   border-radius: 20rpx;
   font-size: 24rpx;
 }
 
 .action-btn.delete {
   background: #fff2e8;
-  color: #ff4d4f;
+  color: var(--error-color);
 }
 
 /* 楼栋信息 */
@@ -134,26 +136,27 @@
 
 .info-label {
   font-size: 26rpx;
-  color: #999;
+  color: var(--text-color-light);
   min-width: 140rpx;
 }
 
 .info-value {
   font-size: 26rpx;
-  color: #333;
+  color: var(--text-color);
   flex: 1;
+  min-width: 0;
 }
 
 /* 房间预览 */
 .room-preview {
   padding: 15rpx;
-  background: #f6f8fa;
+  background: var(--background-color);
   border-radius: 8rpx;
 }
 
 .preview-label {
   font-size: 24rpx;
-  color: #666;
+  color: var(--text-color-secondary);
   margin-bottom: 10rpx;
 }
 
@@ -165,10 +168,10 @@
 
 .tag {
   padding: 6rpx 16rpx;
-  background: white;
+  background: var(--white);
   border-radius: 20rpx;
   font-size: 22rpx;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 /* 空状态 */
@@ -188,14 +191,14 @@
 
 .empty-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
   margin-bottom: 30rpx;
 }
 
 .empty-btn {
   padding: 20rpx 40rpx;
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
+  color: var(--white);
   border-radius: 40rpx;
   font-size: 28rpx;
   border: none;
@@ -208,7 +211,7 @@
   text-align: center;
   padding: 30rpx 0;
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 顶部添加按钮 */
@@ -219,8 +222,8 @@
 .top-add-btn {
   width: 100%;
   height: 80rpx;
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
+  color: var(--white);
   border-radius: 40rpx;
   font-size: 28rpx;
   font-weight: 500;
@@ -243,7 +246,7 @@
   right: 40rpx;
   width: 100rpx;
   height: 100rpx;
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -254,5 +257,5 @@
 
 .fab-icon {
   font-size: 48rpx;
-  color: white;
+  color: var(--white);
 }

@@ -1,13 +1,13 @@
 /* pages/student/student.wxss */
 .container {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--background-color);
   padding-bottom: 120rpx;
 }
 
 /* 班级功能导航 */
 .class-nav {
-  background: white;
+  background: var(--white);
   padding: 24rpx 20rpx 8rpx;
   margin-bottom: 20rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
@@ -19,7 +19,7 @@
   margin-bottom: 20rpx;
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
 }
 
 .nav-title-bar {
@@ -46,7 +46,7 @@
 }
 
 .nav-item:active {
-  background: #f5f5f5;
+  background: var(--background-color);
   transform: scale(0.95);
 }
 
@@ -65,14 +65,14 @@
 }
 
 .nav-label {
-  font-size: 22rpx;
-  color: #333;
+  font-size: 24rpx;
+  color: var(--text-color);
   white-space: nowrap;
 }
 
 /* 筛选区域 */
 .filter-section {
-  background: white;
+  background: var(--white);
   padding: 20rpx;
   margin-bottom: 20rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
@@ -86,7 +86,7 @@
 .search-input {
   display: flex;
   align-items: center;
-  background: #f5f5f5;
+  background: var(--background-color);
   border-radius: 40rpx;
   padding: 20rpx 30rpx;
 }
@@ -122,14 +122,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 16rpx 20rpx;
-  background: #f5f5f5;
+  background: var(--background-color);
   border-radius: 8rpx;
-  font-size: 26rpx;
-  color: #333;
+  font-size: 28rpx;
+  color: var(--text-color);
 }
 
 .arrow {
-  color: #999;
+  color: var(--text-color-light);
   font-size: 20rpx;
 }
 
@@ -139,7 +139,7 @@
 }
 
 .student-item {
-  background: white;
+  background: var(--white);
   border-radius: 16rpx;
   margin-bottom: 20rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
@@ -154,10 +154,8 @@
 }
 
 .student-main:active {
-  background: #f9f9f9;
+  background: var(--background-color);
 }
-
-/* 学生操作按钮 - 已移除，改为在详情页操作 */
 
 /* 学生头像 */
 .student-avatar {
@@ -166,7 +164,7 @@
   border-radius: 50%;
   overflow: hidden;
   margin-right: 24rpx;
-  background: #f0f0f0;
+  background: var(--border-color);
 }
 
 .student-avatar image {
@@ -177,6 +175,7 @@
 /* 学生信息 */
 .student-info {
   flex: 1;
+  min-width: 0;
 }
 
 .student-header {
@@ -189,7 +188,7 @@
 .student-name {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
 }
 
 /* 标识徽章 */
@@ -199,7 +198,7 @@
   flex-wrap: wrap;
 }
 
-.badge {
+.student-badge {
   padding: 4rpx 12rpx;
   border-radius: 6rpx;
   font-size: 20rpx;
@@ -208,7 +207,7 @@
 
 .badge-position {
   background: #e6f7ff;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .badge-boarding {
@@ -218,7 +217,7 @@
 
 .badge-group {
   background: #f6ffed;
-  color: #52c41a;
+  color: var(--success-color);
 }
 
 .student-meta {
@@ -229,7 +228,7 @@
 
 .meta-item {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .student-score {
@@ -246,7 +245,7 @@
 
 .score-label {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .score-value {
@@ -260,8 +259,8 @@
 }
 
 .score-level {
-  font-size: 22rpx;
-  color: #52c41a;
+  font-size: 24rpx;
+  color: var(--success-color);
   padding: 4rpx 12rpx;
   background: #f6ffed;
   border-radius: 6rpx;
@@ -270,12 +269,12 @@
 /* 箭头 */
 .student-arrow {
   font-size: 48rpx;
-  color: #ccc;
+  color: var(--text-color-light);
   margin-left: 12rpx;
 }
 
 /* 空状态 */
-.empty {
+.empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -291,11 +290,11 @@
 
 .empty-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 加载状态 */
-.loading {
+.loading-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -306,8 +305,8 @@
 .loading-icon {
   width: 60rpx;
   height: 60rpx;
-  border: 4rpx solid #f3f3f3;
-  border-top: 4rpx solid #1890ff;
+  border: 4rpx solid var(--border-color);
+  border-top: 4rpx solid var(--primary-color);
   border-radius: 50%;
   margin-bottom: 20rpx;
   animation: spin 1s linear infinite;
@@ -320,7 +319,7 @@
 
 .loading-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 添加按钮 */
@@ -330,7 +329,7 @@
   bottom: 120rpx;
   width: 100rpx;
   height: 100rpx;
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -351,7 +350,7 @@
   bottom: 120rpx;
   display: flex;
   align-items: center;
-  background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+  background: linear-gradient(135deg, var(--success-color) 0%, #389e0d 100%);
   padding: 20rpx 30rpx;
   border-radius: 50rpx;
   box-shadow: 0 4rpx 16rpx rgba(82, 196, 26, 0.4);
@@ -365,7 +364,7 @@
 
 .import-text {
   font-size: 26rpx;
-  color: #fff;
+  color: var(--white);
   font-weight: bold;
 }
 
@@ -390,7 +389,7 @@
 
 .reset-text {
   font-size: 26rpx;
-  color: #fff;
+  color: var(--white);
   font-weight: bold;
 }
 

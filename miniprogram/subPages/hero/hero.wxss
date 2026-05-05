@@ -10,7 +10,7 @@
 .hero-banner {
   background: linear-gradient(135deg, #722ed1, #531dab);
   padding: 40rpx 24rpx 32rpx;
-  color: #ffffff;
+  color: var(--white);
 }
 
 .banner-title {
@@ -53,7 +53,7 @@
   display: flex;
   padding: 16rpx 24rpx;
   gap: 12rpx;
-  background: #ffffff;
+  background: var(--white);
   overflow-x: auto;
   white-space: nowrap;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
@@ -63,8 +63,8 @@
   padding: 10rpx 22rpx;
   border-radius: 24rpx;
   font-size: 24rpx;
-  color: #666666;
-  background: #f5f7fa;
+  color: var(--text-color-secondary);
+  background: var(--background-color);
   flex-shrink: 0;
 }
 
@@ -81,14 +81,14 @@
   align-items: center;
   justify-content: center;
   padding: 120rpx 0;
-  color: #999999;
+  color: var(--text-color-light);
   font-size: 28rpx;
 }
 
 .loading-spinner {
   width: 60rpx;
   height: 60rpx;
-  border: 4rpx solid #e8e8e8;
+  border: 4rpx solid var(--border-color);
   border-top-color: #722ed1;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -105,7 +105,7 @@
 }
 
 .honor-card {
-  background: #ffffff;
+  background: var(--white);
   border-radius: 20rpx;
   padding: 28rpx 30rpx;
   margin-bottom: 20rpx;
@@ -114,7 +114,7 @@
 }
 
 .honor-card.pinned {
-  border: 2rpx solid #faad14;
+  border: 2rpx solid var(--warning-color);
   background: #fffdf0;
 }
 
@@ -122,8 +122,8 @@
   position: absolute;
   top: 0;
   right: 24rpx;
-  background: #faad14;
-  color: #ffffff;
+  background: var(--warning-color);
+  color: var(--white);
   font-size: 20rpx;
   padding: 4rpx 16rpx;
   border-radius: 0 0 12rpx 12rpx;
@@ -159,7 +159,7 @@
 .honor-title {
   font-size: 32rpx;
   font-weight: 700;
-  color: #333333;
+  color: var(--text-color);
   margin-bottom: 4rpx;
 }
 
@@ -171,7 +171,7 @@
 /* 颁奖词 */
 .honor-desc {
   font-size: 26rpx;
-  color: #666666;
+  color: var(--text-color-secondary);
   line-height: 1.6;
   margin-bottom: 16rpx;
   padding-left: 8rpx;
@@ -188,14 +188,14 @@
 
 .student-badge {
   font-size: 28rpx;
-  color: #333333;
+  color: var(--text-color);
   font-weight: 500;
 }
 
 .honor-period {
   font-size: 22rpx;
-  color: #999999;
-  background: #f5f7fa;
+  color: var(--text-color-light);
+  background: var(--background-color);
   padding: 4rpx 12rpx;
   border-radius: 8rpx;
 }
@@ -206,7 +206,7 @@
   align-items: center;
   gap: 24rpx;
   padding-top: 16rpx;
-  border-top: 1rpx solid #f5f5f5;
+  border-top: 1rpx solid var(--background-color);
 }
 
 .honor-action {
@@ -231,12 +231,12 @@
 
 .cheer-count {
   font-size: 24rpx;
-  color: #999999;
+  color: var(--text-color-light);
 }
 
 .honor-time {
   font-size: 22rpx;
-  color: #cccccc;
+  color: var(--text-color-light);
 }
 
 .admin-ops {
@@ -263,7 +263,7 @@
   text-align: center;
   padding: 30rpx 0;
   font-size: 26rpx;
-  color: #cccccc;
+  color: var(--text-color-light);
 }
 
 .empty-tip {
@@ -272,7 +272,7 @@
   align-items: center;
   padding: 120rpx 0;
   font-size: 28rpx;
-  color: #999999;
+  color: var(--text-color-light);
 }
 
 .empty-emoji {
@@ -317,7 +317,7 @@
 
 .modal-content {
   width: 100%;
-  background: #ffffff;
+  background: var(--white);
   border-radius: 32rpx 32rpx 0 0;
   padding: 40rpx;
   box-shadow: 0 -8rpx 32rpx rgba(0, 0, 0, 0.1);
@@ -328,7 +328,7 @@
 .modal-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: #333333;
+  color: var(--text-color);
   text-align: center;
   margin-bottom: 28rpx;
 }
@@ -341,54 +341,54 @@
 .form-label {
   font-size: 26rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--text-color);
   margin-bottom: 10rpx;
   display: block;
 }
 
 .form-input {
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   padding: 18rpx 24rpx;
   font-size: 28rpx;
-  color: #333333;
-  border: 2rpx solid #e8e8e8;
+  color: var(--text-color);
+  border: 2rpx solid var(--border-color);
 }
 
 .form-picker {
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   padding: 18rpx 24rpx;
   font-size: 28rpx;
-  color: #333333;
-  border: 2rpx solid #e8e8e8;
+  color: var(--text-color);
+  border: 2rpx solid var(--border-color);
 }
 
 .form-textarea {
   width: 100%;
   min-height: 140rpx;
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   padding: 20rpx;
   font-size: 28rpx;
-  color: #333333;
+  color: var(--text-color);
   box-sizing: border-box;
   line-height: 1.6;
-  border: 2rpx solid #e8e8e8;
+  border: 2rpx solid var(--border-color);
 }
 
 /* 学生选择器 */
 .student-selector {
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   padding: 16rpx 20rpx;
   min-height: 72rpx;
-  border: 2rpx solid #e8e8e8;
+  border: 2rpx solid var(--border-color);
 }
 
 .selector-placeholder {
   font-size: 28rpx;
-  color: #cccccc;
+  color: var(--text-color-light);
 }
 
 .selected-tags {
@@ -410,19 +410,19 @@
 
 .tag-remove {
   font-size: 22rpx;
-  color: #999999;
+  color: var(--text-color-light);
   padding: 0 4rpx;
 }
 
 /* 搜索输入 */
 .search-input {
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   padding: 16rpx 24rpx;
   font-size: 28rpx;
-  color: #333333;
+  color: var(--text-color);
   margin-bottom: 16rpx;
-  border: 2rpx solid #e8e8e8;
+  border: 2rpx solid var(--border-color);
 }
 
 /* 学生选择列表 */
@@ -436,7 +436,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 16rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid var(--background-color);
 }
 
 .picker-student-item.selected {
@@ -445,7 +445,7 @@
 
 .picker-student-name {
   font-size: 28rpx;
-  color: #333333;
+  color: var(--text-color);
 }
 
 .picker-check {
@@ -471,17 +471,17 @@
 }
 
 .cancel-btn {
-  background: #f5f7fa;
-  color: #666666;
+  background: var(--background-color);
+  color: var(--text-color-secondary);
 }
 
 .cancel-btn:active {
-  background: #e8e8e8;
+  background: var(--border-color);
 }
 
 .confirm-btn {
   background: linear-gradient(135deg, #722ed1, #531dab);
-  color: #ffffff;
+  color: var(--white);
 }
 
 .confirm-btn:active {
@@ -503,22 +503,22 @@
 
 .admin-action-btn {
   padding: 24rpx;
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   font-size: 28rpx;
-  color: #333333;
+  color: var(--text-color);
   text-align: center;
 }
 
 .admin-action-btn:active {
-  background: #e8e8e8;
+  background: var(--border-color);
 }
 
 .admin-action-btn.danger {
-  color: #ff4d4f;
+  color: var(--error-color);
   background: #fff2f0;
 }
 
 .admin-action-btn.danger:active {
-  background: #ffccc7;
+  background: var(--error-color);
 }

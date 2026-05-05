@@ -1,0 +1,24 @@
+<view class="ds-empty">
+  <view class="ds-empty__icon ds-empty__icon--{{icon}}">
+    <view wx:if="{{icon === 'empty'}}" class="ds-empty__svg ds-empty__svg--empty">
+      <view class="ds-empty__box"></view>
+      <view class="ds-empty__box-open"></view>
+    </view>
+    <view wx:elif="{{icon === 'search'}}" class="ds-empty__svg ds-empty__svg--search">
+      <view class="ds-empty__circle"></view>
+      <view class="ds-empty__handle"></view>
+    </view>
+    <view wx:elif="{{icon === 'error'}}" class="ds-empty__svg ds-empty__svg--error">
+      <view class="ds-empty__circle-x"></view>
+      <view class="ds-empty__x-line ds-empty__x-line--1"></view>
+      <view class="ds-empty__x-line ds-empty__x-line--2"></view>
+    </view>
+    <view wx:elif="{{icon === 'network'}}" class="ds-empty__svg ds-empty__svg--network">
+      <view class="ds-empty__wifi-1"></view>
+      <view class="ds-empty__wifi-2"></view>
+      <view class="ds-empty__wifi-3"></view>
+      <view class="ds-empty__wifi-dot"></view>
+    </view>
+  </view>
+  <text wx:if="{{text}}" class="ds-empty__text">{{text}}</text>
+</view>

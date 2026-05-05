@@ -1,7 +1,7 @@
 /* pages/volunteer/volunteer.wxss */
 .container {
   padding: 20rpx;
-  background: #f5f5f5;
+  background: var(--background-color);
   min-height: 100vh;
   padding-bottom: 120rpx;
 }
@@ -43,7 +43,7 @@
 
 .rule-text {
   font-size: 22rpx;
-  color: #fff;
+  color: var(--white);
 }
 
 .stats-row {
@@ -60,7 +60,7 @@
 .stat-value {
   font-size: 48rpx;
   font-weight: bold;
-  color: white;
+  color: var(--white);
   margin-bottom: 10rpx;
   line-height: 1.2;
 }
@@ -101,7 +101,7 @@
 
 .entry-text {
   font-size: 26rpx;
-  color: white;
+  color: var(--white);
 }
 
 .entry-arrow {
@@ -117,7 +117,7 @@
 .search-box {
   display: flex;
   align-items: center;
-  background: white;
+  background: var(--white);
   border-radius: 12rpx;
   padding: 20rpx 24rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
@@ -131,7 +131,7 @@
 .search-input {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 /* 新增：筛选区域 */
@@ -146,17 +146,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: white;
+  background: var(--white);
   border-radius: 12rpx;
   padding: 20rpx 24rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 .picker-arrow {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 新增：学生信息显示 */
@@ -169,7 +169,7 @@
   text-align: center;
   padding: 30rpx;
   font-size: 26rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 新增：弹窗样式 */
@@ -188,7 +188,7 @@
 
 .modal-content {
   width: 600rpx;
-  background: white;
+  background: var(--white);
   border-radius: 24rpx;
   overflow: hidden;
 }
@@ -198,18 +198,18 @@
   justify-content: space-between;
   align-items: center;
   padding: 32rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .modal-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
 }
 
 .modal-close {
   font-size: 32rpx;
-  color: #999;
+  color: var(--text-color-light);
   padding: 8rpx;
 }
 
@@ -221,7 +221,7 @@
   display: flex;
   gap: 20rpx;
   padding: 24rpx 32rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid var(--border-color);
 }
 
 .cancel-btn, .confirm-btn {
@@ -236,13 +236,13 @@
 }
 
 .cancel-btn {
-  background: #f5f5f5;
-  color: #666;
+  background: var(--background-color);
+  color: var(--text-color-secondary);
 }
 
 .confirm-btn {
-  background: linear-gradient(135deg, #1890ff, #096dd9);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-color));
+  color: var(--white);
 }
 
 /* 日期选择器弹窗 */
@@ -253,7 +253,7 @@
 .date-label {
   display: block;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 12rpx;
 }
 
@@ -261,11 +261,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   padding: 20rpx 24rpx;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 /* 积分规则弹窗 */
@@ -276,7 +276,7 @@
 .rule-label {
   display: block;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 12rpx;
 }
 
@@ -289,7 +289,7 @@
 .rule-input {
   flex: 1;
   height: 80rpx;
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   padding: 0 24rpx;
   font-size: 32rpx;
@@ -298,7 +298,7 @@
 
 .rule-unit {
   font-size: 28rpx;
-  color: #666;
+  color: var(--text-color-secondary);
 }
 
 .rule-examples {
@@ -311,14 +311,14 @@
 .examples-title {
   display: block;
   font-size: 26rpx;
-  color: #1890ff;
+  color: var(--primary-color);
   margin-bottom: 12rpx;
 }
 
 .example-item {
   display: block;
   font-size: 26rpx;
-  color: #666;
+  color: var(--text-color-secondary);
   margin-bottom: 8rpx;
 }
 
@@ -359,7 +359,7 @@
   flex: 1;
   display: flex;
   align-items: center;
-  background: white;
+  background: var(--white);
   border-radius: 12rpx;
   padding: 20rpx 30rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
@@ -375,24 +375,24 @@
 .search-input {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 .filter-picker {
   display: flex;
   align-items: center;
-  background: white;
+  background: var(--white);
   border-radius: 12rpx;
   padding: 20rpx 30rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   gap: 10rpx;
 }
 
 .picker-arrow {
   font-size: 32rpx;
-  color: #999;
+  color: var(--text-color-light);
   font-weight: bold;
 }
 
@@ -404,7 +404,7 @@
 }
 
 .volunteer-card {
-  background: white;
+  background: var(--white);
   border-radius: 16rpx;
   padding: 30rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
@@ -426,7 +426,7 @@
 .activity-name {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   flex: 1;
   margin-right: 20rpx;
 }
@@ -435,7 +435,7 @@
   padding: 6rpx 16rpx;
   border-radius: 6rpx;
   font-size: 22rpx;
-  color: white;
+  color: var(--white);
   white-space: nowrap;
 }
 
@@ -455,7 +455,7 @@
   align-items: center;
   gap: 10rpx;
   font-size: 26rpx;
-  color: #666;
+  color: var(--text-color-secondary);
 }
 
 .info-icon {
@@ -465,8 +465,8 @@
 }
 
 .score-badge {
-  background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--success-color) 0%, var(--success-color) 100%);
+  color: var(--white);
   padding: 8rpx 20rpx;
   border-radius: 20rpx;
   font-size: 24rpx;
@@ -475,11 +475,11 @@
 
 .description {
   font-size: 26rpx;
-  color: #666;
+  color: var(--text-color-secondary);
   line-height: 1.6;
   margin-top: 15rpx;
   padding-top: 15rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid var(--border-color);
 }
 
 .card-footer {
@@ -487,12 +487,12 @@
   align-items: center;
   justify-content: space-between;
   padding-top: 20rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid var(--border-color);
 }
 
 .recorder-info {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .verify-status {
@@ -503,13 +503,13 @@
 
 .verify-status.verified {
   background: #f6ffed;
-  color: #52c41a;
+  color: var(--success-color);
   border: 1rpx solid #b7eb8f;
 }
 
 .verify-status.pending {
   background: #fff7e6;
-  color: #fa8c16;
+  color: var(--warning-color);
   border: 1rpx solid #ffd591;
 }
 
@@ -528,13 +528,13 @@
 
 .empty-text {
   font-size: 32rpx;
-  color: #999;
+  color: var(--text-color-light);
   margin-bottom: 15rpx;
 }
 
 .empty-hint {
   font-size: 26rpx;
-  color: #ccc;
+  color: var(--text-color-light);
 }
 
 /* 加载状态 */
@@ -546,8 +546,8 @@
 .loading-icon {
   width: 60rpx;
   height: 60rpx;
-  border: 4rpx solid #f3f3f3;
-  border-top: 4rpx solid #1890ff;
+  border: 4rpx solid var(--background-color);
+  border-top: 4rpx solid var(--primary-color);
   border-radius: 50%;
   margin: 0 auto 20rpx;
   animation: spin 1s linear infinite;
@@ -560,7 +560,7 @@
 
 .loading-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 添加按钮 */
@@ -570,7 +570,7 @@
   bottom: 120rpx;
   width: 100rpx;
   height: 100rpx;
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;

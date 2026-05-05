@@ -1,14 +1,14 @@
 /* pages/score/mall/ledger/ledger.wxss */
 .container {
   padding: 20rpx;
-  background: #f5f5f5;
+  background: var(--background-color);
   min-height: 100vh;
 }
 
 /* 统计卡片 */
 .stats-card {
   display: flex;
-  background: white;
+  background: var(--white);
   border-radius: 20rpx;
   padding: 30rpx;
   margin-bottom: 20rpx;
@@ -28,20 +28,20 @@
   margin-bottom: 8rpx;
 }
 
-.stat-value.warning { color: #fa8c16; }
-.stat-value.success { color: #52c41a; }
-.stat-value.primary { color: #1890ff; }
+.stat-value.warning { color: var(--warning-color); }
+.stat-value.success { color: var(--success-color); }
+.stat-value.primary { color: var(--primary-color); }
 .stat-value.orange { color: #fa541c; }
 
 .stat-label {
   font-size: 22rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 标签页 */
 .tabs {
   display: flex;
-  background: white;
+  background: var(--white);
   border-radius: 16rpx;
   margin-bottom: 20rpx;
   overflow: hidden;
@@ -53,12 +53,12 @@
   text-align: center;
   padding: 24rpx 0;
   font-size: 26rpx;
-  color: #666;
+  color: var(--text-color-secondary);
   position: relative;
 }
 
 .tab-item.active {
-  color: #1890ff;
+  color: var(--primary-color);
   font-weight: 600;
 }
 
@@ -70,7 +70,7 @@
   transform: translateX(-50%);
   width: 60rpx;
   height: 4rpx;
-  background: #1890ff;
+  background: var(--primary-color);
   border-radius: 2rpx;
 }
 
@@ -80,8 +80,8 @@
   right: 10rpx;
   min-width: 32rpx;
   height: 32rpx;
-  background: #ff4d4f;
-  color: white;
+  background: var(--error-color);
+  color: var(--white);
   font-size: 20rpx;
   border-radius: 16rpx;
   display: flex;
@@ -92,7 +92,7 @@
 
 /* 请求卡片 */
 .request-card {
-  background: white;
+  background: var(--white);
   border-radius: 16rpx;
   padding: 30rpx;
   margin-bottom: 20rpx;
@@ -109,7 +109,7 @@
 .item-name {
   font-size: 30rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   flex: 1;
   margin-right: 20rpx;
 }
@@ -122,12 +122,12 @@
 
 .mode-tag.bid {
   background: #fff7e6;
-  color: #fa8c16;
+  color: var(--warning-color);
 }
 
 .mode-tag.direct {
   background: #e6f7ff;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .status-tag {
@@ -138,17 +138,17 @@
 
 .status-tag.pending {
   background: #fff7e6;
-  color: #fa8c16;
+  color: var(--warning-color);
 }
 
 .status-tag.approved {
   background: #f6ffed;
-  color: #52c41a;
+  color: var(--success-color);
 }
 
 .status-tag.shipped {
   background: #e6f7ff;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .status-tag.received {
@@ -168,16 +168,16 @@
 
 .info-label {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .info-value {
   font-size: 26rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 .info-value.cost {
-  color: #ff4d4f;
+  color: var(--error-color);
   font-weight: bold;
 }
 
@@ -185,7 +185,7 @@
   display: flex;
   gap: 20rpx;
   padding-top: 15rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid var(--border-color);
 }
 
 .action-btn {
@@ -199,30 +199,30 @@
 
 .action-btn.reject {
   background: #fff2f0;
-  color: #ff4d4f;
-  border: 1rpx solid #ffccc7;
+  color: var(--error-color);
+  border: 1rpx solid var(--error-color);
 }
 
 .action-btn.approve {
-  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--success-color) 0%, var(--success-color) 100%);
+  color: var(--white);
 }
 
 .action-btn.ship {
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
+  color: var(--white);
 }
 
 .empty {
   text-align: center;
   padding: 100rpx 0;
-  color: #999;
+  color: var(--text-color-light);
   font-size: 28rpx;
 }
 
 .loading {
   text-align: center;
   padding: 100rpx 0;
-  color: #999;
+  color: var(--text-color-light);
   font-size: 28rpx;
 }

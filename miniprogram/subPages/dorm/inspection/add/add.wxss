@@ -1,11 +1,11 @@
 .container {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: var(--background-color);
   padding-bottom: 120rpx;
 }
 
 .form-section {
-  background: #fff;
+  background: var(--white);
   margin-bottom: 20rpx;
   padding: 30rpx;
 }
@@ -13,7 +13,7 @@
 .section-title {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 30rpx;
 }
 
@@ -26,7 +26,7 @@
 
 .add-problem-btn {
   background: #e8f4ff;
-  color: #1890ff;
+  color: var(--primary-color);
   border: none;
   padding: 12rpx 24rpx;
   border-radius: 20rpx;
@@ -40,20 +40,20 @@
 .form-label {
   display: block;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 12rpx;
 }
 
 .form-label.required::before {
   content: '*';
-  color: #ff4d4f;
+  color: var(--error-color);
   margin-right: 8rpx;
 }
 
 .form-input, .form-textarea, .form-picker {
   width: 100%;
   padding: 20rpx;
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   font-size: 28rpx;
   box-sizing: border-box;
@@ -75,7 +75,7 @@
 
 .arrow {
   font-size: 20rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 评分 */
@@ -88,13 +88,14 @@
 .score-label {
   flex: 0 0 160rpx;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 .score-input {
   flex: 1;
+  min-width: 0;
   padding: 20rpx;
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   font-size: 28rpx;
   text-align: center;
@@ -103,13 +104,13 @@
 .score-unit {
   flex: 0 0 60rpx;
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
   text-align: right;
 }
 
 /* 问题列表 */
 .problem-item {
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 16rpx;
   padding: 20rpx;
   margin-bottom: 20rpx;
@@ -125,12 +126,12 @@
 .problem-index {
   font-size: 28rpx;
   font-weight: bold;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .problem-delete {
   font-size: 24rpx;
-  color: #ff4d4f;
+  color: var(--error-color);
   padding: 8rpx 16rpx;
 }
 
@@ -138,7 +139,7 @@
   width: 100%;
   padding: 20rpx;
   background: #e8f4ff;
-  color: #1890ff;
+  color: var(--primary-color);
   border: none;
   border-radius: 12rpx;
   font-size: 28rpx;
@@ -148,7 +149,7 @@
   text-align: center;
   padding: 40rpx;
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 图片上传 */
@@ -182,36 +183,36 @@
   right: -10rpx;
   width: 40rpx;
   height: 40rpx;
-  background: #ff4d4f;
+  background: var(--error-color);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: var(--white);
   font-size: 24rpx;
 }
 
 .upload-btn {
   width: 200rpx;
   height: 200rpx;
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 2rpx dashed #d9d9d9;
+  border: 2rpx dashed var(--border-color);
 }
 
 .upload-icon {
   font-size: 60rpx;
-  color: #999;
+  color: var(--text-color-light);
   margin-bottom: 10rpx;
 }
 
 .upload-text {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 提交按钮 */
@@ -221,15 +222,15 @@
   left: 0;
   right: 0;
   padding: 20rpx 30rpx;
-  background: #fff;
+  background: var(--white);
   box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
 }
 
 .submit-btn {
   width: 100%;
   padding: 30rpx;
-  background: #1890ff;
-  color: #fff;
+  background: var(--primary-color);
+  color: var(--white);
   border: none;
   border-radius: 12rpx;
   font-size: 32rpx;

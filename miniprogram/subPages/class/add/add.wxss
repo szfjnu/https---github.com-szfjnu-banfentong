@@ -1,15 +1,15 @@
 /* pages/class/add/add.wxss */
 .container {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--background-color);
   padding-bottom: 120rpx;
 }
 
 /* 表单头部 */
 .form-header {
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
   padding: 40rpx 30rpx;
-  color: #fff;
+  color: var(--white);
 }
 
 .form-title {
@@ -27,7 +27,7 @@
 
 /* 表单卡片 */
 .form-card {
-  background: #fff;
+  background: var(--white);
   margin: 20rpx;
   border-radius: 16rpx;
   overflow: hidden;
@@ -38,8 +38,8 @@
   display: flex;
   align-items: center;
   padding: 24rpx 30rpx;
-  border-bottom: 1rpx solid #f0f0f0;
-  background: #fafafa;
+  border-bottom: 1rpx solid var(--border-color);
+  background: var(--background-color);
 }
 
 .title-icon {
@@ -50,13 +50,13 @@
 .title-text {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
 }
 
 /* 表单项 */
 .form-item {
   padding: 24rpx 30rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid var(--background-color);
 }
 
 .form-item:last-child {
@@ -65,14 +65,14 @@
 
 .form-item.required .form-label::before {
   content: '*';
-  color: #ff4d4f;
+  color: var(--error-color);
   margin-right: 8rpx;
 }
 
 .form-label {
   display: block;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 16rpx;
   font-weight: 500;
 }
@@ -80,25 +80,25 @@
 .form-input {
   width: 100%;
   height: 80rpx;
-  background: #f5f7fa;
-  border-radius: 12rpx;
+  background: var(--background-color);
+  border-radius: 16rpx;
   padding: 0 24rpx;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   box-sizing: border-box;
 }
 
 .form-input::placeholder {
-  color: #bfbfbf;
+  color: var(--text-color-light);
 }
 
 /* 删除区域样式 */
 .delete-section {
   margin: 20rpx;
   padding: 30rpx;
-  background: #fafafa;
+  background: var(--background-color);
   border-radius: 16rpx;
-  border: 1rpx dashed #d9d9d9;
+  border: 1rpx dashed var(--border-color);
 }
 
 .delete-warning {
@@ -107,7 +107,7 @@
   margin-bottom: 20rpx;
   padding: 16rpx 20rpx;
   background: #fffbe6;
-  border-radius: 8rpx;
+  border-radius: 16rpx;
 }
 
 .warning-icon {
@@ -117,19 +117,20 @@
 
 .warning-text {
   font-size: 24rpx;
-  color: #faad14;
+  color: var(--warning-color);
   flex: 1;
+  min-width: 0;
 }
 
 .btn-delete {
   width: 100%;
   height: 80rpx;
   line-height: 80rpx;
-  background: #fff;
-  color: #ff4d4f;
+  background: var(--white);
+  color: var(--error-color);
   font-size: 28rpx;
-  border-radius: 12rpx;
-  border: 1rpx solid #ffccc7;
+  border-radius: 16rpx;
+  border: 1rpx solid var(--error-color);
 }
 
 .btn-delete::after {
@@ -145,7 +146,7 @@
   display: flex;
   padding: 20rpx 30rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  background: #fff;
+  background: var(--white);
   box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.05);
   gap: 20rpx;
 }
@@ -154,10 +155,10 @@
   flex: 1;
   height: 88rpx;
   line-height: 88rpx;
-  background: #f5f5f5;
-  color: #666;
+  background: var(--background-color);
+  color: var(--text-color-secondary);
   font-size: 30rpx;
-  border-radius: 12rpx;
+  border-radius: 16rpx;
   border: none;
 }
 
@@ -169,10 +170,10 @@
   flex: 2;
   height: 88rpx;
   line-height: 88rpx;
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-  color: #fff;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
+  color: var(--white);
   font-size: 30rpx;
-  border-radius: 12rpx;
+  border-radius: 16rpx;
   border: none;
 }
 
@@ -184,7 +185,7 @@
 .help-link {
   text-align: center;
   padding: 40rpx 0;
-  color: #1890ff;
+  color: var(--primary-color);
   font-size: 26rpx;
 }
 
@@ -213,7 +214,7 @@
 .modal-content {
   position: relative;
   width: 600rpx;
-  background: #fff;
+  background: var(--white);
   border-radius: 24rpx;
   padding: 60rpx 40rpx 40rpx;
   text-align: center;
@@ -227,18 +228,18 @@
 .modal-title {
   font-size: 36rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 16rpx;
 }
 
 .modal-desc {
   font-size: 28rpx;
-  color: #666;
+  color: var(--text-color-secondary);
   margin-bottom: 40rpx;
 }
 
 .class-info-card {
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 16rpx;
   padding: 30rpx;
   margin-bottom: 40rpx;
@@ -252,17 +253,17 @@
 }
 
 .info-row:not(:last-child) {
-  border-bottom: 1rpx solid #e8e8e8;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .info-label {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .info-value {
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   font-weight: 500;
 }
 
@@ -275,8 +276,8 @@
   width: 100%;
   margin-top: 16rpx;
   padding: 20rpx;
-  background: white;
-  border-radius: 12rpx;
+  background: var(--white);
+  border-radius: 16rpx;
   text-align: center;
 }
 
@@ -284,7 +285,7 @@
   display: block;
   font-size: 48rpx;
   font-weight: bold;
-  color: #1890ff;
+  color: var(--primary-color);
   letter-spacing: 8rpx;
   margin-bottom: 8rpx;
 }
@@ -292,7 +293,7 @@
 .code-tip {
   display: block;
   font-size: 22rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .modal-actions {
@@ -304,8 +305,8 @@
   flex: 1;
   height: 80rpx;
   line-height: 80rpx;
-  background: #f5f5f5;
-  color: #666;
+  background: var(--background-color);
+  color: var(--text-color-secondary);
   font-size: 28rpx;
   border-radius: 40rpx;
   border: none;
@@ -319,8 +320,8 @@
   flex: 1;
   height: 80rpx;
   line-height: 80rpx;
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-  color: #fff;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
+  color: var(--white);
   font-size: 28rpx;
   border-radius: 40rpx;
   border: none;
@@ -366,8 +367,8 @@
   height: 40rpx;
   line-height: 40rpx;
   text-align: center;
-  background: #52c41a;
-  color: #fff;
+  background: var(--success-color);
+  color: var(--white);
   border-radius: 50%;
   font-size: 24rpx;
   margin-right: 16rpx;
@@ -375,15 +376,15 @@
 
 .feature-text {
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 .btn-upgrade {
   flex: 1;
   height: 80rpx;
   line-height: 80rpx;
-  background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
-  color: #fff;
+  background: linear-gradient(135deg, var(--success-color) 0%, var(--success-color) 100%);
+  color: var(--white);
   font-size: 28rpx;
   border-radius: 40rpx;
   border: none;

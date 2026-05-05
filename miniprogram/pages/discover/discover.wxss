@@ -2,7 +2,7 @@
 
 .discover-container {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: var(--background-color);
   padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -27,7 +27,7 @@
   position: relative;
   z-index: 1;
   padding: 56rpx 32rpx 32rpx;
-  color: #fff;
+  color: var(--white);
 }
 
 .header-title {
@@ -78,12 +78,12 @@
 .group-title {
   font-size: 30rpx;
   font-weight: 700;
-  color: #1a1a2e;
+  color: var(--text-color);
 }
 
 .group-subtitle {
-  font-size: 22rpx;
-  color: #999;
+  font-size: 24rpx;
+  color: var(--text-color-light);
 }
 
 /* 功能卡片网格 */
@@ -96,8 +96,8 @@
 .feature-card {
   display: flex;
   align-items: center;
-  background: #fff;
-  border-radius: 20rpx;
+  background: var(--white);
+  border-radius: 16rpx;
   padding: 28rpx 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
   transition: transform 0.2s, box-shadow 0.2s;
@@ -131,20 +131,20 @@
 .feature-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #1a1a2e;
+  color: var(--text-color);
   display: block;
   margin-bottom: 6rpx;
 }
 
 .feature-desc {
-  font-size: 22rpx;
-  color: #999;
+  font-size: 24rpx;
+  color: var(--text-color-light);
   display: block;
 }
 
 .feature-arrow {
   font-size: 36rpx;
-  color: #d9d9d9;
+  color: var(--border-color);
   margin-left: 12rpx;
   font-weight: 300;
 }

@@ -23,7 +23,7 @@
           <view class="birthday-avatar">
             <text>👤</text>
           </view>
-          <view class="birthday-name">{{item.name}}</view>
+          <view class="birthday-name ellipsis min-w-0">{{item.name}}</view>
           <view class="birthday-wish" bindtap="onSendWish" data-id="{{item._id}}" data-name="{{item.name}}">
             <text>送祝福</text>
           </view>
@@ -55,7 +55,7 @@
       <view class="course-list" wx:else>
         <view class="course-item" wx:for="{{todayCourses}}" wx:key="index">
           <view class="course-time">{{item.time}}</view>
-          <view class="course-name">{{item.name}}</view>
+          <view class="course-name ellipsis min-w-0">{{item.name}}</view>
         </view>
       </view>
       <view class="course-action" bindtap="onViewFullSchedule">
@@ -80,7 +80,7 @@
           <view class="task-check {{item.completed ? 'checked' : ''}}" bindtap="onToggleTask" data-index="{{index}}">
             <text wx:if="{{item.completed}}">✓</text>
           </view>
-          <view class="task-text {{item.completed ? 'completed' : ''}}">{{item.title}}</view>
+          <view class="task-text {{item.completed ? 'completed' : ''}} ellipsis min-w-0">{{item.title}}</view>
         </view>
       </view>
     </view>
@@ -129,8 +129,8 @@
         <view class="rank-avatar">
           <text>👤</text>
         </view>
-        <view class="rank-info">
-          <view class="rank-name">{{item.name}}</view>
+        <view class="rank-info min-w-0">
+          <view class="rank-name ellipsis">{{item.name}}</view>
           <view class="rank-score">{{item.current_score}}分</view>
         </view>
       </view>
@@ -144,8 +144,8 @@
   <view class="class-card" wx:if="{{!loading && classInfo}}">
     <view class="card-header">
       <view class="class-icon">📚</view>
-      <view class="class-basic">
-        <view class="class-name">{{classInfo.class_name}}</view>
+      <view class="class-basic min-w-0">
+        <view class="class-name ellipsis">{{classInfo.class_name}}</view>
         <view class="class-meta">
           <text class="meta-item">{{classInfo.grade}}</text>
           <text class="meta-item" wx:if="{{classInfo.creator_name}}">创建人: {{classInfo.creator_name}}</text>

@@ -1,14 +1,14 @@
 /* pages/dorm/beds/beds.wxss */
 .container {
   padding: 20rpx;
-  background: #f5f5f5;
+  background: var(--background-color);
   min-height: 100vh;
 }
 
 /* 房间信息 */
 .room-info {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 20rpx;
+  border-radius: 16rpx;
   padding: 30rpx;
   margin-bottom: 20rpx;
   box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
@@ -23,7 +23,7 @@
 .room-number {
   font-size: 36rpx;
   font-weight: bold;
-  color: #fff;
+  color: var(--white);
   margin-right: 15rpx;
 }
 
@@ -49,7 +49,7 @@
 .stat-value {
   font-size: 32rpx;
   font-weight: bold;
-  color: #fff;
+  color: var(--white);
   margin-bottom: 6rpx;
 }
 
@@ -66,7 +66,7 @@
 }
 
 .bed-item {
-  background: white;
+  background: var(--white);
   border-radius: 16rpx;
   padding: 25rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
@@ -75,7 +75,7 @@
 }
 
 .bed-item.occupied {
-  border-color: #1890ff;
+  border-color: var(--primary-color);
 }
 
 .bed-item:active {
@@ -93,7 +93,7 @@
 .bed-number {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
 }
 
 .bed-status {
@@ -104,7 +104,7 @@
 
 .bed-status.available {
   background: #f0f5ff;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .bed-status.occupied {
@@ -119,7 +119,7 @@
   gap: 8rpx;
   margin-bottom: 15rpx;
   padding-bottom: 15rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .info-row {
@@ -129,13 +129,13 @@
 
 .info-label {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
   margin-right: 10rpx;
 }
 
 .info-value {
   font-size: 24rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 /* 床位操作 */
@@ -146,9 +146,10 @@
 
 .action-btn {
   flex: 1;
+  min-width: 0;
   padding: 12rpx;
   background: #f0f5ff;
-  color: #1890ff;
+  color: var(--primary-color);
   border-radius: 12rpx;
   font-size: 26rpx;
   text-align: center;
@@ -156,7 +157,7 @@
 
 .action-btn.release {
   background: #fff2e8;
-  color: #ff4d4f;
+  color: var(--error-color);
 }
 
 /* 空状态 */
@@ -176,5 +177,5 @@
 
 .empty-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }

@@ -1,0 +1,12 @@
+<view
+  class="ds-card {{borderless ? '' : 'ds-card--bordered'}} {{interactive ? 'ds-card--interactive' : ''}}"
+  style="padding: {{padding}}"
+>
+  <view wx:if="{{title}}" class="ds-card__header">
+    <view class="ds-card__title-bar"></view>
+    <text class="ds-card__title">{{title}}</text>
+  </view>
+  <view class="ds-card__body">
+    <slot></slot>
+  </view>
+</view>

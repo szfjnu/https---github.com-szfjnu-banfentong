@@ -48,7 +48,7 @@
       <view class="record-body">
         <view class="info-row">
           <text class="info-label">请假日期</text>
-          <text class="info-value">{{item.date_range}}</text>
+          <text class="info-value ellipsis min-w-0">{{item.date_range}}</text>
         </view>
         <view class="info-row">
           <text class="info-label">请假天数</text>
@@ -56,7 +56,7 @@
         </view>
         <view class="info-row" wx:if="{{item.reason}}">
           <text class="info-label">请假原因</text>
-          <text class="info-value">{{item.reason}}</text>
+          <text class="info-value ellipsis min-w-0">{{item.reason}}</text>
         </view>
         <view class="info-row" wx:if="{{item.proof_images.length > 0}}">
           <text class="info-label">审批凭证</text>

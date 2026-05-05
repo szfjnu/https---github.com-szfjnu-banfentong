@@ -138,8 +138,8 @@
           <view class="student-checkbox">
             <text class="checkbox-icon">{{item.selected ? '✓' : ''}}</text>
           </view>
-          <view class="student-info">
-            <text class="student-name">{{item.name}}</text>
+          <view class="student-info min-w-0">
+            <text class="student-name ellipsis">{{item.name}}</text>
             <text class="student-id">{{item.student_id}}</text>
           </view>
           <view class="student-status" wx:if="{{item.attendance}}">

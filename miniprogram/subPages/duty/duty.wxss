@@ -1,12 +1,12 @@
 /* pages/duty/duty.wxss */
 .container {
   padding: 20rpx;
-  background: #f5f7fa;
+  background: var(--background-color);
   min-height: 100vh;
 }
 
 .date-picker {
-  background: white;
+  background: var(--white);
   border-radius: 16rpx;
   padding: 24rpx 30rpx;
   margin-bottom: 20rpx;
@@ -21,13 +21,13 @@
 
 .date-label {
   font-size: 28rpx;
-  color: #666;
+  color: var(--text-color-secondary);
 }
 
 .date-value {
   font-size: 32rpx;
   font-weight: 600;
-  color: #1890ff;
+  color: var(--primary-color);
   padding: 8rpx 20rpx;
   background: #e6f7ff;
   border-radius: 8rpx;
@@ -35,7 +35,7 @@
 
 /* 统计卡片 */
 .stats-card {
-  background: linear-gradient(135deg, #1890ff, #096dd9);
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-color));
   border-radius: 16rpx;
   padding: 30rpx;
   margin-bottom: 20rpx;
@@ -57,12 +57,12 @@
 .stat-value {
   font-size: 40rpx;
   font-weight: bold;
-  color: white;
+  color: var(--white);
 }
 
 .stat-value.success { color: #95de64; }
 .stat-value.warning { color: #ffd666; }
-.stat-value.danger { color: #ff7875; }
+.stat-value.danger { color: var(--error-color); }
 
 .stat-label {
   font-size: 22rpx;
@@ -85,11 +85,12 @@
 
 .func-item {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 24rpx 10rpx;
-  background: white;
+  background: var(--white);
   border-radius: 16rpx;
   box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
 }
@@ -109,12 +110,12 @@
 
 .func-text {
   font-size: 24rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 /* 分区卡片 */
 .section-card {
-  background: white;
+  background: var(--white);
   border-radius: 16rpx;
   padding: 24rpx 30rpx;
   margin-bottom: 20rpx;
@@ -131,12 +132,12 @@
 .section-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
 }
 
 .section-action {
   font-size: 26rpx;
-  color: #1890ff;
+  color: var(--primary-color);
   padding: 6rpx 16rpx;
   background: #e6f7ff;
   border-radius: 8rpx;
@@ -152,7 +153,7 @@
 .group-badge {
   padding: 10rpx 24rpx;
   background: #e6f7ff;
-  color: #1890ff;
+  color: var(--primary-color);
   border-radius: 20rpx;
   font-size: 28rpx;
   font-weight: 600;
@@ -160,12 +161,12 @@
 
 .rotation-mode {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .no-rotation, .no-text {
   font-size: 26rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 任务列表 */
@@ -179,7 +180,7 @@
   display: flex;
   align-items: center;
   padding: 20rpx;
-  background: #fafafa;
+  background: var(--background-color);
   border-radius: 12rpx;
 }
 
@@ -193,18 +194,19 @@
   border-radius: 50%;
 }
 
-.task-status-dot.done { background: #52c41a; }
-.task-status-dot.fail { background: #ff4d4f; }
-.task-status-dot.pending { background: #faad14; }
+.task-status-dot.done { background: var(--success-color); }
+.task-status-dot.fail { background: var(--error-color); }
+.task-status-dot.pending { background: var(--warning-color); }
 
 .task-center {
   flex: 1;
+  min-width: 0;
 }
 
 .task-name {
   font-size: 28rpx;
   font-weight: 500;
-  color: #333;
+  color: var(--text-color);
 }
 
 .task-meta {
@@ -215,7 +217,7 @@
 
 .task-student, .task-group {
   font-size: 22rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .task-right {
@@ -227,8 +229,8 @@
   font-weight: 600;
 }
 
-.task-score.plus { color: #52c41a; }
-.task-score.minus { color: #ff4d4f; }
+.task-score.plus { color: var(--success-color); }
+.task-score.minus { color: var(--error-color); }
 
 .task-status-text {
   font-size: 22rpx;
@@ -236,9 +238,9 @@
   margin-top: 4rpx;
 }
 
-.task-status-text.done { color: #52c41a; }
-.task-status-text.fail { color: #ff4d4f; }
-.task-status-text.pending { color: #faad14; }
+.task-status-text.done { color: var(--success-color); }
+.task-status-text.fail { color: var(--error-color); }
+.task-status-text.pending { color: var(--warning-color); }
 
 /* 空状态 */
 .empty-tip {
@@ -246,15 +248,15 @@
   flex-direction: column;
   align-items: center;
   padding: 40rpx 0;
-  color: #999;
+  color: var(--text-color-light);
   font-size: 26rpx;
 }
 
 .empty-btn {
   margin-top: 20rpx;
   padding: 12rpx 40rpx;
-  background: #1890ff;
-  color: white;
+  background: var(--primary-color);
+  color: var(--white);
   border-radius: 30rpx;
   font-size: 26rpx;
 }
@@ -274,14 +276,15 @@
 
 .tip-text {
   flex: 1;
+  min-width: 0;
   font-size: 26rpx;
   color: #ad6800;
 }
 
 .tip-btn {
   padding: 8rpx 24rpx;
-  background: #fa8c16;
-  color: white;
+  background: var(--warning-color);
+  color: var(--white);
   border-radius: 20rpx;
   font-size: 24rpx;
 }
@@ -303,12 +306,12 @@
 
 .edit-btn {
   background: #e6f7ff;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .delete-btn {
   background: #fff1f0;
-  color: #ff4d4f;
+  color: var(--error-color);
 }
 
 /* 编辑弹窗 */
@@ -327,8 +330,8 @@
 
 .modal-content {
   width: 85%;
-  background: white;
-  border-radius: 20rpx;
+  background: var(--white);
+  border-radius: 16rpx;
   overflow: hidden;
 }
 
@@ -337,18 +340,18 @@
   justify-content: space-between;
   align-items: center;
   padding: 30rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .modal-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
 }
 
 .modal-close {
   font-size: 36rpx;
-  color: #999;
+  color: var(--text-color-light);
   padding: 8rpx;
 }
 
@@ -365,7 +368,7 @@
 .form-item .form-label {
   display: block;
   font-size: 26rpx;
-  color: #666;
+  color: var(--text-color-secondary);
   margin-bottom: 10rpx;
 }
 
@@ -373,10 +376,10 @@
   width: 100%;
   height: 72rpx;
   padding: 0 20rpx;
-  border: 1rpx solid #d9d9d9;
+  border: 1rpx solid var(--border-color);
   border-radius: 10rpx;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   box-sizing: border-box;
 }
 
@@ -384,34 +387,35 @@
   height: 72rpx;
   line-height: 72rpx;
   padding: 0 20rpx;
-  border: 1rpx solid #d9d9d9;
+  border: 1rpx solid var(--border-color);
   border-radius: 10rpx;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 .modal-footer {
   display: flex;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid var(--border-color);
 }
 
 .modal-btn {
   flex: 1;
+  min-width: 0;
   text-align: center;
   padding: 26rpx 0;
   font-size: 30rpx;
 }
 
 .modal-btn.cancel {
-  color: #666;
-  border-right: 1rpx solid #f0f0f0;
+  color: var(--text-color-secondary);
+  border-right: 1rpx solid var(--border-color);
 }
 
 .modal-btn.confirm {
-  color: #1890ff;
+  color: var(--primary-color);
   font-weight: 600;
 }
 
 .modal-btn.confirm.disabled {
-  color: #999;
+  color: var(--text-color-light);
 }

@@ -1,13 +1,13 @@
 /* pages/join/confirm/confirm.wxss */
 .container {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--background-color);
   padding-bottom: 200rpx;
 }
 
 /* 表单区域 */
 .form-section {
-  background: white;
+  background: var(--white);
   margin: 20rpx;
   border-radius: 16rpx;
   padding: 30rpx;
@@ -16,13 +16,13 @@
 .section-title {
   font-size: 30rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 24rpx;
 }
 
 /* 学生信息卡片 */
 .student-info-card {
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   padding: 20rpx;
   margin-bottom: 24rpx;
@@ -36,18 +36,18 @@
 
 .info-label {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .info-value {
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   font-weight: 500;
 }
 
 /* 表单卡片 */
 .form-card {
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   padding: 20rpx;
 }
@@ -62,25 +62,25 @@
 
 .form-item.required .form-label::before {
   content: '*';
-  color: #ff4d4f;
+  color: var(--error-color);
   margin-right: 8rpx;
 }
 
 .form-label {
   display: block;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 12rpx;
 }
 
 .form-input {
   width: 100%;
   height: 80rpx;
-  background: white;
+  background: var(--white);
   border-radius: 8rpx;
   padding: 0 20rpx;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   box-sizing: border-box;
 }
 
@@ -89,15 +89,15 @@
   justify-content: space-between;
   align-items: center;
   height: 80rpx;
-  background: white;
+  background: var(--white);
   border-radius: 8rpx;
   padding: 0 20rpx;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 .arrow {
-  color: #999;
+  color: var(--text-color-light);
   font-size: 20rpx;
 }
 
@@ -108,7 +108,7 @@
 
 .relation-label {
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 16rpx;
 }
 
@@ -120,17 +120,17 @@
 
 .relation-item {
   padding: 16rpx 32rpx;
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 8rpx;
   font-size: 28rpx;
-  color: #666;
+  color: var(--text-color-secondary);
   border: 2rpx solid transparent;
 }
 
 .relation-item.active {
   background: #e6f7ff;
-  color: #1890ff;
-  border-color: #1890ff;
+  color: var(--primary-color);
+  border-color: var(--primary-color);
 }
 
 /* 隐私协议 */
@@ -143,13 +143,13 @@
 
 .agreement-text {
   font-size: 26rpx;
-  color: #666;
+  color: var(--text-color-secondary);
   margin-left: 8rpx;
 }
 
 .agreement-link {
   font-size: 26rpx;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 /* 操作按钮 */
@@ -158,7 +158,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: white;
+  background: var(--white);
   padding: 30rpx;
   padding-bottom: calc(30rpx + env(safe-area-inset-bottom));
   box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.05);
@@ -167,16 +167,16 @@
 .btn-confirm {
   width: 100%;
   height: 88rpx;
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
+  color: var(--white);
   font-size: 32rpx;
   border-radius: 44rpx;
   border: none;
 }
 
 .btn-confirm[disabled] {
-  background: #d9d9d9;
-  color: #999;
+  background: var(--border-color);
+  color: var(--text-color-light);
 }
 
 .btn-confirm::after {
@@ -201,8 +201,8 @@
 .loading-icon {
   width: 60rpx;
   height: 60rpx;
-  border: 4rpx solid #f3f3f3;
-  border-top: 4rpx solid #1890ff;
+  border: 4rpx solid var(--background-color);
+  border-top: 4rpx solid var(--primary-color);
   border-radius: 50%;
   margin-bottom: 20rpx;
   animation: spin 1s linear infinite;
@@ -215,5 +215,5 @@
 
 .loading-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }

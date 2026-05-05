@@ -1,14 +1,14 @@
 /* pages/dorm/beds/assign/assign.wxss */
 .container {
   padding: 20rpx;
-  background: #f5f5f5;
+  background: var(--background-color);
   min-height: 100vh;
 }
 
 /* 床位信息 */
 .bed-info {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 20rpx;
+  border-radius: 16rpx;
   padding: 30rpx;
   margin-bottom: 20rpx;
   box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
@@ -43,7 +43,7 @@
 
 .detail-value {
   font-size: 28rpx;
-  color: #fff;
+  color: var(--white);
   font-weight: 500;
 }
 
@@ -52,7 +52,7 @@
   display: flex;
   align-items: center;
   padding: 15rpx 20rpx;
-  background: white;
+  background: var(--white);
   border-radius: 12rpx;
   margin-bottom: 20rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
@@ -65,13 +65,14 @@
 
 .search-input {
   flex: 1;
+  min-width: 0;
   font-size: 26rpx;
 }
 
 .search-btn {
   padding: 10rpx 25rpx;
-  background: #1890ff;
-  color: white;
+  background: var(--primary-color);
+  color: var(--white);
   border-radius: 8rpx;
   font-size: 24rpx;
   border: none;
@@ -85,7 +86,7 @@
 }
 
 .student-item {
-  background: white;
+  background: var(--white);
   border-radius: 16rpx;
   padding: 25rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
@@ -103,37 +104,37 @@
 .student-name {
   font-size: 30rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 8rpx;
   display: block;
 }
 
 .student-id {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
   margin-bottom: 4rpx;
   display: block;
 }
 
 .student-class {
   font-size: 24rpx;
-  color: #666;
+  color: var(--text-color-secondary);
   display: block;
 }
 
 .student-status {
   padding: 12rpx;
-  background: #f6f8fa;
+  background: var(--background-color);
   border-radius: 8rpx;
 }
 
 .status-text {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .status-text.available {
-  color: #52c41a;
+  color: var(--success-color);
 }
 
 /* 空状态 */
@@ -153,7 +154,7 @@
 
 .empty-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 加载中 */
@@ -161,5 +162,5 @@
   text-align: center;
   padding: 30rpx 0;
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }

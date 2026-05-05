@@ -1,0 +1,16 @@
+<view class="ds-input {{focused ? 'ds-input--focused' : ''}} {{disabled ? 'ds-input--disabled' : ''}}">
+  <text wx:if="{{label}}" class="ds-input__label">{{label}}</text>
+  <input
+    class="ds-input__field"
+    type="{{type}}"
+    value="{{value}}"
+    placeholder="{{placeholder}}"
+    placeholder-class="ds-input__placeholder"
+    disabled="{{disabled}}"
+    maxlength="{{maxlength}}"
+    bindfocus="onFocus"
+    bindblur="onBlur"
+    bindinput="onInput"
+    bindchange="onChange"
+  />
+</view>

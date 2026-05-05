@@ -1,7 +1,7 @@
 /* pages/dorm/score/add/add.wxss */
 .container {
   padding: 20rpx;
-  background: #f5f5f5;
+  background: var(--background-color);
   min-height: 100vh;
   padding-bottom: 120rpx;
 }
@@ -9,7 +9,7 @@
 /* 标题栏 */
 .header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 20rpx;
+  border-radius: 16rpx;
   padding: 30rpx;
   margin-bottom: 20rpx;
   box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
@@ -18,7 +18,7 @@
 .header-title {
   font-size: 36rpx;
   font-weight: bold;
-  color: #fff;
+  color: var(--white);
   margin-bottom: 10rpx;
 }
 
@@ -45,14 +45,15 @@
 
 .tip-text {
   flex: 1;
+  min-width: 0;
   font-size: 26rpx;
   color: #ff9500;
 }
 
 /* 卡片 */
 .card {
-  background: white;
-  border-radius: 20rpx;
+  background: var(--white);
+  border-radius: 16rpx;
   padding: 30rpx;
   margin-bottom: 20rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
@@ -61,7 +62,7 @@
 .card-title {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 20rpx;
 }
 
@@ -73,11 +74,12 @@
 
 .type-item {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 30rpx 20rpx;
-  background: #f6f8fa;
+  background: var(--background-color);
   border-radius: 16rpx;
   border: 2rpx solid transparent;
   transition: all 0.3s;
@@ -85,7 +87,7 @@
 
 .type-item.active {
   background: #e8f4ff;
-  border-color: #1890ff;
+  border-color: var(--primary-color);
 }
 
 .type-icon {
@@ -95,12 +97,12 @@
 
 .type-label {
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   font-weight: 500;
 }
 
 .type-item.active .type-label {
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 /* 模式选择器 */
@@ -111,11 +113,12 @@
 
 .mode-item {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 30rpx 20rpx;
-  background: #f6f8fa;
+  background: var(--background-color);
   border-radius: 16rpx;
   border: 2rpx solid transparent;
   transition: all 0.3s;
@@ -123,7 +126,7 @@
 
 .mode-item.active {
   background: #e8f4ff;
-  border-color: #1890ff;
+  border-color: var(--primary-color);
 }
 
 .mode-icon {
@@ -133,12 +136,12 @@
 
 .mode-label {
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   font-weight: 500;
 }
 
 .mode-item.active .mode-label {
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 /* 选择器 */
@@ -147,24 +150,24 @@
   align-items: center;
   justify-content: space-between;
   padding: 25rpx;
-  background: #f6f8fa;
+  background: var(--background-color);
   border-radius: 12rpx;
 }
 
 .picker-text {
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 .picker-arrow {
   font-size: 20rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 成员列表 */
 .member-list {
   margin-top: 20rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid var(--border-color);
   padding-top: 20rpx;
 }
 
@@ -177,12 +180,12 @@
 
 .member-count {
   font-size: 26rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .select-all {
   font-size: 26rpx;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .member-item {
@@ -190,7 +193,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .member-item:last-child {
@@ -199,24 +202,25 @@
 
 .member-info {
   flex: 1;
+  min-width: 0;
 }
 
 .member-name {
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 8rpx;
   font-weight: 500;
 }
 
 .member-id {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .member-checkbox {
   width: 40rpx;
   height: 40rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid var(--border-color);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -225,13 +229,13 @@
 }
 
 .member-checkbox.checked {
-  background: #1890ff;
-  border-color: #1890ff;
+  background: var(--primary-color);
+  border-color: var(--primary-color);
 }
 
 .check-icon {
   font-size: 24rpx;
-  color: white;
+  color: var(--white);
 }
 
 /* 搜索框 */
@@ -239,7 +243,7 @@
   display: flex;
   align-items: center;
   padding: 20rpx;
-  background: #f6f8fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   margin-bottom: 20rpx;
 }
@@ -251,6 +255,7 @@
 
 .search-input {
   flex: 1;
+  min-width: 0;
   font-size: 28rpx;
 }
 
@@ -265,7 +270,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 25rpx 0;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .student-item:last-child {
@@ -274,24 +279,25 @@
 
 .student-info {
   flex: 1;
+  min-width: 0;
 }
 
 .student-name {
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 8rpx;
   font-weight: 500;
 }
 
 .student-meta {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .student-checkbox {
   width: 40rpx;
   height: 40rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid var(--border-color);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -300,8 +306,8 @@
 }
 
 .student-checkbox.checked {
-  background: #1890ff;
-  border-color: #1890ff;
+  background: var(--primary-color);
+  border-color: var(--primary-color);
 }
 
 /* 已选择人数 */
@@ -312,26 +318,26 @@
   border-radius: 12rpx;
   text-align: center;
   font-size: 26rpx;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 /* 规则信息 */
 .rule-info {
   margin-top: 15rpx;
   padding: 15rpx;
-  background: #f6f8fa;
+  background: var(--background-color);
   border-radius: 8rpx;
 }
 
 .rule-standard {
   font-size: 26rpx;
-  color: #666;
+  color: var(--text-color-secondary);
   margin-bottom: 8rpx;
 }
 
 .rule-description {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
   line-height: 1.5;
 }
 
@@ -345,16 +351,16 @@
 
 .setting-label {
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 .setting-desc {
   margin-top: 15rpx;
   padding: 15rpx;
-  background: #f6f8fa;
+  background: var(--background-color);
   border-radius: 8rpx;
   font-size: 24rpx;
-  color: #666;
+  color: var(--text-color-secondary);
 }
 
 /* 备注输入 */
@@ -362,14 +368,14 @@
   width: 100%;
   min-height: 150rpx;
   padding: 20rpx;
-  background: #f6f8fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   font-size: 28rpx;
 }
 
 /* 预览卡片 */
 .preview-card {
-  border: 2rpx solid #1890ff;
+  border: 2rpx solid var(--primary-color);
 }
 
 .preview-item {
@@ -377,7 +383,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .preview-item:last-child {
@@ -386,21 +392,21 @@
 
 .preview-label {
   font-size: 28rpx;
-  color: #666;
+  color: var(--text-color-secondary);
 }
 
 .preview-value {
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   font-weight: 500;
 }
 
 .preview-value.positive {
-  color: #52c41a;
+  color: var(--success-color);
 }
 
 .preview-value.negative {
-  color: #ff4d4f;
+  color: var(--error-color);
 }
 
 /* 底部操作栏 */
@@ -412,12 +418,13 @@
   display: flex;
   gap: 20rpx;
   padding: 20rpx;
-  background: white;
+  background: var(--white);
   box-shadow: 0 -2rpx 8rpx rgba(0, 0, 0, 0.05);
 }
 
 .footer-btn {
   flex: 1;
+  min-width: 0;
   height: 80rpx;
   border-radius: 40rpx;
   font-size: 28rpx;
@@ -426,13 +433,13 @@
 }
 
 .footer-btn.cancel {
-  background: #f6f8fa;
-  color: #666;
+  background: var(--background-color);
+  color: var(--text-color-secondary);
 }
 
 .footer-btn.primary {
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
+  color: var(--white);
   box-shadow: 0 4rpx 12rpx rgba(24, 144, 255, 0.3);
 }
 

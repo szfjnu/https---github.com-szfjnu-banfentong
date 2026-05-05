@@ -1,11 +1,11 @@
 .layout-page {
   padding: 20rpx 30rpx;
   min-height: 100vh;
-  background: #f5f7fa;
+  background: var(--background-color);
 }
 
 .section {
-  background: #fff;
+  background: var(--white);
   border-radius: 12rpx;
   padding: 24rpx;
   margin-bottom: 20rpx;
@@ -14,7 +14,7 @@
 .section-title {
   font-size: 30rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 16rpx;
 }
 
@@ -32,20 +32,20 @@
 
 .input-label {
   font-size: 28rpx;
-  color: #666;
+  color: var(--text-color-secondary);
 }
 
 .input-field {
   flex: 1;
   padding: 12rpx;
-  border: 1rpx solid #ddd;
+  border: 1rpx solid var(--border-color);
   border-radius: 8rpx;
   font-size: 28rpx;
 }
 
 .input-hint {
   font-size: 22rpx;
-  color: #999;
+  color: var(--text-color-light);
   margin-top: 8rpx;
   display: block;
 }
@@ -58,15 +58,15 @@
 
 .sp-btn {
   padding: 10rpx 24rpx;
-  border: 1rpx solid #ddd;
+  border: 1rpx solid var(--border-color);
   border-radius: 20rpx;
   font-size: 26rpx;
-  color: #666;
+  color: var(--text-color-secondary);
 }
 
 .sp-btn.active {
   background: #667eea;
-  color: #fff;
+  color: var(--white);
   border-color: #667eea;
 }
 
@@ -79,7 +79,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 16rpx 0;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .sp-row:last-child {
@@ -88,19 +88,19 @@
 
 .sp-label {
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 .hint-text {
   font-size: 22rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .save-btn {
   margin-top: 30rpx;
   padding: 24rpx;
   background: #667eea;
-  color: #fff;
+  color: var(--white);
   border-radius: 12rpx;
   text-align: center;
   font-size: 30rpx;

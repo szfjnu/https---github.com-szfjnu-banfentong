@@ -1,0 +1,12 @@
+<button
+  class="ds-button ds-button--{{type}} ds-button--{{size}} {{block ? 'ds-button--block' : ''}} {{disabled ? 'ds-button--disabled' : ''}} {{loading ? 'ds-button--loading' : ''}}"
+  disabled="{{disabled}}"
+  bindtap="onTap"
+>
+  <view wx:if="{{loading}}" class="ds-button__loading">
+    <view class="ds-button__loading-dot"></view>
+    <view class="ds-button__loading-dot"></view>
+    <view class="ds-button__loading-dot"></view>
+  </view>
+  <slot></slot>
+</button>

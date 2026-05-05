@@ -77,17 +77,17 @@
     <view class="action-list">
       <view class="action-item" bindtap="onMarkGraduated" wx:if="{{classInfo.status !== 'graduated'}}">
         <text class="action-icon">🎓</text>
-        <text class="action-name">标记为毕业班级</text>
+        <text class="action-name ellipsis min-w-0">标记为毕业班级</text>
         <text class="action-arrow">›</text>
       </view>
       <view class="action-item" bindtap="onTransferClass">
         <text class="action-icon">🔄</text>
-        <text class="action-name">转让班级</text>
+        <text class="action-name ellipsis min-w-0">转让班级</text>
         <text class="action-arrow">›</text>
       </view>
       <view class="action-item danger" bindtap="onDissolveClass">
         <text class="action-icon">⚠️</text>
-        <text class="action-name">解散班级</text>
+        <text class="action-name ellipsis min-w-0">解散班级</text>
         <text class="action-arrow">›</text>
       </view>
     </view>

@@ -1,7 +1,7 @@
 /* pages/score/record/record.wxss */
 .container {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: var(--background-color);
   padding-bottom: 40rpx;
 }
 
@@ -23,7 +23,7 @@
 .stat-value {
   font-size: 40rpx;
   font-weight: 700;
-  color: #fff;
+  color: var(--white);
 }
 
 .stat-value.add {
@@ -31,7 +31,7 @@
 }
 
 .stat-value.deduct {
-  color: #ff7875;
+  color: var(--error-color);
 }
 
 .stat-value.warn {
@@ -53,7 +53,7 @@
   display: flex;
   align-items: center;
   padding: 20rpx;
-  background-color: #fff;
+  background-color: var(--white);
   margin-bottom: 10rpx;
 }
 
@@ -61,7 +61,7 @@
   flex: 1;
   display: flex;
   align-items: center;
-  background-color: #f5f5f5;
+  background-color: var(--background-color);
   border-radius: 40rpx;
   padding: 16rpx 24rpx;
 }
@@ -74,28 +74,28 @@
 .search-input {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 .export-btn {
   margin-left: 20rpx;
   padding: 16rpx 24rpx;
-  background: linear-gradient(135deg, #1890ff, #096dd9);
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-color));
   border-radius: 40rpx;
   font-size: 26rpx;
-  color: #fff;
+  color: var(--white);
 }
 
 .export-excel-btn {
-  background: linear-gradient(135deg, #52c41a, #389e0d);
+  background: linear-gradient(135deg, var(--success-color), var(--success-color));
 }
 
 /* 筛选栏 */
 .filter-bar {
   display: flex;
   padding: 20rpx;
-  background-color: #fff;
-  border-bottom: 1rpx solid #e8e8e8;
+  background-color: var(--white);
+  border-bottom: 1rpx solid var(--border-color);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -119,14 +119,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 16rpx 24rpx;
-  background-color: #f5f5f5;
+  background-color: var(--background-color);
   border-radius: 8rpx;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 .arrow {
-  color: #999;
+  color: var(--text-color-light);
   font-size: 20rpx;
 }
 
@@ -136,7 +136,7 @@
 }
 
 .record-card {
-  background-color: #fff;
+  background-color: var(--white);
   border-radius: 12rpx;
   padding: 24rpx;
   margin-bottom: 20rpx;
@@ -164,12 +164,12 @@
 .student-name {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
 }
 
 .record-date {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .status-badge {
@@ -180,17 +180,17 @@
 
 .status-pending {
   background-color: #fff7e6;
-  color: #fa8c16;
+  color: var(--warning-color);
 }
 
 .status-approved {
   background-color: #f6ffed;
-  color: #52c41a;
+  color: var(--success-color);
 }
 
 .status-rejected {
   background-color: #fff1f0;
-  color: #ff4d4f;
+  color: var(--error-color);
 }
 
 /* 记录内容 */
@@ -208,19 +208,19 @@
 .item-name {
   font-size: 30rpx;
   font-weight: 500;
-  color: #333;
+  color: var(--text-color);
 }
 
 .source-type {
   font-size: 24rpx;
   padding: 6rpx 12rpx;
-  background-color: #f5f5f5;
+  background-color: var(--background-color);
   border-radius: 6rpx;
 }
 
 .reason-detail {
   font-size: 28rpx;
-  color: #666;
+  color: var(--text-color-secondary);
   line-height: 1.6;
 }
 
@@ -230,7 +230,7 @@
   justify-content: space-between;
   align-items: center;
   padding-top: 16rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid var(--border-color);
 }
 
 .score-change {
@@ -239,16 +239,16 @@
 }
 
 .score-add {
-  color: #52c41a;
+  color: var(--success-color);
 }
 
 .score-minus {
-  color: #ff4d4f;
+  color: var(--error-color);
 }
 
 .recorder-info {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .footer-right {
@@ -260,7 +260,7 @@
 .appeal-btn {
   padding: 8rpx 20rpx;
   background-color: #e6f7ff;
-  color: #1890ff;
+  color: var(--primary-color);
   border-radius: 20rpx;
   font-size: 24rpx;
 }
@@ -271,11 +271,11 @@
   justify-content: center;
   align-items: center;
   padding: 20rpx;
-  background-color: #fff;
+  background-color: var(--white);
   font-size: 26rpx;
-  color: #1890ff;
+  color: var(--primary-color);
   gap: 8rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .toggle-icon {
@@ -286,14 +286,14 @@
 .advanced-filters {
   max-height: 0;
   overflow: hidden;
-  background-color: #fff;
+  background-color: var(--white);
   transition: max-height 0.3s ease;
 }
 
 .advanced-filters.show {
   max-height: 500rpx;
   padding: 20rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .filter-row {
@@ -308,7 +308,7 @@
 .filter-label {
   display: block;
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
   margin-bottom: 8rpx;
 }
 
@@ -317,10 +317,10 @@
   align-items: center;
   justify-content: center;
   padding: 16rpx 24rpx;
-  background-color: #f5f5f5;
+  background-color: var(--background-color);
   border-radius: 8rpx;
   font-size: 28rpx;
-  color: #666;
+  color: var(--text-color-secondary);
   width: 100%;
 }
 
@@ -335,8 +335,8 @@
   position: absolute;
   top: 0;
   right: 0;
-  background-color: #faad14;
-  color: #fff;
+  background-color: var(--warning-color);
+  color: var(--white);
   padding: 8rpx 16rpx;
   border-radius: 0 12rpx 0 12rpx;
   font-size: 22rpx;
@@ -347,7 +347,7 @@
   display: flex;
   align-items: flex-start;
   font-size: 28rpx;
-  color: #666;
+  color: var(--text-color-secondary);
   line-height: 1.6;
   margin-top: 12rpx;
 }
@@ -381,7 +381,7 @@
 
 .modal-content {
   width: 600rpx;
-  background: white;
+  background: var(--white);
   border-radius: 24rpx;
   overflow: hidden;
 }
@@ -391,18 +391,18 @@
   justify-content: space-between;
   align-items: center;
   padding: 32rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .modal-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
 }
 
 .modal-close {
   font-size: 32rpx;
-  color: #999;
+  color: var(--text-color-light);
   padding: 8rpx;
 }
 
@@ -414,7 +414,7 @@
   display: flex;
   gap: 20rpx;
   padding: 24rpx 32rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid var(--border-color);
 }
 
 .cancel-btn, .confirm-btn {
@@ -428,13 +428,13 @@
 }
 
 .cancel-btn {
-  background: #f5f5f5;
-  color: #666;
+  background: var(--background-color);
+  color: var(--text-color-secondary);
 }
 
 .confirm-btn {
-  background: linear-gradient(135deg, #1890ff, #096dd9);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-color));
+  color: var(--white);
 }
 
 /* 日期选择器弹窗 */
@@ -445,7 +445,7 @@
 .date-label {
   display: block;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 12rpx;
 }
 
@@ -453,11 +453,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   padding: 20rpx 24rpx;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 /* 空状态 */
@@ -476,7 +476,7 @@
 
 .empty-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 加载状态 */
@@ -484,7 +484,7 @@
   text-align: center;
   padding: 40rpx 0;
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 响应式布局 - 小屏幕适配 */

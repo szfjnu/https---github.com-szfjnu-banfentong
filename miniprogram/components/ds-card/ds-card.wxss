@@ -1,0 +1,45 @@
+.ds-card {
+  background: var(--card-bg, #ffffff);
+  border-radius: var(--radius-lg, 12rpx);
+  overflow: hidden;
+}
+
+.ds-card--bordered {
+  border: 2rpx solid var(--border-color, #e8e8e8);
+}
+
+.ds-card--interactive {
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.ds-card--interactive:active {
+  transform: scale(0.98);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+}
+
+.ds-card__header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.ds-card__title-bar {
+  width: 6rpx;
+  height: 32rpx;
+  background: var(--primary-color);
+  border-radius: 3rpx;
+  margin-right: 12rpx;
+  flex-shrink: 0;
+}
+
+.ds-card__title {
+  font-size: var(--font-size-md, 28rpx);
+  font-weight: 600;
+  color: var(--text-color, #333333);
+  line-height: 1.4;
+}
+
+.ds-card__body {
+  font-size: var(--font-size-md, 28rpx);
+  color: var(--text-color, #333333);
+}

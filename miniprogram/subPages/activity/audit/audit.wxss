@@ -1,12 +1,12 @@
 /* 聚光点 - 审核管理 */
 .audit-container {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--background-color);
   padding: 20rpx;
 }
 
 .audit-card {
-  background: white;
+  background: var(--white);
   border-radius: 20rpx;
   margin-bottom: 20rpx;
   overflow: hidden;
@@ -20,7 +20,7 @@
 .card-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 16rpx;
 }
 
@@ -41,7 +41,7 @@
 
 .meta-text {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .card-people {
@@ -52,7 +52,7 @@
 
 .card-actions {
   display: flex;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid var(--border-color);
 }
 
 .action-btn {
@@ -64,16 +64,16 @@
 }
 
 .action-btn.approve {
-  color: #52c41a;
+  color: var(--success-color);
 }
 
 .action-btn.reject {
-  color: #ff4d4f;
-  border-left: 1rpx solid #f0f0f0;
+  color: var(--error-color);
+  border-left: 1rpx solid var(--border-color);
 }
 
 .action-btn:active {
-  background: #f9f9f9;
+  background: var(--background-color);
 }
 
 .empty {
@@ -90,7 +90,7 @@
 
 .empty-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .loading {
@@ -103,7 +103,7 @@
 .loading-icon {
   width: 60rpx;
   height: 60rpx;
-  border: 4rpx solid #f3f3f3;
+  border: 4rpx solid var(--background-color);
   border-top: 4rpx solid #667eea;
   border-radius: 50%;
   animation: spin 1s linear infinite;

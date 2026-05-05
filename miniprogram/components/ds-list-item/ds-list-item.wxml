@@ -1,0 +1,16 @@
+<view
+  class="ds-list-item {{clickable ? 'ds-list-item--clickable' : ''}}"
+  bindtap="onTap"
+>
+  <view class="ds-list-item__content">
+    <view class="ds-list-item__main">
+      <text class="ds-list-item__title">{{title}}</text>
+      <text wx:if="{{desc}}" class="ds-list-item__desc">{{desc}}</text>
+    </view>
+    <view class="ds-list-item__extra">
+      <text wx:if="{{extra}}" class="ds-list-item__extra-text">{{extra}}</text>
+      <view wx:if="{{arrow}}" class="ds-list-item__arrow"></view>
+    </view>
+  </view>
+  <view class="ds-list-item__divider"></view>
+</view>

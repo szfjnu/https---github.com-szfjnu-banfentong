@@ -1,7 +1,7 @@
 <!--pages/student/student.wxml-->
-<view class="container">
+<view class="container bg-page">
   <!-- 班级功能导航 -->
-  <view class="class-nav" wx:if="{{showClassNav}}">
+  <view class="class-nav radius-lg shadow-sm" wx:if="{{showClassNav}}">
     <view class="class-nav-title">
       <view class="nav-title-bar"></view>
       <text>班级管理</text>
@@ -41,7 +41,7 @@
   </view>
 
   <!-- 搜索和筛选栏 -->
-  <view class="filter-section">
+  <view class="filter-section radius-lg shadow-sm">
     <!-- 搜索栏 -->
     <view class="search-bar">
       <view class="search-input">
@@ -97,7 +97,7 @@
   <!-- 学生列表 -->
   <view class="student-list" wx:if="{{!loading && students.length > 0}}">
     <view
-      class="student-item"
+      class="student-item radius-lg shadow-sm"
       wx:for="{{students}}"
       wx:key="_id"
     >
@@ -105,13 +105,13 @@
         <view class="student-avatar">
           <image src="/images/icons/default-avatar.png" mode="aspectFill"></image>
         </view>
-        <view class="student-info">
+        <view class="student-info min-w-0">
           <view class="student-header">
-            <view class="student-name">{{item.name}}</view>
+            <view class="student-name ellipsis">{{item.name}}</view>
             <view class="student-badges">
-              <view class="badge badge-position" wx:if="{{item.position}}">{{item.position}}</view>
-              <view class="badge badge-boarding" wx:if="{{item.is_boarding}}">住宿</view>
-              <view class="badge badge-group" wx:if="{{item.group_id}}">已分组</view>
+              <view class="student-badge badge-position" wx:if="{{item.position}}">{{item.position}}</view>
+              <view class="student-badge badge-boarding" wx:if="{{item.is_boarding}}">住宿</view>
+              <view class="student-badge badge-group" wx:if="{{item.group_id}}">已分组</view>
             </view>
           </view>
           <view class="student-meta">

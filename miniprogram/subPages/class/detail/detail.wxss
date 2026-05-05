@@ -1,8 +1,8 @@
 /* pages/class/detail/detail.wxss */
 .container {
   min-height: 100vh;
-  background: #f5f5f5;
-  padding-bottom: 120rpx;  /* 为底部导航栏留出空间 */
+  background: var(--background-color);
+  padding-bottom: 120rpx;
 }
 
 /* 天气提示 */
@@ -11,7 +11,7 @@
   align-items: center;
   background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
   padding: 24rpx 30rpx;
-  color: white;
+  color: var(--white);
 }
 
 .weather-icon {
@@ -36,7 +36,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 24rpx 30rpx;
-  color: white;
+  color: var(--white);
 }
 
 .birthday-left {
@@ -66,7 +66,7 @@
 }
 
 .birthday-content {
-  background: white;
+  background: var(--white);
   padding: 24rpx 30rpx;
 }
 
@@ -81,14 +81,14 @@
   align-items: center;
   padding: 16rpx;
   background: #fff0f6;
-  border-radius: 12rpx;
+  border-radius: 16rpx;
 }
 
 .birthday-avatar {
   width: 64rpx;
   height: 64rpx;
   border-radius: 50%;
-  background: white;
+  background: var(--white);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -100,7 +100,8 @@
   flex: 1;
   font-size: 28rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
+  min-width: 0;
 }
 
 .birthday-wish {
@@ -108,12 +109,12 @@
   background: linear-gradient(135deg, #ff85c0 0%, #ff69b4 100%);
   border-radius: 20rpx;
   font-size: 24rpx;
-  color: white;
+  color: var(--white);
 }
 
 /* 今日课程 */
 .today-course {
-  background: linear-gradient(135deg, #ffa940 0%, #fa8c16 100%);
+  background: linear-gradient(135deg, #ffa940 0%, var(--warning-color) 100%);
   margin: 20rpx;
   border-radius: 16rpx;
   overflow: hidden;
@@ -124,7 +125,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 24rpx 30rpx;
-  color: white;
+  color: var(--white);
 }
 
 .course-left {
@@ -169,7 +170,7 @@
   right: -8rpx;
   min-width: 32rpx;
   height: 32rpx;
-  background: #ff4d4f;
+  background: var(--error-color);
   border-radius: 16rpx;
   font-size: 20rpx;
   display: flex;
@@ -179,7 +180,7 @@
 }
 
 .course-content {
-  background: white;
+  background: var(--white);
   padding: 24rpx 30rpx;
 }
 
@@ -197,7 +198,7 @@
 
 .empty-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .course-list {
@@ -208,7 +209,7 @@
   display: flex;
   align-items: center;
   padding: 16rpx 0;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .course-item:last-child {
@@ -218,13 +219,14 @@
 .course-time {
   width: 120rpx;
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .course-name {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
+  min-width: 0;
 }
 
 .course-action {
@@ -232,10 +234,10 @@
   align-items: center;
   justify-content: center;
   padding: 20rpx;
-  background: #f5f7fa;
-  border-radius: 8rpx;
+  background: var(--background-color);
+  border-radius: 16rpx;
   font-size: 28rpx;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .arrow {
@@ -244,7 +246,7 @@
 
 /* 今日任务 */
 .today-task {
-  background: white;
+  background: var(--white);
   margin: 20rpx;
   border-radius: 16rpx;
   padding: 24rpx 30rpx;
@@ -264,7 +266,7 @@
 .task-title {
   font-size: 30rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
 }
 
 .task-content {
@@ -292,29 +294,30 @@
 .task-check {
   width: 40rpx;
   height: 40rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid var(--border-color);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-right: 16rpx;
   font-size: 24rpx;
-  color: white;
+  color: var(--white);
 }
 
 .task-check.checked {
-  background: #52c41a;
-  border-color: #52c41a;
+  background: var(--success-color);
+  border-color: var(--success-color);
 }
 
 .task-text {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
+  min-width: 0;
 }
 
 .task-text.completed {
-  color: #999;
+  color: var(--text-color-light);
   text-decoration: line-through;
 }
 
@@ -328,7 +331,7 @@
 
 .stat-item {
   flex: 1;
-  background: white;
+  background: var(--white);
   border-radius: 16rpx;
   padding: 24rpx;
   display: flex;
@@ -350,18 +353,18 @@
 .stat-value {
   font-size: 40rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 8rpx;
 }
 
 .stat-label {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 积分排行榜 */
 .score-rank {
-  background: white;
+  background: var(--white);
   margin: 20rpx;
   border-radius: 16rpx;
   overflow: hidden;
@@ -372,7 +375,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 24rpx 30rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .rank-left {
@@ -388,14 +391,14 @@
 .rank-title {
   font-size: 30rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
 }
 
 .rank-action {
   display: flex;
   align-items: center;
   font-size: 26rpx;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .rank-list {
@@ -406,7 +409,7 @@
   display: flex;
   align-items: center;
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .rank-item:last-child {
@@ -414,7 +417,7 @@
 }
 
 .rank-item.first {
-  background: linear-gradient(90deg, #fff7e6 0%, white 100%);
+  background: linear-gradient(90deg, #fff7e6 0%, var(--white) 100%);
   margin: 0 -30rpx;
   padding: 20rpx 30rpx;
 }
@@ -423,26 +426,26 @@
   width: 48rpx;
   height: 48rpx;
   border-radius: 50%;
-  background: #f0f0f0;
+  background: var(--border-color);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24rpx;
   font-weight: bold;
-  color: #666;
+  color: var(--text-color-secondary);
   margin-right: 16rpx;
 }
 
 .rank-item.first .rank-number {
   background: linear-gradient(135deg, #ffd700 0%, #ffb800 100%);
-  color: white;
+  color: var(--white);
 }
 
 .rank-avatar {
   width: 64rpx;
   height: 64rpx;
   border-radius: 50%;
-  background: #f5f7fa;
+  background: var(--background-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -452,18 +455,19 @@
 
 .rank-info {
   flex: 1;
+  min-width: 0;
 }
 
 .rank-name {
   font-size: 28rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 4rpx;
 }
 
 .rank-score {
   font-size: 24rpx;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .rank-empty {
@@ -475,7 +479,7 @@
 
 /* 班级信息卡片 */
 .class-card {
-  background: white;
+  background: var(--white);
   margin: 20rpx;
   border-radius: 16rpx;
   overflow: hidden;
@@ -485,14 +489,14 @@
   display: flex;
   align-items: center;
   padding: 30rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .class-icon {
   width: 80rpx;
   height: 80rpx;
   border-radius: 16rpx;
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -502,12 +506,13 @@
 
 .class-basic {
   flex: 1;
+  min-width: 0;
 }
 
 .class-name {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 8rpx;
 }
 
@@ -518,14 +523,14 @@
 
 .meta-item {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .settings-btn {
   width: 64rpx;
   height: 64rpx;
   border-radius: 50%;
-  background: #f5f7fa;
+  background: var(--background-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -535,34 +540,34 @@
 /* 班级码 */
 .class-code-section {
   padding: 24rpx 30rpx;
-  background: #f5f7fa;
+  background: var(--background-color);
   text-align: center;
 }
 
 .code-label {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
   margin-bottom: 8rpx;
 }
 
 .code-value {
   font-size: 48rpx;
   font-weight: bold;
-  color: #1890ff;
+  color: var(--primary-color);
   letter-spacing: 8rpx;
   margin-bottom: 8rpx;
 }
 
 .code-tip {
   font-size: 22rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 班级切换 */
 .class-switcher {
   display: flex;
   align-items: center;
-  background: white;
+  background: var(--white);
   margin: 20rpx;
   padding: 24rpx 30rpx;
   border-radius: 16rpx;
@@ -570,7 +575,7 @@
 
 .switcher-label {
   font-size: 28rpx;
-  color: #666;
+  color: var(--text-color-secondary);
   margin-right: 16rpx;
 }
 
@@ -580,15 +585,15 @@
   justify-content: space-between;
   align-items: center;
   padding: 16rpx 24rpx;
-  background: #f5f7fa;
-  border-radius: 8rpx;
+  background: var(--background-color);
+  border-radius: 16rpx;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 /* 快捷功能 */
 .quick-actions {
-  background: white;
+  background: var(--white);
   margin: 20rpx;
   border-radius: 16rpx;
   padding: 30rpx;
@@ -597,7 +602,7 @@
 .section-title {
   font-size: 30rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 24rpx;
 }
 
@@ -626,7 +631,7 @@
 
 .action-title {
   font-size: 24rpx;
-  color: #666;
+  color: var(--text-color-secondary);
 }
 
 /* 加载状态 */
@@ -647,8 +652,8 @@
 .loading-icon {
   width: 60rpx;
   height: 60rpx;
-  border: 4rpx solid #f3f3f3;
-  border-top: 4rpx solid #1890ff;
+  border: 4rpx solid var(--border-color);
+  border-top: 4rpx solid var(--primary-color);
   border-radius: 50%;
   margin-bottom: 20rpx;
   animation: spin 1s linear infinite;
@@ -661,7 +666,7 @@
 
 .loading-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 底部导航栏 */
@@ -671,7 +676,7 @@
   left: 0;
   right: 0;
   height: 100rpx;
-  background: white;
+  background: var(--white);
   display: flex;
   align-items: center;
   justify-content: space-around;
@@ -701,7 +706,7 @@
 
 .nav-text {
   font-size: 22rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .nav-item.active .nav-icon {
@@ -709,6 +714,6 @@
 }
 
 .nav-item.active .nav-text {
-  color: #1890ff;
+  color: var(--primary-color);
   font-weight: bold;
 }

@@ -1,7 +1,7 @@
 /* pages/dorm/dorm.wxss */
 .container {
   padding: 20rpx;
-  background: #f5f5f5;
+  background: var(--background-color);
   min-height: 100vh;
 }
 
@@ -17,8 +17,8 @@
 .loading-icon {
   width: 60rpx;
   height: 60rpx;
-  border: 4rpx solid #f3f3f3;
-  border-top: 4rpx solid #1890ff;
+  border: 4rpx solid var(--background-color);
+  border-top: 4rpx solid var(--primary-color);
   border-radius: 50%;
   margin-bottom: 20rpx;
   animation: spin 1s linear infinite;
@@ -31,7 +31,7 @@
 
 .loading-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 未启用提示 */
@@ -52,20 +52,20 @@
 .tip-text {
   font-size: 36rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 20rpx;
 }
 
 .tip-desc {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
   margin-bottom: 40rpx;
   text-align: center;
 }
 
 .tip-btn {
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-  color: #fff;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
+  color: var(--white);
   border: none;
   padding: 20rpx 60rpx;
   border-radius: 40rpx;
@@ -82,13 +82,14 @@
 
 .action-btn {
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12rpx;
   height: 80rpx;
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
+  color: var(--white);
   border-radius: 16rpx;
   font-size: 28rpx;
   font-weight: 500;
@@ -98,7 +99,7 @@
 }
 
 .action-btn.primary {
-  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+  background: linear-gradient(135deg, var(--success-color) 0%, var(--success-color) 100%);
   box-shadow: 0 4rpx 12rpx rgba(82, 196, 26, 0.3);
 }
 
@@ -113,8 +114,8 @@
 
 /* 管理功能区 */
 .admin-section {
-  background: white;
-  border-radius: 20rpx;
+  background: var(--white);
+  border-radius: 16rpx;
   padding: 30rpx;
   margin-bottom: 20rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
@@ -123,7 +124,7 @@
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 20rpx;
 }
 
@@ -134,19 +135,20 @@
 
 .admin-btn {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 24rpx 0;
-  background: #f6f8fa;
+  background: var(--background-color);
   border-radius: 16rpx;
   font-size: 26rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 .admin-btn:active {
-  background: #eef0f2;
+  background: var(--background-color);
 }
 
 .btn-icon-text {
@@ -157,7 +159,7 @@
 /* 统计卡片 */
 .stats-card {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 20rpx;
+  border-radius: 16rpx;
   padding: 30rpx;
   margin-bottom: 20rpx;
   box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
@@ -173,7 +175,7 @@
 .stats-title {
   font-size: 32rpx;
   font-weight: bold;
-  color: #fff;
+  color: var(--white);
 }
 
 .stats-badge {
@@ -199,7 +201,7 @@
 .stat-value {
   font-size: 48rpx;
   font-weight: bold;
-  color: #fff;
+  color: var(--white);
   margin-bottom: 10rpx;
 }
 
@@ -226,7 +228,7 @@
 .search-input {
   display: flex;
   align-items: center;
-  background: white;
+  background: var(--white);
   border-radius: 40rpx;
   padding: 20rpx 30rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
@@ -240,6 +242,7 @@
 
 .search-input input {
   flex: 1;
+  min-width: 0;
   font-size: 28rpx;
 }
 
@@ -257,26 +260,27 @@
 
 .filter-picker {
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: white;
+  background: var(--white);
   padding: 20rpx 30rpx;
   border-radius: 40rpx;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
 }
 
 .picker-arrow {
   font-size: 20rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 卡片 */
 .card {
-  background: white;
-  border-radius: 20rpx;
+  background: var(--white);
+  border-radius: 16rpx;
   padding: 30rpx;
   margin-bottom: 20rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
@@ -292,12 +296,12 @@
 .card-title {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
 }
 
 .card-more {
   font-size: 24rpx;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 /* 检查记录列表 */
@@ -310,7 +314,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 30rpx 0;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .record-item:last-child {
@@ -321,11 +325,12 @@
   display: flex;
   align-items: center;
   flex: 1;
+  min-width: 0;
 }
 
 .record-type {
   background: #e8f4ff;
-  color: #1890ff;
+  color: var(--primary-color);
   padding: 8rpx 16rpx;
   border-radius: 8rpx;
   font-size: 24rpx;
@@ -334,18 +339,19 @@
 
 .record-info {
   flex: 1;
+  min-width: 0;
 }
 
 .record-room {
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 8rpx;
   font-weight: 500;
 }
 
 .record-date {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .record-right {
@@ -357,21 +363,21 @@
 .record-score {
   font-size: 32rpx;
   font-weight: bold;
-  color: #1890ff;
+  color: var(--primary-color);
   margin-right: 10rpx;
 }
 
 .record-score.positive {
-  color: #52c41a;
+  color: var(--success-color);
 }
 
 .record-score.negative {
-  color: #ff4d4f;
+  color: var(--error-color);
 }
 
 .record-arrow {
   font-size: 32rpx;
-  color: #999;
+  color: var(--text-color-light);
   font-weight: 300;
 }
 
@@ -389,7 +395,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 30rpx 0;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .warning-item:last-child {
@@ -400,6 +406,7 @@
   display: flex;
   align-items: center;
   flex: 1;
+  min-width: 0;
 }
 
 .warning-level {
@@ -423,18 +430,19 @@
 
 .warning-info {
   flex: 1;
+  min-width: 0;
 }
 
 .warning-name {
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 8rpx;
   font-weight: 500;
 }
 
 .warning-score {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .warning-right {
@@ -464,5 +472,5 @@
 
 .empty-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }

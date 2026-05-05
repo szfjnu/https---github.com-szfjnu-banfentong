@@ -1,11 +1,11 @@
 .warning-config-page {
   padding: 20rpx 30rpx;
   min-height: 100vh;
-  background: #f5f7fa;
+  background: var(--background-color);
 }
 
 .section {
-  background: #fff;
+  background: var(--white);
   border-radius: 12rpx;
   padding: 24rpx;
   margin-bottom: 20rpx;
@@ -14,7 +14,7 @@
 .section-title {
   font-size: 30rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 16rpx;
 }
 
@@ -24,7 +24,7 @@
 
 .rule-item {
   padding: 16rpx;
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 8rpx;
   margin-bottom: 12rpx;
 }
@@ -38,7 +38,7 @@
 .rule-desc {
   font-size: 28rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
 }
 
 .rule-detail {
@@ -67,14 +67,14 @@
 }
 
 .op-link.delete {
-  color: #ff4d4f;
+  color: var(--error-color);
 }
 
 .empty-tip {
   text-align: center;
   padding: 40rpx 0;
   font-size: 26rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .form-row {
@@ -86,7 +86,7 @@
 
 .form-label {
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   width: 80rpx;
   flex-shrink: 0;
 }
@@ -94,7 +94,7 @@
 .form-input {
   flex: 1;
   padding: 12rpx;
-  border: 1rpx solid #ddd;
+  border: 1rpx solid var(--border-color);
   border-radius: 8rpx;
   font-size: 28rpx;
 }
@@ -102,10 +102,10 @@
 .picker-value {
   flex: 1;
   padding: 12rpx;
-  border: 1rpx solid #ddd;
+  border: 1rpx solid var(--border-color);
   border-radius: 8rpx;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 .form-btns {
@@ -117,15 +117,15 @@
 .form-btn {
   flex: 1;
   padding: 20rpx;
-  border: 1rpx solid #ddd;
+  border: 1rpx solid var(--border-color);
   border-radius: 12rpx;
   text-align: center;
   font-size: 28rpx;
-  color: #666;
+  color: var(--text-color-secondary);
 }
 
 .form-btn.primary {
   background: #667eea;
-  color: #fff;
+  color: var(--white);
   border-color: #667eea;
 }

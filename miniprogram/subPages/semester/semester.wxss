@@ -1,7 +1,7 @@
 /* pages/semester/semester.wxss */
 .container {
   padding: 24rpx;
-  background: #f5f7fa;
+  background: var(--background-color);
   min-height: 100vh;
   padding-bottom: 60rpx;
 }
@@ -15,20 +15,20 @@
 
 .stat-card {
   flex: 1;
-  background: #fff;
+  background: var(--white);
   border-radius: 16rpx;
   padding: 28rpx 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
 }
 
 .stat-card.active-card {
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
 }
 
 .stat-value {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 8rpx;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -36,13 +36,13 @@
 }
 
 .active-card .stat-value {
-  color: #fff;
+  color: var(--white);
   font-size: 28rpx;
 }
 
 .stat-label {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .active-card .stat-label {
@@ -66,7 +66,7 @@
 .section-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
 }
 
 .add-btn {
@@ -74,8 +74,8 @@
   align-items: center;
   gap: 8rpx;
   padding: 12rpx 24rpx;
-  background: #1890ff;
-  color: #fff;
+  background: var(--primary-color);
+  color: var(--white);
   border-radius: 32rpx;
   font-size: 26rpx;
   font-weight: 500;
@@ -98,15 +98,15 @@
 }
 
 .semester-item {
-  background: #fff;
+  background: var(--white);
   border-radius: 16rpx;
   overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
 }
 
 .semester-item.current {
-  border: 2rpx solid #1890ff;
-  background: linear-gradient(135deg, #f0f7ff 0%, #fff 100%);
+  border: 2rpx solid var(--primary-color);
+  background: linear-gradient(135deg, #f0f7ff 0%, var(--white) 100%);
 }
 
 .item-header {
@@ -123,7 +123,7 @@
 .semester-name {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
 }
 
 .badge-row {
@@ -139,18 +139,18 @@
 }
 
 .current-badge {
-  background: #1890ff;
-  color: #fff;
+  background: var(--primary-color);
+  color: var(--white);
 }
 
 .status-badge.ongoing {
   background: #e6f7ff;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .status-badge.ended {
-  background: #f5f5f5;
-  color: #999;
+  background: var(--background-color);
+  color: var(--text-color-light);
 }
 
 .date-row {
@@ -162,12 +162,12 @@
 
 .date-text {
   font-size: 26rpx;
-  color: #666;
+  color: var(--text-color-secondary);
 }
 
 .days-text {
   font-size: 24rpx;
-  color: #1890ff;
+  color: var(--primary-color);
   font-weight: 500;
 }
 
@@ -182,25 +182,25 @@
   align-items: center;
   gap: 8rpx;
   padding: 8rpx 16rpx;
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 8rpx;
 }
 
 .tag-label {
   font-size: 22rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .tag-value {
   font-size: 24rpx;
-  color: #333;
+  color: var(--text-color);
   font-weight: 500;
 }
 
 /* 操作按钮 */
 .item-actions {
   display: flex;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid var(--border-color);
 }
 
 .action-btn {
@@ -208,8 +208,8 @@
   padding: 20rpx 0;
   text-align: center;
   font-size: 26rpx;
-  color: #666;
-  border-right: 1rpx solid #f0f0f0;
+  color: var(--text-color-secondary);
+  border-right: 1rpx solid var(--border-color);
 }
 
 .action-btn:last-child {
@@ -217,31 +217,31 @@
 }
 
 .action-btn:active {
-  background: #f5f5f5;
+  background: var(--background-color);
 }
 
 .edit-btn {
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .set-current-btn {
-  color: #52c41a;
+  color: var(--success-color);
 }
 
 .delete-btn {
-  color: #ff4d4f;
+  color: var(--error-color);
 }
 
 .delete-btn.disabled {
-  color: #ccc;
+  color: var(--text-color-light);
   pointer-events: none;
 }
 
 .create-time {
   padding: 16rpx 24rpx;
   font-size: 22rpx;
-  color: #bbb;
-  background: #fafafa;
+  color: var(--text-color-light);
+  background: var(--background-color);
 }
 
 /* 空状态 */
@@ -257,13 +257,13 @@
 
 .empty-text {
   font-size: 32rpx;
-  color: #666;
+  color: var(--text-color-secondary);
   margin-bottom: 12rpx;
 }
 
 .empty-hint {
   font-size: 26rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 加载状态 */
@@ -278,8 +278,8 @@
 .loading-spinner {
   width: 60rpx;
   height: 60rpx;
-  border: 4rpx solid #e8e8e8;
-  border-top-color: #1890ff;
+  border: 4rpx solid var(--border-color);
+  border-top-color: var(--primary-color);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-bottom: 20rpx;
@@ -291,7 +291,7 @@
 
 .loading-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 弹窗样式 */
@@ -313,7 +313,7 @@
   width: 92%;
   max-width: 680rpx;
   max-height: 85vh;
-  background: #fff;
+  background: var(--white);
   border-radius: 20rpx;
   overflow: hidden;
   z-index: 101;
@@ -326,14 +326,14 @@
   justify-content: space-between;
   align-items: center;
   padding: 28rpx 32rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
   flex-shrink: 0;
 }
 
 .modal-title {
   font-size: 34rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
 }
 
 .modal-close {
@@ -343,7 +343,7 @@
   align-items: center;
   justify-content: center;
   font-size: 40rpx;
-  color: #999;
+  color: var(--text-color-light);
   line-height: 1;
 }
 
@@ -357,7 +357,7 @@
   display: flex;
   gap: 20rpx;
   padding: 24rpx 32rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid var(--border-color);
   flex-shrink: 0;
 }
 
@@ -373,13 +373,13 @@
 }
 
 .btn-cancel {
-  background: #f5f5f5;
-  color: #666;
+  background: var(--background-color);
+  color: var(--text-color-secondary);
 }
 
 .btn-confirm {
-  background: #1890ff;
-  color: #fff;
+  background: var(--primary-color);
+  color: var(--white);
 }
 
 .btn-cancel:active, .btn-confirm:active {
@@ -393,7 +393,7 @@
 
 .form-label {
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 12rpx;
   display: flex;
   align-items: center;
@@ -401,7 +401,7 @@
 
 .form-label.required::before {
   content: '*';
-  color: #ff4d4f;
+  color: var(--error-color);
   margin-right: 8rpx;
 }
 
@@ -409,25 +409,25 @@
   width: 100%;
   height: 80rpx;
   padding: 0 24rpx;
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   box-sizing: border-box;
 }
 
 .form-input::placeholder {
-  color: #bbb;
+  color: var(--text-color-light);
 }
 
 .form-picker {
   width: 100%;
   height: 80rpx;
   padding: 0 24rpx;
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -435,11 +435,11 @@
 }
 
 .form-picker.placeholder {
-  color: #bbb;
+  color: var(--text-color-light);
 }
 
 .picker-arrow {
-  color: #bbb;
+  color: var(--text-color-light);
   font-size: 32rpx;
 }
 
@@ -447,30 +447,30 @@
   width: 100%;
   min-height: 160rpx;
   padding: 20rpx 24rpx;
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   box-sizing: border-box;
 }
 
 .form-divider {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
   padding: 20rpx 0 16rpx;
   margin-bottom: 8rpx;
-  border-bottom: 1rpx dashed #e8e8e8;
+  border-bottom: 1rpx dashed var(--border-color);
 }
 
 .slider-wrap {
-  background: #f5f7fa;
+  background: var(--background-color);
   padding: 20rpx 24rpx;
   border-radius: 12rpx;
 }
 
 .slider-hint {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
   margin-top: 8rpx;
   display: block;
 }

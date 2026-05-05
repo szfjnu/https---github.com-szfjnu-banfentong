@@ -1,9 +1,9 @@
 <!--pages/score/score.wxml-->
-<view class="container">
+<view class="container bg-page">
   <!-- 学生/家长视图：仅显示本人积分 -->
   <block wx:if="{{isStudentMode}}">
     <!-- 个人积分卡片 -->
-    <view class="my-score-card" wx:if="{{myScoreInfo}}">
+    <view class="my-score-card radius-lg shadow-sm" wx:if="{{myScoreInfo}}">
       <view class="score-circle" style="background: {{myScoreInfo.scoreColor}}">
         <text class="score-number">{{myScoreInfo.current_score || 100}}</text>
         <text class="score-unit">分</text>
@@ -25,7 +25,7 @@
     </view>
 
     <!-- 功能入口 -->
-    <view class="score-nav">
+    <view class="score-nav radius-lg shadow-sm">
       <view class="score-nav-title">
         <view class="nav-title-bar"></view>
         <text>积分服务</text>
@@ -74,7 +74,7 @@
   <!-- 管理员/教师视图：显示排行榜 -->
   <block wx:else>
     <!-- 功能入口 -->
-    <view class="score-nav">
+    <view class="score-nav radius-lg shadow-sm">
       <view class="score-nav-title">
         <view class="nav-title-bar"></view>
         <text>积分管理</text>
@@ -141,7 +141,7 @@
     </view>
 
     <!-- 积分排行榜 -->
-    <view class="card">
+    <view class="score-card radius-lg shadow-sm">
       <view class="card-title">积分排行榜</view>
       <view class="ranking-list" wx:if="{{!loading && students.length > 0}}">
         <view
@@ -157,8 +157,8 @@
           <view class="student-avatar">
             <image src="/images/icons/default-avatar.png" mode="aspectFill"></image>
           </view>
-          <view class="student-info">
-            <view class="student-name">{{item.name}}</view>
+          <view class="student-info min-w-0">
+            <view class="student-name ellipsis">{{item.name}}</view>
             <view class="student-meta">
               <text class="meta-item">{{item.student_id}}</text>
               <text class="meta-item">{{item.class_name}}</text>

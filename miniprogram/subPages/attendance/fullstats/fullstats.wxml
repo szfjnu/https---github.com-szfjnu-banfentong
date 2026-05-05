@@ -74,7 +74,7 @@
         <view class="student-avatar">
           <text class="avatar-text">{{item.name[0]}}</text>
         </view>
-        <text class="student-name">{{item.name}}</text>
+        <text class="student-name ellipsis">{{item.name}}</text>
         <view class="full-badge">全勤</view>
       </view>
     </view>
@@ -91,8 +91,8 @@
           <view class="student-avatar">
             <text class="avatar-text">{{item.name[0]}}</text>
           </view>
-          <view class="student-info">
-            <text class="student-name">{{item.name}}</text>
+          <view class="student-info min-w-0">
+            <text class="student-name ellipsis">{{item.name}}</text>
             <view class="absence-tags">
               <text class="absence-tag sick" wx:if="{{item.sick_leave_days > 0}}">病假{{item.sick_leave_days}}天</text>
               <text class="absence-tag personal" wx:if="{{item.personal_leave_days > 0}}">事假{{item.personal_leave_days}}天</text>

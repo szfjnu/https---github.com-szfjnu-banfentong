@@ -1,0 +1,43 @@
+.ds-status-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  font-size: 20rpx;
+  line-height: 1.4;
+}
+
+.ds-status-tag--primary {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.ds-status-tag--success {
+  background: #52c41a;
+  color: #fff;
+}
+
+.ds-status-tag--warning {
+  background: #faad14;
+  color: #fff;
+}
+
+.ds-status-tag--error {
+  background: #fff1f0;
+  color: #f5222d;
+}
+
+.ds-status-tag--info {
+  background: #f0f0f0;
+  color: #999;
+}
+
+.ds-status-tag--finished {
+  background: #f0f0f0;
+  color: #bbb;
+}
+
+.ds-status-tag--upcoming {
+  background: #faad14;
+  color: #fff;
+}

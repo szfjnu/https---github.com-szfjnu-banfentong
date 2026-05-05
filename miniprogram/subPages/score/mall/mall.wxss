@@ -1,13 +1,13 @@
 /* pages/score/mall/mall.wxss */
 .container {
   min-height: 100vh;
-  background: linear-gradient(180deg, #f0f5ff 0%, #f5f5f5 100%);
+  background: linear-gradient(180deg, #f0f5ff 0%, var(--background-color) 100%);
   padding-bottom: 40rpx;
 }
 
 /* 积分卡片 */
 .score-card {
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
   margin: 20rpx;
   padding: 30rpx 24rpx;
   border-radius: 20rpx;
@@ -36,7 +36,7 @@
 .score-value {
   font-size: 48rpx;
   font-weight: bold;
-  color: white;
+  color: var(--white);
   word-break: break-all;
 }
 
@@ -49,7 +49,7 @@
 
 .action-btn {
   background: rgba(255, 255, 255, 0.2);
-  color: white;
+  color: var(--white);
   border: 1rpx solid rgba(255, 255, 255, 0.4);
   border-radius: 40rpx;
   padding: 12rpx 24rpx;
@@ -77,7 +77,7 @@
 /* 标签切换 */
 .tabs {
   display: flex;
-  background: white;
+  background: var(--white);
   margin: 0 20rpx;
   border-radius: 12rpx;
   padding: 8rpx;
@@ -89,15 +89,15 @@
   text-align: center;
   padding: 20rpx 0;
   font-size: 28rpx;
-  color: #666;
+  color: var(--text-color-secondary);
   border-radius: 8rpx;
   position: relative;
   transition: all 0.3s ease;
 }
 
 .tab-item.active {
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
+  color: var(--white);
   font-weight: 600;
 }
 
@@ -105,8 +105,8 @@
   position: absolute;
   top: 8rpx;
   right: 20rpx;
-  background: #ff4d4f;
-  color: white;
+  background: var(--error-color);
+  color: var(--white);
   font-size: 20rpx;
   padding: 2rpx 10rpx;
   border-radius: 20rpx;
@@ -128,7 +128,7 @@
 
 /* 物品卡片 */
 .item-card {
-  background: white;
+  background: var(--white);
   border-radius: 16rpx;
   overflow: hidden;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
@@ -145,7 +145,7 @@
   top: 0;
   left: 0;
   background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
-  color: white;
+  color: var(--white);
   font-size: 20rpx;
   padding: 6rpx 16rpx;
   border-radius: 0 0 12rpx 0;
@@ -158,7 +158,7 @@
   top: 0;
   right: 0;
   background: linear-gradient(135deg, #722ed1 0%, #531dab 100%);
-  color: white;
+  color: var(--white);
   font-size: 20rpx;
   padding: 6rpx 16rpx;
   border-radius: 0 12rpx 0 0;
@@ -168,7 +168,7 @@
 .item-image {
   width: 100%;
   height: 220rpx;
-  background: #f5f5f5;
+  background: var(--background-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -190,7 +190,7 @@
 .item-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 12rpx;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -206,18 +206,18 @@
 
 .price-label {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .price-value {
   font-size: 36rpx;
   font-weight: bold;
-  color: #ff4d4f;
+  color: var(--error-color);
 }
 
 .price-unit {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .item-meta {
@@ -228,12 +228,12 @@
 
 .item-quantity {
   font-size: 22rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .item-mode {
   font-size: 22rpx;
-  color: #52c41a;
+  color: var(--success-color);
   background: #f6ffed;
   padding: 4rpx 12rpx;
   border-radius: 6rpx;
@@ -262,7 +262,7 @@
 
 .view-bid-btn {
   background: #f0f5ff;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .view-bid-btn:active {
@@ -270,8 +270,8 @@
 }
 
 .redeem-btn {
-  background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--success-color) 0%, var(--success-color) 100%);
+  color: var(--white);
 }
 
 .redeem-btn:active {
@@ -279,8 +279,8 @@
 }
 
 .redeem-btn.disabled {
-  background: #d9d9d9;
-  color: #999;
+  background: var(--border-color);
+  color: var(--text-color-light);
 }
 
 /* 兑换状态 */
@@ -300,7 +300,7 @@
 
 .status-unavailable {
   background: rgba(153, 153, 153, 0.9);
-  color: white;
+  color: var(--white);
 }
 
 /* 心愿单容器 */
@@ -315,14 +315,14 @@
 .wish-title {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   display: block;
   margin-bottom: 8rpx;
 }
 
 .wish-tip {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .wish-list {
@@ -332,7 +332,7 @@
 }
 
 .wish-item {
-  background: white;
+  background: var(--white);
   border-radius: 16rpx;
   padding: 24rpx;
   display: flex;
@@ -349,13 +349,13 @@
 .wish-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 8rpx;
 }
 
 .wish-desc {
   font-size: 24rpx;
-  color: #666;
+  color: var(--text-color-secondary);
   margin-bottom: 8rpx;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -366,11 +366,11 @@
   display: flex;
   gap: 20rpx;
   font-size: 22rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .wish-score {
-  color: #ff4d4f;
+  color: var(--error-color);
 }
 
 .wish-vote {
@@ -402,16 +402,16 @@
 .vote-count {
   font-size: 28rpx;
   font-weight: bold;
-  color: #52c41a;
+  color: var(--success-color);
 }
 
 .vote-btn.voted .vote-count {
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .wish-status {
   font-size: 20rpx;
-  color: #52c41a;
+  color: var(--success-color);
   background: #f6ffed;
   padding: 4rpx 12rpx;
   border-radius: 8rpx;
@@ -423,8 +423,8 @@
 
 .submit-wish-btn {
   width: 100%;
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
+  color: var(--white);
   border: none;
   border-radius: 12rpx;
   padding: 24rpx 0;
@@ -457,7 +457,7 @@
   width: 90%;
   max-width: 600rpx;
   max-height: 80vh;
-  background: white;
+  background: var(--white);
   border-radius: 24rpx;
   overflow: hidden;
   display: flex;
@@ -469,18 +469,18 @@
   justify-content: space-between;
   align-items: center;
   padding: 32rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .modal-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
 }
 
 .modal-close {
   font-size: 32rpx;
-  color: #999;
+  color: var(--text-color-light);
   padding: 8rpx;
 }
 
@@ -492,14 +492,14 @@
 
 .modal-footer {
   padding: 24rpx 32rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid var(--border-color);
   display: flex;
   gap: 20rpx;
 }
 
 /* 投标详情 */
 .bid-item-info {
-  background: #f5f7fa;
+  background: var(--background-color);
   padding: 20rpx;
   border-radius: 12rpx;
   margin-bottom: 24rpx;
@@ -511,12 +511,12 @@
 .bid-item-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
 }
 
 .bid-item-price {
   font-size: 26rpx;
-  color: #ff4d4f;
+  color: var(--error-color);
 }
 
 .bid-list {
@@ -529,9 +529,9 @@
   grid-template-columns: 80rpx 1fr 120rpx 100rpx;
   gap: 12rpx;
   padding: 16rpx 0;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .bid-row {
@@ -539,7 +539,7 @@
   grid-template-columns: 80rpx 1fr 120rpx 100rpx;
   gap: 12rpx;
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid var(--background-color);
   font-size: 26rpx;
   align-items: center;
 }
@@ -552,26 +552,26 @@
 }
 
 .score-highlight {
-  color: #ff4d4f;
+  color: var(--error-color);
   font-weight: bold;
 }
 
-.status-pending { color: #fa8c16; }
-.status-approved { color: #52c41a; }
-.status-winning { color: #1890ff; font-weight: bold; }
-.status-lost { color: #999; }
+.status-pending { color: var(--warning-color); }
+.status-approved { color: var(--success-color); }
+.status-winning { color: var(--primary-color); font-weight: bold; }
+.status-lost { color: var(--text-color-light); }
 
 .bid-empty, .bid-loading {
   text-align: center;
   padding: 60rpx 0;
-  color: #999;
+  color: var(--text-color-light);
   font-size: 28rpx;
 }
 
 .bid-tips {
   flex: 1;
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .modal-btn {
@@ -586,13 +586,13 @@
 }
 
 .cancel-btn {
-  background: #f5f5f5;
-  color: #666;
+  background: var(--background-color);
+  color: var(--text-color-secondary);
 }
 
 .confirm-btn {
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
+  color: var(--white);
 }
 
 /* 表单样式 */
@@ -603,7 +603,7 @@
 .form-label {
   display: block;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 12rpx;
   font-weight: 500;
 }
@@ -611,7 +611,7 @@
 .form-input {
   width: 100%;
   height: 80rpx;
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   padding: 0 24rpx;
   font-size: 28rpx;
@@ -621,7 +621,7 @@
 .form-textarea {
   width: 100%;
   height: 160rpx;
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   padding: 20rpx 24rpx;
   font-size: 28rpx;
@@ -632,7 +632,7 @@
   background: #fff7e6;
   padding: 16rpx 20rpx;
   border-radius: 8rpx;
-  border-left: 4rpx solid #fa8c16;
+  border-left: 4rpx solid var(--warning-color);
 }
 
 .form-tip text {
@@ -657,13 +657,13 @@
 
 .empty-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
   margin-bottom: 30rpx;
 }
 
 .empty-btn {
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
+  color: var(--white);
   border: none;
   border-radius: 40rpx;
   padding: 20rpx 40rpx;
@@ -679,7 +679,7 @@
   text-align: center;
   padding: 80rpx 0;
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 提示信息 */
@@ -688,7 +688,7 @@
   padding: 24rpx;
   background: #fff7e6;
   border-radius: 12rpx;
-  border-left: 4rpx solid #fa8c16;
+  border-left: 4rpx solid var(--warning-color);
 }
 
 .tip-item {

@@ -1,26 +1,27 @@
 .container {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: var(--background-color);
 }
 
 /* 标签 */
 .tabs {
   display: flex;
-  background: #fff;
-  border-bottom: 1rpx solid #f0f0f0;
+  background: var(--white);
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .tab-item {
   flex: 1;
+  min-width: 0;
   text-align: center;
   padding: 30rpx 0;
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
   position: relative;
 }
 
 .tab-item.active {
-  color: #1890ff;
+  color: var(--primary-color);
   font-weight: bold;
 }
 
@@ -32,7 +33,7 @@
   transform: translateX(-50%);
   width: 60rpx;
   height: 4rpx;
-  background: #1890ff;
+  background: var(--primary-color);
   border-radius: 2rpx;
 }
 
@@ -49,7 +50,7 @@
 }
 
 .stat-card {
-  background: #fff;
+  background: var(--white);
   border-radius: 16rpx;
   padding: 30rpx;
   text-align: center;
@@ -59,26 +60,26 @@
   display: block;
   font-size: 48rpx;
   font-weight: bold;
-  color: #1890ff;
+  color: var(--primary-color);
   margin-bottom: 10rpx;
 }
 
 .stat-card.warning .stat-value {
-  color: #faad14;
+  color: var(--warning-color);
 }
 
 .stat-card.danger .stat-value {
-  color: #ff4d4f;
+  color: var(--error-color);
 }
 
 .stat-label {
   font-size: 26rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 区块 */
 .section {
-  background: #fff;
+  background: var(--white);
   border-radius: 16rpx;
   padding: 30rpx;
   margin-bottom: 20rpx;
@@ -87,7 +88,7 @@
 .section-title {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 30rpx;
 }
 
@@ -111,18 +112,19 @@
 
 .dist-label {
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 .dist-count {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .dist-bar-bg {
   flex: 1;
+  min-width: 0;
   height: 20rpx;
-  background: #f0f0f0;
+  background: var(--border-color);
   border-radius: 10rpx;
   overflow: hidden;
 }
@@ -134,15 +136,15 @@
 }
 
 .dist-bar.excellent {
-  background: #52c41a;
+  background: var(--success-color);
 }
 
 .dist-bar.good {
-  background: #1890ff;
+  background: var(--primary-color);
 }
 
 .dist-bar.pass {
-  background: #faad14;
+  background: var(--warning-color);
 }
 
 .dist-bar.warning {
@@ -150,12 +152,12 @@
 }
 
 .dist-bar.danger {
-  background: #ff4d4f;
+  background: var(--error-color);
 }
 
 .dist-percent {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
   margin-top: 8rpx;
   text-align: right;
 }
@@ -175,31 +177,32 @@
 .violation-rank {
   width: 60rpx;
   height: 60rpx;
-  background: #f5f5f5;
+  background: var(--background-color);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 28rpx;
   font-weight: bold;
-  color: #999;
+  color: var(--text-color-light);
   margin-right: 20rpx;
 }
 
 .violation-info {
   flex: 1;
+  min-width: 0;
 }
 
 .violation-name {
   display: block;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 8rpx;
 }
 
 .violation-count {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 排名列表 */
@@ -213,7 +216,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #fff;
+  background: var(--white);
   border-radius: 16rpx;
   padding: 30rpx;
 }
@@ -231,14 +234,14 @@
 .ranking-number {
   width: 60rpx;
   height: 60rpx;
-  background: #f5f5f5;
+  background: var(--background-color);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 28rpx;
   font-weight: bold;
-  color: #999;
+  color: var(--text-color-light);
   margin-right: 20rpx;
 }
 
@@ -250,13 +253,13 @@
 .ranking-name {
   font-size: 30rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 8rpx;
 }
 
 .ranking-room {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .ranking-right {
@@ -267,12 +270,12 @@
 .ranking-score {
   font-size: 40rpx;
   font-weight: bold;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .ranking-unit {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
   margin-left: 8rpx;
 }
 
@@ -287,7 +290,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #fff;
+  background: var(--white);
   border-radius: 16rpx;
   padding: 30rpx;
 }
@@ -324,13 +327,13 @@
 .warning-name {
   font-size: 30rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 8rpx;
 }
 
 .warning-room {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
   margin-bottom: 8rpx;
 }
 
@@ -355,12 +358,12 @@
 
 .warning-arrow {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .empty-tip {
   text-align: center;
   padding: 60rpx;
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }

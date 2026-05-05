@@ -1,5 +1,5 @@
 ﻿<!-- pages/usercenter/usercenter.wxml -->
-<view class="container">
+<view class="container bg-page">
   <!-- 用户信息头部 -->
   <view class="user-header">
     <view class="user-info">
@@ -7,9 +7,9 @@
         <image class="avatar" src="{{userInfo.avatarUrl || '/images/icons/default-avatar.png'}}" mode="aspectFill" />
         <view class="role-badge">{{roleLabel}}</view>
       </view>
-      <view class="user-detail">
-        <text class="nickname">{{userInfo.nickName || userInfo.name || '未设置'}}</text>
-        <text class="class-name" wx:if="{{className}}">{{className}}</text>
+      <view class="user-detail min-w-0">
+        <text class="nickname ellipsis">{{userInfo.nickName || userInfo.name || '未设置'}}</text>
+        <text class="class-name ellipsis" wx:if="{{className}}">{{className}}</text>
         <view class="member-tag member-{{membershipLevel}}" wx:if="{{membershipLevel !== 'free'}}">
           {{membershipLevel === 'pro' ? '专业版' : membershipLevel === 'basic' ? '基础版' : membershipLevel === 'enterprise' ? '企业版' : ''}}
         </view>
@@ -26,7 +26,7 @@
   <!-- 菜单组 -->
   <view class="menu-section" wx:for="{{menuGroups}}" wx:key="title">
     <view class="section-title">{{item.title}}</view>
-    <view class="menu-list">
+    <view class="menu-list radius-lg shadow-sm">
       <view class="menu-item {{child.disabled ? 'disabled' : ''}}"
             wx:for="{{item.items}}" wx:for-item="child" wx:key="id"
             bindtap="onMenuItemTap"
@@ -37,9 +37,9 @@
           <view class="menu-icon" style="background: {{child.color}}20;">
             <text class="icon-emoji">{{child.icon}}</text>
           </view>
-          <view class="menu-text">
-            <text class="menu-title">{{child.title}}</text>
-            <text class="menu-desc" wx:if="{{child.desc}}">{{child.desc}}</text>
+          <view class="menu-text min-w-0">
+            <text class="menu-title ellipsis">{{child.title}}</text>
+            <text class="menu-desc ellipsis" wx:if="{{child.desc}}">{{child.desc}}</text>
           </view>
         </view>
         <view class="menu-right">
@@ -55,7 +55,7 @@
 
   <!-- 退出登录 -->
   <view class="logout-section">
-    <button class="logout-btn" bindtap="onLogout">退出登录</button>
+    <button class="logout-btn radius-lg" bindtap="onLogout">退出登录</button>
   </view>
 
   <!-- 版本信息 -->

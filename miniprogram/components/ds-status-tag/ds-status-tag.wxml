@@ -1,0 +1,3 @@
+<view class="ds-status-tag ds-status-tag--{{type}}">
+  <text>{{text}}</text>
+</view>

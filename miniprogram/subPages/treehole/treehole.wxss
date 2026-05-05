@@ -13,7 +13,7 @@
   align-items: center;
   padding: 48rpx 24rpx 36rpx;
   background: linear-gradient(135deg, #667eea, #764ba2);
-  color: #ffffff;
+  color: var(--white);
 }
 
 .banner-emoji {
@@ -34,14 +34,14 @@
   align-items: center;
   justify-content: center;
   padding: 120rpx 0;
-  color: #999999;
+  color: var(--text-color-light);
   font-size: 28rpx;
 }
 
 .loading-spinner {
   width: 60rpx;
   height: 60rpx;
-  border: 4rpx solid #e8e8e8;
+  border: 4rpx solid var(--border-color);
   border-top-color: #667eea;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -58,7 +58,7 @@
 }
 
 .post-card {
-  background: #ffffff;
+  background: var(--white);
   border-radius: 20rpx;
   padding: 28rpx 30rpx;
   margin-bottom: 20rpx;
@@ -78,17 +78,17 @@
   padding: 6rpx 18rpx;
   border-radius: 20rpx;
   font-size: 24rpx;
-  color: #666666;
+  color: var(--text-color-secondary);
 }
 
 .post-time {
   font-size: 22rpx;
-  color: #999999;
+  color: var(--text-color-light);
 }
 
 .post-content {
   font-size: 30rpx;
-  color: #333333;
+  color: var(--text-color);
   line-height: 1.7;
   margin-bottom: 16rpx;
   word-break: break-all;
@@ -96,7 +96,7 @@
 
 .post-author {
   font-size: 24rpx;
-  color: #999999;
+  color: var(--text-color-light);
   margin-bottom: 16rpx;
 }
 
@@ -106,7 +106,7 @@
   align-items: center;
   gap: 32rpx;
   padding-top: 16rpx;
-  border-top: 1rpx solid #f5f5f5;
+  border-top: 1rpx solid var(--background-color);
 }
 
 .post-action {
@@ -114,7 +114,7 @@
   align-items: center;
   gap: 6rpx;
   font-size: 26rpx;
-  color: #999999;
+  color: var(--text-color-light);
 }
 
 .action-icon {
@@ -133,7 +133,7 @@
 
 .action-count {
   font-size: 24rpx;
-  color: #999999;
+  color: var(--text-color-light);
 }
 
 .admin-action {
@@ -147,7 +147,7 @@
   background: #fff7e6;
   border-radius: 12rpx;
   font-size: 24rpx;
-  color: #fa8c16;
+  color: var(--warning-color);
 }
 
 /* 加载更多 */
@@ -162,7 +162,7 @@
   text-align: center;
   padding: 30rpx 0;
   font-size: 26rpx;
-  color: #cccccc;
+  color: var(--text-color-light);
 }
 
 /* 空状态 */
@@ -172,7 +172,7 @@
   align-items: center;
   padding: 120rpx 0;
   font-size: 28rpx;
-  color: #999999;
+  color: var(--text-color-light);
 }
 
 .empty-emoji {
@@ -217,7 +217,7 @@
 
 .modal-content {
   width: 100%;
-  background: #ffffff;
+  background: var(--white);
   border-radius: 32rpx 32rpx 0 0;
   padding: 40rpx;
   box-shadow: 0 -8rpx 32rpx rgba(0, 0, 0, 0.1);
@@ -228,7 +228,7 @@
 .modal-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: #333333;
+  color: var(--text-color);
   text-align: center;
   margin-bottom: 32rpx;
 }
@@ -246,10 +246,10 @@
   align-items: center;
   gap: 6rpx;
   padding: 12rpx 20rpx;
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 28rpx;
   font-size: 26rpx;
-  color: #666666;
+  color: var(--text-color-secondary);
   border: 2rpx solid transparent;
 }
 
@@ -271,20 +271,20 @@
 .publish-textarea {
   width: 100%;
   min-height: 240rpx;
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 16rpx;
   padding: 24rpx;
   font-size: 30rpx;
-  color: #333333;
+  color: var(--text-color);
   box-sizing: border-box;
   line-height: 1.7;
-  border: 2rpx solid #e8e8e8;
+  border: 2rpx solid var(--border-color);
 }
 
 .char-count {
   text-align: right;
   font-size: 22rpx;
-  color: #cccccc;
+  color: var(--text-color-light);
   margin-top: 8rpx;
 }
 
@@ -299,7 +299,7 @@
 
 .anonymous-label {
   font-size: 28rpx;
-  color: #333333;
+  color: var(--text-color);
 }
 
 /* 操作按钮 */
@@ -319,17 +319,17 @@
 }
 
 .cancel-btn {
-  background: #f5f7fa;
-  color: #666666;
+  background: var(--background-color);
+  color: var(--text-color-secondary);
 }
 
 .cancel-btn:active {
-  background: #e8e8e8;
+  background: var(--border-color);
 }
 
 .confirm-btn {
   background: linear-gradient(135deg, #667eea, #764ba2);
-  color: #ffffff;
+  color: var(--white);
 }
 
 .confirm-btn:active {
@@ -344,7 +344,7 @@
 /* ===== 举报弹窗 ===== */
 .report-hint {
   font-size: 28rpx;
-  color: #666666;
+  color: var(--text-color-secondary);
   margin-bottom: 20rpx;
 }
 
@@ -357,30 +357,30 @@
 
 .report-option {
   padding: 14rpx 24rpx;
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   font-size: 26rpx;
-  color: #666666;
+  color: var(--text-color-secondary);
   border: 2rpx solid transparent;
 }
 
 .report-option.active {
   background: #fff2f0;
-  color: #ff4d4f;
-  border-color: #ff4d4f;
+  color: var(--error-color);
+  border-color: var(--error-color);
 }
 
 .report-textarea {
   width: 100%;
   min-height: 120rpx;
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   padding: 20rpx;
   font-size: 26rpx;
-  color: #333333;
+  color: var(--text-color);
   box-sizing: border-box;
   line-height: 1.6;
-  border: 2rpx solid #e8e8e8;
+  border: 2rpx solid var(--border-color);
 }
 
 /* ===== 管理员操作 ===== */
@@ -393,22 +393,22 @@
 
 .admin-action-btn {
   padding: 24rpx;
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   font-size: 28rpx;
-  color: #333333;
+  color: var(--text-color);
   text-align: center;
 }
 
 .admin-action-btn:active {
-  background: #e8e8e8;
+  background: var(--border-color);
 }
 
 .admin-action-btn.danger {
-  color: #ff4d4f;
+  color: var(--error-color);
   background: #fff2f0;
 }
 
 .admin-action-btn.danger:active {
-  background: #ffccc7;
+  background: var(--error-color);
 }

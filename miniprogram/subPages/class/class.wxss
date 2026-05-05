@@ -1,15 +1,15 @@
 /* pages/class/class.wxss */
 .container {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--background-color);
   padding-bottom: 120rpx;
 }
 
 /* 页面标题 */
 .page-header {
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
   padding: 40rpx 30rpx;
-  color: white;
+  color: var(--white);
 }
 
 .page-title {
@@ -25,7 +25,7 @@
 
 /* 搜索栏 */
 .search-bar {
-  background: white;
+  background: var(--white);
   padding: 20rpx;
   margin-bottom: 20rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
@@ -34,7 +34,7 @@
 .search-input {
   display: flex;
   align-items: center;
-  background: #f5f5f5;
+  background: var(--background-color);
   border-radius: 40rpx;
   padding: 20rpx 30rpx;
 }
@@ -51,7 +51,7 @@
 
 .clear-icon {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
   padding: 10rpx;
 }
 
@@ -69,13 +69,13 @@
   align-items: center;
   justify-content: center;
   padding: 24rpx;
-  background: white;
+  background: var(--white);
   border-radius: 16rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
 }
 
 .action-btn:active {
-  background: #f9f9f9;
+  background: var(--background-color);
 }
 
 .btn-icon {
@@ -89,11 +89,11 @@
 }
 
 .create-btn {
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .join-btn {
-  color: #52c41a;
+  color: var(--success-color);
 }
 
 /* 班级列表 */
@@ -103,12 +103,12 @@
 
 .list-header {
   font-size: 26rpx;
-  color: #999;
+  color: var(--text-color-light);
   padding: 10rpx 0;
 }
 
 .class-item {
-  background: white;
+  background: var(--white);
   border-radius: 16rpx;
   margin-bottom: 20rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
@@ -117,7 +117,7 @@
 }
 
 .class-item.current {
-  border-color: #1890ff;
+  border-color: var(--primary-color);
   background: #e6f7ff;
 }
 
@@ -129,7 +129,7 @@
 }
 
 .class-main:active {
-  background: #f9f9f9;
+  background: var(--background-color);
 }
 
 .class-icon {
@@ -146,12 +146,13 @@
 
 .class-info {
   flex: 1;
+  min-width: 0;
 }
 
 .class-name {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 12rpx;
   display: flex;
   align-items: center;
@@ -161,8 +162,8 @@
 .current-badge {
   font-size: 22rpx;
   font-weight: normal;
-  background: #1890ff;
-  color: white;
+  background: var(--primary-color);
+  color: var(--white);
   padding: 4rpx 12rpx;
   border-radius: 20rpx;
 }
@@ -175,7 +176,7 @@
 
 .meta-item {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .class-tags {
@@ -191,28 +192,28 @@
 }
 
 .role-tag {
-  background: #f0f0f0;
-  color: #666;
+  background: var(--border-color);
+  color: var(--text-color-secondary);
 }
 
 .role-tag.head_teacher {
   background: #fff7e6;
-  color: #fa8c16;
+  color: var(--warning-color);
 }
 
 .role-tag.subject_teacher {
   background: #e6f7ff;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .role-tag.student {
   background: #f6ffed;
-  color: #52c41a;
+  color: var(--success-color);
 }
 
 .role-tag.parent {
   background: #fff1f0;
-  color: #ff4d4f;
+  color: var(--error-color);
 }
 
 .owner-tag {
@@ -227,7 +228,7 @@
 
 .stat-item {
   font-size: 24rpx;
-  color: #666;
+  color: var(--text-color-secondary);
 }
 
 .class-actions {
@@ -236,8 +237,8 @@
 }
 
 .enter-btn {
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
+  color: var(--white);
   font-size: 24rpx;
   padding: 12rpx 24rpx;
   border-radius: 30rpx;
@@ -263,13 +264,13 @@
 
 .empty-text {
   font-size: 32rpx;
-  color: #666;
+  color: var(--text-color-secondary);
   margin-bottom: 16rpx;
 }
 
 .empty-hint {
   font-size: 26rpx;
-  color: #999;
+  color: var(--text-color-light);
   margin-bottom: 40rpx;
 }
 
@@ -282,14 +283,14 @@
   padding: 20rpx 40rpx;
   border-radius: 40rpx;
   font-size: 28rpx;
-  background: white;
-  color: #666;
-  border: 2rpx solid #ddd;
+  background: var(--white);
+  color: var(--text-color-secondary);
+  border: 2rpx solid var(--border-color);
 }
 
 .empty-btn.primary {
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
+  color: var(--white);
   border: none;
 }
 
@@ -309,5 +310,5 @@
 
 .loading-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }

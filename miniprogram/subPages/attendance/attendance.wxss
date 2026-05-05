@@ -10,7 +10,7 @@
 .page-header {
   padding: 40rpx 30rpx 30rpx;
   text-align: center;
-  color: #fff;
+  color: var(--white);
 }
 
 .page-title {
@@ -29,8 +29,8 @@
 /* 周视图 */
 .week-view {
   margin: 0 30rpx 30rpx;
-  background: #fff;
-  border-radius: 20rpx;
+  background: var(--white);
+  border-radius: 16rpx;
   padding: 30rpx;
   box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.1);
 }
@@ -48,26 +48,26 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f5f5f5;
+  background: var(--background-color);
   border-radius: 50%;
   transition: all 0.3s;
 }
 
 .week-nav:active {
-  background: #e0e0e0;
+  background: var(--border-color);
   transform: scale(0.95);
 }
 
 .nav-icon {
   font-size: 40rpx;
-  color: #666;
+  color: var(--text-color-secondary);
   font-weight: bold;
 }
 
 .week-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
 }
 
 .week-days {
@@ -84,7 +84,7 @@
 
 .day-name {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
   margin-bottom: 10rpx;
 }
 
@@ -96,7 +96,7 @@
   justify-content: center;
   font-size: 30rpx;
   font-weight: 500;
-  color: #333;
+  color: var(--text-color);
   border-radius: 50%;
   position: relative;
   transition: all 0.3s;
@@ -109,23 +109,23 @@
 
 .day-number.selected {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
+  color: var(--white);
   box-shadow: 0 6rpx 20rpx rgba(102, 126, 234, 0.4);
 }
 
 .day-number.good {
   background: #f0f9ff;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .day-number.warning {
   background: #fff7e6;
-  color: #fa8c16;
+  color: var(--warning-color);
 }
 
 .day-number.danger {
   background: #fff1f0;
-  color: #ff4d4f;
+  color: var(--error-color);
 }
 
 .day-indicator {
@@ -139,22 +139,22 @@
 }
 
 .indicator-dot.good {
-  background: #52c41a;
+  background: var(--success-color);
 }
 
 .indicator-dot.warning {
-  background: #fa8c16;
+  background: var(--warning-color);
 }
 
 .indicator-dot.danger {
-  background: #ff4d4f;
+  background: var(--error-color);
 }
 
 /* 统计区域 */
 .stats-section {
   margin: 0 30rpx 30rpx;
-  background: #fff;
-  border-radius: 20rpx;
+  background: var(--white);
+  border-radius: 16rpx;
   padding: 30rpx;
   box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.1);
 }
@@ -169,7 +169,7 @@
 .stats-title {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
 }
 
 .stats-total {
@@ -179,7 +179,7 @@
 
 .total-label {
   font-size: 26rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .total-value {
@@ -204,12 +204,12 @@
 
 .rate-card.actual {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
+  color: var(--white);
 }
 
 .rate-card.assessment {
   background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  color: #fff;
+  color: var(--white);
 }
 
 .rate-label {
@@ -240,8 +240,8 @@
   display: flex;
   align-items: center;
   padding: 20rpx;
-  background: #f5f7fa;
-  border-radius: 12rpx;
+  background: var(--background-color);
+  border-radius: 16rpx;
 }
 
 .stat-icon {
@@ -257,42 +257,43 @@
 
 .stat-item.present .stat-icon {
   background: #e6f7ff;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .stat-item.sick .stat-icon {
   background: #f6ffed;
-  color: #52c41a;
+  color: var(--success-color);
 }
 
 .stat-item.personal .stat-icon {
   background: #e6f7ff;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .stat-item.late .stat-icon {
   background: #fff7e6;
-  color: #fa8c16;
+  color: var(--warning-color);
 }
 
 .stat-item.early .stat-icon {
   background: #fffbe6;
-  color: #faad14;
+  color: var(--warning-color);
 }
 
 .stat-item.absent .stat-icon {
   background: #fff1f0;
-  color: #ff4d4f;
+  color: var(--error-color);
 }
 
 .stat-info {
   flex: 1;
+  min-width: 0;
 }
 
 .stat-label {
   display: block;
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
   margin-bottom: 5rpx;
 }
 
@@ -300,21 +301,21 @@
   display: block;
   font-size: 30rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
 }
 
 /* 加载状态 */
 .loading-section {
   margin: 0 30rpx 30rpx;
-  background: #fff;
-  border-radius: 20rpx;
+  background: var(--white);
+  border-radius: 16rpx;
   padding: 60rpx 30rpx;
   text-align: center;
 }
 
 .loading-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 快捷操作 */
@@ -322,8 +323,8 @@
   display: flex;
   justify-content: space-around;
   margin: 0 30rpx;
-  background: #fff;
-  border-radius: 20rpx;
+  background: var(--white);
+  border-radius: 16rpx;
   padding: 30rpx 20rpx;
   box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.1);
 }
@@ -345,7 +346,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 20rpx;
+  border-radius: 16rpx;
   margin-bottom: 12rpx;
   font-size: 40rpx;
 }
@@ -372,5 +373,5 @@
 
 .action-text {
   font-size: 24rpx;
-  color: #666;
+  color: var(--text-color-secondary);
 }

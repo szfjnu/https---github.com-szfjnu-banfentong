@@ -1,5 +1,5 @@
 <!-- 发现页面 - 成长探索 -->
-<view class="discover-container">
+<view class="discover-container bg-page">
   <!-- 顶部 Banner -->
   <view class="discover-header">
     <view class="header-bg"></view>
@@ -21,15 +21,15 @@
       </view>
 
       <view class="feature-grid">
-        <view class="feature-card"
+        <view class="feature-card radius-lg shadow-sm"
           wx:for="{{item.features}}" wx:for-item="feature" wx:key="id"
           bindtap="goToFeature" data-url="{{feature.url}}">
           <view class="feature-icon-wrap" style="background: {{feature.color}}15;">
             <text class="feature-icon">{{feature.icon}}</text>
           </view>
-          <view class="feature-info">
-            <text class="feature-title">{{feature.title}}</text>
-            <text class="feature-desc">{{feature.desc}}</text>
+          <view class="feature-info min-w-0">
+            <text class="feature-title ellipsis">{{feature.title}}</text>
+            <text class="feature-desc ellipsis-2">{{feature.desc}}</text>
           </view>
           <text class="feature-arrow">›</text>
         </view>

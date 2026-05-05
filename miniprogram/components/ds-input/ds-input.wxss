@@ -1,0 +1,38 @@
+.ds-input {
+  display: flex;
+  align-items: center;
+  border: 2rpx solid var(--border-color, #d9d9d9);
+  border-radius: var(--radius-md, 8rpx);
+  padding: 0 24rpx;
+  height: 72rpx;
+  background: var(--card-bg, #ffffff);
+  transition: border-color 0.2s;
+}
+
+.ds-input--focused {
+  border-color: var(--primary-color);
+}
+
+.ds-input--disabled {
+  opacity: 0.5;
+  background: var(--background-color, #f5f5f5);
+}
+
+.ds-input__label {
+  font-size: var(--font-size-md, 28rpx);
+  color: var(--text-color, #333333);
+  margin-right: 16rpx;
+  flex-shrink: 0;
+}
+
+.ds-input__field {
+  flex: 1;
+  height: 72rpx;
+  font-size: var(--font-size-md, 28rpx);
+  color: var(--text-color, #333333);
+}
+
+.ds-input__placeholder {
+  color: var(--text-color-light, #999999);
+  font-size: var(--font-size-md, 28rpx);
+}

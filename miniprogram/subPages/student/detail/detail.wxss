@@ -1,13 +1,13 @@
 /* pages/student/detail/detail.wxss */
 .container {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--background-color);
   padding-bottom: 40rpx;
 }
 
 /* 学生信息卡片 */
 .info-card {
-  background: white;
+  background: var(--white);
   margin: 20rpx;
   border-radius: 20rpx;
   overflow: hidden;
@@ -33,7 +33,7 @@
   height: 100rpx;
   border-radius: 50%;
   overflow: hidden;
-  background: #ddd;
+  background: var(--border-color);
 }
 
 .avatar image {
@@ -50,7 +50,7 @@
 .name {
   font-size: 36rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
 }
 
 .meta {
@@ -60,13 +60,13 @@
 
 .meta-item {
   font-size: 24rpx;
-  color: #666;
+  color: var(--text-color-secondary);
 }
 
 .score-badge {
   padding: 12rpx 24rpx;
   border-radius: 20rpx;
-  color: white;
+  color: var(--white);
   font-size: 24rpx;
   font-weight: 500;
 }
@@ -82,17 +82,17 @@
 .section-title {
   font-size: 28rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 20rpx;
   padding-bottom: 12rpx;
-  border-bottom: 2rpx solid #f0f0f0;
+  border-bottom: 2rpx solid var(--border-color);
 }
 
 .info-row {
   display: flex;
   align-items: center;
   padding: 16rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid var(--background-color);
 }
 
 .info-row:last-child {
@@ -102,13 +102,13 @@
 .label {
   width: 180rpx;
   font-size: 28rpx;
-  color: #666;
+  color: var(--text-color-secondary);
 }
 
 .value {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 .score-value {
@@ -117,7 +117,7 @@
 }
 
 .dorm-info {
-  background: #f9f9f9;
+  background: var(--background-color);
   padding: 20rpx;
   border-radius: 12rpx;
 }
@@ -126,13 +126,13 @@
   display: flex;
   gap: 20rpx;
   padding: 20rpx 30rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid var(--border-color);
 }
 
 .edit-btn {
   flex: 1;
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
+  color: var(--white);
   border-radius: 40rpx;
   padding: 20rpx 0;
   font-size: 28rpx;
@@ -145,12 +145,12 @@
 
 .delete-btn {
   flex: 1;
-  background: #fff;
-  color: #ff4d4f;
+  background: var(--white);
+  color: var(--error-color);
   border-radius: 40rpx;
   padding: 20rpx 0;
   font-size: 28rpx;
-  border: 1rpx solid #ffccc7;
+  border: 1rpx solid var(--error-color);
 }
 
 .delete-btn::after {
@@ -164,7 +164,7 @@
 
 .tabs {
   display: flex;
-  background: white;
+  background: var(--white);
   border-radius: 16rpx 16rpx 0 0;
   overflow: hidden;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
@@ -175,20 +175,20 @@
   text-align: center;
   padding: 24rpx 0;
   font-size: 28rpx;
-  color: #666;
-  background: white;
+  color: var(--text-color-secondary);
+  background: var(--white);
   border-bottom: 4rpx solid transparent;
   transition: all 0.3s;
 }
 
 .tab-item.active {
-  color: #1890ff;
-  border-bottom-color: #1890ff;
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
   font-weight: 500;
 }
 
 .tab-content {
-  background: white;
+  background: var(--white);
   border-radius: 0 0 16rpx 16rpx;
   padding: 30rpx;
   min-height: 400rpx;
@@ -198,7 +198,7 @@
 .contact-info {
   margin-bottom: 20rpx;
   padding: 20rpx;
-  background: #f9f9f9;
+  background: var(--background-color);
   border-radius: 12rpx;
 }
 
@@ -210,7 +210,7 @@
 }
 
 .record-item {
-  background: #f9f9f9;
+  background: var(--background-color);
   border-radius: 12rpx;
   padding: 24rpx;
   transition: all 0.3s;
@@ -229,7 +229,7 @@
 
 .record-date {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .score-change {
@@ -238,11 +238,11 @@
 }
 
 .score-add {
-  color: #52c41a;
+  color: var(--success-color);
 }
 
 .score-minus {
-  color: #ff4d4f;
+  color: var(--error-color);
 }
 
 .service-type,
@@ -250,7 +250,7 @@
   padding: 6rpx 16rpx;
   border-radius: 6rpx;
   font-size: 22rpx;
-  background: white;
+  background: var(--white);
 }
 
 .record-body {
@@ -261,7 +261,7 @@
   display: block;
   font-size: 28rpx;
   font-weight: 500;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 8rpx;
 }
 
@@ -269,7 +269,7 @@
 .record-desc {
   display: block;
   font-size: 26rpx;
-  color: #666;
+  color: var(--text-color-secondary);
   line-height: 1.6;
   margin-bottom: 8rpx;
 }
@@ -277,7 +277,7 @@
 .record-doc {
   display: block;
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .record-footer {
@@ -285,7 +285,7 @@
   justify-content: space-between;
   align-items: center;
   padding-top: 16rpx;
-  border-top: 1rpx solid #e8e8e8;
+  border-top: 1rpx solid var(--border-color);
 }
 
 .record-meta {
@@ -296,7 +296,7 @@
 
 .record-operator {
   font-size: 22rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .record-source,
@@ -306,7 +306,7 @@
 .record-deduction,
 .record-revoked {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 空状态 */
@@ -325,7 +325,7 @@
 
 .empty-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 加载状态 */
@@ -341,8 +341,8 @@
 .loading-icon {
   width: 60rpx;
   height: 60rpx;
-  border: 4rpx solid #f3f3f3;
-  border-top: 4rpx solid #1890ff;
+  border: 4rpx solid var(--background-color);
+  border-top: 4rpx solid var(--primary-color);
   border-radius: 50%;
   margin: 0 auto 20rpx;
   animation: spin 1s linear infinite;
@@ -355,14 +355,14 @@
 
 .loading-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .loading {
   text-align: center;
   padding: 80rpx 0;
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 空状态容器 */
@@ -382,7 +382,7 @@
 
 .empty-container .empty-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 响应式布局 */
@@ -410,7 +410,7 @@
 .attendance-stats-card,
 .attendance-records-card,
 .dorm-score-card {
-  background: white;
+  background: var(--white);
   margin: 20rpx;
   border-radius: 20rpx;
   padding: 30rpx;
@@ -443,14 +443,14 @@
 .stats-grid .stat-label {
   display: block;
   font-size: 22rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .attendance-type {
   font-size: 24rpx;
   padding: 4rpx 16rpx;
   border-radius: 6rpx;
-  background: white;
+  background: var(--white);
 }
 
 /* 住宿积分 */
@@ -462,7 +462,7 @@
   padding: 30rpx;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 16rpx;
-  color: white;
+  color: var(--white);
 }
 
 .dorm-score-main {
@@ -495,7 +495,7 @@
 }
 
 .dorm-stat.minus {
-  color: #ff7875;
+  color: var(--error-color);
 }
 
 .dorm-records {
@@ -507,7 +507,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .dorm-record-left {
@@ -518,12 +518,12 @@
 
 .dorm-record-reason {
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 .dorm-record-date {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .dorm-record-score {
@@ -532,9 +532,9 @@
 }
 
 .dorm-record-score.score-add {
-  color: #52c41a;
+  color: var(--success-color);
 }
 
 .dorm-record-score.score-minus {
-  color: #ff4d4f;
+  color: var(--error-color);
 }

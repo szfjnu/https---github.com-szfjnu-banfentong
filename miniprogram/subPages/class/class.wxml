@@ -56,7 +56,7 @@
     >
       <view class="class-main">
         <view class="class-icon">📚</view>
-        <view class="class-info">
+        <view class="class-info min-w-0">
           <view class="class-name">
             {{item.class_name}}
             <text class="current-badge" wx:if="{{currentClassId === item._id}}">当前</text>

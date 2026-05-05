@@ -1,7 +1,7 @@
 /* pages/authorization/authorization.wxss */
 .container {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--background-color);
   padding-bottom: 40rpx;
 }
 
@@ -10,42 +10,42 @@
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 30rpx;
-  background: white;
-  border-bottom: 1rpx solid #e8e8e8;
+  background: var(--white);
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .action-text {
   font-size: 28rpx;
-  color: #666;
+  color: var(--text-color-secondary);
 }
 
 .btn-batch {
-  background: #1890ff;
-  color: white;
+  background: var(--primary-color);
+  color: var(--white);
   font-size: 26rpx;
   padding: 12rpx 30rpx;
-  border-radius: 8rpx;
+  border-radius: 16rpx;
   border: none;
 }
 
 .btn-batch[disabled] {
   background: #b7dfff;
-  color: white;
+  color: var(--white);
 }
 
 .filter-bar {
   display: flex;
   gap: 20rpx;
   padding: 20rpx 30rpx;
-  background: white;
+  background: var(--white);
   margin-bottom: 2rpx;
 }
 
 .search-input {
   flex: 1;
   height: 64rpx;
-  background: #f5f5f5;
-  border-radius: 8rpx;
+  background: var(--background-color);
+  border-radius: 16rpx;
   padding: 0 20rpx;
   font-size: 26rpx;
 }
@@ -54,10 +54,10 @@
   height: 64rpx;
   line-height: 64rpx;
   padding: 0 20rpx;
-  background: #f5f5f5;
-  border-radius: 8rpx;
+  background: var(--background-color);
+  border-radius: 16rpx;
   font-size: 26rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 .select-all-bar {
@@ -65,8 +65,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 30rpx;
-  background: white;
-  border-bottom: 1rpx solid #f0f0f0;
+  background: var(--white);
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .select-all-left {
@@ -74,32 +74,32 @@
   align-items: center;
   gap: 16rpx;
   font-size: 26rpx;
-  color: #666;
+  color: var(--text-color-secondary);
 }
 
 .student-count {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .checkbox {
   width: 40rpx;
   height: 40rpx;
-  border: 2rpx solid #d9d9d9;
-  border-radius: 6rpx;
+  border: 2rpx solid var(--border-color);
+  border-radius: 16rpx;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .checkbox.checked {
-  background: #1890ff;
-  border-color: #1890ff;
+  background: var(--primary-color);
+  border-color: var(--primary-color);
 }
 
 .checkbox.checked::after {
   content: '✓';
-  color: white;
+  color: var(--white);
   font-size: 24rpx;
 }
 
@@ -111,7 +111,7 @@
   display: flex;
   align-items: center;
   gap: 20rpx;
-  background: white;
+  background: var(--white);
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
@@ -120,18 +120,19 @@
 }
 
 .student-card.selected {
-  border-color: #1890ff;
+  border-color: var(--primary-color);
   background: #e6f7ff;
 }
 
 .student-info {
   flex: 1;
+  min-width: 0;
 }
 
 .student-name {
   font-size: 30rpx;
   font-weight: 500;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 8rpx;
 }
 
@@ -143,15 +144,15 @@
 
 .student-id {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .student-position {
   font-size: 22rpx;
-  color: #1890ff;
+  color: var(--primary-color);
   background: #e6f7ff;
   padding: 2rpx 12rpx;
-  border-radius: 4rpx;
+  border-radius: 16rpx;
 }
 
 .auth-status {
@@ -162,12 +163,12 @@
 
 .auth-count {
   font-size: 24rpx;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .auth-arrow {
   font-size: 32rpx;
-  color: #ccc;
+  color: var(--text-color-light);
 }
 
 .empty-state {
@@ -184,14 +185,14 @@
 
 .empty-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .loading {
   text-align: center;
   padding: 80rpx 0;
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 弹窗 */
@@ -211,8 +212,8 @@
 .modal-content {
   width: 85%;
   max-height: 80vh;
-  background: white;
-  border-radius: 20rpx;
+  background: var(--white);
+  border-radius: 16rpx;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -223,18 +224,18 @@
   justify-content: space-between;
   align-items: center;
   padding: 30rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .modal-title {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
 }
 
 .modal-close {
   font-size: 36rpx;
-  color: #999;
+  color: var(--text-color-light);
   padding: 10rpx;
 }
 
@@ -246,7 +247,7 @@
 
 .batch-hint {
   font-size: 26rpx;
-  color: #666;
+  color: var(--text-color-secondary);
   margin-bottom: 30rpx;
 }
 
@@ -257,7 +258,7 @@
 .perm-module-title {
   font-size: 28rpx;
   font-weight: 500;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 16rpx;
 }
 
@@ -277,11 +278,11 @@
 
 .checkbox-label {
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 .checkbox-label.approve-label {
-  color: #52c41a;
+  color: var(--success-color);
   font-weight: 500;
 }
 
@@ -289,8 +290,8 @@
 .perm-checkbox .checkbox {
   width: 36rpx;
   height: 36rpx;
-  border: 2rpx solid #d9d9d9;
-  border-radius: 6rpx;
+  border: 2rpx solid var(--border-color);
+  border-radius: 16rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -298,27 +299,27 @@
 }
 
 .perm-checkbox .checkbox.checked {
-  background: #1890ff;
-  border-color: #1890ff;
+  background: var(--primary-color);
+  border-color: var(--primary-color);
 }
 
 .perm-checkbox .checkbox.checked::after {
   content: '✓';
-  color: white;
+  color: var(--white);
   font-size: 22rpx;
 }
 
 /* 审批权限选中色 */
 .perm-checkbox .checkbox.approve-checked {
-  background: #52c41a;
-  border-color: #52c41a;
+  background: var(--success-color);
+  border-color: var(--success-color);
 }
 
 .modal-footer {
   display: flex;
   gap: 20rpx;
   padding: 30rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid var(--border-color);
 }
 
 .modal-cancel {
@@ -326,10 +327,10 @@
   height: 80rpx;
   line-height: 80rpx;
   text-align: center;
-  border-radius: 12rpx;
+  border-radius: 16rpx;
   font-size: 28rpx;
-  background: #f5f5f5;
-  color: #666;
+  background: var(--background-color);
+  color: var(--text-color-secondary);
 }
 
 .modal-confirm {
@@ -337,8 +338,8 @@
   height: 80rpx;
   line-height: 80rpx;
   text-align: center;
-  border-radius: 12rpx;
+  border-radius: 16rpx;
   font-size: 28rpx;
-  background: #1890ff;
-  color: white;
+  background: var(--primary-color);
+  color: var(--white);
 }

@@ -1,6 +1,6 @@
 .container {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: var(--background-color);
   padding-bottom: 120rpx;
 }
 
@@ -8,9 +8,9 @@
 .student-card {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   margin: 20rpx;
-  border-radius: 20rpx;
+  border-radius: 16rpx;
   padding: 40rpx;
-  color: #fff;
+  color: var(--white);
 }
 
 .student-header {
@@ -70,9 +70,9 @@
 
 /* 积分卡片 */
 .score-card {
-  background: #fff;
+  background: var(--white);
   margin: 20rpx;
-  border-radius: 20rpx;
+  border-radius: 16rpx;
   padding: 40rpx;
 }
 
@@ -84,7 +84,7 @@
 .score-label {
   display: block;
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
   margin-bottom: 20rpx;
 }
 
@@ -94,11 +94,11 @@
 }
 
 .score-value.good {
-  color: #52c41a;
+  color: var(--success-color);
 }
 
 .score-value.warning {
-  color: #ff4d4f;
+  color: var(--error-color);
 }
 
 .score-details {
@@ -106,7 +106,7 @@
   justify-content: space-around;
   align-items: center;
   padding-top: 30rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid var(--border-color);
 }
 
 .score-detail-item {
@@ -116,27 +116,27 @@
 .detail-label {
   display: block;
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
   margin-bottom: 10rpx;
 }
 
 .detail-value {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
 }
 
 .score-divider {
   width: 1rpx;
   height: 60rpx;
-  background: #f0f0f0;
+  background: var(--border-color);
 }
 
 /* 区块 */
 .section {
-  background: #fff;
+  background: var(--white);
   margin: 20rpx;
-  border-radius: 20rpx;
+  border-radius: 16rpx;
   padding: 30rpx;
 }
 
@@ -150,12 +150,12 @@
 .section-title {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
 }
 
 .section-filter {
   font-size: 26rpx;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 /* 记录列表 */
@@ -170,7 +170,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 20rpx;
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 12rpx;
 }
 
@@ -178,6 +178,7 @@
   display: flex;
   align-items: center;
   flex: 1;
+  min-width: 0;
 }
 
 .record-icon {
@@ -194,12 +195,12 @@
 
 .record-icon.add {
   background: #e6f7ff;
-  color: #52c41a;
+  color: var(--success-color);
 }
 
 .record-icon.deduct {
   background: #fff1f0;
-  color: #ff4d4f;
+  color: var(--error-color);
 }
 
 .record-info {
@@ -209,13 +210,13 @@
 
 .record-reason {
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 8rpx;
 }
 
 .record-date {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .record-right {
@@ -224,21 +225,21 @@
 
 .record-after {
   font-size: 26rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .empty-tip {
   text-align: center;
   padding: 60rpx;
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .load-more {
   text-align: center;
   padding: 30rpx;
   font-size: 28rpx;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 /* 操作栏 */
@@ -250,12 +251,13 @@
   display: flex;
   gap: 20rpx;
   padding: 20rpx 30rpx;
-  background: #fff;
+  background: var(--white);
   box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
 }
 
 .action-btn {
   flex: 1;
+  min-width: 0;
   padding: 30rpx;
   border-radius: 12rpx;
   font-size: 28rpx;
@@ -263,11 +265,11 @@
 }
 
 .action-btn.primary {
-  background: #1890ff;
-  color: #fff;
+  background: var(--primary-color);
+  color: var(--white);
 }
 
 .action-btn.secondary {
-  background: #f5f5f5;
-  color: #333;
+  background: var(--background-color);
+  color: var(--text-color);
 }

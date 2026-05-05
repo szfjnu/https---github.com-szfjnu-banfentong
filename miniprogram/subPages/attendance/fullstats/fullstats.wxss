@@ -10,7 +10,7 @@
 .page-header {
   padding: 40rpx 30rpx 30rpx;
   text-align: center;
-  color: #fff;
+  color: var(--white);
 }
 
 .page-title {
@@ -37,7 +37,7 @@
   padding: 15rpx 30rpx;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 30rpx;
-  color: #fff;
+  color: var(--white);
 }
 
 .selector-text {
@@ -56,7 +56,7 @@
   justify-content: space-between;
   margin: 0 30rpx 30rpx;
   padding: 20rpx;
-  background: #fff;
+  background: var(--white);
   border-radius: 16rpx;
 }
 
@@ -66,7 +66,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 50%;
 }
 
@@ -78,7 +78,7 @@
 .period-title {
   font-size: 30rpx;
   font-weight: 500;
-  color: #333;
+  color: var(--text-color);
 }
 
 /* 统计卡片 */
@@ -90,7 +90,7 @@
 
 .stats-card {
   flex: 1;
-  background: #fff;
+  background: var(--white);
   border-radius: 16rpx;
   padding: 25rpx 20rpx;
   display: flex;
@@ -104,17 +104,18 @@
 
 .card-info {
   flex: 1;
+  min-width: 0;
 }
 
 .card-value {
   display: block;
   font-size: 36rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
 }
 
 .stats-card.full .card-value {
-  color: #52c41a;
+  color: var(--success-color);
 }
 
 .stats-card.rate .card-value {
@@ -124,14 +125,14 @@
 .card-label {
   display: block;
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
   margin-top: 5rpx;
 }
 
 /* 学生区域 */
 .student-section {
   margin: 0 30rpx;
-  background: #fff;
+  background: var(--white);
   border-radius: 16rpx;
   padding: 30rpx;
 }
@@ -146,7 +147,7 @@
 .section-title {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
 }
 
 .export-btn-group {
@@ -156,15 +157,15 @@
 
 .export-btn {
   padding: 10rpx 24rpx;
-  background: #f5f7fa;
-  border-radius: 8rpx;
+  background: var(--background-color);
+  border-radius: 16rpx;
   font-size: 26rpx;
   color: #667eea;
 }
 
 .export-btn.active {
   background: #667eea;
-  color: #fff;
+  color: var(--white);
 }
 
 /* 分类标题 */
@@ -173,7 +174,7 @@
   align-items: center;
   margin: 25rpx 0 20rpx;
   padding-bottom: 15rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .title-icon {
@@ -183,7 +184,7 @@
 
 .title-text {
   font-size: 28rpx;
-  color: #666;
+  color: var(--text-color-secondary);
 }
 
 /* 学生网格（全勤学生） */
@@ -199,13 +200,13 @@
   align-items: center;
   padding: 20rpx 10rpx;
   background: #f6ffed;
-  border-radius: 12rpx;
+  border-radius: 16rpx;
 }
 
 .student-avatar {
   width: 80rpx;
   height: 80rpx;
-  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+  background: linear-gradient(135deg, var(--success-color) 0%, var(--success-color) 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -215,21 +216,21 @@
 
 .avatar-text {
   font-size: 32rpx;
-  color: #fff;
+  color: var(--white);
   font-weight: bold;
 }
 
 .student-name {
   font-size: 26rpx;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 8rpx;
 }
 
 .full-badge {
   padding: 4rpx 12rpx;
-  background: #52c41a;
-  color: #fff;
-  border-radius: 8rpx;
+  background: var(--success-color);
+  color: var(--white);
+  border-radius: 16rpx;
   font-size: 20rpx;
 }
 
@@ -244,7 +245,7 @@
   align-items: center;
   padding: 20rpx;
   background: #fff1f0;
-  border-radius: 12rpx;
+  border-radius: 16rpx;
   margin-bottom: 15rpx;
 }
 
@@ -252,15 +253,17 @@
   display: flex;
   align-items: center;
   flex: 1;
+  min-width: 0;
 }
 
 .student-detail-item .student-avatar {
-  background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
+  background: linear-gradient(135deg, var(--error-color) 0%, var(--error-color) 100%);
 }
 
 .student-info {
   margin-left: 15rpx;
   flex: 1;
+  min-width: 0;
 }
 
 .absence-tags {
@@ -272,23 +275,23 @@
 
 .absence-tag {
   padding: 4rpx 10rpx;
-  border-radius: 6rpx;
+  border-radius: 16rpx;
   font-size: 22rpx;
 }
 
 .absence-tag.sick {
   background: #f6ffed;
-  color: #52c41a;
+  color: var(--success-color);
 }
 
 .absence-tag.personal {
   background: #e6f7ff;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .absence-tag.absent {
   background: #fff1f0;
-  color: #ff4d4f;
+  color: var(--error-color);
 }
 
 .student-right {
@@ -297,7 +300,7 @@
 
 .late-early {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 加载状态 */
@@ -308,14 +311,14 @@
 
 .loading-text {
   font-size: 28rpx;
-  color: #fff;
+  color: var(--white);
   opacity: 0.8;
 }
 
 /* 说明区域 */
 .notice-section {
   margin: 30rpx;
-  background: #fff;
+  background: var(--white);
   border-radius: 16rpx;
   padding: 30rpx;
 }
@@ -323,7 +326,7 @@
 .notice-title {
   font-size: 30rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 20rpx;
 }
 
@@ -335,6 +338,6 @@
 
 .notice-text {
   font-size: 26rpx;
-  color: #666;
+  color: var(--text-color-secondary);
   line-height: 1.6;
 }

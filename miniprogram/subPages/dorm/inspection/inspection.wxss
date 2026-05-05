@@ -1,6 +1,6 @@
 .container {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: var(--background-color);
   padding-bottom: 100rpx;
 }
 
@@ -9,16 +9,17 @@
   display: flex;
   gap: 20rpx;
   padding: 20rpx;
-  background: #fff;
-  border-bottom: 1rpx solid #f0f0f0;
+  background: var(--white);
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .filter-item {
   flex: 1;
+  min-width: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #f5f7fa;
+  background: var(--background-color);
   padding: 20rpx;
   border-radius: 12rpx;
   font-size: 28rpx;
@@ -26,7 +27,7 @@
 
 .arrow {
   font-size: 20rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 记录列表 */
@@ -35,7 +36,7 @@
 }
 
 .record-item {
-  background: #fff;
+  background: var(--white);
   border-radius: 16rpx;
   padding: 30rpx;
   margin-bottom: 20rpx;
@@ -50,7 +51,7 @@
 
 .record-type-tag {
   background: #e8f4ff;
-  color: #1890ff;
+  color: var(--primary-color);
   padding: 8rpx 16rpx;
   border-radius: 8rpx;
   font-size: 24rpx;
@@ -62,11 +63,11 @@
 }
 
 .record-score.pass {
-  color: #52c41a;
+  color: var(--success-color);
 }
 
 .record-score.fail {
-  color: #ff4d4f;
+  color: var(--error-color);
 }
 
 .record-body {
@@ -78,7 +79,7 @@
   align-items: center;
   font-size: 30rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 12rpx;
 }
 
@@ -91,7 +92,7 @@
   display: flex;
   gap: 30rpx;
   font-size: 26rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .record-problems {
@@ -103,7 +104,7 @@
 
 .problem-count {
   font-size: 26rpx;
-  color: #fa8c16;
+  color: var(--warning-color);
 }
 
 .record-footer {
@@ -111,7 +112,7 @@
   justify-content: space-between;
   align-items: center;
   padding-top: 16rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid var(--border-color);
 }
 
 .record-status {
@@ -122,22 +123,22 @@
 
 .record-status.pending {
   background: #fff7e6;
-  color: #fa8c16;
+  color: var(--warning-color);
 }
 
 .record-status.processed {
   background: #e6f7ff;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .record-status.archived {
-  background: #f5f5f5;
-  color: #999;
+  background: var(--background-color);
+  color: var(--text-color-light);
 }
 
 .record-arrow {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 空状态 */
@@ -155,13 +156,13 @@
 
 .empty-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
   margin-bottom: 30rpx;
 }
 
 .empty-btn {
-  background: #1890ff;
-  color: #fff;
+  background: var(--primary-color);
+  color: var(--white);
   border: none;
   padding: 20rpx 60rpx;
   border-radius: 40rpx;
@@ -173,11 +174,11 @@
   text-align: center;
   padding: 30rpx;
   font-size: 28rpx;
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .no-more {
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 浮动按钮 */
@@ -187,14 +188,14 @@
   bottom: 100rpx;
   width: 100rpx;
   height: 100rpx;
-  background: #1890ff;
+  background: var(--primary-color);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 8rpx 20rpx rgba(24, 144, 255, 0.3);
   font-size: 48rpx;
-  color: #fff;
+  color: var(--white);
   z-index: 100;
 }
 

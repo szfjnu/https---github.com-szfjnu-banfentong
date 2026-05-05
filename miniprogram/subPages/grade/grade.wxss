@@ -2,14 +2,14 @@
 
 .grade-container {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: var(--background-color);
   padding-bottom: 40rpx;
 }
 
 /* 考试类型 Tab */
 .exam-tabs {
   display: flex;
-  background: #ffffff;
+  background: var(--white);
   padding: 20rpx 24rpx;
   gap: 16rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
@@ -20,15 +20,15 @@
   text-align: center;
   padding: 16rpx 0;
   font-size: 28rpx;
-  color: #666666;
+  color: var(--text-color-secondary);
   background: #f0f2f5;
   border-radius: 12rpx;
   transition: all 0.3s;
 }
 
 .tab-item.active {
-  color: #ffffff;
-  background: linear-gradient(135deg, #1890ff, #096dd9);
+  color: var(--white);
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-color));
   font-weight: 600;
   box-shadow: 0 4rpx 12rpx rgba(24, 144, 255, 0.4);
 }
@@ -38,32 +38,32 @@
   display: flex;
   padding: 20rpx 24rpx;
   gap: 20rpx;
-  background: #ffffff;
+  background: var(--white);
   margin-bottom: 20rpx;
 }
 
 .picker-item {
   display: flex;
   align-items: center;
-  background: #f5f7fa;
+  background: var(--background-color);
   padding: 14rpx 24rpx;
   border-radius: 12rpx;
   font-size: 26rpx;
 }
 
 .picker-label {
-  color: #999999;
+  color: var(--text-color-light);
   margin-right: 8rpx;
 }
 
 .picker-value {
-  color: #333333;
+  color: var(--text-color);
   font-weight: 500;
 }
 
 .picker-arrow {
   font-size: 20rpx;
-  color: #999999;
+  color: var(--text-color-light);
   margin-left: 8rpx;
 }
 
@@ -74,15 +74,15 @@
   align-items: center;
   justify-content: center;
   padding: 120rpx 0;
-  color: #999999;
+  color: var(--text-color-light);
   font-size: 28rpx;
 }
 
 .loading-spinner {
   width: 60rpx;
   height: 60rpx;
-  border: 4rpx solid #e8e8e8;
-  border-top-color: #1890ff;
+  border: 4rpx solid var(--border-color);
+  border-top-color: var(--primary-color);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-bottom: 20rpx;
@@ -95,7 +95,7 @@
 /* 统计卡片区域 */
 .stats-section {
   margin: 20rpx 24rpx;
-  background: #ffffff;
+  background: var(--white);
   border-radius: 20rpx;
   padding: 30rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
@@ -104,7 +104,7 @@
 .stats-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--text-color);
   margin-bottom: 24rpx;
 }
 
@@ -126,20 +126,20 @@
 .stat-value {
   font-size: 40rpx;
   font-weight: 700;
-  color: #1890ff;
+  color: var(--primary-color);
   line-height: 1.2;
 }
 
 .stat-label {
   font-size: 22rpx;
-  color: #666666;
+  color: var(--text-color-secondary);
   margin-top: 8rpx;
 }
 
 /* 各科目统计 */
 .subject-stats {
   margin-top: 24rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid var(--border-color);
   padding-top: 20rpx;
 }
 
@@ -148,7 +148,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 16rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid var(--background-color);
 }
 
 .subject-stat-item:last-child {
@@ -158,18 +158,18 @@
 .subject-stat-name {
   font-size: 28rpx;
   font-weight: 500;
-  color: #333333;
+  color: var(--text-color);
 }
 
 .subject-stat-detail {
   font-size: 24rpx;
-  color: #666666;
+  color: var(--text-color-secondary);
 }
 
 /* 趋势图 */
 .trend-chart {
   margin: 20rpx 24rpx;
-  background: #ffffff;
+  background: var(--white);
   border-radius: 20rpx;
   padding: 30rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
@@ -178,7 +178,7 @@
 .chart-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--text-color);
   margin-bottom: 24rpx;
 }
 
@@ -188,7 +188,7 @@
   justify-content: space-around;
   height: 300rpx;
   padding: 0 10rpx;
-  border-bottom: 2rpx solid #f0f0f0;
+  border-bottom: 2rpx solid var(--border-color);
 }
 
 .chart-bar-group {
@@ -209,7 +209,7 @@
 
 .chart-bar-label {
   font-size: 20rpx;
-  color: #999999;
+  color: var(--text-color-light);
   margin-top: 8rpx;
   text-align: center;
   white-space: nowrap;
@@ -220,7 +220,7 @@
 
 .chart-bar-score {
   font-size: 22rpx;
-  color: #333333;
+  color: var(--text-color);
   font-weight: 600;
   margin-bottom: 8rpx;
 }
@@ -234,7 +234,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #ffffff;
+  background: var(--white);
   border-radius: 16rpx;
   padding: 28rpx 30rpx;
   margin-bottom: 16rpx;
@@ -248,13 +248,13 @@
 .grade-subject {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--text-color);
   margin-bottom: 8rpx;
 }
 
 .grade-meta {
   font-size: 24rpx;
-  color: #999999;
+  color: var(--text-color-light);
 }
 
 .grade-card-right {
@@ -266,7 +266,7 @@
 .grade-score {
   font-size: 44rpx;
   font-weight: 700;
-  color: #333333;
+  color: var(--text-color);
 }
 
 .grade-pass-tag {
@@ -277,18 +277,18 @@
 }
 
 .grade-pass-tag.pass {
-  color: #52c41a;
+  color: var(--success-color);
   background: #f6ffed;
 }
 
 .grade-pass-tag.fail {
-  color: #ff4d4f;
+  color: var(--error-color);
   background: #fff2f0;
 }
 
 /* 不及格分数红色 */
 .text-fail {
-  color: #ff4d4f !important;
+  color: var(--error-color) !important;
 }
 
 /* 操作栏 */
@@ -297,8 +297,8 @@
 }
 
 .import-btn {
-  background: linear-gradient(135deg, #1890ff, #096dd9);
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-color));
+  color: var(--white);
   text-align: center;
   padding: 24rpx;
   border-radius: 16rpx;
@@ -314,7 +314,7 @@
 /* 成绩表格 */
 .grade-table {
   margin: 0 24rpx;
-  background: #ffffff;
+  background: var(--white);
   border-radius: 16rpx;
   overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
@@ -322,10 +322,10 @@
 
 .table-header {
   display: flex;
-  background: #f5f7fa;
+  background: var(--background-color);
   padding: 20rpx 16rpx;
   font-size: 24rpx;
-  color: #666666;
+  color: var(--text-color-secondary);
   font-weight: 600;
 }
 
@@ -333,13 +333,13 @@
   display: flex;
   padding: 24rpx 16rpx;
   font-size: 26rpx;
-  color: #333333;
-  border-bottom: 1rpx solid #f5f5f5;
+  color: var(--text-color);
+  border-bottom: 1rpx solid var(--background-color);
   align-items: center;
 }
 
 .table-row:active {
-  background: #f9f9f9;
+  background: var(--background-color);
 }
 
 .table-row:last-child {
@@ -376,12 +376,12 @@
 }
 
 .td-rank.top-rank {
-  color: #faad14;
+  color: var(--warning-color);
   font-weight: 700;
 }
 
 .td-total {
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 /* 空状态 */
@@ -389,7 +389,7 @@
   text-align: center;
   padding: 80rpx 0;
   font-size: 28rpx;
-  color: #999999;
+  color: var(--text-color-light);
 }
 
 /* ===== 批量导入弹窗 ===== */
@@ -408,7 +408,7 @@
 
 .modal-content {
   width: 640rpx;
-  background: #ffffff;
+  background: var(--white);
   border-radius: 24rpx;
   padding: 40rpx;
   box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.15);
@@ -417,7 +417,7 @@
 .modal-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: #333333;
+  color: var(--text-color);
   text-align: center;
   margin-bottom: 32rpx;
 }
@@ -429,36 +429,36 @@
 .import-label {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--text-color);
   display: block;
   margin-bottom: 12rpx;
 }
 
 .import-hint {
   font-size: 22rpx;
-  color: #999999;
+  color: var(--text-color-light);
   display: block;
   margin-bottom: 12rpx;
 }
 
 .import-picker {
-  background: #f5f7fa;
+  background: var(--background-color);
   padding: 18rpx 24rpx;
   border-radius: 12rpx;
   font-size: 28rpx;
-  color: #333333;
-  border: 2rpx solid #e8e8e8;
+  color: var(--text-color);
+  border: 2rpx solid var(--border-color);
 }
 
 .import-textarea {
   width: 100%;
   min-height: 240rpx;
-  background: #f5f7fa;
+  background: var(--background-color);
   border-radius: 12rpx;
   padding: 20rpx;
   font-size: 26rpx;
-  color: #333333;
-  border: 2rpx solid #e8e8e8;
+  color: var(--text-color);
+  border: 2rpx solid var(--border-color);
   box-sizing: border-box;
   line-height: 1.6;
 }
@@ -479,17 +479,17 @@
 }
 
 .cancel-btn {
-  background: #f5f7fa;
-  color: #666666;
+  background: var(--background-color);
+  color: var(--text-color-secondary);
 }
 
 .cancel-btn:active {
-  background: #e8e8e8;
+  background: var(--border-color);
 }
 
 .confirm-btn {
-  background: linear-gradient(135deg, #1890ff, #096dd9);
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-color));
+  color: var(--white);
 }
 
 .confirm-btn:active {

@@ -1,7 +1,7 @@
 /* 聚光点 - 活动列表 */
 .activity-container {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--background-color);
   padding-bottom: 140rpx;
 }
 
@@ -12,7 +12,7 @@
   align-items: center;
   padding: 24rpx 30rpx;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  color: var(--white);
 }
 
 .header-title {
@@ -60,17 +60,17 @@
   height: 32rpx;
   line-height: 32rpx;
   text-align: center;
-  background: #ff4d4f;
+  background: var(--error-color);
   border-radius: 16rpx;
   font-size: 20rpx;
-  color: white;
+  color: var(--white);
   padding: 0 6rpx;
 }
 
 /* 分类滚动 */
 .category-scroll {
   white-space: nowrap;
-  background: white;
+  background: var(--white);
   padding: 20rpx 20rpx 10rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
 }
@@ -81,23 +81,23 @@
   margin-right: 16rpx;
   border-radius: 30rpx;
   font-size: 26rpx;
-  color: #666;
-  background: #f5f5f5;
+  color: var(--text-color-secondary);
+  background: var(--background-color);
   transition: all 0.2s;
 }
 
 .cat-item.cat-active {
   background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
+  color: var(--white);
 }
 
 /* 状态 Tab */
 .tab-bar {
   display: flex;
-  background: white;
+  background: var(--white);
   padding: 16rpx 20rpx;
   gap: 20rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .tab-item {
@@ -105,7 +105,7 @@
   text-align: center;
   padding: 12rpx 0;
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
   border-radius: 8rpx;
   transition: all 0.2s;
 }
@@ -123,7 +123,7 @@
 
 .activity-card {
   display: flex;
-  background: white;
+  background: var(--white);
   border-radius: 20rpx;
   overflow: hidden;
   margin-bottom: 20rpx;
@@ -177,7 +177,7 @@
 .card-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -212,7 +212,7 @@
 
 .meta-text {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .card-bottom {
@@ -236,23 +236,23 @@
 
 .people-divider {
   font-size: 24rpx;
-  color: #ccc;
+  color: var(--text-color-light);
 }
 
 .people-max {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 .people-label {
   font-size: 22rpx;
-  color: #999;
+  color: var(--text-color-light);
   margin-left: 4rpx;
 }
 
 .organizer {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 空状态 */
@@ -270,7 +270,7 @@
 
 .empty-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 加载 */
@@ -284,7 +284,7 @@
 .loading-icon {
   width: 60rpx;
   height: 60rpx;
-  border: 4rpx solid #f3f3f3;
+  border: 4rpx solid var(--background-color);
   border-top: 4rpx solid #667eea;
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -298,7 +298,7 @@
 
 .loading-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-color-light);
 }
 
 /* 发布按钮 */
@@ -321,13 +321,13 @@
 
 .fab-icon {
   font-size: 36rpx;
-  color: white;
+  color: var(--white);
   font-weight: bold;
   margin-right: 8rpx;
 }
 
 .fab-text {
   font-size: 28rpx;
-  color: white;
+  color: var(--white);
   font-weight: 600;
 }
