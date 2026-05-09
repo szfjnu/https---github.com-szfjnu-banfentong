@@ -116,25 +116,52 @@
 
   <!-- 快捷操作 -->
   <view class="quick-actions" wx:if="{{isAdmin}}">
-    <view class="action-item" bindtap="onShowStudentList">
-      <view class="action-icon edit">✏️</view>
-      <text class="action-text">录入考勤</text>
+    <view class="action-row">
+      <view class="action-item primary" bindtap="onShowStudentList">
+        <view class="action-icon edit">✏️</view>
+        <text class="action-text">录入考勤</text>
+      </view>
+      <view class="action-item primary" bindtap="onNavToRecord">
+        <view class="action-icon record">📋</view>
+        <text class="action-text">考勤记录</text>
+      </view>
+      <view class="action-item primary" bindtap="onNavToLeaveApproval">
+        <view class="action-icon leave">📄</view>
+        <text class="action-text">请假审批</text>
+      </view>
+      <view class="action-item primary" bindtap="onNavToWarning">
+        <view class="action-icon warning">⚠️</view>
+        <text class="action-text">预警管理</text>
+      </view>
+      <view class="action-item more-trigger" bindtap="onToggleMoreActions">
+        <view class="action-icon more">···</view>
+        <text class="action-text">更多</text>
+      </view>
     </view>
-    <view class="action-item" bindtap="onNavToRecord">
-      <view class="action-icon record">📋</view>
-      <text class="action-text">考勤记录</text>
-    </view>
-    <view class="action-item" bindtap="onNavToLeaveApproval">
-      <view class="action-icon leave">📄</view>
-      <text class="action-text">请假审批</text>
-    </view>
-    <view class="action-item" bindtap="onNavToSettings">
-      <view class="action-icon settings">⚙️</view>
-      <text class="action-text">考勤设置</text>
-    </view>
-    <view class="action-item" bindtap="onNavToFullAttendance">
-      <view class="action-icon stats">📊</view>
-      <text class="action-text">全勤统计</text>
+
+    <!-- 更多功能弹出面板 -->
+    <view class="more-panel" wx:if="{{showMoreActions}}">
+      <view class="more-mask" bindtap="onToggleMoreActions"></view>
+      <view class="more-content">
+        <view class="more-grid">
+          <view class="more-item" bindtap="onNavToFullAttendance">
+            <view class="more-icon stats">📊</view>
+            <text class="more-text">全勤统计</text>
+          </view>
+          <view class="more-item" bindtap="onNavToSettings">
+            <view class="more-icon settings">⚙️</view>
+            <text class="more-text">考勤设置</text>
+          </view>
+          <view class="more-item" bindtap="onNavToTimetable">
+            <view class="more-icon timetable">🕐</view>
+            <text class="more-text">作息时间</text>
+          </view>
+          <view class="more-item" bindtap="onNavToHoliday">
+            <view class="more-icon holiday">📅</view>
+            <text class="more-text">调休配置</text>
+          </view>
+        </view>
+      </view>
     </view>
   </view>
 </view>

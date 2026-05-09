@@ -17,7 +17,9 @@ App({
     // 会员相关
     membership: null, // 会员信息
     membershipPermissions: null, // 会员权限
-    authorizations: {} // 用户授权权限（从student_authorizations加载）
+    authorizations: {}, // 用户授权权限（从student_authorizations加载）
+    isLeader: false, // 是否管理干部
+    leaderPermissions: [] // 管理干部权限列表
   },
 
   // 小程序初始化
@@ -92,10 +94,14 @@ App({
         this.globalData.currentSemesterId = semesterId;
         console.log('已恢复学期ID:', semesterId);
       }
-      // 异步获取最新学期信息
-      this.getCurrentSemester();
-      // 异步加载用户授权权限
-      this.loadUserAuthorizations();
+      // 异步获取最新学期信息（仅当缓存中没有时才调用）
+      if (!semesterId) {
+        this.getCurrentSemester();
+      }
+      // 异步加载用户授权权限（仅当未加载时才调用）
+      if (!this.globalData.authorizations || Object.keys(this.globalData.authorizations).length === 0) {
+        this.loadUserAuthorizations();
+      }
     } else {
       console.log('用户未登录');
     }

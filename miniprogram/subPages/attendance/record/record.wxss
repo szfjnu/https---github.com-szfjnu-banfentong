@@ -273,7 +273,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20rpx;
+  margin-bottom: 16rpx;
+}
+
+.section-header .section-title {
+  margin-bottom: 0;
 }
 
 .select-all-btn {
@@ -402,6 +406,36 @@
   padding: 6rpx 12rpx;
   border-radius: 16rpx;
   font-size: 22rpx;
+}
+
+/* 旷课节次选择 */
+.period-section {
+  margin: 0 30rpx 30rpx;
+  background: var(--white);
+  border-radius: 16rpx;
+  padding: 30rpx;
+  box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.1);
+}
+
+.period-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+
+.period-item {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 20rpx;
+  background: var(--background-color);
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  color: var(--text-color);
+}
+
+.period-text {
+  margin-left: 10rpx;
 }
 
 /* 保存按钮 */
@@ -545,4 +579,153 @@
   border-radius: 16rpx;
   font-size: 30rpx;
   color: var(--white);
+}
+
+.student-search { padding: 0 20rpx 16rpx; }
+.student-search-input { width: 100%; padding: 16rpx 24rpx; background: var(--background-color); border-radius: 12rpx; font-size: 28rpx; color: var(--text-color); }
+
+.edit-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 20rpx;
+}
+
+.edit-filter-bar .picker-filter {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 16rpx;
+  background: var(--background-color);
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  color: var(--text-color);
+  white-space: nowrap;
+}
+
+.edit-filter-bar .arrow {
+  font-size: 18rpx;
+  color: var(--text-color-light);
+  margin-left: 6rpx;
+}
+
+.edit-filter-bar .search-input-small {
+  flex: 1;
+  min-width: 0;
+}
+
+.edit-filter-bar .search-input-small input {
+  width: 100%;
+  padding: 12rpx 16rpx;
+  background: var(--background-color);
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  color: var(--text-color);
+  box-sizing: border-box;
+}
+
+.edit-filter-bar .select-all-btn {
+  padding: 12rpx 20rpx;
+  background: var(--background-color);
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  color: #667eea;
+  white-space: nowrap;
+}
+
+.selected-count {
+  font-size: 26rpx;
+  color: #667eea;
+}
+
+.period-info {
+  font-size: 24rpx;
+  color: #667eea;
+  margin-right: 20rpx;
+}
+
+/* 记录详情弹窗 */
+.detail-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1001;
+}
+
+.detail-modal .modal-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.detail-modal-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: var(--white);
+  border-radius: 30rpx 30rpx 0 0;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.detail-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid var(--border-color);
+}
+
+.detail-modal-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: var(--text-color);
+}
+
+.detail-modal-close {
+  font-size: 36rpx;
+  color: var(--text-color-light);
+  padding: 10rpx;
+}
+
+.detail-modal-body {
+  padding: 30rpx;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid var(--background-color);
+}
+
+.detail-label {
+  font-size: 28rpx;
+  color: var(--text-color-light);
+}
+
+.detail-value {
+  font-size: 28rpx;
+  color: var(--text-color);
+  font-weight: 500;
+}
+/* 修复旷课节次选择器样式 */
+.period-list .period-item checkbox {
+  /* 缩放 checkbox 大小，使其可见 */
+  transform: scale(0.8);
+  /* 添加右边距，让文字和框有空隙 */
+  margin-right: 10rpx !important;
+}
+
+/* 确保容器垂直居中，防止 checkbox 被挤出去 */
+.period-item {
+  display: flex;
+  align-items: center; /* 修复点：让 checkbox 和文字垂直居中 */
+  /* 原有属性... */
 }

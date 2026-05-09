@@ -143,6 +143,40 @@
           </view>
         </view>
       </view>
+
+      <!-- 管理干部功能入口 -->
+      <view class="leader-functions-card" wx:if="{{isStudentLeader}}">
+        <view class="nav-section-title">
+          <view class="nav-title-bar" style="background: var(--primary-color);"></view>
+          <text>管理干部</text>
+        </view>
+        <view class="nav-grid">
+          <view class="nav-entry" wx:if="{{perm_score_register}}" bindtap="goToScoreRegister">
+            <view class="nav-entry-icon" style="background: #52c41a15;">📝</view>
+            <text class="nav-entry-label">积分登记</text>
+          </view>
+          <view class="nav-entry" wx:if="{{perm_attendance_register}}" bindtap="goToAttendanceRegister">
+            <view class="nav-entry-icon" style="background: #722ed115;">📋</view>
+            <text class="nav-entry-label">考勤登记</text>
+          </view>
+          <view class="nav-entry" wx:if="{{perm_volunteer_submit}}" bindtap="goToVolunteerSubmit">
+            <view class="nav-entry-icon" style="background: #fa8c1615;">🤝</view>
+            <text class="nav-entry-label">志愿提交</text>
+          </view>
+          <view class="nav-entry" wx:if="{{perm_dorm_score}}" bindtap="goToDormScore">
+            <view class="nav-entry-icon" style="background: #faad1415;">🏠</view>
+            <text class="nav-entry-label">宿舍加减分</text>
+          </view>
+          <view class="nav-entry" wx:if="{{perm_duty_check}}" bindtap="goToDutyCheck">
+            <view class="nav-entry-icon" style="background: #13c2c215;">✅</view>
+            <text class="nav-entry-label">值日检查</text>
+          </view>
+          <view class="nav-entry" wx:if="{{perm_duty_arrange}}" bindtap="goToDutyArrange">
+            <view class="nav-entry-icon" style="background: #1890ff15;">📅</view>
+            <text class="nav-entry-label">安排值日</text>
+          </view>
+        </view>
+      </view>
     </block>
 
     <!-- 家长视图 -->

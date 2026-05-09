@@ -77,6 +77,7 @@ const DEFAULT_PERMISSIONS = {
     can_use_advanced_analytics: true,
     can_use_ai_features: false,
     can_import_schedule_excel: true,
+    can_import_grade_excel: true,
     storage_quota_mb: 2048,
     history_retention_days: 365
   },
@@ -89,6 +90,7 @@ const DEFAULT_PERMISSIONS = {
     can_use_advanced_analytics: true,
     can_use_ai_features: true,
     can_import_schedule_excel: true,
+    can_import_grade_excel: true,
     storage_quota_mb: 10240,
     history_retention_days: -1
   }
@@ -219,6 +221,11 @@ async function checkFeatureAccess(openid, featureCode) {
         reason = allowed ? '' : '课表Excel导入功能仅限专业版及以上会员使用';
         break;
 
+      case 'import_grade_excel':
+        allowed = permissions.can_import_grade_excel || false;
+        reason = allowed ? '' : '成绩Excel导入功能仅限专业版及以上会员使用，请升级会员';
+        break;
+
       default:
         allowed = false;
         reason = '未知功能';
@@ -330,7 +337,8 @@ async function logFeatureAccess(openid, featureCode, allowed, reason) {
       'export_data': '数据导出',
       'advanced_analytics': '高级分析',
       'ai_features': 'AI功能',
-      'import_schedule_excel': '课表Excel导入'
+      'import_schedule_excel': '课表Excel导入',
+      'import_grade_excel': '成绩Excel导入'
     };
 
     await db.collection('feature_access_logs').add({

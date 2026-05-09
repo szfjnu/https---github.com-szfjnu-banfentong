@@ -25,12 +25,28 @@ async function doPreview(fileID, classId, className, semesterName) {
   return result
 }
 
-async function doImport(previewData, classId, className, semesterName) {
+async function doImport(previewData, classId, className, semesterName, scheduleType) {
   const validRows = previewData.filter(r => r.valid)
   const errors = []
   let successCount = 0
   let failCount = 0
   let skipCount = 0
+
+  const typeValue = scheduleType || 'class'
+
+  if (classId) {
+    try {
+      const oldRecords = await db.collection('schedules')
+        .where({ class_id: classId, schedule_type: typeValue })
+        .limit(1000)
+        .get()
+      for (const old of oldRecords.data) {
+        await db.collection('schedules').doc(old._id).remove()
+      }
+    } catch (e) {
+      console.error('清除旧课表失败:', e)
+    }
+  }
 
   for (let i = 0; i < validRows.length; i += BATCH_SIZE) {
     const batch = validRows.slice(i, i + BATCH_SIZE)
@@ -40,6 +56,7 @@ async function doImport(previewData, classId, className, semesterName) {
         if (classId) schedule.class_id = classId
         if (className) schedule.class_name = className
         if (semesterName) schedule.semester_name = semesterName
+        schedule.schedule_type = typeValue
 
         if (schedule.teacher_name && !schedule.teacher_openid) {
           try {
@@ -63,18 +80,6 @@ async function doImport(previewData, classId, className, semesterName) {
         schedule.updatedAt = now
         if (!schedule.createdAt) schedule.createdAt = now
 
-        const { data: existing } = await db.collection('schedules')
-          .where({
-            schedule_id: schedule.schedule_id
-          })
-          .limit(1)
-          .get()
-
-        if (existing.length > 0) {
-          skipCount++
-          return
-        }
-
         await db.collection('schedules').add({ data: schedule })
         successCount++
       } catch (e) {
@@ -89,7 +94,7 @@ async function doImport(previewData, classId, className, semesterName) {
 }
 
 async function importScheduleHandler(data, OPENID) {
-  const { fileID, classId, className, semesterName, confirm, previewData } = data
+  const { fileID, classId, className, semesterName, confirm, previewData, scheduleType } = data
 
   await checkPermission(OPENID, ALLOWED_IMPORT_ROLES)
 
@@ -108,7 +113,7 @@ async function importScheduleHandler(data, OPENID) {
     }
   }
 
-  const result = await doImport(previewData, classId, className, semesterName)
+  const result = await doImport(previewData, classId, className, semesterName, scheduleType)
   await logger.log({
     action: 'importSchedule_import',
     operator: OPENID,

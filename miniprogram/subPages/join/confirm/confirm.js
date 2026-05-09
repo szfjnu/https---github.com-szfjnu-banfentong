@@ -46,10 +46,13 @@ Page({
   loadStudentInfo: async function () {
     try {
       const db = wx.cloud.database();
-      const res = await db.collection('students').doc(this.data.studentId).get();
+      const res = await db.collection('students')
+        .where({ student_id: this.data.studentId })
+        .limit(1)
+        .get();
 
-      if (res.data) {
-        this.setData({ studentInfo: res.data });
+      if (res.data && res.data.length > 0) {
+        this.setData({ studentInfo: res.data[0] });
       }
     } catch (err) {
       console.error('加载学生信息失败:', err);

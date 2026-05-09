@@ -87,12 +87,16 @@ Page({
         if (bed.occupied === true && bed.student_id && bed.student_id.trim() !== '') {
           try {
             console.log('获取床位学生的信息，学生ID:', bed.student_id);
-            const studentRes = await db.collection('students').doc(bed.student_id).get();
-            student = studentRes.data;
+            const studentRes = await db.collection('students')
+              .where({ student_id: bed.student_id })
+              .limit(1)
+              .get();
+            if (studentRes.data && studentRes.data.length > 0) {
+              student = studentRes.data[0];
+            }
             console.log('学生信息:', student);
           } catch (err) {
             console.error('获取学生信息失败:', err);
-            // 如果获取学生失败，将床位标记为空闲
             student = null;
           }
         }
@@ -192,16 +196,22 @@ Page({
 
       // 更新学生宿舍信息
       console.log('清空学生宿舍信息');
-      await db.collection('students').doc(studentId).update({
-        data: {
-          is_boarding: false,
-          dorm_info: {},
-          dorm_building_id: '',
-          dorm_room_id: '',
-          dorm_bed_id: '',
-          updated_at: db.serverDate()
-        }
-      });
+      const studentRes = await db.collection('students')
+        .where({ student_id: studentId })
+        .limit(1)
+        .get();
+      if (studentRes.data && studentRes.data.length > 0) {
+        await db.collection('students').doc(studentRes.data[0]._id).update({
+          data: {
+            is_boarding: false,
+            dorm_info: {},
+            dorm_building_id: '',
+            dorm_room_id: '',
+            dorm_bed_id: '',
+            updated_at: db.serverDate()
+          }
+        });
+      }
       console.log('学生宿舍信息清空成功');
 
       wx.hideLoading();

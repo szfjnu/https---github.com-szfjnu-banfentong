@@ -1,0 +1,9 @@
+{
+  "name": "attendanceWarning",
+  "version": "1.0.0",
+  "description": "考勤预警管理：旷课纪律预警、休学预警、作息时间表、调休配置",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

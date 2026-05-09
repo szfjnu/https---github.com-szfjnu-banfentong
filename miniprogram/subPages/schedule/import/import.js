@@ -26,11 +26,35 @@ Page({
 
   onLoad: function (options) {
     const classId = options.class_id || app.globalData.class_id || ''
-    const className = options.class_name ? decodeURIComponent(options.class_name) : (app.globalData.class_name || '')
+    const className = options.class_name ? decodeURIComponent(options.class_name) : (app.globalData.className || app.globalData.class_name || '')
     const semesterName = options.semester_name ? decodeURIComponent(options.semester_name) : (app.globalData.currentSemesterName || '')
 
     this.setData({ classId, className, semesterName })
+
+    if (!className || !semesterName) {
+      this.loadClassInfo(classId)
+    }
+
     this.checkExcelPermission()
+  },
+
+  loadClassInfo: async function (classId) {
+    if (!classId) return
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'manageUserCenter',
+        data: { action: 'getClassInfo', data: { class_id: classId } }
+      })
+      if (res.result && res.result.success && res.result.data) {
+        const info = res.result.data
+        this.setData({
+          className: this.data.className || info.class_name || '',
+          semesterName: this.data.semesterName || info.current_semester_name || ''
+        })
+      }
+    } catch (e) {
+      console.error('获取班级信息失败:', e)
+    }
   },
 
   checkExcelPermission: async function () {
@@ -68,6 +92,7 @@ Page({
         classId: this.data.classId,
         className: this.data.className,
         semesterName: this.data.semesterName,
+        scheduleType: this.data.importMethod === 'excel' ? 'class' : 'teacher',
         confirm: false
       })
       wx.hideLoading()

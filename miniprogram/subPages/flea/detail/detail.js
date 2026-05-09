@@ -14,7 +14,9 @@ Page({
     // 举报
     showReportModal: false,
     reportReason: '',
-    reportDetail: ''
+    reportDetail: '',
+    defaultAvatar: '/images/icons/default_avatar.png', 
+    defaultItemImg: '/images/icons/default_placeholder.png', 
   },
 
   onLoad(options) {
@@ -78,6 +80,19 @@ Page({
       current: src,
       urls: this.data.item.images
     })
+  },
+
+  // 当卖家头像加载失败时触发
+  onAvatarError(e) {
+    this.setData({
+      'item.seller_avatar': this.data.defaultAvatar // 替换为默认图
+    });
+  },
+
+  
+  // 处理轮播图加载失败
+  onImageError(e) {
+    console.log('图片加载失败', e);
   },
 
   // 想要/取消

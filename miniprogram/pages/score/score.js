@@ -1,11 +1,13 @@
-﻿// pages/score/score.js
+// pages/score/score.js
 const app = getApp();
 const api = require('../../utils/api.js');
 const util = require('../../utils/util.js');
+const batchQuery = require('../../utils/batchQuery.js');
 
 Page({
   data: {
     students: [],
+    allRankedStudents: [],
     searchKeyword: '',
     loading: true,
     page: 0,
@@ -119,24 +121,24 @@ Page({
   // 管理员/教师：加载积分排行榜
   loadRanking: async function (refresh = true) {
     if (refresh) {
-      this.setData({ loading: true, page: 0, hasMore: true });
+      this.setData({ loading: true, page: 0 });
     }
 
     try {
-      const { page, pageSize, searchKeyword, currentClassId, userRole } = this.data;
-      const skip = refresh ? 0 : page * pageSize;
-      
-      let params = {
-        limit: pageSize,
-        skip: skip
-      };
+      const { searchKeyword, currentClassId, userRole, page, pageSize } = this.data;
+
+      let query = {};
       if (userRole !== 'admin' && currentClassId) {
-        params.class_id = currentClassId; 
+        query.class_id = currentClassId;
       }
 
-      const res = await api.scoreApi.getScoreRanking(params);
+      const allStudents = await batchQuery.getAllRecords('students', query, 'current_score', 'desc');
 
-      let students = res.data;
+      let students = allStudents.map(student => ({
+        ...student,
+        scoreLevel: util.getScoreLevel(student.current_score || 100),
+        scoreColor: util.getScoreColor(student.current_score || 100)
+      }));
 
       if (searchKeyword) {
         students = students.filter(s =>
@@ -145,17 +147,14 @@ Page({
         );
       }
 
-      students = students.map(student => ({
-        ...student,
-        scoreLevel: util.getScoreLevel(student.current_score || 100),
-        scoreColor: util.getScoreColor(student.current_score || 100)
-      }));
+      const displayStudents = students.slice(0, (page + 1) * pageSize);
+      const hasMore = displayStudents.length < students.length;
 
       this.setData({
-        students: refresh ? students : [...this.data.students, ...students],
+        allRankedStudents: students,
+        students: displayStudents,
         loading: false,
-        hasMore: students.length === pageSize,
-        page: refresh ? 0 : page
+        hasMore: hasMore
       });
     } catch (err) {
       console.error('加载排行榜失败:', err);
@@ -269,8 +268,14 @@ Page({
   // 上拉加载更多
   onReachBottom: function () {
     if (this.data.hasMore && !this.data.loading) {
-      this.setData({ page: this.data.page + 1 });
-      this.loadRanking(false);
+      const { allRankedStudents, page, pageSize } = this.data;
+      const newPage = page + 1;
+      const displayStudents = allRankedStudents.slice(0, (newPage + 1) * pageSize);
+      this.setData({
+        page: newPage,
+        students: displayStudents,
+        hasMore: displayStudents.length < allRankedStudents.length
+      });
     }
   }
 });

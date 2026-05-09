@@ -48,6 +48,10 @@
           <text class="icon">🏠</text>
           <text>{{item.building}} - {{item.room}}</text>
         </view>
+        <view class="record-students" wx:if="{{item.student_names && item.student_names.length > 0}}">
+          <text class="icon">👤</text>
+          <text>{{item.student_names.join('、')}}</text>
+        </view>
         <view class="record-info">
           <text class="record-date">{{item.inspection_date}}</text>
           <text class="record-inspector">检查人：{{item.inspector_name}}</text>

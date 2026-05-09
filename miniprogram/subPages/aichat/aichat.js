@@ -14,6 +14,7 @@ Page({
     messages: [], // {role, content, displayContent}
     inputText: '',
     sending: false,
+    canSend: false,
     loading: true,
     scrollToView: '',
     showNpcPicker: false
@@ -88,7 +89,11 @@ Page({
 
   // 输入内容
   onInputChange: function (e) {
-    this.setData({ inputText: e.detail.value })
+    const inputText = e.detail.value
+    this.setData({
+      inputText: inputText,
+      canSend: inputText.trim().length > 0 && !this.data.sending
+    })
   },
 
   // 发送消息
@@ -104,7 +109,8 @@ Page({
     this.setData({
       messages: newMessages,
       inputText: '',
-      sending: true
+      sending: true,
+      canSend: false
     })
     this.scrollToBottom()
 
@@ -170,7 +176,7 @@ Page({
       const filtered = this.data.messages.filter((_, i) => i < this.data.messages.length - 1)
       this.setData({ messages: filtered })
     } finally {
-      this.setData({ sending: false })
+      this.setData({ sending: false, canSend: this.data.inputText.trim().length > 0 })
       this.scrollToBottom()
     }
   },

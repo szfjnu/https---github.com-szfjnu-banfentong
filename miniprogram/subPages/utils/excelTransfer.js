@@ -103,11 +103,52 @@ function checkScheduleExcelPermission() {
   return { allowed: true, reason: '' }
 }
 
+async function checkGradeExcelPermission(openid) {
+  try {
+    if (!openid) {
+      return { allowed: false, reason: '无法获取用户身份，请重新进入小程序' }
+    }
+    const accessResult = await membership.checkFeatureAccess(openid, 'import_grade_excel')
+    if (!accessResult.allowed) {
+      return { allowed: false, reason: accessResult.reason || '成绩Excel导入功能仅限专业版及以上会员使用，请升级会员' }
+    }
+    return { allowed: true, reason: '' }
+  } catch (e) {
+    console.error('checkGradeExcelPermission error:', e)
+    return { allowed: false, reason: '普通用户不支持此功能' }
+  }
+}
+
+function chooseGradeExcelFile() {
+  return new Promise((resolve, reject) => {
+    wx.chooseMessageFile({
+      count: 1,
+      type: 'file',
+      extension: ['xlsx', 'xls'],
+      success: (res) => {
+        if (res.tempFiles && res.tempFiles.length > 0) {
+          const file = res.tempFiles[0]
+          if (file.size > 2 * 1024 * 1024) {
+            reject(new Error('文件大小不能超过2MB'))
+            return
+          }
+          resolve({ path: file.path, name: file.name, size: file.size })
+        } else {
+          reject(new Error('未选择文件'))
+        }
+      },
+      fail: (err) => reject(err)
+    })
+  })
+}
+
 module.exports = {
   chooseExcelFile,
   uploadToCloud,
   callDataTransfer,
   downloadExcel,
   checkExportPermission,
-  checkScheduleExcelPermission
+  checkScheduleExcelPermission,
+  checkGradeExcelPermission,
+  chooseGradeExcelFile
 }

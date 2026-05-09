@@ -320,13 +320,17 @@
 
 /* 快捷操作 */
 .quick-actions {
-  display: flex;
-  justify-content: space-around;
   margin: 0 30rpx;
   background: var(--white);
   border-radius: 16rpx;
   padding: 30rpx 20rpx;
   box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.action-row {
+  display: flex;
+  justify-content: space-around;
 }
 
 .action-item {
@@ -340,38 +344,138 @@
   transform: scale(0.95);
 }
 
+.action-item.primary {
+  min-width: 100rpx;
+}
+
 .action-icon {
   width: 90rpx;
   height: 90rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 16rpx;
+  border-radius: 20rpx;
   margin-bottom: 12rpx;
   font-size: 40rpx;
 }
 
-.action-icon.edit {
+.action-icon.edit,
+.more-icon.edit {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-.action-icon.record {
+.action-icon.record,
+.more-icon.record {
   background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 }
 
-.action-icon.leave {
+.action-icon.leave,
+.more-icon.leave {
   background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
 }
 
-.action-icon.settings {
+.action-icon.warning,
+.more-icon.warning {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ffa502 100%);
+}
+
+.action-icon.settings,
+.more-icon.settings {
   background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
 }
 
-.action-icon.stats {
+.action-icon.stats,
+.more-icon.stats {
   background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
 }
 
+.action-icon.timetable,
+.more-icon.timetable {
+  background: linear-gradient(135deg, #7c3aed 0%, #60a5fa 100%);
+}
+
+.action-icon.holiday,
+.more-icon.holiday {
+  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+}
+
+.action-icon.more {
+  background: var(--background-color);
+  font-size: 36rpx;
+  font-weight: bold;
+  color: var(--text-color-secondary);
+  letter-spacing: 2rpx;
+}
+
+.more-trigger .action-icon.more {
+  transition: transform 0.3s;
+}
+
 .action-text {
+  font-size: 24rpx;
+  color: var(--text-color-secondary);
+}
+
+/* 更多功能弹出面板 */
+.more-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  z-index: 100;
+}
+
+.more-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.more-content {
+  position: absolute;
+  left: 10rpx;
+  right: 10rpx;
+  bottom: 100%;
+  background: var(--white);
+  border-radius: 16rpx;
+  padding: 30rpx 20rpx;
+  box-shadow: 0 -4rpx 30rpx rgba(0, 0, 0, 0.15);
+  margin-bottom: 20rpx;
+}
+
+.more-grid {
+  display: flex;
+  justify-content: space-around;
+}
+
+.more-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 100rpx;
+  transition: transform 0.3s;
+}
+
+.more-item:active {
+  transform: scale(0.95);
+}
+
+.more-icon {
+  width: 90rpx;
+  height: 90rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20rpx;
+  margin-bottom: 12rpx;
+  font-size: 40rpx;
+}
+
+.more-text {
   font-size: 24rpx;
   color: var(--text-color-secondary);
 }

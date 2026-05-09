@@ -715,3 +715,14 @@
 .placeholder {
   color: var(--text-color-light);
 }
+
+.leader-search-input { width: 100%; padding: 16rpx 24rpx; background: var(--background-color); border-radius: 12rpx; font-size: 28rpx; color: var(--text-color); margin-bottom: 12rpx; }
+.leader-candidates { max-height: 400rpx; overflow-y: auto; background: var(--white); border-radius: 12rpx; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.1); margin-bottom: 16rpx; }
+.candidate-item { display: flex; justify-content: space-between; align-items: center; padding: 20rpx 24rpx; border-bottom: 1rpx solid var(--border-color); }
+.candidate-item:last-child { border-bottom: none; }
+.candidate-name { font-size: 28rpx; color: var(--text-color); }
+.candidate-id { font-size: 24rpx; color: var(--text-color-light); }
+.candidate-empty { padding: 24rpx; text-align: center; font-size: 26rpx; color: var(--text-color-light); }
+.selected-leader-inline { display: flex; align-items: center; gap: 12rpx; padding: 12rpx 0; }
+.selected-name { font-size: 28rpx; color: var(--primary-color); font-weight: bold; }
+.clear-leader { font-size: 28rpx; color: var(--text-color-light); padding: 4rpx 12rpx; }

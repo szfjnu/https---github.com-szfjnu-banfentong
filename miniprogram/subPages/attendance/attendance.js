@@ -1,4 +1,4 @@
-﻿// pages/attendance/attendance.js
+// pages/attendance/attendance.js
 const app = getApp();
 const api = require('../../utils/api.js');
 const util = require('../../utils/util.js');
@@ -45,7 +45,8 @@ Page({
     
     // 加载状态
     loading: true,
-    statsLoading: true
+    statsLoading: true,
+    showMoreActions: false
   },
 
   onLoad: function (options) {
@@ -474,6 +475,7 @@ Page({
 
   // 考勤设置
   onNavToSettings: function () {
+    this.setData({ showMoreActions: false });
     wx.navigateTo({
       url: `/subPages/attendance/settings/settings?class_id=${this.data.classId}`
     });
@@ -488,9 +490,35 @@ Page({
 
   // 全勤统计
   onNavToFullAttendance: function () {
+    this.setData({ showMoreActions: false });
     wx.navigateTo({
       url: `/subPages/attendance/fullstats/fullstats?class_id=${this.data.classId}`
     });
+  },
+
+  onNavToWarning: function () {
+    this.setData({ showMoreActions: false });
+    wx.navigateTo({
+      url: `/subPages/attendance/warning/warning?class_id=${this.data.classId}`
+    });
+  },
+
+  onNavToTimetable: function () {
+    this.setData({ showMoreActions: false });
+    wx.navigateTo({
+      url: `/subPages/attendance/timetable/timetable?class_id=${this.data.classId}`
+    });
+  },
+
+  onNavToHoliday: function () {
+    this.setData({ showMoreActions: false });
+    wx.navigateTo({
+      url: `/subPages/attendance/holiday/holiday?class_id=${this.data.classId}`
+    });
+  },
+
+  onToggleMoreActions: function () {
+    this.setData({ showMoreActions: !this.data.showMoreActions });
   },
 
   // 格式化日期 (YYYY-MM-DD)

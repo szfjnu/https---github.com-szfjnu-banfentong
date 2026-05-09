@@ -1,6 +1,6 @@
 // 系统授权管理云函数
-// 功能：学生授权管理、批量授权、权限验证
-// 权限数据存储在 student_authorizations 集合
+// 功能：学生授权管理、批量授权、权限验证、管理干部权限CRUD
+// 权限数据存储在 student_authorizations / student_leader_permission 集合
 
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
@@ -8,7 +8,6 @@ const db = cloud.database();
 const _ = db.command;
 const batchQuery = require('./utils/batchQuery');
 
-// 允许授权的模块和操作定义（白名单）
 const ALLOWED_MODULES = {
   score: { label: '积分管理', actions: ['read', 'write', 'approve'] },
   attendance: { label: '考勤管理', actions: ['read', 'write', 'approve'] },
@@ -19,12 +18,24 @@ const ALLOWED_MODULES = {
   notification: { label: '通知管理', actions: ['read', 'write'] }
 };
 
+const MODULE_PERMISSIONS = {
+  SCORE_REGISTER: 'score_register',
+  VOLUNTEER_SUBMIT: 'volunteer_submit',
+  DORM_SCORE: 'dorm_score',
+  DUTY_CHECK: 'duty_check',
+  DUTY_ARRANGE: 'duty_arrange',
+  ATTENDANCE_REGISTER: 'attendance_register'
+};
+
+const VALID_MODULE_CODES = Object.values(MODULE_PERMISSIONS);
+
+const OPEN_ACTIONS = ['getMyPermissions', 'checkModulePermission'];
+
 exports.main = async (event, context) => {
   const { action, data } = event;
   const { OPENID } = cloud.getWXContext();
 
   try {
-    // 权限验证：只有管理员和班主任可以操作
     const userRes = await db.collection('users')
       .where({ _openid: OPENID })
       .limit(1)
@@ -35,8 +46,21 @@ exports.main = async (event, context) => {
     }
 
     const userRole = userRes.data[0].role;
-    if (userRole !== 'admin' && userRole !== 'head_teacher') {
-      return { success: false, message: '无权限操作' };
+
+    if (!OPEN_ACTIONS.includes(action)) {
+      if (action === 'getStudentPermissions') {
+        if (userRole !== 'admin' && userRole !== 'head_teacher') {
+          return { success: false, message: '无权限操作' };
+        }
+      } else if (action === 'saveStudentPermission' || action === 'removeStudentPermission') {
+        if (userRole !== 'admin' && userRole !== 'head_teacher') {
+          return { success: false, message: '仅班主任或管理员可操作' };
+        }
+      } else {
+        if (userRole !== 'admin' && userRole !== 'head_teacher') {
+          return { success: false, message: '无权限操作' };
+        }
+      }
     }
 
     switch (action) {
@@ -46,6 +70,12 @@ exports.main = async (event, context) => {
       case 'batchAuthorize': return await batchAuthorize(data);
       case 'removeAuthorization': return await removeAuthorization(data);
       case 'checkPermission': return await checkPermission(data);
+      case 'getStudentPermissions': return await getStudentPermissions(data, OPENID);
+      case 'saveStudentPermission': return await saveStudentPermission(data, OPENID);
+      case 'removeStudentPermission': return await removeStudentPermission(data, OPENID);
+      case 'getMyPermissions': return await getMyPermissions(data, OPENID);
+      case 'checkModulePermission': return await checkModulePermission(data, OPENID);
+      case 'migrateOldBindings': return await migrateOldBindings(data, OPENID);
       default:
         return { success: false, message: `未知操作: ${action}` };
     }
@@ -253,4 +283,250 @@ function sanitizePermissions(permissions) {
     }
   }
   return sanitized;
+}
+
+async function migrateOldBindings(data, OPENID) {
+  const userRes = await db.collection('users').where({ _openid: OPENID }).limit(1).get()
+  if (!userRes.data || userRes.data.length === 0 || userRes.data[0].role !== 'admin') {
+    return { success: false, message: '仅管理员可执行迁移' }
+  }
+
+  let migratedCount = 0
+  let failedCount = 0
+  let skippedCount = 0
+  const failures = []
+
+  try {
+    const relations = await batchQuery.getAllRecords('user_class_relation', {
+      role: db.RegExp({ regexp: '^(parent|student)$' })
+    })
+
+    for (const rel of relations) {
+      if (!rel.student_id) {
+        skippedCount++
+        continue
+      }
+
+      const studentDoc = await db.collection('students').doc(rel.student_id).get().catch(() => null)
+      if (studentDoc && studentDoc.data && studentDoc.data.student_id) {
+        if (rel.student_id === studentDoc.data.student_id) {
+          skippedCount++
+          continue
+        }
+        await db.collection('user_class_relation').doc(rel._id).update({
+          data: { student_id: studentDoc.data.student_id }
+        })
+        migratedCount++
+      } else {
+        const studentByField = await db.collection('students')
+          .where({ student_id: rel.student_id })
+          .limit(1).get()
+        if (studentByField.data && studentByField.data.length > 0) {
+          skippedCount++
+          continue
+        }
+        failedCount++
+        failures.push({ relation_id: rel._id, old_student_id: rel.student_id, reason: '找不到对应学生记录' })
+      }
+    }
+
+    return {
+      success: true,
+      data: { migratedCount, failedCount, skippedCount, failures, totalProcessed: relations.length }
+    }
+  } catch (err) {
+    console.error('migrateOldBindings失败:', err)
+    return { success: false, message: err.message || '迁移失败' }
+  }
+}
+
+async function getStudentPermissions(data, OPENID) {
+  const { class_id } = data;
+  if (!class_id) return { success: false, message: '缺少班级ID' };
+
+  const permissions = await batchQuery.getAllRecords('student_leader_permission', { class_id });
+
+  const studentIds = permissions.map(p => p.student_id).filter(Boolean);
+  const studentMap = {};
+  if (studentIds.length > 0) {
+    const students = await batchQuery.getAllRecords('students', {
+      student_id: _.in(studentIds)
+    });
+    students.forEach(s => { studentMap[s.student_id] = s; });
+  }
+
+  const result = permissions.map(p => {
+    const student = studentMap[p.student_id] || {};
+    return {
+      student_id: p.student_id,
+      student_name: student.name || student.student_name || p.student_name || '',
+      is_leader: p.is_leader || false,
+      permissions: p.permissions || [],
+      updated_at: p.updated_at
+    };
+  });
+
+  return { success: true, data: result };
+}
+
+async function saveStudentPermission(data, OPENID) {
+  const { class_id, student_id, is_leader, permissions } = data;
+  if (!class_id || !student_id) {
+    return { success: false, message: '缺少必要参数' };
+  }
+
+  const sanitizedPermissions = (permissions || []).filter(p => VALID_MODULE_CODES.includes(p));
+
+  const studentRes = await db.collection('students')
+    .where({ student_id, class_id })
+    .limit(1)
+    .get();
+  if (!studentRes.data || studentRes.data.length === 0) {
+    return { success: false, message: '该学生不属于此班级' };
+  }
+  const studentName = studentRes.data[0].name || studentRes.data[0].student_name || '';
+
+  const now = db.serverDate();
+
+  const existing = await db.collection('student_leader_permission')
+    .where({ class_id, student_id })
+    .limit(1)
+    .get();
+
+  if (existing.data && existing.data.length > 0) {
+    await db.collection('student_leader_permission')
+      .doc(existing.data[0]._id)
+      .update({
+        data: {
+          is_leader: is_leader !== undefined ? is_leader : existing.data[0].is_leader,
+          permissions: sanitizedPermissions,
+          updated_at: now
+        }
+      });
+  } else {
+    await db.collection('student_leader_permission').add({
+      data: {
+        student_id,
+        student_name: studentName,
+        class_id,
+        is_leader: is_leader || false,
+        permissions: sanitizedPermissions,
+        granted_by: OPENID,
+        granted_at: now,
+        created_at: now,
+        updated_at: now
+      }
+    });
+  }
+
+  return { success: true, data: { student_id, is_leader, permissions: sanitizedPermissions } };
+}
+
+async function removeStudentPermission(data, OPENID) {
+  const { class_id, student_id } = data;
+  if (!class_id || !student_id) {
+    return { success: false, message: '缺少必要参数' };
+  }
+
+  const existing = await db.collection('student_leader_permission')
+    .where({ class_id, student_id })
+    .limit(1)
+    .get();
+
+  if (!existing.data || existing.data.length === 0) {
+    return { success: false, message: '权限记录不存在' };
+  }
+
+  await db.collection('student_leader_permission')
+    .doc(existing.data[0]._id)
+    .update({
+      data: {
+        is_leader: false,
+        permissions: [],
+        updated_at: db.serverDate()
+      }
+    });
+
+  return { success: true, message: '权限已撤销' };
+}
+
+async function getMyPermissions(data, OPENID) {
+  const relRes = await db.collection('user_class_relation')
+    .where({ _openid: OPENID })
+    .limit(1)
+    .get();
+
+  if (!relRes.data || relRes.data.length === 0) {
+    return { success: true, data: { is_leader: false, permissions: [] } };
+  }
+
+  const student_id = relRes.data[0].student_id;
+  if (!student_id) {
+    return { success: true, data: { is_leader: false, permissions: [] } };
+  }
+
+  const permRes = await db.collection('student_leader_permission')
+    .where({ student_id })
+    .limit(1)
+    .get();
+
+  if (!permRes.data || permRes.data.length === 0) {
+    return { success: true, data: { is_leader: false, permissions: [] } };
+  }
+
+  return {
+    success: true,
+    data: {
+      is_leader: permRes.data[0].is_leader || false,
+      permissions: permRes.data[0].permissions || []
+    }
+  };
+}
+
+async function checkModulePermission(data, OPENID) {
+  const { module_code } = data;
+  if (!module_code) {
+    return { success: false, message: '缺少模块代码' };
+  }
+
+  const userRes = await db.collection('users')
+    .where({ _openid: OPENID })
+    .limit(1)
+    .get();
+
+  if (!userRes.data || userRes.data.length === 0) {
+    return { success: true, data: { hasPermission: false } };
+  }
+
+  const userRole = userRes.data[0].role;
+  if (userRole === 'admin' || userRole === 'head_teacher') {
+    return { success: true, data: { hasPermission: true } };
+  }
+
+  if (userRole !== 'student') {
+    return { success: true, data: { hasPermission: false } };
+  }
+
+  const relRes = await db.collection('user_class_relation')
+    .where({ _openid: OPENID })
+    .limit(1)
+    .get();
+
+  if (!relRes.data || relRes.data.length === 0 || !relRes.data[0].student_id) {
+    return { success: true, data: { hasPermission: false } };
+  }
+
+  const student_id = relRes.data[0].student_id;
+
+  const permRes = await db.collection('student_leader_permission')
+    .where({ student_id, is_leader: true })
+    .limit(1)
+    .get();
+
+  if (!permRes.data || permRes.data.length === 0) {
+    return { success: true, data: { hasPermission: false } };
+  }
+
+  const hasPermission = (permRes.data[0].permissions || []).includes(module_code);
+  return { success: true, data: { hasPermission } };
 }

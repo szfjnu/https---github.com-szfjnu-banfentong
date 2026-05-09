@@ -19,7 +19,7 @@ exports.main = async (event, context) => {
   try {
     console.log('正在请求高德天气:', url); // 打印日志便于调试
     
-    const res = await axios.get(url);
+    const res = await axios.get(url, { timeout: 5000 });
 
     // 高德成功响应时 status 为 "1"
     if (res.data.status === '1') {

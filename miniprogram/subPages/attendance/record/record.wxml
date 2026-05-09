@@ -54,7 +54,7 @@
 
     <!-- 记录列表 -->
     <view class="record-list">
-      <view class="record-item" wx:for="{{records}}" wx:key="_id">
+      <view class="record-item" wx:for="{{records}}" wx:key="_id" bindtap="onViewRecordDetail" data-record="{{item}}">
         <view class="record-main">
           <view class="record-left">
             <view class="category-badge" style="background: {{item.categoryColor}}20; color: {{item.categoryColor}}">
@@ -69,6 +69,7 @@
         </view>
         <view class="record-footer">
           <text class="score-change" wx:if="{{item.score_change}}">{{item.score_change > 0 ? '+' : ''}}{{item.score_change}}积分</text>
+          <text class="period-info" wx:if="{{item.period_section_name}}">{{item.period_section_name}} {{item.period_start_time}}-{{item.period_end_time}}</text>
           <text class="recorder">记录人：{{item.recorder_name}}</text>
         </view>
         <view class="record-actions" wx:if="{{isAdmin}}">
@@ -125,16 +126,26 @@
     <!-- 学生列表 -->
     <view class="student-section">
       <view class="section-header">
-        <text class="section-title">选择学生</text>
-        <view class="select-all-btn" bindtap="onSelectAll">
-          <text>全选</text>
-        </view>
+        <view class="section-title">选择学生</view>
+        <view class="selected-count">已选 {{selectedEditStudents.length}} 人</view>
       </view>
-      <view class="student-list">
+      <view class="edit-filter-bar">
+        <picker mode="selector" range="{{editGroupOptions}}" range-key="label" value="{{selectedEditGroupIndex}}" bindchange="onEditGroupChange">
+          <view class="picker-filter">
+            <text>{{editGroupOptions[selectedEditGroupIndex].label}}</text>
+            <text class="arrow">▼</text>
+          </view>
+        </picker>
+        <view class="search-input-small">
+          <input placeholder="搜索姓名/学号" value="{{searchKeyword}}" bindinput="onSearchInput" />
+        </view>
+        <view class="select-all-btn" bindtap="onSelectAll">全选</view>
+      </view>
+      <scroll-view class="student-list" scroll-y>
         <view class="student-item {{item.selected ? 'selected' : ''}}"
-              wx:for="{{editStudents}}" wx:key="student_id"
+              wx:for="{{filteredEditStudents}}" wx:key="student_id"
               bindtap="onSelectStudent"
-              data-index="{{index}}">
+              data-id="{{item.student_id}}">
           <view class="student-checkbox">
             <text class="checkbox-icon">{{item.selected ? '✓' : ''}}</text>
           </view>
@@ -148,7 +159,23 @@
             </text>
           </view>
         </view>
-      </view>
+      </scroll-view>
+    </view>
+
+    <!-- 旷课节次选择 -->
+    <view class="period-section" wx:if="{{show_period_selector && period_sections.length > 0}}">
+      <view class="section-title">选择旷课节次</view>
+      <checkbox-group bindchange="onPeriodSectionChange">
+        <view class="period-list">
+          <label class="period-item" wx:for="{{period_sections}}" wx:key="section_id">
+            <checkbox value="{{item.section_id}}" checked="{{item.checked}}" />
+            <text class="period-text">{{item.section_name}} {{item.start_time}}-{{item.end_time}}</text>
+          </label>
+        </view>
+      </checkbox-group>
+    </view>
+    <view class="period-section" wx:if="{{show_period_selector && period_sections.length === 0}}">
+      <view class="section-title" style="color: var(--text-color-light);">暂无作息时间配置，将按全天旷课记录</view>
     </view>
 
     <!-- 保存按钮 -->
@@ -236,6 +263,43 @@
     <view class="modal-footer">
       <button class="reset-btn" bindtap="onResetFilter">重置</button>
       <button class="confirm-btn" bindtap="onConfirmFilter">确定</button>
+    </view>
+  </view>
+</view>
+
+<!-- 记录详情弹窗 -->
+<view class="detail-modal" wx:if="{{showRecordDetail}}">
+  <view class="modal-mask" bindtap="onCloseRecordDetail"></view>
+  <view class="detail-modal-content">
+    <view class="detail-modal-header">
+      <text class="detail-modal-title">考勤详情</text>
+      <view class="detail-modal-close" bindtap="onCloseRecordDetail">✕</view>
+    </view>
+    <view class="detail-modal-body">
+      <view class="detail-row">
+        <text class="detail-label">学生姓名</text>
+        <text class="detail-value">{{recordDetail.student_name}}</text>
+      </view>
+      <view class="detail-row">
+        <text class="detail-label">日期</text>
+        <text class="detail-value">{{recordDetail.date}}</text>
+      </view>
+      <view class="detail-row">
+        <text class="detail-label">考勤类别</text>
+        <text class="detail-value">{{recordDetail.category_name}}</text>
+      </view>
+      <view class="detail-row" wx:if="{{recordDetail.period_section_name}}">
+        <text class="detail-label">旷课节次</text>
+        <text class="detail-value">{{recordDetail.period_section_name}} ({{recordDetail.period_start_time}}-{{recordDetail.period_end_time}})</text>
+      </view>
+      <view class="detail-row">
+        <text class="detail-label">积分变动</text>
+        <text class="detail-value">{{recordDetail.score_change > 0 ? '+' : ''}}{{recordDetail.score_change || 0}}分</text>
+      </view>
+      <view class="detail-row">
+        <text class="detail-label">记录人</text>
+        <text class="detail-value">{{recordDetail.recorder_name}}</text>
+      </view>
     </view>
   </view>
 </view>

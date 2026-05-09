@@ -1,0 +1,49 @@
+<view class="rules-container">
+  <view class="loading-box" wx:if="{{loading}}"><view class="loading-spinner"></view><text>加载中...</text></view>
+
+  <block wx:if="{{!loading}}">
+    <!-- 旷课纪律预警阈值 -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">旷课纪律预警阈值</text>
+        <text class="default-tag" wx:if="{{absentIsDefault}}">默认</text>
+      </view>
+
+      <view class="level-list">
+        <view class="level-item" wx:for="{{absentLevels}}" wx:key="level_code">
+          <view class="level-color" style="background: {{item.color}};"></view>
+          <text class="level-name">{{item.level_name}}</text>
+          <view class="level-inputs">
+            <text class="level-label">旷课 ≥</text>
+            <input class="level-input" type="number" value="{{item.min_sections}}" bindinput="onLevelMinInput" data-index="{{index}}" />
+            <text class="level-label">且 &lt; {{item.max_sections !== null ? item.max_sections : '∞'}} 节</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="btn-row">
+        <view class="btn primary-btn" bindtap="onSaveAbsentConfig">保存阈值</view>
+        <view class="btn outline-btn" bindtap="onResetAbsentConfig">恢复默认</view>
+      </view>
+    </view>
+
+    <!-- 休学预警阈值 -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">休学预警阈值</text>
+        <text class="default-tag" wx:if="{{leaveIsDefault}}">默认</text>
+      </view>
+
+      <view class="leave-config">
+        <text class="leave-desc">病假 + 事假 + 旷课天数超过</text>
+        <input class="leave-input" type="number" value="{{leaveThreshold}}" bindinput="onLeaveThresholdInput" />
+        <text class="leave-desc">天时触发休学预警</text>
+      </view>
+
+      <view class="btn-row">
+        <view class="btn primary-btn" bindtap="onSaveLeaveConfig">保存阈值</view>
+        <view class="btn outline-btn" bindtap="onResetLeaveConfig">恢复默认</view>
+      </view>
+    </view>
+  </block>
+</view>

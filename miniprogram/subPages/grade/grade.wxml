@@ -1,6 +1,5 @@
 <!-- 成绩管理中心 -->
 <wxs module="grade">
-  // 根据科目名获取学生分数
   function getScore(student, subject) {
     if (!student || !student.subjects) return '';
     for (var i = 0; i < student.subjects.length; i++) {
@@ -10,14 +9,26 @@
     }
     return '';
   }
-  // 判断是否不及格
   function isFail(student, subject) {
     var score = getScore(student, subject);
     return score !== '' && score < 60;
   }
+  function formatSize(bytes) {
+    if (!bytes || bytes <= 0) return '0B';
+    if (bytes < 1024) return bytes + 'B';
+    var kb = bytes / 1024;
+    if (kb < 1024) {
+      var fixed = Math.round(kb * 10) / 10;
+      return fixed + 'KB';
+    }
+    var mb = kb / 1024;
+    var fixedMb = Math.round(mb * 10) / 10;
+    return fixedMb + 'MB';
+  }
   module.exports = {
     getScore: getScore,
-    isFail: isFail
+    isFail: isFail,
+    formatSize: formatSize
   };
 </wxs>
 
@@ -90,7 +101,6 @@
 
   <!-- 学生/家长视图：个人成绩 + 趋势图 -->
   <view wx:if="{{!loading && (role === 'student' || role === 'parent')}}">
-    <!-- 简易趋势图 -->
     <view class="trend-chart" wx:if="{{myGrades.length > 0}}">
       <view class="chart-title">成绩趋势</view>
       <view class="chart-bars">
@@ -103,7 +113,6 @@
       </view>
     </view>
 
-    <!-- 个人成绩列表 -->
     <view class="my-grade-list">
       <view class="grade-card" wx:for="{{myGrades}}" wx:key="_id">
         <view class="grade-card-left">
@@ -121,10 +130,13 @@
 
   <!-- 班主任/管理员视图：全班成绩表格 -->
   <view wx:if="{{!loading && (role === 'head_teacher' || role === 'admin')}}">
-    <!-- 批量导入按钮 -->
+    <!-- 批量导入按钮 + 科目管理 -->
     <view class="action-bar">
       <view class="import-btn" bindtap="onImportExcel">
         <text>📥 批量导入</text>
+      </view>
+      <view class="subject-manage-btn" bindtap="onSubjectManage">
+        <text>⚙️ 科目管理</text>
       </view>
     </view>
 
@@ -148,33 +160,138 @@
     <view class="empty-tip" wx:if="{{studentList.length === 0 && !loading}}">暂无成绩数据，请先录入</view>
   </view>
 
-  <!-- 批量导入弹窗 -->
-  <view class="modal-mask" wx:if="{{showImportModal}}" bindtap="closeImportModal">
-    <view class="modal-content" catchtap="preventBubble">
-      <view class="modal-title">批量录入成绩</view>
+  <!-- 科目管理弹窗 -->
+  <view class="modal-mask" wx:if="{{showSubjectModal}}" bindtap="closeSubjectModal">
+    <view class="modal-content subject-modal-content" catchtap="preventBubble">
+      <view class="modal-title">科目管理</view>
 
-      <!-- 科目选择 -->
-      <view class="import-field">
-        <text class="import-label">录入科目：</text>
-        <picker mode="selector" range="{{importSubjectList}}" value="{{importSubjectIndex}}" bindchange="onImportSubjectChange">
-          <view class="import-picker">{{importSubject}}</view>
-        </picker>
-      </view>
-
-      <!-- 数据输入 -->
-      <view class="import-field">
-        <text class="import-label">成绩数据：</text>
-        <text class="import-hint">每行一条，格式：学号 分数（空格/逗号/Tab分隔）</text>
-        <textarea class="import-textarea" placeholder="2024001 95&#10;2024002 88&#10;2024003 72" value="{{importText}}" bindinput="onImportInput" auto-height maxlength="-1" />
-      </view>
-
-      <!-- 操作按钮 -->
-      <view class="modal-actions">
-        <view class="modal-btn cancel-btn" bindtap="closeImportModal">取消</view>
-        <view class="modal-btn confirm-btn {{importing ? 'disabled' : ''}}" bindtap="doImport">
-          {{importing ? '录入中...' : '确认录入'}}
+      <!-- 默认科目 -->
+      <view class="subject-section">
+        <view class="subject-section-title">默认科目</view>
+        <view class="subject-list">
+          <view class="subject-item" wx:for="{{subjectConfig.default_subjects}}" wx:key="*this">
+            <text class="subject-name">{{item}}</text>
+            <text class="subject-tag default-tag">默认</text>
+          </view>
         </view>
       </view>
+
+      <!-- 自定义科目 -->
+      <view class="subject-section" wx:if="{{subjectConfig.custom_subjects.length > 0}}">
+        <view class="subject-section-title">自定义科目</view>
+        <view class="subject-list">
+          <view class="subject-item" wx:for="{{subjectConfig.custom_subjects}}" wx:key="*this">
+            <text class="subject-name">{{item}}</text>
+            <view class="subject-remove-btn" bindtap="onRemoveSubject" data-name="{{item}}">删除</view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 新增科目 -->
+      <view class="subject-add-row">
+        <input class="subject-add-input" placeholder="输入新科目名称" value="{{newSubjectName}}" bindinput="onNewSubjectInput" maxlength="10" />
+        <view class="subject-add-btn" bindtap="onAddSubject">添加</view>
+      </view>
+
+      <view class="modal-actions">
+        <view class="modal-btn confirm-btn" bindtap="closeSubjectModal">完成</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 批量导入弹窗 -->
+  <view class="modal-mask" wx:if="{{showImportModal}}" bindtap="closeImportModal">
+    <view class="modal-content import-modal-content" catchtap="preventBubble">
+      <view class="modal-title">批量录入成绩</view>
+
+      <!-- Tab切换 -->
+      <view class="import-tabs">
+        <view class="import-tab {{importTab === 'text' ? 'active' : ''}}" bindtap="onImportTabChange" data-tab="text">文本录入</view>
+        <view class="import-tab {{importTab === 'excel' ? 'active' : ''}} {{!excelPermission.allowed ? 'tab-locked' : ''}}" bindtap="onImportTabChange" data-tab="excel">
+          Excel导入
+          <text class="pro-tag" wx:if="{{!excelPermission.allowed}}">PRO</text>
+        </view>
+      </view>
+
+      <!-- 科目选择 - 可编辑输入框 -->
+      <view class="import-field">
+        <text class="import-label">录入科目：</text>
+        <view class="subject-input-wrap">
+          <input class="subject-input" value="{{importSubjectInput}}" bindinput="onImportSubjectInput" bindfocus="onImportSubjectInput" placeholder="选择或输入科目" />
+          <view class="subject-suggestions" wx:if="{{showSubjectSuggestions && importSubjectSuggestions.length > 0}}">
+            <view class="suggestion-item" wx:for="{{importSubjectSuggestions}}" wx:key="*this" bindtap="onSubjectSuggestionSelect" data-name="{{item}}">
+              {{item}}
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 文本录入Tab -->
+      <block wx:if="{{importTab === 'text'}}">
+        <view class="import-field">
+          <text class="import-label">成绩数据：</text>
+          <text class="import-hint">每行一条，格式：学号 分数（空格/逗号/Tab分隔）</text>
+          <textarea class="import-textarea" placeholder="2024001 95&#10;2024002 88&#10;2024003 72" value="{{importText}}" bindinput="onImportInput" auto-height maxlength="-1" />
+        </view>
+
+        <view class="modal-actions">
+          <view class="modal-btn cancel-btn" bindtap="closeImportModal">取消</view>
+          <view class="modal-btn confirm-btn {{importing ? 'disabled' : ''}}" bindtap="doImport">
+            {{importing ? '录入中...' : '确认录入'}}
+          </view>
+        </view>
+      </block>
+
+      <!-- Excel导入Tab -->
+      <block wx:if="{{importTab === 'excel'}}">
+        <view class="excel-upload-area" wx:if="{{!excelFile && !excelParsing}}">
+          <view class="excel-upload-btn" bindtap="onChooseExcelFile">
+            <text class="excel-upload-icon">📄</text>
+            <text class="excel-upload-text">选择Excel文件</text>
+            <text class="excel-upload-hint">支持 .xlsx / .xls，文件大小不超过2MB</text>
+          </view>
+        </view>
+
+        <!-- 文件信息 -->
+        <view class="excel-file-info" wx:if="{{excelFile}}">
+          <text class="excel-file-name">{{excelFile.name}}</text>
+          <text class="excel-file-size">{{grade.formatSize(excelFile.size)}}</text>
+        </view>
+
+        <!-- 解析中 -->
+        <view class="excel-loading" wx:if="{{excelUploading || excelParsing}}">
+          <view class="loading-spinner small"></view>
+          <text>{{excelUploading ? '上传中...' : '解析中...'}}</text>
+        </view>
+
+        <!-- 预览数据 -->
+        <view class="excel-preview" wx:if="{{excelPreviewData.length > 0}}">
+          <view class="excel-preview-title">数据预览（前10条）</view>
+          <view class="preview-table">
+            <view class="preview-header">
+              <view class="preview-th">学号</view>
+              <view class="preview-th">姓名</view>
+              <view class="preview-th">科目</view>
+              <view class="preview-th">分数</view>
+              <view class="preview-th">状态</view>
+            </view>
+            <view class="preview-row {{item.valid ? '' : 'row-invalid'}}" wx:for="{{excelPreviewData}}" wx:key="index">
+              <view class="preview-td">{{item.student_id}}</view>
+              <view class="preview-td">{{item.student_name || '-'}}</view>
+              <view class="preview-td">{{item.subject || '-'}}</view>
+              <view class="preview-td">{{item.score}}</view>
+              <view class="preview-td {{item.valid ? 'status-valid' : 'status-invalid'}}">{{item.valid ? '有效' : '无效'}}</view>
+            </view>
+          </view>
+        </view>
+
+        <view class="modal-actions" wx:if="{{excelPreviewData.length > 0}}">
+          <view class="modal-btn cancel-btn" bindtap="closeImportModal">取消</view>
+          <view class="modal-btn confirm-btn {{excelImporting ? 'disabled' : ''}}" bindtap="onConfirmExcelImport">
+            {{excelImporting ? '录入中...' : '确认录入'}}
+          </view>
+        </view>
+      </block>
     </view>
   </view>
 </view>

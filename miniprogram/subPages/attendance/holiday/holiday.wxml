@@ -1,0 +1,60 @@
+<view class="holiday-container">
+  <view class="loading-box" wx:if="{{loading}}"><view class="loading-spinner"></view><text>加载中...</text></view>
+
+  <block wx:if="{{!loading}}">
+    <view class="adjust-list">
+      <view class="adjust-item" wx:for="{{adjustments}}" wx:key="_id">
+        <view class="adjust-left">
+          <text class="adjust-date">{{item.adjust_date}}</text>
+          <text class="adjust-type-tag {{item.adjust_type}}">{{item.adjust_type === 'makeup' ? '补课' : '放假'}}</text>
+        </view>
+        <view class="adjust-right">
+          <text class="adjust-desc" wx:if="{{item.adjust_type === 'makeup'}}">补周{{['一','二','三','四','五'][item.target_week_day - 1]}}的课</text>
+          <text class="adjust-desc" wx:else>放假</text>
+          <text class="adjust-remark" wx:if="{{item.description}}">{{item.description}}</text>
+          <view class="del-btn" bindtap="onDeleteAdjustment" data-id="{{item._id}}">删除</view>
+        </view>
+      </view>
+      <view class="empty-tip" wx:if="{{adjustments.length === 0}}">暂无调休规则</view>
+    </view>
+
+    <view class="add-btn" bindtap="onShowAddModal">+ 添加调休规则</view>
+  </block>
+
+  <view class="modal-mask" wx:if="{{showAddModal}}" bindtap="closeModal">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-title">添加调休规则</view>
+
+      <view class="form-item">
+        <text class="form-label">调休日期</text>
+        <picker mode="date" value="{{adjustDate}}" bindchange="onDateChange">
+          <view class="form-picker">{{adjustDate || '选择日期'}}</view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">类型</text>
+        <picker mode="selector" range="{{['补课', '放假']}}" value="{{adjustType === 'makeup' ? 0 : 1}}" bindchange="onTypeChange">
+          <view class="form-picker">{{adjustType === 'makeup' ? '补课' : '放假'}}</view>
+        </picker>
+      </view>
+
+      <view class="form-item" wx:if="{{adjustType === 'makeup'}}">
+        <text class="form-label">补哪天的课</text>
+        <picker mode="selector" range="{{weekDayNames}}" value="{{targetWeekDay - 1}}" bindchange="onWeekDayChange">
+          <view class="form-picker">{{weekDayNames[targetWeekDay - 1]}}</view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">备注</text>
+        <input class="form-input" value="{{description}}" bindinput="onDescInput" placeholder="可选" />
+      </view>
+
+      <view class="modal-actions">
+        <view class="modal-btn cancel-btn" bindtap="closeModal">取消</view>
+        <view class="modal-btn confirm-btn" bindtap="onSaveAdjustment">保存</view>
+      </view>
+    </view>
+  </view>
+</view>

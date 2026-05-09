@@ -4,9 +4,16 @@
   "gender": { "label": "性别", "aliases": ["gender", "性别", "Sex"] },
   "is_boarding": { "label": "住宿", "aliases": ["is_boarding", "住宿", "是否住宿", "住校", "Boarding"] },
   "position": { "label": "班干部", "aliases": ["position", "班干部", "职务", "班委", "Position"] },
-  "phone": { "label": "联系电话", "aliases": ["phone", "联系电话", "手机号", "电话", "Phone"] },
+  "phone_number": { "label": "联系电话", "aliases": ["phone_number", "phone", "联系电话", "手机号", "电话", "Phone"] },
   "parent_name": { "label": "家长姓名", "aliases": ["parent_name", "家长姓名", "家长", "Parent Name"] },
-  "parent_phone": { "label": "家长电话", "aliases": ["parent_phone", "家长电话", "家长手机", "Parent Phone"] },
-  "address": { "label": "家庭住址", "aliases": ["address", "家庭住址", "住址", "地址", "Address"] },
-  "initial_score": { "label": "初始积分", "aliases": ["initial_score", "初始积分", "起始积分", "Initial Score"] }
+  "parent_phone_number": { "label": "家长电话", "aliases": ["parent_phone_number", "parent_phone", "家长电话", "家长手机", "Parent Phone"] },
+  "home_address": { "label": "家庭住址", "aliases": ["home_address", "address", "家庭住址", "住址", "地址", "Address"] },
+  "initial_score": { "label": "初始积分", "aliases": ["initial_score", "初始积分", "起始积分", "Initial Score"] },
+  "date_of_birth": { "label": "出生日期", "aliases": ["date_of_birth", "出生日期", "生日", "Birth Date"] },
+  "ethnicity": { "label": "民族", "aliases": ["ethnicity", "民族", "Ethnicity"] },
+  "political_status": { "label": "政治面貌", "aliases": ["political_status", "政治面貌", "Political Status"] },
+  "enrollment_date": { "label": "入学日期", "aliases": ["enrollment_date", "入学日期", "Enrollment Date"] },
+  "building_no": { "label": "楼栋号", "aliases": ["building_no", "楼栋号", "楼栋", "栋号", "Building"] },
+  "room_no": { "label": "房间号", "aliases": ["room_no", "房间号", "宿舍号", "Room"] },
+  "bed_no": { "label": "床位号", "aliases": ["bed_no", "床位号", "床位", "Bed"] }
 }

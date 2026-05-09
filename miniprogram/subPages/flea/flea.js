@@ -1,4 +1,5 @@
 ﻿const app = getApp()
+const { resolveCloudFiles } = require('./utils/cloudFile.js')
 
 Page({
   data: {
@@ -86,6 +87,24 @@ Page({
       const result = res.result
       if (result.code === 0) {
         const items = this.data.items.concat(result.data.items)
+        const allImageIds = []
+        items.forEach(item => {
+          if (item.images && item.images.length > 0) {
+            item.images.forEach(img => { if (img && img.startsWith('cloud://')) allImageIds.push(img) })
+          }
+        })
+        if (allImageIds.length > 0) {
+          const urls = await resolveCloudFiles(allImageIds)
+          let urlIdx = 0
+          items.forEach(item => {
+            if (item.images && item.images.length > 0) {
+              item.images = item.images.map(img => {
+                if (img && img.startsWith('cloud://')) return urls[urlIdx++] || img
+                return img
+              })
+            }
+          })
+        }
         this.setData({
           items,
           hasMore: result.data.hasMore,

@@ -6,6 +6,7 @@ const { exportStudentHandler } = require('./handlers/exportStudent')
 const { exportScoreRecordsHandler } = require('./handlers/exportScoreRecords')
 const { exportAttendanceHandler } = require('./handlers/exportAttendance')
 const { importScheduleHandler } = require('./handlers/importSchedule')
+const { importGradeHandler } = require('./handlers/importGrade')
 
 exports.main = async (event, context) => {
   const { action, data } = event
@@ -36,6 +37,9 @@ exports.main = async (event, context) => {
         break
       case 'importSchedule':
         result = await importScheduleHandler(data || {}, OPENID)
+        break
+      case 'importGrade':
+        result = await importGradeHandler(data || {}, OPENID)
         break
       default:
         result = { success: false, message: `未处理的操作: ${action}` }

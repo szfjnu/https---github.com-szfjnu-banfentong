@@ -30,11 +30,17 @@ module.exports = {
 <view class="detail-container">
   <!-- 图片轮播 -->
   <swiper class="image-swiper" indicator-dots indicator-color="rgba(255,255,255,0.4)" indicator-active-color="#ffffff" circular>
-    <swiper-item wx:for="{{item.images}}" wx:key="index">
-      <image class="swiper-image" src="{{item}}" mode="aspectFill" bindtap="previewImage" data-src="{{item}}" />
-    </swiper-item>
-    <swiper-item wx:if="{{item.images.length === 0}}">
-      <image class="swiper-image" src="/images/icons/default-item.png" mode="aspectFill" />
+    <!-- 正常图片列表 -->
+    <block wx:for="{{item.images}}" wx:key="*this">
+      <swiper-item>
+        <image class="swiper-image" src="{{item}}" mode="aspectFill" bindtap="previewImage" data-src="{{item}}" />
+      </swiper-item>
+    </block>
+
+    <!-- 兜底：当图片数组为空时显示本地默认图 -->
+    <!-- 建议：将默认图放在项目根目录的 images 文件夹下，或者使用网络图片 -->
+    <swiper-item wx:if="{{!item.images || item.images.length === 0}}">
+      <image class="swiper-image" src="/images/default_placeholder.png" mode="aspectFill" />
     </swiper-item>
   </swiper>
 
@@ -67,7 +73,13 @@ module.exports = {
   <!-- 卖家信息 -->
   <view class="seller-card">
     <view class="seller-avatar-wrap">
-      <image class="seller-avatar" src="{{item.seller_avatar || '/images/icons/default-avatar.png'}}" mode="aspectFill" />
+      <!-- 使用 binderror 处理头像加载失败的情况 -->
+      <image class="seller-avatar"
+        src="{{item.seller_avatar}}"
+        mode="aspectFill"
+        binderror="onAvatarError"
+        data-default="/images/default_avatar.png"
+      />
     </view>
     <view class="seller-info">
       <text class="seller-name">{{item.seller_name}}</text>

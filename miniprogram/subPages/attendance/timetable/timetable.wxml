@@ -1,0 +1,76 @@
+<view class="timetable-container">
+  <view class="loading-box" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text>加载中...</text>
+  </view>
+
+  <block wx:if="{{!loading}}">
+    <!-- 星期Tab -->
+    <view class="day-tabs">
+      <view class="day-tab {{currentDay === index + 1 ? 'active' : ''}}" wx:for="{{dayNames}}" wx:key="index"
+        bindtap="switchDay" data-day="{{index + 1}}">{{item}}</view>
+    </view>
+
+    <!-- 节次列表 -->
+    <view class="section-list">
+      <view class="section-item {{item.section_type}}" wx:for="{{currentDaySections}}" wx:key="section_id">
+        <view class="section-left">
+          <text class="section-name">{{item.section_name}}</text>
+          <text class="section-type-tag type-{{item.section_type}}">{{item.section_type === 'class' ? '上课' : item.section_type === 'break' ? '课间' : '午休'}}</text>
+        </view>
+        <view class="section-right">
+          <text class="section-time">{{item.start_time}} - {{item.end_time}}</text>
+          <view class="section-actions">
+            <view class="action-btn edit-btn" bindtap="onEditSection" data-index="{{index}}">编辑</view>
+            <view class="action-btn del-btn" bindtap="onDeleteSection" data-index="{{index}}">删除</view>
+          </view>
+        </view>
+      </view>
+      <view class="empty-tip" wx:if="{{currentDaySections.length === 0}}">暂无节次配置</view>
+    </view>
+
+    <!-- 底部操作 -->
+    <view class="bottom-actions">
+      <view class="action-btn add-btn" bindtap="onAddSection">+ 添加节次</view>
+      <view class="action-btn reset-btn" bindtap="onResetDefault">恢复默认</view>
+    </view>
+  </block>
+
+  <!-- 编辑弹窗 -->
+  <view class="modal-mask" wx:if="{{showEditModal}}" bindtap="closeModal">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-title">{{editingSection !== null ? '编辑节次' : '添加节次'}}</view>
+
+      <view class="form-item">
+        <text class="form-label">节次名称</text>
+        <input class="form-input" value="{{editSectionName}}" bindinput="onEditInput" data-field="editSectionName" placeholder="如：第1节" />
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">节次类型</text>
+        <picker mode="selector" range="{{sectionTypes}}" range-key="label" value="{{sectionTypes.indexOf(editSectionType)}}" bindchange="onTypeChange">
+          <view class="form-picker">{{sectionTypeNames[editSectionType] || '上课'}}</view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">开始时间</text>
+        <picker mode="time" value="{{editStartTime}}" bindchange="onEditInput" data-field="editStartTime">
+          <view class="form-picker">{{editStartTime || '选择时间'}}</view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">结束时间</text>
+        <picker mode="time" value="{{editEndTime}}" bindchange="onEditInput" data-field="editEndTime">
+          <view class="form-picker">{{editEndTime || '选择时间'}}</view>
+        </picker>
+      </view>
+
+      <view class="modal-actions">
+        <view class="modal-btn cancel-btn" bindtap="closeModal">取消</view>
+        <view class="modal-btn confirm-btn" bindtap="onSaveSection">保存</view>
+      </view>
+    </view>
+  </view>
+</view>

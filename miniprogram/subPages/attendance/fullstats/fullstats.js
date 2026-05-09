@@ -37,9 +37,14 @@ Page({
     const classId = options.class_id || app.globalData.class_id;
     this.setData({ classId: classId });
     
-    // 初始化为当前周
     this.initCurrentPeriod();
     this.loadStatistics();
+  },
+
+  onShow: function () {
+    if (this.data.classId) {
+      this.loadStatistics();
+    }
   },
 
   // 初始化当前时间周期
@@ -165,17 +170,18 @@ Page({
       attendanceRecords.forEach(record => {
         const stat = studentStats[record.student_id];
         if (stat) {
-          if (record.category_id === 'sick_leave') {
+          const code = record.category_code || record.category_id || '';
+          if (code === 'sick_leave') {
             stat.sick_leave_days++;
             stat.is_full_attendance = false;
-          } else if (record.category_id === 'personal_leave') {
+          } else if (code === 'personal_leave') {
             stat.personal_leave_days++;
             stat.is_full_attendance = false;
-          } else if (record.category_id === 'late') {
+          } else if (code === 'late') {
             stat.late_count++;
-          } else if (record.category_id === 'early_leave') {
+          } else if (code === 'early_leave') {
             stat.early_leave_count++;
-          } else if (record.category_id === 'absent') {
+          } else if (code === 'absent') {
             stat.absent_count++;
             stat.is_full_attendance = false;
           }

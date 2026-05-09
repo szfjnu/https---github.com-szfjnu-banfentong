@@ -1,6 +1,7 @@
 ﻿// pages/grade/grade.js
 // 成绩管理中心 - 页面逻辑
 const app = getApp();
+const excelTransfer = require('../utils/excelTransfer');
 
 Page({
   data: {
@@ -9,38 +10,48 @@ Page({
     classId: '',
     studentId: '',
 
-    // 考试类型 Tab
     currentExamType: 'monthly',
 
-    // 学期选择
     termList: [],
     termIndex: 0,
     currentTerm: '',
 
-    // 科目选择
     subjectList: ['全部'],
     subjectIndex: 0,
     currentSubject: '',
 
-    // 统计数据（班主任/管理员）
     stats: null,
 
-    // 学生/家长：个人成绩列表
     myGrades: [],
 
-    // 班主任/管理员：全班成绩表格
     studentList: [],
     allSubjects: [],
 
-    // 批量导入弹窗
     showImportModal: false,
     importText: '',
     importing: false,
 
-    // 批量录入科目选择
     importSubject: '',
     importSubjectIndex: 0,
-    importSubjectList: []
+    importSubjectList: [],
+
+    showSubjectModal: false,
+    subjectConfig: { default_subjects: [], custom_subjects: [], subjects: [] },
+    newSubjectName: '',
+    subjectManaging: false,
+
+    importTab: 'text',
+    importSubjectInput: '',
+    importSubjectSuggestions: [],
+    showSubjectSuggestions: false,
+
+    excelPermission: { allowed: false, reason: '' },
+    excelFile: null,
+    excelUploading: false,
+    excelParsing: false,
+    excelPreviewData: [],
+    excelAllParsedData: [],
+    excelImporting: false
   },
 
   onLoad: function () {
@@ -224,7 +235,8 @@ Page({
         myGrades: myGrades
       });
 
-      // 班主任/管理员：加载统计数据
+      this.loadSubjectConfig();
+
       if (role === 'head_teacher' || role === 'admin') {
         this.loadStats();
       }
@@ -280,11 +292,13 @@ Page({
   },
 
   // 打开批量导入弹窗
-  onImportExcel: function () {
-    // 获取当前科目列表用于录入选择
-    const importSubjectList = this.data.allSubjects.length > 0
-      ? [...this.data.allSubjects]
-      : ['语文', '数学', '英语', '物理', '化学', '生物', '政治', '历史', '地理'];
+  onImportExcel: async function () {
+    const subjectConfig = await this.loadSubjectConfig();
+    const importSubjectList = subjectConfig
+      ? subjectConfig.subjects
+      : (this.data.allSubjects.length > 0
+        ? [...this.data.allSubjects]
+        : ['语文', '数学', '英语', '物理', '化学', '生物', '政治', '历史', '地理']);
 
     this.setData({
       showImportModal: true,
@@ -292,8 +306,17 @@ Page({
       importing: false,
       importSubjectList: importSubjectList,
       importSubject: importSubjectList[0],
-      importSubjectIndex: 0
+      importSubjectIndex: 0,
+      importTab: 'text',
+      importSubjectInput: importSubjectList[0],
+      importSubjectSuggestions: [],
+      showSubjectSuggestions: false,
+      excelFile: null,
+      excelPreviewData: [],
+      excelAllParsedData: []
     });
+
+    this.checkExcelPermission();
   },
 
   // 导入科目选择变更
@@ -443,6 +466,234 @@ Page({
       title: '成绩管理中心',
       path: '/subPages/grade/grade'
     };
+  },
+
+  loadSubjectConfig: async function () {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'gradeManager',
+        data: { action: 'getSubjects', data: { class_id: this.data.classId } }
+      });
+      const result = res.result || {};
+      if (result.success) {
+        this.setData({ subjectConfig: result.data });
+        return result.data;
+      }
+    } catch (err) {
+      console.error('加载科目配置失败:', err);
+    }
+    return null;
+  },
+
+  onSubjectManage: async function () {
+    this.setData({ showSubjectModal: true, subjectManaging: true, newSubjectName: '' });
+    await this.loadSubjectConfig();
+  },
+
+  closeSubjectModal: function () {
+    this.setData({ showSubjectModal: false, subjectManaging: false });
+  },
+
+  onNewSubjectInput: function (e) {
+    this.setData({ newSubjectName: e.detail.value });
+  },
+
+  onAddSubject: async function () {
+    const { newSubjectName, classId } = this.data;
+    if (!newSubjectName.trim()) {
+      wx.showToast({ title: '请输入科目名称', icon: 'none' });
+      return;
+    }
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'gradeManager',
+        data: { action: 'addSubject', data: { class_id: classId, subject_name: newSubjectName.trim() } }
+      });
+      const result = res.result || {};
+      if (result.success) {
+        this.setData({
+          subjectConfig: result.data,
+          newSubjectName: ''
+        });
+        wx.showToast({ title: '添加成功', icon: 'success' });
+      } else {
+        wx.showToast({ title: result.message || '添加失败', icon: 'none' });
+      }
+    } catch (err) {
+      console.error('添加科目失败:', err);
+      wx.showToast({ title: '添加失败', icon: 'none' });
+    }
+  },
+
+  onRemoveSubject: async function (e) {
+    const subjectName = e.currentTarget.dataset.name;
+    const { classId } = this.data;
+    wx.showModal({
+      title: '确认删除',
+      content: `确定要删除科目"${subjectName}"吗？已有成绩数据不会被删除。`,
+      success: async (res) => {
+        if (!res.confirm) return;
+        try {
+          const result = await wx.cloud.callFunction({
+            name: 'gradeManager',
+            data: { action: 'removeSubject', data: { class_id: classId, subject_name: subjectName } }
+          });
+          const data = result.result || {};
+          if (data.success) {
+            this.setData({ subjectConfig: data.data });
+            wx.showToast({ title: '删除成功', icon: 'success' });
+          } else {
+            wx.showToast({ title: data.message || '删除失败', icon: 'none' });
+          }
+        } catch (err) {
+          console.error('删除科目失败:', err);
+          wx.showToast({ title: '删除失败', icon: 'none' });
+        }
+      }
+    });
+  },
+
+  onImportTabChange: async function (e) {
+    const tab = e.currentTarget.dataset.tab;
+    if (tab === 'excel') {
+      if (!this.data.excelPermission.allowed) {
+        wx.showToast({ title: this.data.excelPermission.reason || '请升级会员', icon: 'none', duration: 2500 });
+        return;
+      }
+    }
+    this.setData({ importTab: tab });
+  },
+
+  onImportSubjectInput: function (e) {
+    const keyword = e.detail.value;
+    this.setData({ importSubjectInput: keyword });
+    this.filterSubjectSuggestions(keyword);
+  },
+
+  onSubjectSuggestionSelect: function (e) {
+    const name = e.currentTarget.dataset.name;
+    this.setData({
+      importSubjectInput: name,
+      importSubject: name,
+      showSubjectSuggestions: false,
+      importSubjectSuggestions: []
+    });
+  },
+
+  filterSubjectSuggestions: function (keyword) {
+    const subjects = this.data.subjectConfig.subjects || this.data.importSubjectList;
+    if (!keyword.trim()) {
+      this.setData({ importSubjectSuggestions: subjects, showSubjectSuggestions: true });
+      return;
+    }
+    const filtered = subjects.filter(s => s.includes(keyword));
+    this.setData({ importSubjectSuggestions: filtered, showSubjectSuggestions: filtered.length > 0 });
+  },
+
+  hideSubjectSuggestions: function () {
+    this.setData({ showSubjectSuggestions: false });
+  },
+
+  checkExcelPermission: async function () {
+    try {
+      const openid = app.globalData.openid || '';
+      const result = await excelTransfer.checkGradeExcelPermission(openid);
+      this.setData({ excelPermission: result });
+    } catch (err) {
+      console.error('检查Excel权限失败:', err);
+      this.setData({ excelPermission: { allowed: false, reason: '普通用户不支持此功能' } });
+    }
+  },
+
+  onChooseExcelFile: async function () {
+    try {
+      const file = await excelTransfer.chooseGradeExcelFile();
+      this.setData({ excelFile: file, excelUploading: true });
+
+      const uploadRes = await excelTransfer.uploadToCloud(file.path);
+      this.setData({ excelUploading: false, excelParsing: true });
+
+      const parseRes = await wx.cloud.callFunction({
+        name: 'gradeManager',
+        data: {
+          action: 'importGradeExcel',
+          data: {
+            fileID: uploadRes.fileID,
+            class_id: this.data.classId,
+            term: this.data.currentTerm,
+            exam_type: this.data.currentExamType,
+            confirm: false
+          }
+        }
+      });
+
+      const result = parseRes.result || {};
+      if (result.success) {
+        this.setData({
+          excelPreviewData: result.data.preview || [],
+          excelAllParsedData: result.data.allRows || [],
+          excelParsing: false
+        });
+      } else {
+        wx.showToast({ title: result.message || '解析失败', icon: 'none', duration: 2000 });
+        this.setData({ excelParsing: false });
+      }
+    } catch (err) {
+      console.error('Excel文件处理失败:', err);
+      wx.showToast({ title: err.message || '文件处理失败', icon: 'none', duration: 2000 });
+      this.setData({ excelUploading: false, excelParsing: false });
+    }
+  },
+
+  onConfirmExcelImport: async function () {
+    const { excelAllParsedData, classId, currentTerm, currentExamType } = this.data;
+    if (excelAllParsedData.length === 0) {
+      wx.showToast({ title: '没有可导入的数据', icon: 'none' });
+      return;
+    }
+
+    this.setData({ excelImporting: true });
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'gradeManager',
+        data: {
+          action: 'importGradeExcel',
+          data: {
+            class_id: classId,
+            term: currentTerm,
+            exam_type: currentExamType,
+            confirm: true,
+            previewData: excelAllParsedData
+          }
+        }
+      });
+
+      const result = res.result || {};
+      if (result.success) {
+        const { successCount, failCount } = result.data || {};
+        wx.showModal({
+          title: '导入结果',
+          content: `成功录入 ${successCount || 0} 条，失败 ${failCount || 0} 条`,
+          showCancel: false,
+          success: () => {
+            this.setData({
+              showImportModal: false,
+              excelFile: null,
+              excelPreviewData: [],
+              excelAllParsedData: []
+            });
+            this.loadGrades();
+          }
+        });
+      } else {
+        wx.showToast({ title: result.message || '导入失败', icon: 'none', duration: 2000 });
+      }
+    } catch (err) {
+      console.error('Excel导入失败:', err);
+      wx.showToast({ title: '导入失败，请重试', icon: 'none', duration: 2000 });
+    } finally {
+      this.setData({ excelImporting: false });
+    }
   },
 
   preventBubble() {},

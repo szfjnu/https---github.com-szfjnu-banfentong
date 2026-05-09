@@ -136,11 +136,25 @@ async function getStudents(data) {
     return { success: false, error: '请提供班级ID' }
   }
 
-  const res = await db.collection('students')
-    .where({ class_id: classId })
-    .get()
+  const allData = []
+  let skip = 0
+  const limit = 100
+  let hasMore = true
+  while (hasMore) {
+    const res = await db.collection('students')
+      .where({ class_id: classId })
+      .skip(skip)
+      .limit(limit)
+      .get()
+    allData.push(...res.data)
+    if (res.data.length < limit) {
+      hasMore = false
+    } else {
+      skip += limit
+    }
+  }
 
-  return { success: true, data: res.data }
+  return { success: true, data: allData }
 }
 
 // 检查用户是否已加入班级
@@ -202,7 +216,11 @@ async function joinClass(openid, data) {
 
     if (existStudentRes.data.length > 0) {
       // 学号已存在，直接关联
-      finalStudentId = existStudentRes.data[0]._id
+      const existStudent = existStudentRes.data[0]
+      if (!existStudent.student_id) {
+        return { success: false, message: '该学生信息异常，缺少学号，无法绑定' }
+      }
+      finalStudentId = existStudent.student_id
     } else {
       // 创建新学生记录
       const studentData = {
@@ -217,7 +235,10 @@ async function joinClass(openid, data) {
       }
 
       const studentRes = await db.collection('students').add({ data: studentData })
-      finalStudentId = studentRes._id
+      if (!formData.student_id) {
+        return { success: false, message: '学生学号不能为空' }
+      }
+      finalStudentId = formData.student_id
     }
   }
 

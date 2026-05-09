@@ -185,6 +185,27 @@ Page({
       // 生成检查记录ID
       const inspectionId = 'INS' + Date.now();
 
+      // 查询该房间入住的学生姓名
+      let student_names = [];
+      try {
+        const classId = app.globalData.class_id;
+        const buildingName = formData.building.trim();
+        const roomName = formData.room.trim();
+
+        const studentsRes = await db.collection('students')
+          .where({
+            class_id: classId,
+            dorm_building: buildingName,
+            dorm_room: roomName
+          })
+          .field({ name: true, student_id: true })
+          .get();
+
+        student_names = (studentsRes.data || []).map(s => s.name);
+      } catch (err) {
+        console.error('查询房间学生失败:', err);
+      }
+
       // 构建数据
       const data = {
         inspection_id: inspectionId,
@@ -193,6 +214,7 @@ Page({
         inspection_type: typeOptions[formData.typeIndex],
         building: formData.building.trim(),
         room: formData.room.trim(),
+        student_names: student_names,
         overall_score: parseInt(formData.overall_score) || 0,
         hygiene_score: parseInt(formData.hygiene_score) || 0,
         discipline_score: parseInt(formData.discipline_score) || 0,

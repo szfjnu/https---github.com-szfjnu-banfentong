@@ -14,7 +14,26 @@ Page({
       discipline_enabled: true,
       enable_dorm_management: false
     },
-    loading: true
+    loading: true,
+
+    showPermModal: false,
+    permStudents: [],
+    permLoading: false,
+    editingPermStudent: null,
+    editingPermForm: {
+      student_id: '',
+      student_name: '',
+      is_leader: false,
+      permissions: []
+    },
+    moduleOptions: [
+      { code: 'score_register', name: '提交积分登记', checked: false },
+      { code: 'volunteer_submit', name: '提交志愿服务记录', checked: false },
+      { code: 'dorm_score', name: '提交宿舍加减分', checked: false },
+      { code: 'duty_check', name: '提交值日检查', checked: false },
+      { code: 'duty_arrange', name: '安排值日', checked: false },
+      { code: 'attendance_register', name: '提交考勤登记', checked: false }
+    ]
   },
 
   onLoad: function (options) {
@@ -74,6 +93,8 @@ Page({
         settings,
         loading: false
       });
+
+      this.loadPermStudents();
     } catch (err) {
       console.error('加载数据失败:', err);
       this.setData({ loading: false });
@@ -282,5 +303,135 @@ Page({
         }
       }
     });
+  },
+
+  loadPermStudents: async function () {
+    this.setData({ permLoading: true });
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'manageAuthorization',
+        data: {
+          action: 'getStudentPermissions',
+          data: { class_id: this.data.classId }
+        }
+      });
+      if (res.result && res.result.success) {
+        this.setData({ permStudents: res.result.data || [], permLoading: false });
+      } else {
+        this.setData({ permStudents: [], permLoading: false });
+      }
+    } catch (err) {
+      console.error('加载权限学生列表失败:', err);
+      this.setData({ permStudents: [], permLoading: false });
+    }
+  },
+
+  onEditPermission: function (e) {
+    const { id, name, leader, permissions } = e.currentTarget.dataset;
+    const permList = permissions ? permissions.split(',') : [];
+    const moduleOptions = this.data.moduleOptions.map(m => ({
+      ...m,
+      checked: permList.includes(m.code)
+    }));
+    this.setData({
+      showPermModal: true,
+      editingPermStudent: { student_id: id, student_name: name },
+      editingPermForm: {
+        student_id: id,
+        student_name: name,
+        is_leader: leader === 'true' || leader === true,
+        permissions: permList
+      },
+      moduleOptions
+    });
+  },
+
+  onToggleLeader: function (e) {
+    const val = e.detail.value;
+    this.setData({ 'editingPermForm.is_leader': val });
+  },
+
+  onToggleModule: function (e) {
+    const { code } = e.currentTarget.dataset;
+    const val = e.detail.value;
+    const moduleOptions = this.data.moduleOptions.map(m =>
+      m.code === code ? { ...m, checked: val } : m
+    );
+    const permissions = moduleOptions.filter(m => m.checked).map(m => m.code);
+    this.setData({ moduleOptions, 'editingPermForm.permissions': permissions });
+  },
+
+  onSavePermission: async function () {
+    const { editingPermForm } = this.data;
+    if (!editingPermForm.is_leader && editingPermForm.permissions.length === 0) {
+      util.showError('请至少选择管理干部角色或一个模块权限');
+      return;
+    }
+    try {
+      wx.showLoading({ title: '保存中...', mask: true });
+      const res = await wx.cloud.callFunction({
+        name: 'manageAuthorization',
+        data: {
+          action: 'saveStudentPermission',
+          data: {
+            class_id: this.data.classId,
+            student_id: editingPermForm.student_id,
+            is_leader: editingPermForm.is_leader,
+            permissions: editingPermForm.permissions
+          }
+        }
+      });
+      wx.hideLoading();
+      if (res.result && res.result.success) {
+        util.showSuccess('权限保存成功');
+        this.setData({ showPermModal: false });
+        this.loadPermStudents();
+      } else {
+        util.showError(res.result.message || '保存失败');
+      }
+    } catch (err) {
+      wx.hideLoading();
+      console.error('保存权限失败:', err);
+      util.showError('保存失败');
+    }
+  },
+
+  onRemovePermission: function (e) {
+    const { id, name } = e.currentTarget.dataset;
+    wx.showModal({
+      title: '撤销权限',
+      content: `确定撤销 ${name} 的管理干部权限吗？`,
+      confirmColor: '#ff4d4f',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            wx.showLoading({ title: '撤销中...', mask: true });
+            const cfRes = await wx.cloud.callFunction({
+              name: 'manageAuthorization',
+              data: {
+                action: 'removeStudentPermission',
+                data: { class_id: this.data.classId, student_id: id }
+              }
+            });
+            wx.hideLoading();
+            if (cfRes.result && cfRes.result.success) {
+              util.showSuccess('权限已撤销');
+              this.setData({ showPermModal: false });
+              this.loadPermStudents();
+            } else {
+              util.showError(cfRes.result.message || '撤销失败');
+            }
+          } catch (err) {
+            wx.hideLoading();
+            console.error('撤销权限失败:', err);
+            util.showError('撤销失败');
+          }
+        }
+      }
+    });
+  },
+
+  onClosePermModal: function () {
+    this.setData({ showPermModal: false });
   }
 });

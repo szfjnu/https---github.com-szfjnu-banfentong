@@ -1,0 +1,6 @@
+{
+  "student_id": { "label": "学号", "aliases": ["student_id", "学号", "学生编号", "学生ID", "Student ID", "学籍号"] },
+  "score": { "label": "分数", "aliases": ["score", "分数", "成绩", "得分", "Score", "分数值"] },
+  "subject": { "label": "科目", "aliases": ["subject", "科目", "科目名称", "学科", "Subject", "课程"] },
+  "student_name": { "label": "姓名", "aliases": ["student_name", "姓名", "学生姓名", "名字", "Name"] }
+}

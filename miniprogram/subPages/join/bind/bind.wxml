@@ -32,11 +32,11 @@
 
     <view class="student-list" wx:if="{{filteredStudents.length > 0}}">
       <view
-        class="student-item {{selectedStudentId === item._id ? 'selected' : ''}}"
+        class="student-item {{selectedStudentId === item.student_id ? 'selected' : ''}}"
         wx:for="{{filteredStudents}}"
-        wx:key="_id"
+        wx:key="student_id"
         bindtap="onSelectStudent"
-        data-id="{{item._id}}"
+        data-id="{{item.student_id}}"
       >
         <view class="student-avatar">
           <text>👤</text>
@@ -47,7 +47,7 @@
             <text class="meta-item">{{item.student_id}}</text>
           </view>
         </view>
-        <view class="student-check" wx:if="{{selectedStudentId === item._id}}">
+        <view class="student-check" wx:if="{{selectedStudentId === item.student_id}}">
           <text>✓</text>
         </view>
       </view>

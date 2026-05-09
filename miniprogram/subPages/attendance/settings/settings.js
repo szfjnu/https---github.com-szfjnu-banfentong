@@ -58,15 +58,6 @@ Page({
       
       let categories = res.data || [];
       
-      // 如果没有类别，初始化默认类别
-      if (categories.length === 0) {
-        categories = this.getDefaultCategories();
-        // 保存默认类别到数据库
-        for (const category of categories) {
-          await this.saveCategoryToDB(category);
-        }
-      }
-      
       this.setData({
         categories: categories,
         loading: false
@@ -147,6 +138,40 @@ Page({
         is_active: true
       }
     ];
+  },
+
+  // 一键初始化默认考勤类别
+  onInitDefaultCategories: function () {
+    wx.showModal({
+      title: '一键初始化',
+      content: '将系统内置的考勤类别（病假、事假、迟到、早退、旷课）初始化到当前班级，已有同名类别不会重复添加。是否继续？',
+      success: async (res) => {
+        if (!res.confirm) return;
+        wx.showLoading({ title: '初始化中...' });
+        try {
+          const defaultCategories = this.getDefaultCategories();
+          const existingNames = this.data.categories.map(c => c.category_name);
+          let addedCount = 0;
+          for (const category of defaultCategories) {
+            if (!existingNames.includes(category.category_name)) {
+              await this.saveCategoryToDB(category);
+              addedCount++;
+            }
+          }
+          wx.hideLoading();
+          if (addedCount > 0) {
+            util.showSuccess(`已初始化${addedCount}个类别`);
+            this.loadCategories();
+          } else {
+            util.showSuccess('所有内置类别已存在');
+          }
+        } catch (err) {
+          wx.hideLoading();
+          console.error('初始化失败:', err);
+          util.showError('初始化失败');
+        }
+      }
+    });
   },
 
   // 显示添加类别弹窗
@@ -316,9 +341,11 @@ Page({
       } else {
         // 新增
         const categoryId = `CAT${Date.now()}${Math.random().toString(36).substr(2, 9)}`;
+        const categoryCode = `custom_${Date.now()}`;
         await this.saveCategoryToDB({
           ...categoryData,
           category_id: categoryId,
+          category_code: categoryCode,
           class_id: this.data.classId,
           is_system: false,
           created_at: db.serverDate(),

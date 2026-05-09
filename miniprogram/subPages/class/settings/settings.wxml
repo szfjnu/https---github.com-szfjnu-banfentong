@@ -93,6 +93,61 @@
     </view>
   </view>
 
+  <!-- 权限管理 -->
+  <view class="perm-section">
+    <view class="section-title">管理干部权限</view>
+    <view class="perm-list" wx:if="{{!permLoading && permStudents.length > 0}}">
+      <view class="perm-item" wx:for="{{permStudents}}" wx:key="student_id">
+        <view class="perm-info">
+          <text class="perm-name">{{item.student_name}}</text>
+          <text class="perm-badge" wx:if="{{item.is_leader}}">管理干部</text>
+        </view>
+        <view class="perm-modules" wx:if="{{item.permissions.length > 0}}">
+          <text class="perm-module-tag" wx:for="{{item.permissions}}" wx:for-item="perm" wx:key="*this">{{perm}}</text>
+        </view>
+        <view class="perm-actions">
+          <text class="perm-edit-btn" bindtap="onEditPermission"
+            data-id="{{item.student_id}}" data-name="{{item.student_name}}"
+            data-leader="{{item.is_leader}}" data-permissions="{{item.permissions}}">编辑</text>
+          <text class="perm-remove-btn" bindtap="onRemovePermission"
+            data-id="{{item.student_id}}" data-name="{{item.student_name}}">撤销</text>
+        </view>
+      </view>
+    </view>
+    <view class="perm-empty" wx:if="{{!permLoading && permStudents.length === 0}}">
+      <text>暂无管理干部权限配置</text>
+    </view>
+    <view class="perm-loading" wx:if="{{permLoading}}">
+      <text>加载中...</text>
+    </view>
+  </view>
+
+  <!-- 权限编辑弹窗 -->
+  <view class="perm-modal-mask" wx:if="{{showPermModal}}" bindtap="onClosePermModal"></view>
+  <view class="perm-modal" wx:if="{{showPermModal}}">
+    <view class="perm-modal-header">
+      <text class="perm-modal-title">编辑权限 - {{editingPermForm.student_name}}</text>
+      <text class="perm-modal-close" bindtap="onClosePermModal">✕</text>
+    </view>
+    <view class="perm-modal-body">
+      <view class="perm-toggle-row">
+        <text class="perm-toggle-label">管理干部角色</text>
+        <switch checked="{{editingPermForm.is_leader}}" bindchange="onToggleLeader" color="#1890ff" />
+      </view>
+      <view class="perm-module-list">
+        <text class="perm-module-section-title">模块权限</text>
+        <view class="perm-module-item" wx:for="{{moduleOptions}}" wx:key="code">
+          <text class="perm-module-name">{{item.name}}</text>
+          <switch checked="{{item.checked}}" bindchange="onToggleModule" data-code="{{item.code}}" color="#1890ff" />
+        </view>
+      </view>
+    </view>
+    <view class="perm-modal-footer">
+      <view class="perm-btn perm-btn-cancel" bindtap="onClosePermModal">取消</view>
+      <view class="perm-btn perm-btn-save" bindtap="onSavePermission">保存</view>
+    </view>
+  </view>
+
   <!-- 加载状态 -->
   <view class="loading" wx:if="{{loading}}">
     <view class="loading-icon"></view>

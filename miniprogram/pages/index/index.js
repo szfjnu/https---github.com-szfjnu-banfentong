@@ -1,4 +1,4 @@
-﻿// pages/index/index.js
+// pages/index/index.js
 const app = getApp();
 const api = require('../../utils/api.js');
 const util = require('../../utils/util.js');
@@ -34,7 +34,17 @@ Page({
     
     // 今日生日学生
     birthdayStudents: [],
-    birthdayLoading: true
+    birthdayLoading: true,
+
+    // 管理干部权限
+    isStudentLeader: false,
+    leaderPermissions: [],
+    perm_score_register: false,
+    perm_volunteer_submit: false,
+    perm_dorm_score: false,
+    perm_duty_check: false,
+    perm_duty_arrange: false,
+    perm_attendance_register: false
   },
 
   onLoad: function () {
@@ -88,33 +98,29 @@ Page({
     this.setData({ loading: true });
 
     try {
-      // 确保授权权限已加载
       if (Object.keys(app.globalData.authorizations || {}).length === 0 && app.globalData.student_id) {
         await app.loadUserAuthorizations();
       }
 
-      // 获取当前学期
       await this.getCurrentSemester();
 
-      // 根据角色加载统计数据
-      await this.loadStatistics();
-
-      // 加载快捷操作
       this.loadQuickActions();
 
-      // 并行加载新功能数据
-      await Promise.all([
-        this.loadWeather(),
-        this.loadScoreRanking(),
-        this.loadTodayCourses(),
-        this.loadBirthdayStudents()
-      ]);
+      this.setData({ loading: false });
 
-      this.setData({ loading: false });
+      this.loadStatistics().catch(err => console.error('加载统计失败(非阻塞):', err));
+
+      this.loadWeather().catch(err => console.error('加载天气失败(非阻塞):', err));
+      this.loadScoreRanking().catch(err => console.error('加载排行失败(非阻塞):', err));
+      this.loadTodayCourses().catch(err => console.error('加载课程失败(非阻塞):', err));
+      this.loadBirthdayStudents().catch(err => console.error('加载生日失败(非阻塞):', err));
+
+      if (this.data.role === 'student') {
+        this.loadMyPermissions().catch(err => console.error('加载权限失败(非阻塞):', err));
+      }
     } catch (err) {
-      console.error('加载数据失败:', err);
+      console.error('加载核心数据失败:', err);
       this.setData({ loading: false });
-      util.showError('加载失败');
     }
   },
 
@@ -146,7 +152,8 @@ Page({
         // 2. 关键修改：通过云函数获取全量学生
         const studentsCfRes = await wx.cloud.callFunction({
           name: 'manageAuthorization',
-          data: { action: 'getStudents', data: { class_id: classId } }
+          data: { action: 'getStudents', data: { class_id: classId } },
+          timeout: 10000
         });
         const studentsRes = { data: (studentsCfRes.result && studentsCfRes.result.success) ? studentsCfRes.result.data : [] };
       
@@ -350,13 +357,13 @@ Page({
 // 获取天气数据
 fetchWeather: async function (location) {
   try {
-    // 1. 调用云函数
     const res = await wx.cloud.callFunction({
-      name: 'getWeather', // 确保这里的名字和你部署的云函数名一致
+      name: 'getWeather',
       data: {
         longitude: location.longitude,
         latitude: location.latitude
-      }
+      },
+      timeout: 8000
     });
 
     console.log('云函数返回结果:', res.result);
@@ -688,32 +695,25 @@ fetchWeather: async function (location) {
     this.setData({ birthdayLoading: true });
     
     try {
-      const db = wx.cloud.database();
-      
-      // 获取今天的月份和日期
       const today = new Date();
       const month = today.getMonth() + 1;
       const day = today.getDate();
-      
-      // 格式化为 MM-DD 格式
       const todayMD = `${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
       
-      // 查询生日为今天的学生
       const classId = app.globalData.class_id;
       if (!classId) {
         this.setData({ birthdayLoading: false });
         return;
       }
 
-      // 获取所有学生，然后筛选生日
-      const studentsRes = await db.collection('students')
-        .where({
-          class_id: classId,
-          status: db.command.neq('graduated')
-        })
-        .get();
+      const db = wx.cloud.database();
+      const _ = db.command;
+      const allStudents = await batchQuery.getAllRecords('students', {
+        class_id: classId,
+        status: _.neq('graduated')
+      }, 'student_id', 'asc');
 
-      const birthdayStudents = (studentsRes.data || []).filter(student => {
+      const birthdayStudents = allStudents.filter(student => {
         if (!student.birthday) return false;
         // 解析生日格式 (假设格式为 YYYY-MM-DD)
         const birthdayParts = student.birthday.split('-');
@@ -985,5 +985,52 @@ fetchWeather: async function (location) {
     wx.navigateTo({
       url: '/subPages/schedule/schedule/schedule'
     });
+  },
+
+  loadMyPermissions: async function () {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'manageAuthorization',
+        data: { action: 'getMyPermissions', data: {} }
+      });
+      if (res.result && res.result.success) {
+        const { is_leader, permissions } = res.result.data;
+        const permMap = {
+          isStudentLeader: is_leader,
+          leaderPermissions: permissions
+        };
+        (permissions || []).forEach(p => { permMap[`perm_${p}`] = true; });
+        this.setData(permMap);
+        app.globalData.isLeader = is_leader;
+        app.globalData.leaderPermissions = permissions;
+      }
+    } catch (err) {
+      console.error('查询权限失败:', err);
+      this.setData({ isStudentLeader: false, leaderPermissions: [] });
+    }
+  },
+
+  goToScoreRegister: function () {
+    wx.navigateTo({ url: '/pages/score/score' });
+  },
+
+  goToAttendanceRegister: function () {
+    wx.navigateTo({ url: '/subPages/attendance/record/record' });
+  },
+
+  goToVolunteerSubmit: function () {
+    wx.navigateTo({ url: '/subPages/volunteer/volunteer' });
+  },
+
+  goToDormScore: function () {
+    wx.navigateTo({ url: '/subPages/dorm/dorm' });
+  },
+
+  goToDutyCheck: function () {
+    wx.navigateTo({ url: '/subPages/duty/check/check' });
+  },
+
+  goToDutyArrange: function () {
+    wx.navigateTo({ url: '/subPages/duty/duty' });
   }
 });

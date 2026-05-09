@@ -217,7 +217,7 @@ const volunteerApi = {
     }
 
     try {
-      const res = await db.collection('volunteer_records').where(query).get();
+      const res = await db.collection('volunteer_records').where(query).orderBy('created_at', 'desc').limit(100).get();
       const records = res.data;
 
       const totalHours = records.reduce((sum, r) => sum + (r.duration || 0), 0);

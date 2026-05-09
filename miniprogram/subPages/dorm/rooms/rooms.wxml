@@ -67,9 +67,11 @@
         </view>
       </view>
 
-      <view class="room-beds" bindtap="onViewDetail" data-id="{{item._id}}">
+      <view class="room-beds">
         <view class="bed {{bed.occupied ? 'occupied' : ''}}" wx:for="{{item.beds}}" wx:key="bed_number" wx:for-item="bed">
-          <text>{{bed.bed_number}}</text>
+          <text class="bed-num">{{bed.bed_number}}</text>
+          <text class="bed-name" wx:if="{{bed.occupied && bed.student_name}}">{{bed.student_name}}</text>
+          <text class="bed-name empty" wx:elif="{{bed.occupied}}">未关联</text>
         </view>
       </view>
 

@@ -608,12 +608,18 @@ Page({
 
         // 更新学生个人积分
         for (const studentId of selectedStudents) {
-          await db.collection('students').doc(studentId).update({
-            data: {
-              current_score: _.inc(parseFloat(personalScore)),
-              updated_at: db.serverDate()
-            }
-          });
+          const stuRes = await db.collection('students')
+            .where({ student_id: studentId })
+            .limit(1)
+            .get();
+          if (stuRes.data && stuRes.data.length > 0) {
+            await db.collection('students').doc(stuRes.data[0]._id).update({
+              data: {
+                current_score: _.inc(parseFloat(personalScore)),
+                updated_at: db.serverDate()
+              }
+            });
+          }
         }
       }
 

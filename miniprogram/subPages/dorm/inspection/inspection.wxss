@@ -83,6 +83,14 @@
   margin-bottom: 12rpx;
 }
 
+.record-students {
+  display: flex;
+  align-items: center;
+  font-size: 26rpx;
+  color: var(--text-color);
+  margin-bottom: 12rpx;
+}
+
 .icon {
   margin-right: 10rpx;
   font-size: 32rpx;

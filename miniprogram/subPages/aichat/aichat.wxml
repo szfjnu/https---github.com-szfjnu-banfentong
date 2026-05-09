@@ -91,7 +91,7 @@
           adjust-position="{{true}}"
         />
       </view>
-      <view class="send-btn {{inputText.trim() && !sending ? '' : 'disabled'}}" bindtap="sendMessage">
+      <view class="send-btn {{canSend ? '' : 'disabled'}}" bindtap="sendMessage">
         <text wx:if="{{sending}}">...</text>
         <text wx:else>发送</text>
       </view>

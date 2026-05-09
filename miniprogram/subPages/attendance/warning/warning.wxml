@@ -1,0 +1,56 @@
+<view class="warning-container">
+  <view class="loading-box" wx:if="{{loading}}"><view class="loading-spinner"></view><text>加载中...</text></view>
+
+  <block wx:if="{{!loading}}">
+    <!-- 统计摘要 -->
+    <view class="stats-card" wx:if="{{stats}}">
+      <view class="stat-item">
+        <text class="stat-value">{{stats.absent_warning_count || 0}}</text>
+        <text class="stat-label">旷课预警</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{stats.leave_warning_count || 0}}</text>
+        <text class="stat-label">休学预警</text>
+      </view>
+    </view>
+
+    <!-- Tab切换 -->
+    <view class="warning-tabs">
+      <view class="tab {{currentTab === 'absent' ? 'active' : ''}}" bindtap="switchTab" data-tab="absent">旷课纪律预警</view>
+      <view class="tab {{currentTab === 'leave' ? 'active' : ''}}" bindtap="switchTab" data-tab="leave">休学预警</view>
+    </view>
+
+    <!-- 旷课纪律预警列表 -->
+    <view class="warning-list" wx:if="{{currentTab === 'absent'}}">
+      <view class="warning-item" wx:for="{{warnings}}" wx:key="_id">
+        <view class="warning-left">
+          <text class="student-name">{{item.student_name}}</text>
+          <text class="warning-detail">旷课 {{item.trigger_value}} 节</text>
+          <text class="warning-sub-detail" wx:if="{{item.detail}}">病假{{item.detail.sick_days}}天 事假{{item.detail.personal_days}}天 旷课{{item.detail.absent_days}}天</text>
+        </view>
+        <view class="warning-level" style="color: {{item.level_color}}; background: {{item.level_color}}20;">
+          {{item.level_name}}
+        </view>
+      </view>
+    </view>
+
+    <!-- 休学预警列表 -->
+    <view class="warning-list" wx:if="{{currentTab === 'leave'}}">
+      <view class="warning-item" wx:for="{{warnings}}" wx:key="_id">
+        <view class="warning-left">
+          <text class="student-name">{{item.student_name}}</text>
+          <text class="warning-detail" wx:if="{{item.detail}}">病假{{item.detail.sick_days}}天 事假{{item.detail.personal_days}}天 旷课{{item.detail.absent_days}}天 共{{item.trigger_value}}天</text>
+        </view>
+        <view class="warning-level leave-level">休学预警</view>
+      </view>
+    </view>
+
+    <view class="empty-tip" wx:if="{{warnings.length === 0}}">暂无预警数据</view>
+
+    <!-- 底部操作 -->
+    <view class="bottom-actions">
+      <view class="action-btn detect-btn" bindtap="onDetectWarnings">重新检测</view>
+      <view class="action-btn rules-btn" bindtap="goToRules">规则配置</view>
+    </view>
+  </block>
+</view>

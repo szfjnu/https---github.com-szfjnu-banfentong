@@ -165,17 +165,39 @@
 }
 
 .bed {
-  width: 60rpx;
-  height: 60rpx;
+  min-width: 120rpx;
+  padding: 10rpx 14rpx;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   background: var(--background-color);
   border-radius: 12rpx;
-  font-size: 24rpx;
-  color: var(--text-color-secondary);
   border: 2rpx solid transparent;
   transition: all 0.3s;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.bed .bed-num {
+  font-size: 24rpx;
+  color: var(--text-color-secondary);
+  line-height: 1.2;
+}
+
+.bed .bed-name {
+  font-size: 20rpx;
+  color: var(--text-color-light);
+  line-height: 1.2;
+  margin-top: 4rpx;
+  max-width: 110rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bed .bed-name.empty {
+  color: var(--error-color);
 }
 
 .bed.occupied {

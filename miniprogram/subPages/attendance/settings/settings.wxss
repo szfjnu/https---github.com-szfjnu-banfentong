@@ -41,6 +41,26 @@
   margin-bottom: 30rpx;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 15rpx;
+}
+
+.init-btn {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 24rpx;
+  background: #f0f9ff;
+  border: 2rpx solid var(--primary-color);
+  border-radius: 30rpx;
+  color: var(--primary-color);
+}
+
+.init-text {
+  font-size: 26rpx;
+}
+
 .section-title {
   font-size: 32rpx;
   font-weight: bold;
@@ -214,6 +234,17 @@
   color: var(--white);
   border-radius: 30rpx;
   font-size: 28rpx;
+}
+
+.init-empty-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.empty-hint {
+  display: block;
+  font-size: 24rpx;
+  color: var(--text-color-light);
+  margin-top: 20rpx;
 }
 
 /* 信息区域 */

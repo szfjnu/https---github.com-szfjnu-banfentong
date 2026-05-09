@@ -36,10 +36,26 @@ async function createActivity(event, openid) {
 
   try {
     const now = Date.now()
+    let resolvedName = organizer_name || ''
+    if (!resolvedName) {
+      const targetOpenid = organizer_id || openid
+      let userRes = await db.collection('user_class_relation')
+        .where({ user_openid: targetOpenid, class_id: class_id || '' })
+        .limit(1).get()
+      if (!userRes.data || userRes.data.length === 0) {
+        userRes = await db.collection('user_class_relation')
+          .where({ _openid: targetOpenid, class_id: class_id || '' })
+          .limit(1).get()
+      }
+      if (userRes.data && userRes.data.length > 0) {
+        resolvedName = userRes.data[0].real_name || userRes.data[0].name || ''
+      }
+    }
+
     const activity = {
       organizer: {
         id: organizer_id || openid,
-        name: organizer_name || '',
+        name: resolvedName,
         class_id: class_id || '',
         is_class_committee: is_class_committee || false
       },
@@ -49,16 +65,16 @@ async function createActivity(event, openid) {
       start_time: Number(start_time),
       location,
       max_people: Number(max_people) || 0,
-      status: 0, // 0-招募中
+      status: 0,
       audit: {
-        status: is_class_committee ? 1 : 0, // 班委直接通过
+        status: is_class_committee ? 1 : 0,
         auditor_id: '',
         audit_time: is_class_committee ? now : 0,
         reject_reason: ''
       },
       joined_list: [{
         user_id: organizer_id || openid,
-        name: organizer_name || '',
+        name: resolvedName,
         joined_time: now
       }],
       current_count: 1,
@@ -155,7 +171,21 @@ async function joinActivity(event, openid) {
     }
 
     const now = Date.now()
-    const newMember = { user_id: userId, name: user_name || '', joined_time: now }
+    let resolvedUserName = user_name || ''
+    if (!resolvedUserName) {
+      let userRes = await db.collection('user_class_relation')
+        .where({ user_openid: userId })
+        .limit(1).get()
+      if (!userRes.data || userRes.data.length === 0) {
+        userRes = await db.collection('user_class_relation')
+          .where({ _openid: userId })
+          .limit(1).get()
+      }
+      if (userRes.data && userRes.data.length > 0) {
+        resolvedUserName = userRes.data[0].real_name || userRes.data[0].name || ''
+      }
+    }
+    const newMember = { user_id: userId, name: resolvedUserName, joined_time: now }
 
     // 构建更新对象
     let updateData = {

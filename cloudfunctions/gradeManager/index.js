@@ -14,6 +14,8 @@ exports.main = async (event, context) => {
 
   try {
     await ensureCollection('grades');
+    await ensureCollection('grade_subjects');
+    await ensureCollection('grade_import_logs');
 
     switch (action) {
       case 'batchInput':
@@ -22,6 +24,14 @@ exports.main = async (event, context) => {
         return await getList(data, OPENID);
       case 'getStats':
         return await getStats(data, OPENID);
+      case 'getSubjects':
+        return await getSubjects(data, OPENID);
+      case 'addSubject':
+        return await addSubject(data, OPENID);
+      case 'removeSubject':
+        return await removeSubject(data, OPENID);
+      case 'importGradeExcel':
+        return await importGradeExcel(data, OPENID);
       default:
         return { success: false, message: '未知操作' };
     }
@@ -408,6 +418,283 @@ async function getStats(data, openId) {
       overall: overall
     }
   };
+}
+
+const DEFAULT_SUBJECTS = ['语文', '数学', '英语', '物理', '化学', '生物', '政治', '历史', '地理'];
+
+async function getSubjects(data, openId) {
+  const { class_id } = data;
+  if (!class_id) {
+    return { success: false, message: '缺少班级ID' };
+  }
+
+  try {
+    const res = await db.collection('grade_subjects')
+      .where({ class_id: class_id })
+      .limit(1)
+      .get();
+
+    let config;
+    if (res.data && res.data.length > 0) {
+      config = res.data[0];
+    } else {
+      config = {
+        class_id: class_id,
+        default_subjects: [...DEFAULT_SUBJECTS],
+        custom_subjects: [],
+        subjects: [...DEFAULT_SUBJECTS],
+        created_at: db.serverDate(),
+        updated_at: db.serverDate()
+      };
+      await db.collection('grade_subjects').add({ data: config });
+    }
+
+    return {
+      success: true,
+      data: {
+        default_subjects: config.default_subjects || [...DEFAULT_SUBJECTS],
+        custom_subjects: config.custom_subjects || [],
+        subjects: config.subjects || [...DEFAULT_SUBJECTS]
+      }
+    };
+  } catch (err) {
+    console.error('getSubjects 失败:', err);
+    return { success: false, message: err.message || '获取科目配置失败' };
+  }
+}
+
+async function addSubject(data, openId) {
+  const { class_id, subject_name } = data;
+  if (!class_id) {
+    return { success: false, message: '缺少班级ID' };
+  }
+  if (!subject_name || !subject_name.trim()) {
+    return { success: false, message: '科目名称不能为空' };
+  }
+  const name = subject_name.trim();
+  if (name.length > 10) {
+    return { success: false, message: '科目名称不能超过10个字符' };
+  }
+
+  try {
+    const res = await db.collection('grade_subjects')
+      .where({ class_id: class_id })
+      .limit(1)
+      .get();
+
+    let config;
+    if (res.data && res.data.length > 0) {
+      config = res.data[0];
+    } else {
+      config = {
+        class_id: class_id,
+        default_subjects: [...DEFAULT_SUBJECTS],
+        custom_subjects: [],
+        subjects: [...DEFAULT_SUBJECTS],
+        created_at: db.serverDate(),
+        updated_at: db.serverDate()
+      };
+      await db.collection('grade_subjects').add({ data: config });
+      const newRes = await db.collection('grade_subjects').where({ class_id: class_id }).limit(1).get();
+      config = newRes.data[0];
+    }
+
+    if (config.subjects && config.subjects.includes(name)) {
+      return { success: false, message: '科目名称已存在' };
+    }
+
+    const customSubjects = [...(config.custom_subjects || []), name];
+    const subjects = [...(config.subjects || [...DEFAULT_SUBJECTS]), name];
+
+    await db.collection('grade_subjects').doc(config._id).update({
+      data: {
+        custom_subjects: customSubjects,
+        subjects: subjects,
+        updated_at: db.serverDate()
+      }
+    });
+
+    return {
+      success: true,
+      data: {
+        default_subjects: config.default_subjects || [...DEFAULT_SUBJECTS],
+        custom_subjects: customSubjects,
+        subjects: subjects
+      }
+    };
+  } catch (err) {
+    console.error('addSubject 失败:', err);
+    return { success: false, message: err.message || '添加科目失败' };
+  }
+}
+
+async function removeSubject(data, openId) {
+  const { class_id, subject_name } = data;
+  if (!class_id) {
+    return { success: false, message: '缺少班级ID' };
+  }
+  if (!subject_name) {
+    return { success: false, message: '缺少科目名称' };
+  }
+
+  try {
+    const res = await db.collection('grade_subjects')
+      .where({ class_id: class_id })
+      .limit(1)
+      .get();
+
+    if (!res.data || res.data.length === 0) {
+      return { success: false, message: '科目配置不存在' };
+    }
+
+    const config = res.data[0];
+
+    if ((config.default_subjects || []).includes(subject_name)) {
+      return { success: false, message: '默认科目不可删除' };
+    }
+
+    const customSubjects = (config.custom_subjects || []).filter(s => s !== subject_name);
+    const subjects = (config.subjects || []).filter(s => s !== subject_name);
+
+    await db.collection('grade_subjects').doc(config._id).update({
+      data: {
+        custom_subjects: customSubjects,
+        subjects: subjects,
+        updated_at: db.serverDate()
+      }
+    });
+
+    return {
+      success: true,
+      data: {
+        default_subjects: config.default_subjects || [...DEFAULT_SUBJECTS],
+        custom_subjects: customSubjects,
+        subjects: subjects
+      }
+    };
+  } catch (err) {
+    console.error('removeSubject 失败:', err);
+    return { success: false, message: err.message || '删除科目失败' };
+  }
+}
+
+async function importGradeExcel(data, openId) {
+  const { fileID, class_id, term, exam_type, confirm, previewData } = data;
+
+  if (!class_id || !term || !exam_type) {
+    return { success: false, message: '缺少班级ID、学期或考试类型' };
+  }
+  if (!fileID && !confirm) {
+    return { success: false, message: '缺少文件ID' };
+  }
+
+  try {
+    if (!confirm) {
+      const parseRes = await cloud.callFunction({
+        name: 'dataTransfer',
+        data: {
+          action: 'importGrade',
+          data: { fileID, class_id, term, exam_type, confirm: false }
+        }
+      });
+
+      const parseResult = parseRes.result || {};
+      if (!parseResult.success) {
+        return { success: false, message: parseResult.message || '解析Excel失败' };
+      }
+
+      const parsedRows = parseResult.data.rows || [];
+      const subjectConfigRes = await getSubjects({ class_id }, openId);
+      const subjectList = subjectConfigRes.success ? subjectConfigRes.data.subjects : [...DEFAULT_SUBJECTS];
+
+      const studentRes = await db.collection('students')
+        .where({ class_id: class_id, status: _.neq('graduated') })
+        .limit(200)
+        .get();
+      const studentMap = {};
+      (studentRes.data || []).forEach(s => { studentMap[s.student_id] = s.name || s.student_name || ''; });
+
+      const validatedRows = parsedRows.map(row => {
+        const item = row.grade || row;
+        const errors = [];
+        if (!item.student_id) {
+          errors.push('缺少学号');
+        } else if (!studentMap[item.student_id]) {
+          errors.push('学号不存在于本班');
+        }
+        if (item.score === undefined || item.score === null || isNaN(Number(item.score))) {
+          errors.push('分数无效');
+        } else if (Number(item.score) < 0 || Number(item.score) > 150) {
+          errors.push('分数超出范围(0-150)');
+        }
+        if (item.subject && !subjectList.includes(item.subject)) {
+          errors.push('科目不在配置中');
+        }
+        return {
+          ...item,
+          student_name: item.student_id ? (studentMap[item.student_id] || '') : '',
+          valid: errors.length === 0,
+          errors: errors
+        };
+      });
+
+      const previewRows = validatedRows.slice(0, 10);
+
+      return {
+        success: true,
+        data: {
+          preview: previewRows,
+          allRows: validatedRows,
+          total: validatedRows.length,
+          validCount: validatedRows.filter(r => r.valid).length,
+          invalidCount: validatedRows.filter(r => !r.valid).length
+        }
+      };
+    }
+
+    if (!previewData || !Array.isArray(previewData)) {
+      return { success: false, message: '缺少预览数据' };
+    }
+
+    const validRows = previewData.filter(r => r.valid);
+    if (validRows.length === 0) {
+      return { success: false, message: '没有有效数据可录入' };
+    }
+
+    const grades = validRows.map(r => ({
+      student_id: r.student_id,
+      subject: r.subject,
+      score: Number(r.score)
+    }));
+
+    const batchResult = await batchInput({
+      grades: grades,
+      class_id: class_id,
+      term: term,
+      exam_type: exam_type
+    }, openId);
+
+    const now = db.serverDate();
+    await db.collection('grade_import_logs').add({
+      data: {
+        import_id: `GI${Date.now()}${Math.random().toString(36).substr(2, 6)}`,
+        class_id: class_id,
+        term: term,
+        exam_type: exam_type,
+        operator_openid: openId,
+        file_id: fileID || '',
+        total_count: previewData.length,
+        success_count: batchResult.data ? batchResult.data.successCount : 0,
+        fail_count: batchResult.data ? batchResult.data.failCount : 0,
+        created_at: now
+      }
+    });
+
+    return batchResult;
+  } catch (err) {
+    console.error('importGradeExcel 失败:', err);
+    return { success: false, message: err.message || 'Excel成绩导入失败' };
+  }
 }
 
 async function ensureCollection(collectionName) {

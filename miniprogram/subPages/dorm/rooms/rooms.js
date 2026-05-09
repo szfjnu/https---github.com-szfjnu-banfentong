@@ -133,15 +133,34 @@ Page({
           const beds = bedsRes.data || [];
           console.log(`房间 ${room.room_number} 的床位:`, beds);
 
-          const occupiedCount = beds.filter(b => b.occupied).length;
-          const occupancyRate = beds.length > 0 ? occupiedCount / beds.length : 0;
+          const bedsInfo = await Promise.all(beds.map(async (bed) => {
+            let student_name = '';
+            if (bed.occupied && bed.student_id && bed.student_id.trim() !== '') {
+              try {
+                const studentRes = await db.collection('students')
+                  .where({ student_id: bed.student_id })
+                  .field({ name: true })
+                  .limit(1)
+                  .get();
+                if (studentRes.data && studentRes.data.length > 0) {
+                  student_name = studentRes.data[0].name || '';
+                }
+              } catch (err) {
+                console.error('获取床位学生姓名失败:', err);
+              }
+            }
+            return { ...bed, student_name };
+          }));
+
+          const occupiedCount = bedsInfo.filter(b => b.occupied).length;
+          const occupancyRate = bedsInfo.length > 0 ? occupiedCount / bedsInfo.length : 0;
 
           return {
             ...room,
-            bed_count: beds.length,
+            bed_count: bedsInfo.length,
             occupied_count: occupiedCount,
             occupancy_rate: occupancyRate,
-            beds
+            beds: bedsInfo
           };
         } catch (err) {
           console.error('获取床位信息失败:', err);
@@ -207,70 +226,6 @@ Page({
     wx.navigateTo({
       url: `/subPages/dorm/rooms/add/add?id=${id}&building_id=${this.data.buildingId}`
     });
-  },
-
-  // 删除房间
-  onDelete: function (e) {
-    const id = e.currentTarget.dataset.id;
-    const room = this.data.rooms.find(r => r._id === id);
-
-    wx.showModal({
-      title: '确认删除',
-      content: `确定要删除房间 ${room.room_number} 吗？删除后将无法恢复。`,
-      success: async (res) => {
-        if (res.confirm) {
-          await this.deleteRoom(id);
-        }
-      }
-    });
-  },
-
-  // 删除房间
-  deleteRoom: async function (roomId) {
-    try {
-      wx.showLoading({ title: '删除中...' });
-
-      const room = this.data.rooms.find(r => r._id === roomId);
-
-      // 检查是否有学生入住
-      if (room.occupied_count > 0) {
-        wx.hideLoading();
-        wx.showToast({
-          title: '该房间还有学生居住，无法删除',
-          icon: 'none'
-        });
-        return;
-      }
-
-      // 删除该房间的所有床位
-      const bedsRes = await db.collection('dorm_beds')
-        .where({ room_id: roomId })
-        .get();
-
-      for (const bed of bedsRes.data) {
-        await db.collection('dorm_beds').doc(bed._id).remove();
-      }
-
-      // 删除房间
-      await db.collection('dorm_rooms').doc(roomId).remove();
-
-      wx.hideLoading();
-      wx.showToast({
-        title: '删除成功',
-        icon: 'success'
-      });
-
-      // 重新加载
-      this.loadRooms();
-
-    } catch (err) {
-      console.error('删除失败:', err);
-      wx.hideLoading();
-      wx.showToast({
-        title: '删除失败',
-        icon: 'none'
-      });
-    }
   },
 
   // 删除房间

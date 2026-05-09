@@ -102,8 +102,15 @@
       <text class="anon-label">匿名</text>
       <switch checked="{{replyAnonymous}}" bindchange="onReplyAnonChange" color="#667eea" size="mini" />
     </view>
-    <view class="reply-send-btn {{replyContent.trim() ? '' : 'disabled'}}" bindtap="doReply">
-      发送
+    <!-- 1. 增加 replying 判断，防止重复提交 -->
+    <!-- 2. 确保 input 的 bindinput 正常工作 -->
+    <view 
+      class="reply-send-btn {{(replyContent.trim() && !replying) ? 'active' : 'disabled'}}" 
+      bindtap="doReply"
+    >
+      <!-- 发送中显示加载文字 -->
+      <text wx:if="{{replying}}">发送中...</text>
+      <text wx:else>发送</text>
     </view>
   </view>
 </view>

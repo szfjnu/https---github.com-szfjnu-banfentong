@@ -51,6 +51,9 @@ Page({
     
     // 组长选择器索引
     leaderIndex: -1,
+    leaderSearchKeyword: '',
+    filteredLeaderStudents: [],
+    showLeaderCandidates: false,
 
     // 弹窗控制
     showStudentPicker: false,
@@ -410,12 +413,50 @@ Page({
         'formData.leader_name': student.student_name
       });
       
-      // 如果组长已在组员名单里，移除
       this.removeMemberIfExist(student.student_id);
-      
-      // 更新可选组员列表（排除当前组长）
       this.updateAvailableMembers();
     }
+  },
+
+  onLeaderSearchInput: function (e) {
+    const keyword = e.detail.value.trim().substring(0, 50)
+    this.setData({ leaderSearchKeyword: keyword, showLeaderCandidates: true })
+    if (!keyword) {
+      this.setData({ filteredLeaderStudents: this.data.availableLeaderStudents })
+      return
+    }
+    const lower = keyword.toLowerCase()
+    const filtered = this.data.availableLeaderStudents.filter(s => 
+      (s.student_name && s.student_name.toLowerCase().includes(lower)) ||
+      (s.student_id && String(s.student_id).toLowerCase().includes(lower))
+    )
+    this.setData({ filteredLeaderStudents: filtered })
+  },
+
+  onSelectLeader: function (e) {
+    const index = e.currentTarget.dataset.index
+    const student = this.data.filteredLeaderStudents[index]
+    if (!student) return
+    this.setData({
+      leaderSearchKeyword: '',
+      showLeaderCandidates: false,
+      filteredLeaderStudents: [],
+      'formData.leader_id': student.student_id,
+      'formData.leader_name': student.student_name
+    })
+    this.removeMemberIfExist(student.student_id)
+    this.updateAvailableMembers()
+  },
+
+  onClearLeader: function () {
+    this.setData({
+      leaderSearchKeyword: '',
+      showLeaderCandidates: false,
+      filteredLeaderStudents: [],
+      'formData.leader_id': '',
+      'formData.leader_name': ''
+    })
+    this.updateAvailableMembers()
   },
 
   // 更新可选组员列表

@@ -14,7 +14,8 @@ Page({
     // 回复相关
     replyContent: '',
     replyAnonymous: true,
-    replying: false
+    replying: false,
+    canSend: false
   },
 
   onLoad: function (options) {
@@ -101,7 +102,11 @@ Page({
 
   // 回复内容输入
   onReplyInput: function (e) {
-    this.setData({ replyContent: e.detail.value });
+    var val = e.detail.value || '';
+    this.setData({
+      replyContent: val,
+      canSend: val.trim().length > 0
+    });
   },
 
   // 匿名开关
@@ -123,7 +128,7 @@ Page({
       return;
     }
 
-    this.setData({ replying: true });
+    this.setData({ replying: true, canSend: false });
 
     try {
       const res = await wx.cloud.callFunction({
@@ -142,7 +147,7 @@ Page({
       const result = res.result || {};
       if (result.success) {
         wx.showToast({ title: '回复成功', icon: 'success' });
-        this.setData({ replyContent: '' });
+        this.setData({ replyContent: '', canSend: false });
         this.loadDetail();
       } else {
         wx.showToast({ title: result.message || '回复失败', icon: 'none' });

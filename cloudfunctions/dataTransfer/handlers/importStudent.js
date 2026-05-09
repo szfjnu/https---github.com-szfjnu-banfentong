@@ -35,6 +35,11 @@ async function doImport(previewData, classId, className) {
     const tasks = batch.map(async (row, idx) => {
       try {
         const student = { ...row.student, class_id: classId, class_name: className }
+        if (student.current_score === undefined) student.current_score = student.initial_score || 100
+        if (student.initial_score === undefined) student.initial_score = 100
+        if (student.dorm_score === undefined) student.dorm_score = 100
+        if (!student.created_at) student.created_at = db.serverDate()
+        if (!student.updated_at) student.updated_at = db.serverDate()
         const { data: existing } = await db.collection('students')
           .where({
             student_id: student.student_id,

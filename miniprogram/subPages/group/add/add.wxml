@@ -89,21 +89,31 @@
 
       <view class="form-item">
         <text class="form-label required">选择组长</text>
-        <picker 
-          mode="selector" 
-          range="{{availableLeaderStudents}}" 
-          range-key="student_name" 
-          value="{{leaderIndex}}" 
-          bindchange="onLeaderChange"
+        <input 
+          class="leader-search-input" 
+          placeholder="输入姓名/学号搜索" 
+          value="{{leaderSearchKeyword}}"
+          bindinput="onLeaderSearchInput"
           disabled="{{mode === 'view'}}"
-        >
-          <view class="picker-value">
-            <text class="{{formData.leader_name ? '' : 'placeholder'}}">
-              {{formData.leader_name || '请选择组长（仅显示未分组学生）'}}
-            </text>
-            <text class="arrow" wx:if="{{mode !== 'view'}}">▼</text>
+        />
+        <view class="leader-candidates" wx:if="{{showLeaderCandidates && mode !== 'view'}}">
+          <view class="candidate-item" 
+            wx:for="{{filteredLeaderStudents}}" 
+            wx:key="student_id"
+            bindtap="onSelectLeader"
+            data-index="{{index}}"
+          >
+            <text class="candidate-name">{{item.student_name}}</text>
+            <text class="candidate-id">{{item.student_id}}</text>
           </view>
-        </picker>
+          <view class="candidate-empty" wx:if="{{filteredLeaderStudents.length === 0}}">
+            <text>未找到匹配学生</text>
+          </view>
+        </view>
+        <view class="selected-leader-inline" wx:if="{{formData.leader_name && !showLeaderCandidates}}">
+          <text class="selected-name">{{formData.leader_name}}</text>
+          <text class="clear-leader" bindtap="onClearLeader" wx:if="{{mode !== 'view'}}">✕</text>
+        </view>
         <view class="picker-tip" wx:if="{{availableLeaderStudents.length === 0 && mode !== 'view'}}">
           <text class="tip-text">⚠️ 所有学生都已分配到小组，请先调整其他小组</text>
         </view>
