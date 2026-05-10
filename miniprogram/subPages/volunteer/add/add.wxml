@@ -197,10 +197,9 @@
       <!-- 学生列表 -->
       <scroll-view class="student-list" scroll-y>
         <view 
-          class="student-item {{selectedStudentIds.indexOf(item.student_id) > -1 ? 'selected' : ''}}" 
-          wx:for="{{allStudents}}" 
+          class="student-item {{item.selected ? 'selected' : ''}}" 
+          wx:for="{{filteredStudents}}" 
           wx:key="student_id"
-          wx:if="{{!searchKeyword || item.student_name.includes(searchKeyword) || item.student_id.includes(searchKeyword)}}"
           bindtap="toggleStudent"
           data-id="{{item.student_id}}"
         >
@@ -210,7 +209,7 @@
             <text class="student-id">{{item.student_id}}</text>
           </view>
           <view class="check-box">
-            <text class="check-icon" wx:if="{{selectedStudentIds.indexOf(item.student_id) > -1}}">✓</text>
+            <text class="check-icon" wx:if="{{item.selected}}">✓</text>
           </view>
         </view>
       </scroll-view>

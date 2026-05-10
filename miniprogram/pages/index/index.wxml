@@ -71,7 +71,7 @@
                 <text class="ranking-name">{{item.name}}</text>
               </view>
               <view class="ranking-right">
-                <text class="ranking-score">+{{item.monthlyScore}}</text>
+                <text class="ranking-score">{{item.monthlyScoreDisplay}}</text>
                 <text class="ranking-label">本月</text>
               </view>
             </view>

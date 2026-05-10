@@ -13,6 +13,8 @@ exports.main = async (event, context) => {
       return await getScoreCategories(data)
     case 'getScoreRecords':
       return await getScoreRecords(data)
+    case 'applyScoreChange':
+      return await applyScoreChange(data)
     default:
       return { success: false, message: '未知操作' }
   }
@@ -140,6 +142,95 @@ async function getScoreRecords(data) {
     }
   } catch (err) {
     console.error('getScoreRecords失败:', err)
+    return { success: false, message: err.message }
+  }
+}
+
+async function applyScoreChange(data) {
+  const {
+    student_id, class_id, semester_id,
+    score_change, source_type, item_name, reason_detail,
+    item_id, rule_id, rule_name, rule_code, rule_version,
+    recorder_openid, recorder_name, date
+  } = data || {}
+
+  if (!student_id || score_change === undefined || score_change === null) {
+    return { success: false, message: '缺少必要参数: student_id, score_change' }
+  }
+
+  const changeValue = Number(score_change)
+  if (isNaN(changeValue)) {
+    return { success: false, message: 'score_change 必须为数字' }
+  }
+
+  try {
+    const now = db.serverDate()
+    const stuRes = await db.collection('students')
+      .where({ student_id })
+      .limit(1)
+      .get()
+
+    if (!stuRes.data || stuRes.data.length === 0) {
+      return { success: false, message: `未找到学生: ${student_id}` }
+    }
+
+    const student = stuRes.data[0]
+    const scoreBefore = student.current_score !== undefined && student.current_score !== null
+      ? Number(student.current_score) : 100
+    const scoreAfter = scoreBefore + changeValue
+
+    const recordId = `SR${Date.now()}${Math.random().toString(36).substr(2, 9)}`
+
+    const recordData = {
+      record_id: recordId,
+      record_type: 'record',
+      student_id,
+      student_name: student.name || student.student_name || '',
+      class_id: class_id || student.class_id || '',
+      semester_id: semester_id || '',
+      item_id: item_id || '',
+      item_name: item_name || '',
+      rule_id: rule_id || '',
+      rule_name: rule_name || item_name || '',
+      rule_code: rule_code || '',
+      rule_version: rule_version || 1,
+      rule_category: source_type || '',
+      score_change: changeValue,
+      score_value: changeValue,
+      score_before: scoreBefore,
+      score_after: scoreAfter,
+      score_type: changeValue >= 0 ? '加分' : '扣分',
+      reason_detail: reason_detail || '',
+      date: date || '',
+      recorder_openid: recorder_openid || '',
+      recorder_name: recorder_name || '',
+      source_type: source_type || '',
+      approval_status: '已通过',
+      status: '已确认',
+      created_at: now,
+      updated_at: now
+    }
+
+    await db.collection('score_records').add({ data: recordData })
+
+    await db.collection('students').doc(student._id).update({
+      data: {
+        current_score: scoreAfter,
+        updated_at: now
+      }
+    })
+
+    return {
+      success: true,
+      data: {
+        record_id: recordId,
+        score_before: scoreBefore,
+        score_after: scoreAfter,
+        score_change: changeValue
+      }
+    }
+  } catch (err) {
+    console.error('applyScoreChange失败:', err)
     return { success: false, message: err.message }
   }
 }

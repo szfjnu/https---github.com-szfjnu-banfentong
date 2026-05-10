@@ -485,6 +485,7 @@ fetchWeather: async function (location) {
       ranking.forEach((item, index) => {
         item.rank = index + 1;
         item.badge = this.getRankBadge(index + 1);
+        item.monthlyScoreDisplay = item.monthlyScore > 0 ? `+${item.monthlyScore}` : `${item.monthlyScore}`;
       });
 
       this.setData({ 

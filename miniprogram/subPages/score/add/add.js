@@ -10,6 +10,7 @@ Page({
     submitting: false,
     // 学生相关
     students: [],
+    filteredStudents: [],
     selectedStudents: [],
     searchKeyword: '',
     classOptions: [{ value: '', label: '全部班级' }],
@@ -325,6 +326,7 @@ Page({
       }
       
       this.setData({ students });
+      this.applyStudentFilter();
       console.log('【学生加载完成】共', students.length, '人');
 
     } catch (err) {
@@ -584,6 +586,28 @@ Page({
   // 搜索学生
   onSearchInput: function (e) {
     this.setData({ searchKeyword: e.detail.value });
+    this.applyStudentFilter();
+  },
+
+  applyStudentFilter: function () {
+    const { students, selectedClass, selectedGroup, searchKeyword } = this.data;
+    let filtered = students;
+
+    if (selectedClass) {
+      filtered = filtered.filter(s => s.class_id === selectedClass);
+    }
+    if (selectedGroup) {
+      filtered = filtered.filter(s => s.group === selectedGroup);
+    }
+    if (searchKeyword) {
+      const kw = searchKeyword.toLowerCase();
+      filtered = filtered.filter(s =>
+        (s.name && s.name.toLowerCase().includes(kw)) ||
+        (s.student_name && s.student_name.toLowerCase().includes(kw)) ||
+        (s.student_id && String(s.student_id).includes(kw))
+      );
+    }
+    this.setData({ filteredStudents: filtered });
   },
 
   // 班级筛选
@@ -699,6 +723,7 @@ Page({
       }
 
       this.setData({ students });
+      this.applyStudentFilter();
       console.log('【分组学生加载完成】共', students.length, '人, 学生数据:', students);
 
     } catch (err) {
@@ -824,6 +849,7 @@ Page({
 
     const selectedStudents = students.filter(s => s.selected);
     this.setData({ students, selectedStudents });
+    this.applyStudentFilter();
   },
 
   // 全选当前筛选的学生

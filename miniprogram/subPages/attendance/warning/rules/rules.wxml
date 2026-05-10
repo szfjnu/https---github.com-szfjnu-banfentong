@@ -16,7 +16,7 @@
           <view class="level-inputs">
             <text class="level-label">旷课 ≥</text>
             <input class="level-input" type="number" value="{{item.min_sections}}" bindinput="onLevelMinInput" data-index="{{index}}" />
-            <text class="level-label">且 &lt; {{item.max_sections !== null ? item.max_sections : '∞'}} 节</text>
+            <text class="level-label">且 小于 {{item.maxDisplay}} 节</text>
           </view>
         </view>
       </view>

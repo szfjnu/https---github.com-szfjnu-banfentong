@@ -29,11 +29,12 @@ Page({
     dormRecords: [],
     isBoarding: false,
     tabs: [
-      { key: 'info', label: '基本信息' },
-      { key: 'score', label: '积分记录' },
+      { key: 'info', label: '信息' },
+      { key: 'score', label: '积分' },
       { key: 'attendance', label: '考勤' },
-      { key: 'volunteer', label: '志愿服务' },
-      { key: 'discipline', label: '处分记录' }
+      { key: 'volunteer', label: '志愿' },
+      { key: 'dorm', label: '住宿' },
+      { key: 'discipline', label: '处分' }
     ]
   },
 
@@ -396,11 +397,13 @@ Page({
         const account = accountRes.data[0];
         const current = account.current_score || account.original_score || 100;
         const original = account.original_score || 100;
+        const totalAdd = Math.max(0, current - original);
         dormScoreInfo = {
           current_score: current,
           original_score: original,
           total_deduct: Math.max(0, original - current),
-          total_add: Math.max(0, current - original)
+          total_add: totalAdd,
+          total_addDisplay: totalAdd > 0 ? `+${totalAdd}` : `${totalAdd}`
         };
       }
 

@@ -616,53 +616,56 @@ async function syncScoreToStudent(task, scoreChange, inspection, openid) {
 
   const now = db.serverDate();
 
-  // 写入积分记录
-  await db.collection('score_records').add({
-    data: {
-      record_id,
-      student_id: task.student_id,
-      item_id,
-      score_change: scoreChange,
-      reason_detail: `${task.duty_date}值日任务【${task.task_name}】${scoreChange > 0 ? '合格加分' : '不合格扣分'}${inspection.comment ? '：' + inspection.comment : ''}`,
-      date: now,
-      recorder_name: inspection.inspector_name || '系统',
-      recorder_openid: openid,
-      semester_id,
-      source_type: '卫生值日',
-      source_record_id: task.task_id,
-      approval_status: '已通过',
-      approver_name: '',
-      approval_time: now,
-      approval_comment: '',
-      created_at: now
-    }
-  });
-
-  // 更新学生积分
+  // 调用统一积分变更云函数
   try {
-    await db.collection('students')
-      .where({ student_id: task.student_id })
-      .update({
+    await cloud.callFunction({
+      name: 'scoreManager',
+      data: {
+        action: 'applyScoreChange',
         data: {
-          current_score: _.inc(scoreChange),
-          updated_at: now
+          student_id: task.student_id,
+          class_id: task.class_id || '',
+          semester_id: semester_id || '',
+          score_change: scoreChange,
+          source_type: '卫生值日',
+          item_id: item_id || '',
+          item_name: item_name || '卫生值日',
+          rule_name: item_name || '卫生值日',
+          rule_code: 'DUTY_CHECK',
+          reason_detail: `${task.duty_date}值日任务【${task.task_name}】${scoreChange > 0 ? '合格加分' : '不合格扣分'}${inspection.comment ? '：' + inspection.comment : ''}`,
+          recorder_openid: openid,
+          recorder_name: inspection.inspector_name || '系统',
+          date: task.duty_date || ''
         }
-      });
-  } catch (updateErr) {
-    console.error('更新学生总积分失败，尝试补偿:', updateErr);
+      }
+    });
+  } catch (scoreErr) {
+    console.error('调用统一积分云函数失败，回退直接写入:', scoreErr);
+    await db.collection('score_records').add({
+      data: {
+        record_id,
+        student_id: task.student_id,
+        item_id,
+        score_change: scoreChange,
+        reason_detail: `${task.duty_date}值日任务【${task.task_name}】${scoreChange > 0 ? '合格加分' : '不合格扣分'}${inspection.comment ? '：' + inspection.comment : ''}`,
+        date: now,
+        recorder_name: inspection.inspector_name || '系统',
+        recorder_openid: openid,
+        semester_id,
+        source_type: '卫生值日',
+        source_record_id: task.task_id,
+        approval_status: '已通过',
+        created_at: now
+      }
+    });
     const studentRes = await db.collection('students')
       .where({ student_id: task.student_id })
-      .limit(1)
-      .get();
+      .limit(1).get();
     if (studentRes.data && studentRes.data.length > 0) {
       const student = studentRes.data[0];
       const currentScore = student.current_score || 100;
-      const newScore = currentScore + scoreChange;
       await db.collection('students').doc(student._id).update({
-        data: {
-          current_score: newScore,
-          updated_at: now
-        }
+        data: { current_score: currentScore + scoreChange, updated_at: now }
       });
     }
   }

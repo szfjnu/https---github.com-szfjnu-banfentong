@@ -317,32 +317,34 @@ async function addDisciplineRecord(data, openid) {
   // 自动扣减积分
   if (score_deduction && score_deduction > 0) {
     try {
-      const scoreRecordId = generateId('sr');
-      await db.collection('score_records').add({
+      const scoreRes = await cloud.callFunction({
+        name: 'scoreManager',
         data: {
-          record_id: scoreRecordId,
-          student_id,
-          item_id: 'discipline_deduction',
-          score_change: -score_deduction,
-          reason_detail: `处分扣分：${level_name} - ${reason}`,
-          date: issueDate,
-          recorder_name: issuer || '系统',
-          semester_id: semester_id || '',
-          source_type: '处分扣分',
-          source_record_id: record_id,
-          approval_status: '已通过',
-          created_at: now
+          action: 'applyScoreChange',
+          data: {
+            student_id,
+            class_id: class_id || '',
+            semester_id: semester_id || '',
+            score_change: -score_deduction,
+            source_type: '处分扣分',
+            item_id: 'discipline_deduction',
+            item_name: `处分扣分：${level_name}`,
+            rule_name: `处分扣分：${level_name}`,
+            rule_code: 'DISCIPLINE',
+            reason_detail: `处分扣分：${level_name} - ${reason}`,
+            recorder_openid: openid,
+            recorder_name: issuer || '系统',
+            date: issueDate
+          }
         }
       });
-      record.related_score_record_id = scoreRecordId;
-      await db.collection('discipline_records')
-        .where({ record_id })
-        .update({ data: { related_score_record_id: scoreRecordId } });
-
-      // 同步扣减学生表的 current_score（使用原子操作）
-      await db.collection('students')
-        .where({ student_id })
-        .update({ data: { current_score: _.inc(-score_deduction), updated_at: now } });
+      const scoreResult = scoreRes.result || {};
+      if (scoreResult.success && scoreResult.data) {
+        record.related_score_record_id = scoreResult.data.record_id;
+        await db.collection('discipline_records')
+          .where({ record_id })
+          .update({ data: { related_score_record_id: scoreResult.data.record_id } });
+      }
     } catch (err) {
       console.error('积分扣减失败:', err);
     }

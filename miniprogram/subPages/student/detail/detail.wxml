@@ -244,8 +244,20 @@
           </view>
         </view>
 
-        <!-- 住宿积分（仅住宿生显示） -->
-        <view class="dorm-score-card" wx:if="{{isBoarding}}">
+      </block>
+    </view>
+
+    <!-- 住宿积分内容 -->
+    <view class="tab-content" wx:if="{{activeTab === 'dorm'}}">
+      <view wx:if="{{!isBoarding}}" class="empty">
+        <text class="empty-icon">🏠</text>
+        <text class="empty-text">该学生非住宿生</text>
+      </view>
+      <block wx:elif="{{loading}}">
+        <view class="loading"><text>加载中...</text></view>
+      </block>
+      <block wx:else>
+        <view class="dorm-score-card">
           <view class="section-title">🏠 住宿积分</view>
           <view wx:if="{{dormScoreInfo}}">
             <view class="dorm-score-overview">
@@ -254,7 +266,7 @@
                 <text class="dorm-score-unit">分</text>
               </view>
               <view class="dorm-score-detail">
-                <text class="dorm-stat add">+{{dormScoreInfo.total_add}}</text>
+                <text class="dorm-stat add">{{dormScoreInfo.total_addDisplay}}</text>
                 <text class="dorm-stat minus">-{{dormScoreInfo.total_deduct}}</text>
               </view>
             </view>

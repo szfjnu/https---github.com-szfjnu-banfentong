@@ -561,15 +561,18 @@ Page({
 
         // 更新学生宿舍积分（核心修复：确保 dorm_score 被实时更新）
         try {
-          const dormScoreChange = selectedRule.score_value; // 带符号的变化值
-          await db.collection('students').where({
+          const dormScoreChange = selectedRule.score_value;
+          const stuRes = await db.collection('students').where({
             student_id: student.student_id
-          }).update({
-            data: {
-              dorm_score: _.inc(dormScoreChange),
-              updated_at: db.serverDate()
-            }
-          });
+          }).limit(1).get();
+          if (stuRes.data && stuRes.data.length > 0) {
+            await db.collection('students').doc(stuRes.data[0]._id).update({
+              data: {
+                dorm_score: _.inc(dormScoreChange),
+                updated_at: db.serverDate()
+              }
+            });
+          }
           console.log(`学生宿舍积分已更新: ${student.name}, 变化: ${dormScoreChange}`);
         } catch (dormScoreErr) {
           console.error('更新学生宿舍积分失败:', dormScoreErr);
@@ -613,46 +616,36 @@ Page({
         }
 
         // 如果关联个人积分，创建个人积分记录（保持原有逻辑不变）
-        if (linkToPersonal && personalScore > 0) {
-          // 格式化宿舍信息为字符串
+        if (linkToPersonal && personalScore !== 0) {
           const dormInfoStr = student.dorm_info
             ? `${student.dorm_info.building || ''}-${student.dorm_info.room || ''}-${student.dorm_info.bed || ''}`
             : '';
 
-          const scoreRecordData = {
-            record_id: `SCR-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-            student_id: student.student_id,
-            item_id: `dorm_${selectedRule._id}`,
-            item_name: `宿舍${recordType === 'violation' ? '扣分' : '加分'}: ${selectedRule.rule_name}`,
-            rule_name: `宿舍${recordType === 'violation' ? '扣分' : '加分'}: ${selectedRule.rule_name}`,
-            rule_category: '宿舍管理',
-            rule_code: 'DORM_SCORE',
-            score_change: personalScore,
-            score_value: personalScore,
-            reason_detail: `${dormInfoStr} ${selectedRule.rule_name}，${remark ? remark : ''}`,
-            date: new Date(),
-            recorder_name: dormRecordData.recorder_name,
-            recorder_openid: app.globalData.openid,
-            semester_id: currentSemesterId,
-            class_id: app.globalData.class_id || '',
-            source_type: '宿舍管理',
-            source_record_id: recordId,
-            approval_status: '已通过',
-            status: '已确认',
-            created_at: db.serverDate()
-          };
-
-          await db.collection('score_records').add({ data: scoreRecordData });
-
-          // 更新学生当前积分（使用 where 条件而不是 doc）
-          await db.collection('students').where({
-            student_id: student.student_id
-          }).update({
-            data: {
-              current_score: _.inc(personalScore),
-              updated_at: db.serverDate()
-            }
-          });
+          try {
+            await wx.cloud.callFunction({
+              name: 'scoreManager',
+              data: {
+                action: 'applyScoreChange',
+                data: {
+                  student_id: student.student_id,
+                  class_id: app.globalData.class_id || '',
+                  semester_id: currentSemesterId,
+                  score_change: personalScore,
+                  source_type: '宿舍管理',
+                  item_id: `dorm_${selectedRule._id}`,
+                  item_name: `宿舍${recordType === 'violation' ? '扣分' : '加分'}: ${selectedRule.rule_name}`,
+                  rule_name: `宿舍${recordType === 'violation' ? '扣分' : '加分'}: ${selectedRule.rule_name}`,
+                  rule_code: 'DORM_SCORE',
+                  reason_detail: `${dormInfoStr} ${selectedRule.rule_name}，${remark || ''}`,
+                  recorder_openid: app.globalData.openid,
+                  recorder_name: dormRecordData.recorder_name,
+                  date: new Date()
+                }
+              }
+            });
+          } catch (scoreErr) {
+            console.error('宿舍积分同步个人积分失败:', scoreErr);
+          }
         }
       }
 

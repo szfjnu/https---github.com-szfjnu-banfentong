@@ -166,12 +166,16 @@
   display: flex;
   background: var(--white);
   border-radius: 16rpx 16rpx 0 0;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
 }
 
 .tab-item {
-  flex: 1;
+  flex-shrink: 0;
+  min-width: 100rpx;
   text-align: center;
   padding: 24rpx 0;
   font-size: 28rpx;

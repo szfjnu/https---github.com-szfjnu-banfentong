@@ -31,6 +31,7 @@ Page({
     
     // 学生列表
     allStudents: [],
+    filteredStudents: [],
     selectedStudentIds: [],
     
     // 弹窗控制
@@ -144,6 +145,7 @@ Page({
       }));
 
       this.setData({ allStudents: students });
+      this.applyStudentFilter();
 
     } catch (err) {
       console.error('加载学生列表失败:', err);
@@ -215,9 +217,27 @@ Page({
 
   // 搜索学生
   onSearchInput: function (e) {
-    this.setData({
-      searchKeyword: e.detail.value
-    });
+    this.setData({ searchKeyword: e.detail.value });
+    this.applyStudentFilter();
+  },
+
+  applyStudentFilter: function () {
+    const { allStudents, searchKeyword } = this.data;
+    let filtered = allStudents;
+    if (searchKeyword) {
+      const kw = searchKeyword.toLowerCase();
+      filtered = filtered.filter(s =>
+        (s.student_name && s.student_name.toLowerCase().includes(kw)) ||
+        (s.name && s.name.toLowerCase().includes(kw)) ||
+        (s.student_id && String(s.student_id).includes(kw))
+      );
+    }
+    const selectedIds = this.data.selectedStudentIds;
+    filtered = filtered.map(s => ({
+      ...s,
+      selected: selectedIds.indexOf(s.student_id) > -1
+    }));
+    this.setData({ filteredStudents: filtered });
   },
 
   // 切换学生选择
@@ -251,6 +271,7 @@ Page({
         selectedStudents: selectedStudents
       });
     }
+    this.applyStudentFilter();
   },
 
   // 移除已选学生
@@ -437,39 +458,31 @@ Page({
         
         // 班主任/管理员直接通过，创建积分记录并更新积分
         if (isTeacher && earnedScore > 0) {
-          const scoreRecordData = {
-            record_id: `SCR-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-            student_id: student.student_id,
-            item_id: 'volunteer_service',
-            item_name: `志愿服务: ${formData.activity_name}`,
-            rule_name: `志愿服务: ${formData.activity_name}`,
-            rule_category: '志愿服务',
-            rule_code: 'VOLUNTEER_SERVICE',
-            score_change: earnedScore,
-            score_value: earnedScore,
-            reason_detail: `参与${formData.activity_name}，服务时长${formData.duration}小时`,
-            date: new Date(formData.service_date),
-            recorder_name: volunteerData.recorder_name,
-            recorder_openid: app.globalData.openid,
-            semester_id: currentSemesterId,
-            class_id: currentClassId,
-            source_type: '志愿服务',
-            source_record_id: recordId,
-            approval_status: '已通过',
-            status: '已确认',
-            created_at: db.serverDate()
-          };
-          
-          await db.collection('score_records').add({ data: scoreRecordData });
-          
-          await db.collection('students')
-            .where({ student_id: student.student_id, class_id: currentClassId })
-            .update({
+          try {
+            await wx.cloud.callFunction({
+              name: 'scoreManager',
               data: {
-                current_score: db.command.inc(earnedScore),
-                updated_at: db.serverDate()
+                action: 'applyScoreChange',
+                data: {
+                  student_id: student.student_id,
+                  class_id: currentClassId,
+                  semester_id: currentSemesterId,
+                  score_change: earnedScore,
+                  source_type: '志愿服务',
+                  item_id: 'volunteer_service',
+                  item_name: `志愿服务: ${formData.activity_name}`,
+                  rule_name: `志愿服务: ${formData.activity_name}`,
+                  rule_code: 'VOLUNTEER_SERVICE',
+                  reason_detail: `参与${formData.activity_name}，服务时长${formData.duration}小时`,
+                  recorder_openid: app.globalData.openid,
+                  recorder_name: volunteerData.recorder_name,
+                  date: formData.service_date
+                }
               }
             });
+          } catch (scoreErr) {
+            console.error('志愿积分同步失败:', scoreErr);
+          }
         }
         
         // 学生/家长/班委提交审批流程

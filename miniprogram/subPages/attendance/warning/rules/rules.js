@@ -33,7 +33,11 @@ Page({
       const leaveResult = leaveRes.result || {};
 
       if (absentResult.success) {
-        this.setData({ absentLevels: absentResult.data.warning_levels, absentIsDefault: absentResult.data.is_default });
+        const absentLevels = (absentResult.data.warning_levels || []).map(l => ({
+          ...l,
+          maxDisplay: l.max_sections !== null && l.max_sections !== undefined ? String(l.max_sections) : '∞'
+        }));
+        this.setData({ absentLevels, absentIsDefault: absentResult.data.is_default });
       }
       if (leaveResult.success) {
         this.setData({ leaveThreshold: leaveResult.data.threshold_days, leaveIsDefault: leaveResult.data.is_default });
@@ -51,6 +55,7 @@ Page({
     const val = Number(e.detail.value);
     const levels = [...this.data.absentLevels];
     levels[idx].min_sections = val;
+    levels[idx].maxDisplay = levels[idx].max_sections !== null && levels[idx].max_sections !== undefined ? String(levels[idx].max_sections) : '∞';
     this.setData({ absentLevels: levels });
   },
 
@@ -59,6 +64,7 @@ Page({
     const val = e.detail.value ? Number(e.detail.value) : null;
     const levels = [...this.data.absentLevels];
     levels[idx].max_sections = val;
+    levels[idx].maxDisplay = val !== null && val !== undefined ? String(val) : '∞';
     this.setData({ absentLevels: levels });
   },
 
@@ -88,7 +94,11 @@ Page({
       });
       const result = res.result || {};
       if (result.success) {
-        this.setData({ absentLevels: result.data.warning_levels, absentIsDefault: true });
+        const absentLevels = (result.data.warning_levels || []).map(l => ({
+          ...l,
+          maxDisplay: l.max_sections !== null && l.max_sections !== undefined ? String(l.max_sections) : '∞'
+        }));
+        this.setData({ absentLevels, absentIsDefault: true });
         wx.showToast({ title: '已恢复默认', icon: 'success' });
       }
     } catch (err) {

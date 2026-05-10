@@ -537,14 +537,17 @@ Page({
       // 更新每个受影响学生的宿舍积分
       for (const studentId of selectedStudents) {
         try {
-          await db.collection('students').where({
+          const stuRes = await db.collection('students').where({
             student_id: studentId
-          }).update({
-            data: {
-              dorm_score: _.inc(dormScoreChange),
-              updated_at: db.serverDate()
-            }
-          });
+          }).limit(1).get();
+          if (stuRes.data && stuRes.data.length > 0) {
+            await db.collection('students').doc(stuRes.data[0]._id).update({
+              data: {
+                dorm_score: _.inc(dormScoreChange),
+                updated_at: db.serverDate()
+              }
+            });
+          }
         } catch (err) {
           console.error(`更新学生 ${studentId} 宿舍积分失败:`, err);
         }

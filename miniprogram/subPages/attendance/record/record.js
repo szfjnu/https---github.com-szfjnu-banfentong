@@ -961,37 +961,11 @@ Page({
 
           // 如果积分有变化，同步更新积分记录和学生总积分
           if (scoreDiff !== 0) {
-            const scoreRecordId = `SR${Date.now()}${Math.random().toString(36).substr(2, 9)}`;
-            await db.collection('score_records').add({
-              data: {
-                record_id: scoreRecordId,
-                record_type: 'record',
-                student_id: student.student_id,
-                student_name: student.name,
-                class_id: this.data.classId,
-                item_id: `attendance_${categoryCode}`,
-                item_name: `考勤-${category.category_name}`,
-                score_change: scoreDiff,
-                score_value: scoreDiff,
-                reason_detail: `${selectedDate} ${category.category_name}(调整，原${oldScoreChange}→新${newScoreChange})`,
-                date: selectedDate,
-                recorder_openid: app.globalData.openid,
-                recorder_name: app.globalData.userInfo.nickName,
-                semester_id: app.globalData.currentSemesterId || '',
-                source_type: '考勤',
-                approval_status: '已通过',
-                created_at: db.serverDate()
-              }
+            await this.updateStudentScore(student.student_id, scoreDiff, {
+              category_code: categoryCode,
+              category_name: category.category_name,
+              reason_detail: `${selectedDate} ${category.category_name}(调整，原${oldScoreChange}→新${newScoreChange})`
             });
-
-            await db.collection('students')
-              .where({ student_id: student.student_id })
-              .update({
-                data: {
-                  current_score: db.command.inc(scoreDiff),
-                  updated_at: db.serverDate()
-                }
-              });
           }
         } else {
           // 创建新记录
@@ -1038,36 +1012,11 @@ Page({
             }
             if (category.score_deduction && category.score_deduction !== 0) {
               const totalDeduction = (category.score_deduction || 0) * selectedSections.length;
-              const scoreRecordId = `SR${Date.now()}${Math.random().toString(36).substr(2, 9)}`;
-              await db.collection('score_records').add({
-                data: {
-                  record_id: scoreRecordId,
-                  record_type: 'record',
-                  student_id: student.student_id,
-                  student_name: student.name,
-                  class_id: this.data.classId,
-                  item_id: `attendance_${categoryCode}`,
-                  item_name: `考勤-${category.category_name}`,
-                  score_change: totalDeduction,
-                  score_value: totalDeduction,
-                  reason_detail: `${selectedDate} ${category.category_name}(${selectedSections.length}节)`,
-                  date: selectedDate,
-                  recorder_openid: app.globalData.openid,
-                  recorder_name: app.globalData.userInfo.nickName,
-                  semester_id: app.globalData.currentSemesterId || '',
-                  source_type: '考勤',
-                  approval_status: '已通过',
-                  created_at: db.serverDate()
-                }
+              await this.updateStudentScore(student.student_id, totalDeduction, {
+                category_code: categoryCode,
+                category_name: category.category_name,
+                reason_detail: `${selectedDate} ${category.category_name}(${selectedSections.length}节)`
               });
-              await db.collection('students')
-                .where({ student_id: student.student_id })
-                .update({
-                  data: {
-                    current_score: db.command.inc(totalDeduction),
-                    updated_at: db.serverDate()
-                  }
-                });
             }
           } else {
           const recordId = `AR${Date.now()}${Math.random().toString(36).substr(2, 9)}`;
@@ -1094,38 +1043,11 @@ Page({
           
           // 如果有积分扣减，创建积分记录
           if (category.score_deduction && category.score_deduction !== 0) {
-            const scoreRecordId = `SR${Date.now()}${Math.random().toString(36).substr(2, 9)}`;
-            await db.collection('score_records').add({
-              data: {
-                record_id: scoreRecordId,
-                record_type: 'record',
-                student_id: student.student_id,
-                student_name: student.name,
-                class_id: this.data.classId,
-                item_id: `attendance_${categoryCode}`,
-                item_name: `考勤-${category.category_name}`, 
-                score_change: category.score_deduction,
-                score_value: category.score_deduction,
-                reason_detail: `${selectedDate} ${category.category_name}`,
-                date: selectedDate,
-                recorder_openid: app.globalData.openid,
-                recorder_name: app.globalData.userInfo.nickName,
-                semester_id: app.globalData.currentSemesterId || '',
-                source_type: '考勤',
-                approval_status: '已通过',
-                created_at: db.serverDate()
-              }
+            await this.updateStudentScore(student.student_id, category.score_deduction, {
+              category_code: categoryCode,
+              category_name: category.category_name,
+              reason_detail: `${selectedDate} ${category.category_name}`
             });
-            
-            // 更新学生积分
-            await db.collection('students')
-              .where({ student_id: student.student_id })
-              .update({
-                data: {
-                  current_score: db.command.inc(category.score_deduction),
-                  updated_at: db.serverDate()
-                }
-              });
           }
           }
         }
@@ -1165,5 +1087,37 @@ Page({
     const day = d.getDay();
     const diff = d.getDate() - day + (day === 0 ? -6 : 1);
     return new Date(d.setDate(diff));
+  },
+
+  updateStudentScore: async function (studentId, scoreChange, options = {}) {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'scoreManager',
+        data: {
+          action: 'applyScoreChange',
+          data: {
+            student_id: studentId,
+            class_id: this.data.classId,
+            semester_id: app.globalData.currentSemesterId || '',
+            score_change: scoreChange,
+            source_type: '考勤',
+            item_id: options.item_id || `attendance_${options.category_code || ''}`,
+            item_name: options.item_name || `考勤-${options.category_name || ''}`,
+            rule_name: options.item_name || `考勤-${options.category_name || ''}`,
+            rule_code: options.category_code || '',
+            reason_detail: options.reason_detail || '',
+            recorder_openid: app.globalData.openid,
+            recorder_name: app.globalData.userInfo.nickName || '',
+            date: this.data.selectedDate
+          }
+        }
+      });
+      const result = res.result || {};
+      if (!result.success) {
+        console.error('统一积分变更失败:', result.message);
+      }
+    } catch (err) {
+      console.error('调用积分云函数失败:', err);
+    }
   }
 });
