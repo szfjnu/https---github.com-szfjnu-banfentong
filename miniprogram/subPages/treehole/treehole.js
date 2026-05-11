@@ -238,6 +238,10 @@ Page({
       wx.showToast({ title: '请输入内容', icon: 'none' });
       return;
     }
+    if (publishContent.trim().length > 500) {
+      wx.showToast({ title: '内容不能超过500字', icon: 'none' });
+      return;
+    }
 
     this.setData({ publishing: true });
 

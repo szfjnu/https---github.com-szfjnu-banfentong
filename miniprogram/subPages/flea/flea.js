@@ -220,6 +220,8 @@ Page({
     if (!form.title.trim()) return wx.showToast({ title: '请输入标题', icon: 'none' })
     if (!form.description.trim()) return wx.showToast({ title: '请输入描述', icon: 'none' })
     if (form.price === '') return wx.showToast({ title: '请输入价格', icon: 'none' })
+    const priceNum = Number(form.price)
+    if (isNaN(priceNum) || priceNum < 0) return wx.showToast({ title: '请输入有效价格', icon: 'none' })
 
     this.setData({ publishing: true })
 

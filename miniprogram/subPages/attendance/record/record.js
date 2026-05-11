@@ -176,7 +176,6 @@ Page({
         filteredStudents: students
       });
       if (allStudents.length > 0 && allStudents.length % 20 === 0) {
-        console.warn('[record] 学生数量为20的整数倍，请确认是否已加载全部学生:', allStudents.length);
       }
     } catch (err) {
       console.error('加载学生失败:', err);

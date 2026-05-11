@@ -145,12 +145,17 @@ Page({
 
   // 获取默认考勤类别
   getDefaultCategories: function () {
+    const app = getApp();
+    const rules = app.globalData.attendanceRules || {};
+    const lateDeduction = rules.late_deduction || -1;
+    const earlyDeduction = rules.early_leave_deduction || -1;
+    const absentDeduction = rules.absent_deduction || -5;
     return [
       { category_id: 'sick_leave', category_name: '病假', score_deduction: 0, color: '#52c41a', icon: '🏥' },
       { category_id: 'personal_leave', category_name: '事假', score_deduction: 0, color: '#1890ff', icon: '📝' },
-      { category_id: 'late', category_name: '迟到', score_deduction: -1, color: '#fa8c16', icon: '⏰' },
-      { category_id: 'early_leave', category_name: '早退', score_deduction: -1, color: '#faad14', icon: '🏃' },
-      { category_id: 'absent', category_name: '旷课', score_deduction: -5, color: '#ff4d4f', icon: '❌' }
+      { category_id: 'late', category_name: '迟到', score_deduction: lateDeduction, color: '#fa8c16', icon: '⏰' },
+      { category_id: 'early_leave', category_name: '早退', score_deduction: earlyDeduction, color: '#faad14', icon: '🏃' },
+      { category_id: 'absent', category_name: '旷课', score_deduction: absentDeduction, color: '#ff4d4f', icon: '❌' }
     ];
   },
 

@@ -321,9 +321,8 @@ Page({
       } else {
         // 使用默认天气
         this.setData({
-          weather, 
-        //weather: this.getDefaultWeather(),
-          weatherLoading: false 
+          weather: this.getDefaultWeather(),
+          weatherLoading: false
         });
       }
     } catch (err) {

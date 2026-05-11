@@ -5,6 +5,7 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
+const { getCallerInfo, requireClassAccess, requireTeacher } = require('../utils/auth');
 
 // 生成唯一ID
 function generateId(prefix) {
@@ -46,43 +47,37 @@ const TARGET_TYPES = {
 
 exports.main = async (event, context) => {
   const { action, data } = event;
-  const { OPENID } = cloud.getWXContext();
 
   try {
+    const caller = await getCallerInfo(event, data?.class_id || data?.classId);
+
     switch (action) {
-      // ========== 用户信息 ==========
-      case 'getUserProfile': return await getUserProfile(data, OPENID);
-      case 'updateUserProfile': return await updateUserProfile(data, OPENID);
+      case 'getUserProfile': return await getUserProfile(data, caller);
+      case 'updateUserProfile': return await updateUserProfile(data, caller);
 
-      // ========== 用户设置 ==========
-      case 'getUserSettings': return await getUserSettings(OPENID);
-      case 'updateUserSettings': return await updateUserSettings(data, OPENID);
-      case 'updateNotificationPreference': return await updateNotificationPreference(data, OPENID);
+      case 'getUserSettings': return await getUserSettings(caller);
+      case 'updateUserSettings': return await updateUserSettings(data, caller);
+      case 'updateNotificationPreference': return await updateNotificationPreference(data, caller);
 
-      // ========== 通知发布（管理员/教师） ==========
-      case 'publishNotification': return await publishNotification(data, OPENID);
-      case 'recallNotification': return await recallNotification(data, OPENID);
-      case 'getPublishedNotifications': return await getPublishedNotifications(data, OPENID);
+      case 'publishNotification': requireClassAccess(caller, data.class_id, ['head_teacher', 'admin']); return await publishNotification(data, caller);
+      case 'recallNotification': requireTeacher(caller); return await recallNotification(data, caller);
+      case 'getPublishedNotifications': return await getPublishedNotifications(data, caller);
 
-      // ========== 通知接收（所有用户） ==========
-      case 'getNotifications': return await getNotifications(data, OPENID);
-      case 'getNotificationDetail': return await getNotificationDetail(data, OPENID);
-      case 'markAsRead': return await markAsRead(data, OPENID);
-      case 'markAllAsRead': return await markAllAsRead(data, OPENID);
-      case 'getUnreadCount': return await getUnreadCount(data, OPENID);
-      case 'toggleStar': return await toggleStar(data, OPENID);
-      case 'deleteNotification': return await deleteNotification(data, OPENID);
+      case 'getNotifications': return await getNotifications(data, caller);
+      case 'getNotificationDetail': return await getNotificationDetail(data, caller);
+      case 'markAsRead': return await markAsRead(data, caller);
+      case 'markAllAsRead': return await markAllAsRead(data, caller);
+      case 'getUnreadCount': return await getUnreadCount(data, caller);
+      case 'toggleStar': return await toggleStar(data, caller);
+      case 'deleteNotification': return await deleteNotification(data, caller);
 
-      // ========== 系统通知（由其他模块调用） ==========
-      case 'sendSystemNotification': return await sendSystemNotification(data);
+      case 'sendSystemNotification': requireTeacher(caller); return await sendSystemNotification(data, caller);
 
-      // ========== 通知类型定义 ==========
       case 'getNotificationTypes': return { success: true, data: NOTIFICATION_TYPES };
 
-      // ========== 学生信息管理 ==========
-      case 'updateStudentInfo': return await updateStudentInfo(data, OPENID);
-      case 'getStudentDetail': return await getStudentDetail(data, OPENID);
-      case 'getAccessibleStudents': return await getAccessibleStudents(data, OPENID);
+      case 'updateStudentInfo': return await updateStudentInfo(data, caller);
+      case 'getStudentDetail': return await getStudentDetail(data, caller);
+      case 'getAccessibleStudents': return await getAccessibleStudents(data, caller);
 
       default:
         return { success: false, message: `未知操作: ${action}` };

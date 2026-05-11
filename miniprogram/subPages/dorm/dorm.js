@@ -1,7 +1,15 @@
 ﻿const app = getApp();
-const db = wx.cloud.database();
-const _ = db.command;
 const batchQuery = require('../../utils/batchQuery.js');
+
+let db = null;
+let _ = null;
+function getDb() {
+  if (!db) {
+    db = wx.cloud.database();
+    _ = db.command;
+  }
+  return { db, _ };
+}
 
 Page({
   data: {
@@ -33,11 +41,7 @@ Page({
 
     // 筛选选项
     buildingOptions: [
-      { label: '全部楼栋', value: '' },
-      { label: '1号楼', value: '1号楼' },
-      { label: '2号楼', value: '2号楼' },
-      { label: '3号楼', value: '3号楼' },
-      { label: '4号楼', value: '4号楼' }
+      { label: '全部楼栋', value: '' }
     ],
     selectedBuilding: '',
     selectedBuildingLabel: '',
@@ -54,6 +58,7 @@ Page({
   },
 
   onLoad: function (options) {
+    getDb();
     this.initPage();
   },
 
@@ -71,9 +76,14 @@ Page({
       const classId = app.globalData.class_id;
       const isAdmin = role === 'admin' || role === 'head_teacher';
 
+      const dormBuildings = app.globalData.dormBuildings || ['1号楼', '2号楼', '3号楼', '4号楼'];
+      const buildingOptions = [{ label: '全部楼栋', value: '' }];
+      dormBuildings.forEach(b => buildingOptions.push({ label: b, value: b }));
+
       this.setData({
         isAdmin,
-        classId
+        classId,
+        buildingOptions
       });
 
       // 检查是否启用宿舍管理

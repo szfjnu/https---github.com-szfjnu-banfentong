@@ -662,7 +662,7 @@ Page({
       // 1. 查询分组信息
       const groupQuery = {
         group_name: groupName,
-        class_id: currentClassId || 'dde8ef4869bcdadf00df0a27064efcbe'
+        class_id: currentClassId || app.globalData.class_id || ''
       };
 
       console.log('【分组查询条件】:', groupQuery);
@@ -823,7 +823,8 @@ Page({
     const delta = e.currentTarget.dataset.delta;
     let newValue = this.data.scoreValue + delta;
     if (newValue < 0) newValue = 0;
-    if (newValue > 100) newValue = 100;
+    const maxScore = app.globalData.scoreMax || 100;
+    if (newValue > maxScore) newValue = maxScore;
     this.setData({ scoreValue: newValue });
   },
 
@@ -887,6 +888,7 @@ Page({
 
   // 提交积分
   onSubmit: async function () {
+    if (this.data.submitting) return;
     const { selectedStudents, scoreValue, isAddScore, reason, remark, sourceType, selectedItem, currentClassId, currentSemesterId } = this.data;
 
     // 验证

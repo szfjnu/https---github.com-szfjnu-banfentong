@@ -388,6 +388,11 @@ Page({
         continue;
       }
 
+      if (score < 0 || score > 150) {
+        errors.push(`第${i + 1}行分数超出范围(0-150): ${score}`);
+        continue;
+      }
+
       grades.push({
         student_id: studentId,
         subject: importSubject,

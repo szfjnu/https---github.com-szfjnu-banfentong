@@ -1,4 +1,3 @@
-// 云函数：班级加入相关操作（绕过客户端安全规则限制）
 const cloud = require('wx-server-sdk')
 
 cloud.init({
@@ -7,38 +6,29 @@ cloud.init({
 
 const db = cloud.database()
 const _ = db.command
+const { getCallerInfo } = require('../utils/auth')
 
-/**
- * 支持的操作：
- * 1. searchByCode - 通过班级码查找班级
- * 2. searchByPhone - 通过创建者手机号查找班级
- * 3. getClassDetail - 获取班级详情（含学生数量）
- * 4. getStudents - 获取班级学生列表
- * 5. checkUserInClass - 检查用户是否已加入班级
- * 6. joinClass - 加入班级（创建关系记录+可选创建学生）
- * 7. getUserClasses - 获取用户已加入的班级列表
- */
 exports.main = async (event, context) => {
-  const wxContext = cloud.getWXContext()
-  const openid = wxContext.OPENID
   const { action, data } = event
 
   try {
+    const caller = await getCallerInfo(event, data?.classId || data?.class_id)
+
     switch (action) {
       case 'searchByCode':
-        return await searchByCode(data)
+        return await searchByCode(data, caller)
       case 'searchByPhone':
-        return await searchByPhone(data)
+        return await searchByPhone(data, caller)
       case 'getClassDetail':
-        return await getClassDetail(data)
+        return await getClassDetail(data, caller)
       case 'getStudents':
-        return await getStudents(data)
+        return await getStudents(data, caller)
       case 'checkUserInClass':
-        return await checkUserInClass(openid, data)
+        return await checkUserInClass(caller, data)
       case 'joinClass':
-        return await joinClass(openid, data)
+        return await joinClass(caller, data)
       case 'getUserClasses':
-        return await getUserClasses(openid, data)
+        return await getUserClasses(caller, data)
       default:
         return { success: false, error: '未知操作' }
     }
@@ -48,14 +38,12 @@ exports.main = async (event, context) => {
   }
 }
 
-// 通过班级码查找班级
-async function searchByCode(data) {
+async function searchByCode(data, caller) {
   const { classCode } = data
   if (!classCode) {
     return { success: false, error: '请提供班级码' }
   }
 
-  // 兼容无status字段的旧数据
   const res = await db.collection('classes')
     .where({
       class_code: classCode,
@@ -65,7 +53,6 @@ async function searchByCode(data) {
     .get()
 
   if (res.data.length === 0) {
-    // 尝试不带status过滤
     const res2 = await db.collection('classes')
       .where({ class_code: classCode })
       .limit(1)
@@ -74,14 +61,18 @@ async function searchByCode(data) {
     if (res2.data.length === 0) {
       return { success: true, data: [] }
     }
-    return { success: true, data: res2.data }
+    return { success: true, data: res2.data.map(sanitizeClassData) }
   }
 
-  return { success: true, data: res.data }
+  return { success: true, data: res.data.map(sanitizeClassData) }
 }
 
-// 通过创建者手机号查找班级
-async function searchByPhone(data) {
+function sanitizeClassData(classData) {
+  const { class_name, class_code, class_id, _id, creator_name, grade_name, status } = classData
+  return { class_name, class_code, class_id: class_id || _id, _id, creator_name, grade_name, status }
+}
+
+async function searchByPhone(data, caller) {
   const { phone } = data
   if (!phone) {
     return { success: false, error: '请提供手机号' }
@@ -95,27 +86,39 @@ async function searchByPhone(data) {
     .get()
 
   if (res.data.length === 0) {
-    // 尝试不带status过滤
     const res2 = await db.collection('classes')
       .where({ creator_phone: phone })
       .get()
 
-    return { success: true, data: res2.data }
+    return { success: true, data: res2.data.map(sanitizeClassData) }
   }
 
-  return { success: true, data: res.data }
+  return { success: true, data: res.data.map(sanitizeClassData) }
 }
 
-// 获取班级详情
-async function getClassDetail(data) {
+async function getClassDetail(data, caller) {
   const { classId } = data
   if (!classId) {
     return { success: false, error: '请提供班级ID' }
   }
 
+  const isMember = caller.classId === classId || caller.role === 'admin'
+  if (!isMember) {
+    const memberCheck = await db.collection('user_class_relation')
+      .where({
+        user_openid: caller.openid,
+        class_id: classId,
+        status: 'joined'
+      })
+      .limit(1)
+      .get()
+    if (!memberCheck.data || memberCheck.data.length === 0) {
+      return { success: false, error: '无权访问该班级详情' }
+    }
+  }
+
   const classRes = await db.collection('classes').doc(classId).get()
 
-  // 统计学生人数
   const studentCountRes = await db.collection('students')
     .where({ class_id: classId })
     .count()
@@ -129,11 +132,25 @@ async function getClassDetail(data) {
   }
 }
 
-// 获取班级学生列表
-async function getStudents(data) {
+async function getStudents(data, caller) {
   const { classId } = data
   if (!classId) {
     return { success: false, error: '请提供班级ID' }
+  }
+
+  const isMember = caller.classId === classId || caller.role === 'admin'
+  if (!isMember) {
+    const memberCheck = await db.collection('user_class_relation')
+      .where({
+        user_openid: caller.openid,
+        class_id: classId,
+        status: 'joined'
+      })
+      .limit(1)
+      .get()
+    if (!memberCheck.data || memberCheck.data.length === 0) {
+      return { success: false, error: '无权访问该班级学生列表' }
+    }
   }
 
   const allData = []
@@ -143,6 +160,7 @@ async function getStudents(data) {
   while (hasMore) {
     const res = await db.collection('students')
       .where({ class_id: classId })
+      .field({ student_id: true, name: true, student_name: true, class_id: true })
       .skip(skip)
       .limit(limit)
       .get()
@@ -157,8 +175,7 @@ async function getStudents(data) {
   return { success: true, data: allData }
 }
 
-// 检查用户是否已加入班级
-async function checkUserInClass(openid, data) {
+async function checkUserInClass(caller, data) {
   const { classId } = data
   if (!classId) {
     return { success: false, error: '请提供班级ID' }
@@ -166,7 +183,7 @@ async function checkUserInClass(openid, data) {
 
   const res = await db.collection('user_class_relation')
     .where({
-      user_openid: openid,
+      user_openid: caller.openid,
       class_id: classId,
       status: _.in(['joined', 'pending'])
     })
@@ -180,18 +197,16 @@ async function checkUserInClass(openid, data) {
   }
 }
 
-// 加入班级
-async function joinClass(openid, data) {
+async function joinClass(caller, data) {
   const { classId, role, studentId, addNew, formData } = data
 
   if (!classId || !role) {
     return { success: false, error: '缺少必要参数' }
   }
 
-  // 1. 检查是否已加入
   const checkRes = await db.collection('user_class_relation')
     .where({
-      user_openid: openid,
+      user_openid: caller.openid,
       class_id: classId,
       status: _.in(['joined', 'pending'])
     })
@@ -202,10 +217,8 @@ async function joinClass(openid, data) {
     return { success: false, error: '您已经加入了该班级，无需重复加入', alreadyJoined: true }
   }
 
-  // 2. 如果是添加新学生（家长或学生角色）
   let finalStudentId = studentId
   if (addNew && (role === 'parent' || role === 'student') && formData) {
-    // 检查是否已存在相同学号的学生
     const existStudentRes = await db.collection('students')
       .where({
         student_id: formData.student_id,
@@ -215,14 +228,12 @@ async function joinClass(openid, data) {
       .get()
 
     if (existStudentRes.data.length > 0) {
-      // 学号已存在，直接关联
       const existStudent = existStudentRes.data[0]
       if (!existStudent.student_id) {
         return { success: false, message: '该学生信息异常，缺少学号，无法绑定' }
       }
       finalStudentId = existStudent.student_id
     } else {
-      // 创建新学生记录
       const studentData = {
         name: formData.student_name,
         student_id: formData.student_id,
@@ -234,7 +245,7 @@ async function joinClass(openid, data) {
         updated_at: db.serverDate()
       }
 
-      const studentRes = await db.collection('students').add({ data: studentData })
+      await db.collection('students').add({ data: studentData })
       if (!formData.student_id) {
         return { success: false, message: '学生学号不能为空' }
       }
@@ -242,9 +253,8 @@ async function joinClass(openid, data) {
     }
   }
 
-  // 3. 创建用户班级关系
   const relationData = {
-    user_openid: openid,
+    user_openid: caller.openid,
     class_id: classId,
     role: role,
     is_owner: false,
@@ -255,7 +265,6 @@ async function joinClass(openid, data) {
   }
 
   if (role === 'student') {
-    // 学生身份：关联学生记录
     relationData.student_id = finalStudentId
     relationData.apply_info = { name: formData.student_name }
   } else if (role === 'parent') {
@@ -273,7 +282,6 @@ async function joinClass(openid, data) {
 
   await db.collection('user_class_relation').add({ data: relationData })
 
-  // 4. 如果是班主任加入，自动为班级初始化学期
   if (role === 'head_teacher' || role === 'teacher') {
     try {
       const existSemesterRes = await db.collection('semesters')
@@ -336,14 +344,12 @@ async function joinClass(openid, data) {
             updated_at: db.serverDate()
           }
         })
-        console.log('已为班级自动初始化学期:', classId)
       }
     } catch (semErr) {
       console.error('自动初始化学期失败:', semErr)
     }
   }
 
-  // 5. 获取班级信息用于返回
   const classRes = await db.collection('classes').doc(classId).get()
 
   return {
@@ -357,25 +363,21 @@ async function joinClass(openid, data) {
   }
 }
 
-// 获取用户已加入的班级列表
-async function getUserClasses(openid, data) {
-  // 查询已加入的班级
+async function getUserClasses(caller, data) {
   const joinedRes = await db.collection('user_class_relation')
     .where({
-      user_openid: openid,
+      user_openid: caller.openid,
       status: 'joined'
     })
     .get()
 
-  // 查询待审核的班级
   const pendingRes = await db.collection('user_class_relation')
     .where({
-      user_openid: openid,
+      user_openid: caller.openid,
       status: 'pending'
     })
     .get()
 
-  // 获取班级详情
   const joinedClasses = []
   for (const relation of joinedRes.data) {
     try {

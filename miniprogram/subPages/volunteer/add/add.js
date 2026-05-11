@@ -42,7 +42,7 @@ Page({
     earnedScore: 0,
     
     // 积分规则：每小时积分数
-    scorePerHour: 2
+    scorePerHour: app.globalData.volunteerScorePerHour || 2
   },
 
   onLoad: function (options) {

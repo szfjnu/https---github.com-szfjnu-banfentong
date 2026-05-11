@@ -2,36 +2,50 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
+const { getCallerInfo, requireClassAccess, requireTeacher } = require('../utils/auth')
+const { withTransaction } = require('../utils/transaction')
+const { validateInput, SCHEMAS } = require('../utils/validator')
 
 exports.main = async (event, context) => {
   const { action, data } = event
 
-  switch (action) {
-    case 'getScoreItems':
-      return await getScoreItems(data)
-    case 'getScoreCategories':
-      return await getScoreCategories(data)
-    case 'getScoreRecords':
-      return await getScoreRecords(data)
-    case 'applyScoreChange':
-      return await applyScoreChange(data)
-    default:
-      return { success: false, message: '未知操作' }
+  try {
+    const caller = await getCallerInfo(event, data?.classId || data?.class_id)
+
+    switch (action) {
+      case 'getScoreItems':
+        requireTeacher(caller)
+        return await getScoreItems(data, caller)
+      case 'getScoreCategories':
+        requireTeacher(caller)
+        return await getScoreCategories(data, caller)
+      case 'getScoreRecords':
+        return await getScoreRecords(data, caller)
+      case 'applyScoreChange':
+        requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin'])
+        return await applyScoreChange(data, caller)
+      default:
+        return { success: false, message: '未知操作' }
+    }
+  } catch (err) {
+    console.error(`scoreManager ${action} 失败:`, err.message)
+    return { success: false, message: err.message }
   }
 }
 
-async function getScoreItems(data) {
+async function getScoreItems(data, caller) {
   const { classId, semesterId } = data || {}
 
   try {
     let conditions = []
+    const effectiveClassId = classId || caller.classId
 
     let newQuery = { record_type: 'rule', is_enabled: _.neq(false) }
     let oldQuery = { record_type: _.exists(false), is_active: true }
 
-    if (classId) {
-      newQuery.class_id = _.in([classId, '', null])
-      oldQuery.class_id = _.in([classId, '', null])
+    if (effectiveClassId) {
+      newQuery.class_id = _.in([effectiveClassId, '', null])
+      oldQuery.class_id = _.in([effectiveClassId, '', null])
     }
 
     if (semesterId) {
@@ -54,17 +68,18 @@ async function getScoreItems(data) {
   }
 }
 
-async function getScoreCategories(data) {
+async function getScoreCategories(data, caller) {
   const { classId } = data || {}
 
   try {
+    const effectiveClassId = classId || caller.classId
     let queryConditions
 
-    if (classId) {
+    if (effectiveClassId) {
       queryConditions = _.or([
         { class_id: _.exists(false) },
         { class_id: '' },
-        { class_id: classId }
+        { class_id: effectiveClassId }
       ])
     } else {
       queryConditions = {}
@@ -84,16 +99,17 @@ async function getScoreCategories(data) {
   }
 }
 
-async function getScoreRecords(data) {
+async function getScoreRecords(data, caller) {
   const { classId, studentId, page, pageSize, needAll } = data || {}
   const p = page || 1
   const ps = pageSize || 20
 
   try {
     let conditions = []
+    const effectiveClassId = classId || caller.classId
 
     const baseMatch = {}
-    if (classId) baseMatch.class_id = classId
+    if (effectiveClassId) baseMatch.class_id = effectiveClassId
     if (studentId) baseMatch.student_id = studentId
 
     conditions.push({
@@ -146,16 +162,24 @@ async function getScoreRecords(data) {
   }
 }
 
-async function applyScoreChange(data) {
+async function applyScoreChange(data, caller) {
   const {
     student_id, class_id, semester_id,
     score_change, source_type, item_name, reason_detail,
     item_id, rule_id, rule_name, rule_code, rule_version,
-    recorder_openid, recorder_name, date
+    recorder_name, date
   } = data || {}
 
   if (!student_id || score_change === undefined || score_change === null) {
     return { success: false, message: '缺少必要参数: student_id, score_change' }
+  }
+
+  const validation = validateInput(
+    { class_id, student_id, score_change },
+    SCHEMAS.scoreChange
+  )
+  if (!validation.valid) {
+    return { success: false, message: validation.errors.join('; ') }
   }
 
   const changeValue = Number(score_change)
@@ -164,71 +188,73 @@ async function applyScoreChange(data) {
   }
 
   try {
-    const now = db.serverDate()
-    const stuRes = await db.collection('students')
-      .where({ student_id })
-      .limit(1)
-      .get()
+    return await withTransaction(async (tx) => {
+      const now = db.serverDate()
+      const stuRes = await tx.collection('students')
+        .where({ student_id, class_id })
+        .limit(1)
+        .get()
 
-    if (!stuRes.data || stuRes.data.length === 0) {
-      return { success: false, message: `未找到学生: ${student_id}` }
-    }
-
-    const student = stuRes.data[0]
-    const scoreBefore = student.current_score !== undefined && student.current_score !== null
-      ? Number(student.current_score) : 100
-    const scoreAfter = scoreBefore + changeValue
-
-    const recordId = `SR${Date.now()}${Math.random().toString(36).substr(2, 9)}`
-
-    const recordData = {
-      record_id: recordId,
-      record_type: 'record',
-      student_id,
-      student_name: student.name || student.student_name || '',
-      class_id: class_id || student.class_id || '',
-      semester_id: semester_id || '',
-      item_id: item_id || '',
-      item_name: item_name || '',
-      rule_id: rule_id || '',
-      rule_name: rule_name || item_name || '',
-      rule_code: rule_code || '',
-      rule_version: rule_version || 1,
-      rule_category: source_type || '',
-      score_change: changeValue,
-      score_value: changeValue,
-      score_before: scoreBefore,
-      score_after: scoreAfter,
-      score_type: changeValue >= 0 ? '加分' : '扣分',
-      reason_detail: reason_detail || '',
-      date: date || '',
-      recorder_openid: recorder_openid || '',
-      recorder_name: recorder_name || '',
-      source_type: source_type || '',
-      approval_status: '已通过',
-      status: '已确认',
-      created_at: now,
-      updated_at: now
-    }
-
-    await db.collection('score_records').add({ data: recordData })
-
-    await db.collection('students').doc(student._id).update({
-      data: {
-        current_score: scoreAfter,
-        updated_at: now
+      if (!stuRes.data || stuRes.data.length === 0) {
+        throw new Error(`未找到学生: ${student_id}`)
       }
-    })
 
-    return {
-      success: true,
-      data: {
+      const student = stuRes.data[0]
+      const scoreBefore = student.current_score !== undefined && student.current_score !== null
+        ? Number(student.current_score) : 100
+      const scoreAfter = scoreBefore + changeValue
+
+      const recordId = `SR${Date.now()}${Math.random().toString(36).substr(2, 9)}`
+
+      const recordData = {
         record_id: recordId,
+        record_type: 'record',
+        student_id,
+        student_name: student.name || student.student_name || '',
+        class_id: class_id || student.class_id || '',
+        semester_id: semester_id || '',
+        item_id: item_id || '',
+        item_name: item_name || '',
+        rule_id: rule_id || '',
+        rule_name: rule_name || item_name || '',
+        rule_code: rule_code || '',
+        rule_version: rule_version || 1,
+        rule_category: source_type || '',
+        score_change: changeValue,
+        score_value: changeValue,
         score_before: scoreBefore,
         score_after: scoreAfter,
-        score_change: changeValue
+        score_type: changeValue >= 0 ? '加分' : '扣分',
+        reason_detail: reason_detail || '',
+        date: date || '',
+        recorder_openid: caller.openid,
+        recorder_name: recorder_name || '',
+        source_type: source_type || '',
+        approval_status: '已通过',
+        status: '已确认',
+        created_at: now,
+        updated_at: now
       }
-    }
+
+      await tx.collection('score_records').add({ data: recordData })
+
+      await tx.collection('students').doc(student._id).update({
+        data: {
+          current_score: scoreAfter,
+          updated_at: now
+        }
+      })
+
+      return {
+        success: true,
+        data: {
+          record_id: recordId,
+          score_before: scoreBefore,
+          score_after: scoreAfter,
+          score_change: changeValue
+        }
+      }
+    })
   } catch (err) {
     console.error('applyScoreChange失败:', err)
     return { success: false, message: err.message }

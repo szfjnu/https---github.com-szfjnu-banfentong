@@ -91,7 +91,7 @@ Page({
           ...item,
           timeStr: this.formatTime(item.start_time),
           statusText: ['招募中', '已满员', '已结束', '已取消'][item.status] || '未知',
-          statusColor: ['#52c41a', '#fa8c16', '#999', '#ff4d4f'][item.status] || '#999'
+          statusColor: ['#52c41a', '#fa8c16', '#999', '#ff4d4f'][item.status >= 0 && item.status <= 3 ? item.status : -1] || '#999'
         }))
 
         this.setData({

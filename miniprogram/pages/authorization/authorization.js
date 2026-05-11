@@ -248,8 +248,11 @@ Page({
 
   // 复选框切换 - 带级联逻辑（扁平化权限映射驱动视图）
   onCheckPermission: function (e) {
+    if (this._checkPermissionThrottled) return;
+    this._checkPermissionThrottled = true;
+    setTimeout(() => { this._checkPermissionThrottled = false; }, 300);
+
     const { module: moduleKey, action } = e.currentTarget.dataset;
-    console.log('[权限调试] onCheckPermission触发, module:', moduleKey, 'action:', action);
 
     const permMap = { ...this.data.currentPermMap };
     const permKey = `${moduleKey}_${action}`;
@@ -285,7 +288,7 @@ Page({
       updateData[`currentModuleList[${moduleIndex}].currentActions`] = newActions;
     }
 
-    console.log('[权限调试] 更新permMap:', JSON.stringify(permMap));
+
     this.setData(updateData);
   },
 
@@ -299,7 +302,7 @@ Page({
         permissions[m.key] = [...m.currentActions];
       }
     });
-    console.log('[权限调试] 保存权限, student:', student?.student_id, 'permissions:', JSON.stringify(permissions));
+
 
     wx.showLoading({ title: '保存中...' });
     try {
@@ -348,7 +351,7 @@ Page({
   // 批量授权 - 复选框切换（带级联，扁平化驱动视图）
   onBatchCheckPermission: function (e) {
     const { module: moduleKey, action } = e.currentTarget.dataset;
-    console.log('[权限调试] onBatchCheckPermission触发, module:', moduleKey, 'action:', action);
+
 
     const permMap = { ...this.data.batchPermMap };
     const permKey = `${moduleKey}_${action}`;

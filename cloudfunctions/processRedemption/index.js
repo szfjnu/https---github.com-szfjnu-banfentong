@@ -1,60 +1,61 @@
-// cloudfunctions/processRedemption/index.js
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
+const { getCallerInfo, requireRole, requireClassAccess, requireTeacher, requireClassCadre } = require('../utils/auth');
+const { withTransaction } = require('../utils/transaction');
+const { validateInput, SCHEMAS } = require('../utils/validator');
 
-/**
- * 兑换处理云函数
- * 支持直接兑换和投标兑换两种模式
- * 支持班委初审 → 班主任终审 → 发货 → 收货的完整流程
- */
 exports.main = async (event, context) => {
   const { action, data } = event;
-  const wxContext = cloud.getWXContext();
 
   try {
+    const caller = await getCallerInfo(event, data?.classId || data?.class_id);
+
     switch (action) {
       case 'submitRedemption':
-        return await submitRedemption(data, wxContext);
+        return await submitRedemption(data, caller);
       case 'cadreApprove':
-        return await cadreApprove(data, wxContext);
+        return await cadreApprove(data, caller);
       case 'teacherApprove':
-        return await teacherApprove(data, wxContext);
+        return await teacherApprove(data, caller);
       case 'rejectRedemption':
-        return await rejectRedemption(data, wxContext);
+        return await rejectRedemption(data, caller);
       case 'confirmShip':
-        return await confirmShip(data, wxContext);
+        return await confirmShip(data, caller);
       case 'confirmReceive':
-        return await confirmReceive(data, wxContext);
+        return await confirmReceive(data, caller);
       case 'processBidResult':
-        return await processBidResult(data, wxContext);
+        requireTeacher(caller);
+        return await processBidResult(data, caller);
       case 'getMyRedemptions':
-        return await getMyRedemptions(data, wxContext);
+        return await getMyRedemptions(data, caller);
       case 'getRedemptionLedger':
-        return await getRedemptionLedger(data, wxContext);
+        requireTeacher(caller);
+        return await getRedemptionLedger(data, caller);
+      case 'deleteItem':
+        requireClassAccess(caller, data.class_id, ['head_teacher', 'admin']);
+        return await deleteItem(data, caller);
       default:
         return { success: false, message: '未知操作' };
     }
   } catch (err) {
-    console.error('兑换处理错误:', err);
+    console.error('兑换处理错误:', err.message);
     return { success: false, message: err.message || '操作失败' };
   }
 };
 
-/**
- * 提交兑换申请
- * 直接兑换：提交后等待审批
- * 投标兑换：提交投标，截止后自动比价
- */
-async function submitRedemption(data, wxContext) {
+async function submitRedemption(data, caller) {
   const { itemId, bidScore, studentId, studentName, classId } = data;
 
   if (!itemId || !bidScore || !studentId || !classId) {
     return { success: false, message: '参数不完整' };
   }
 
-  // 获取商品信息（验证班级归属）
+  if (caller.classId !== classId && caller.role !== 'admin') {
+    return { success: false, message: '无权在该班级提交兑换' };
+  }
+
   const itemRes = await db.collection('redemption_items')
     .where({ item_id: itemId, class_id: classId })
     .limit(1)
@@ -78,7 +79,6 @@ async function submitRedemption(data, wxContext) {
     return { success: false, message: `投标积分不能低于${item.required_score}` };
   }
 
-  // 检查学生积分是否足够
   const studentRes = await db.collection('students')
     .where({ student_id: studentId, class_id: classId })
     .limit(1)
@@ -93,7 +93,6 @@ async function submitRedemption(data, wxContext) {
     return { success: false, message: '积分不足' };
   }
 
-  // 检查是否已经对该商品提交过申请（班级维度隔离）
   const existRes = await db.collection('redemption_requests')
     .where({
       item_id: itemId,
@@ -107,7 +106,6 @@ async function submitRedemption(data, wxContext) {
     return { success: false, message: '您已提交过该商品的兑换申请' };
   }
 
-  // 创建兑换请求
   const requestId = `RR${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
   const now = db.serverDate();
 
@@ -129,7 +127,6 @@ async function submitRedemption(data, wxContext) {
     updated_at: now
   };
 
-  // 投标模式：设置截止时间相关
   if (item.redemption_mode === '投标模式' && item.bid_end_time) {
     requestData.bid_end_time = item.bid_end_time;
   }
@@ -143,10 +140,7 @@ async function submitRedemption(data, wxContext) {
   };
 }
 
-/**
- * 班委初审通过
- */
-async function cadreApprove(data, wxContext) {
+async function cadreApprove(data, caller) {
   const { requestId, cadreName } = data;
 
   if (!requestId) {
@@ -155,6 +149,10 @@ async function cadreApprove(data, wxContext) {
 
   const requestRes = await db.collection('redemption_requests').doc(requestId).get();
   const request = requestRes.data;
+
+  if (request.class_id !== caller.classId && caller.role !== 'admin') {
+    return { success: false, message: '无权操作该兑换请求' };
+  }
 
   if (request.status !== '待审批') {
     return { success: false, message: '当前状态不可操作' };
@@ -172,11 +170,96 @@ async function cadreApprove(data, wxContext) {
   return { success: true, message: '初审通过，已推送至班主任审批' };
 }
 
-/**
- * 班主任终审批准
- */
-async function teacherApprove(data, wxContext) {
+async function teacherApprove(data, caller) {
   const { requestId, approverName } = data;
+
+  if (!requestId) {
+    return { success: false, message: '参数不完整' };
+  }
+
+  try {
+    return await withTransaction(async (tx) => {
+      const requestRes = await tx.collection('redemption_requests').doc(requestId).get();
+      const request = requestRes.data;
+
+      if (!request) {
+        throw new Error('兑换请求不存在');
+      }
+
+      if (request.class_id !== caller.classId && caller.role !== 'admin') {
+        throw new Error('无权操作该兑换请求');
+      }
+
+      if (request.status !== '待审批' && request.status !== '待班主任审批') {
+        throw new Error('当前状态不可操作');
+      }
+
+      const score = request.bid_score || request.required_score || 0;
+      if (score > 0) {
+        const studentRes = await tx.collection('students')
+          .where({ student_id: request.student_id, class_id: request.class_id })
+          .limit(1)
+          .get();
+
+        if (!studentRes.data || studentRes.data.length === 0) {
+          throw new Error('学生不存在');
+        }
+
+        const student = studentRes.data[0];
+        if ((student.current_score || 100) < score) {
+          throw new Error('学生积分不足，无法完成审批');
+        }
+
+        await tx.collection('students').doc(student._id).update({
+          data: {
+            current_score: _.inc(-score),
+            updated_at: db.serverDate()
+          }
+        });
+      }
+
+      if (request.item_id) {
+        const itemRes = await tx.collection('redemption_items')
+          .where({ item_id: request.item_id, class_id: request.class_id })
+          .limit(1)
+          .get();
+
+        if (itemRes.data && itemRes.data.length > 0) {
+          const item = itemRes.data[0];
+          if (item.quantity <= 0) {
+            throw new Error('商品库存不足');
+          }
+
+          await tx.collection('redemption_items').doc(item._id).update({
+            data: {
+              quantity: _.inc(-1),
+              updated_at: db.serverDate()
+            }
+          });
+        }
+      }
+
+      await tx.collection('redemption_requests').doc(requestId).update({
+        data: {
+          status: '已通过',
+          approver: approverName || '班主任',
+          approver_openid: caller.openid,
+          approval_time: db.serverDate(),
+          shipping_status: 'pending',
+          updated_at: db.serverDate()
+        }
+      });
+
+      return { success: true, message: '批准成功，等待发货' };
+    });
+  } catch (err) {
+    console.error('teacherApprove失败:', err);
+    return { success: false, message: err.message };
+  }
+}
+
+async function rejectRedemption(data, caller) {
+  const { requestId, rejectReason, rejecterName } = data;
 
   if (!requestId) {
     return { success: false, message: '参数不完整' };
@@ -185,65 +268,8 @@ async function teacherApprove(data, wxContext) {
   const requestRes = await db.collection('redemption_requests').doc(requestId).get();
   const request = requestRes.data;
 
-  if (request.status !== '待审批' && request.status !== '待班主任审批') {
-    return { success: false, message: '当前状态不可操作' };
-  }
-
-  // 扣除学生积分
-  const score = request.bid_score || request.required_score || 0;
-  if (score > 0) {
-    await db.collection('students')
-      .where({
-        student_id: request.student_id,
-        class_id: request.class_id
-      })
-      .update({
-        data: {
-          current_score: _.inc(-score),
-          updated_at: db.serverDate()
-        }
-      });
-  }
-
-  // 更新商品库存（班级维度验证）
-  if (request.item_id) {
-    const itemRes = await db.collection('redemption_items')
-      .where({ item_id: request.item_id, class_id: request.class_id })
-      .limit(1)
-      .get();
-
-    if (itemRes.data && itemRes.data.length > 0) {
-      await db.collection('redemption_items').doc(itemRes.data[0]._id).update({
-        data: {
-          quantity: _.inc(-1),
-          updated_at: db.serverDate()
-        }
-      });
-    }
-  }
-
-  // 更新兑换请求状态
-  await db.collection('redemption_requests').doc(requestId).update({
-    data: {
-      status: '已通过',
-      approver: approverName || '班主任',
-      approval_time: db.serverDate(),
-      shipping_status: 'pending',
-      updated_at: db.serverDate()
-    }
-  });
-
-  return { success: true, message: '批准成功，等待发货' };
-}
-
-/**
- * 拒绝兑换
- */
-async function rejectRedemption(data, wxContext) {
-  const { requestId, rejectReason, rejecterName } = data;
-
-  if (!requestId) {
-    return { success: false, message: '参数不完整' };
+  if (request.class_id !== caller.classId && caller.role !== 'admin') {
+    return { success: false, message: '无权操作该兑换请求' };
   }
 
   await db.collection('redemption_requests').doc(requestId).update({
@@ -251,6 +277,7 @@ async function rejectRedemption(data, wxContext) {
       status: '已拒绝',
       reject_reason: rejectReason || '',
       approver: rejecterName || '审核人',
+      approver_openid: caller.openid,
       approval_time: db.serverDate(),
       updated_at: db.serverDate()
     }
@@ -259,14 +286,16 @@ async function rejectRedemption(data, wxContext) {
   return { success: true, message: '已拒绝' };
 }
 
-/**
- * 确认发货
- */
-async function confirmShip(data, wxContext) {
+async function confirmShip(data, caller) {
   const { requestId } = data;
 
   if (!requestId) {
     return { success: false, message: '参数不完整' };
+  }
+
+  const requestRes = await db.collection('redemption_requests').doc(requestId).get();
+  if (requestRes.data.class_id !== caller.classId && caller.role !== 'admin') {
+    return { success: false, message: '无权操作' };
   }
 
   await db.collection('redemption_requests').doc(requestId).update({
@@ -281,14 +310,18 @@ async function confirmShip(data, wxContext) {
   return { success: true, message: '已确认发货' };
 }
 
-/**
- * 确认收货
- */
-async function confirmReceive(data, wxContext) {
+async function confirmReceive(data, caller) {
   const { requestId } = data;
 
   if (!requestId) {
     return { success: false, message: '参数不完整' };
+  }
+
+  const requestRes = await db.collection('redemption_requests').doc(requestId).get();
+  const request = requestRes.data;
+
+  if (request.student_id !== caller.studentId && request.class_id !== caller.classId && caller.role !== 'admin') {
+    return { success: false, message: '无权操作' };
   }
 
   await db.collection('redemption_requests').doc(requestId).update({
@@ -303,20 +336,13 @@ async function confirmReceive(data, wxContext) {
   return { success: true, message: '已确认收货' };
 }
 
-/**
- * 处理投标结果（定时任务调用）
- * 投标截止后，自动选出最高投标者中标
- */
-async function processBidResult(data, wxContext) {
+async function processBidResult(data, caller) {
   const { itemId, classId } = data;
 
   if (!itemId || !classId) {
     return { success: false, message: '参数不完整，缺少商品ID或班级ID' };
   }
 
-  const now = new Date();
-
-  // 获取该商品的所有有效投标（强制班级维度隔离）
   const bidQuery = {
     item_id: itemId,
     class_id: classId,
@@ -333,9 +359,7 @@ async function processBidResult(data, wxContext) {
     return { success: false, message: '没有有效投标' };
   }
 
-  // 获取商品库存（强制班级维度隔离）
-  let itemQuery = { item_id: itemId };
-  if (classId) itemQuery.class_id = classId;
+  let itemQuery = { item_id: itemId, class_id: classId };
   const itemRes = await db.collection('redemption_items')
     .where(itemQuery)
     .limit(1)
@@ -348,11 +372,9 @@ async function processBidResult(data, wxContext) {
   const item = itemRes.data[0];
   const availableQuantity = item.quantity || 0;
 
-  // 按投标积分从高到低选出中标者
   const winners = bidsRes.data.slice(0, availableQuantity);
   const losers = bidsRes.data.slice(availableQuantity);
 
-  // 处理中标者
   for (const winner of winners) {
     await db.collection('redemption_requests').doc(winner._id).update({
       data: {
@@ -363,7 +385,6 @@ async function processBidResult(data, wxContext) {
     });
   }
 
-  // 处理未中标者
   for (const loser of losers) {
     await db.collection('redemption_requests').doc(loser._id).update({
       data: {
@@ -381,17 +402,17 @@ async function processBidResult(data, wxContext) {
   };
 }
 
-/**
- * 获取我的兑换记录
- */
-async function getMyRedemptions(data, wxContext) {
+async function getMyRedemptions(data, caller) {
   const { studentId, classId, status, page = 0, pageSize = 20 } = data;
 
-  if (!studentId || !classId) {
+  const effectiveClassId = classId || caller.classId;
+  const effectiveStudentId = studentId || caller.studentId;
+
+  if (!effectiveStudentId || !effectiveClassId) {
     return { success: false, message: '参数不完整' };
   }
 
-  let query = { student_id: studentId, class_id: classId };
+  let query = { student_id: effectiveStudentId, class_id: effectiveClassId };
   if (status) {
     query.status = status;
   }
@@ -409,17 +430,15 @@ async function getMyRedemptions(data, wxContext) {
   };
 }
 
-/**
- * 获取兑换管理台账
- */
-async function getRedemptionLedger(data, wxContext) {
+async function getRedemptionLedger(data, caller) {
   const { classId, status, page = 0, pageSize = 50 } = data;
 
-  if (!classId) {
+  const effectiveClassId = classId || caller.classId;
+  if (!effectiveClassId) {
     return { success: false, message: '缺少班级ID参数' };
   }
 
-  let query = { class_id: classId };
+  let query = { class_id: effectiveClassId };
   if (status) {
     query.status = status;
   }
@@ -431,9 +450,8 @@ async function getRedemptionLedger(data, wxContext) {
     .limit(pageSize)
     .get();
 
-  // 统计
   const statsRes = await db.collection('redemption_requests')
-    .where({ class_id: classId })
+    .where({ class_id: effectiveClassId })
     .get();
 
   const allRequests = statsRes.data || [];
@@ -451,4 +469,33 @@ async function getRedemptionLedger(data, wxContext) {
     data: res.data || [],
     stats
   };
+}
+
+async function deleteItem(data, caller) {
+  const { itemId, classId } = data;
+
+  if (!itemId || !classId) {
+    return { success: false, message: '参数不完整' };
+  }
+
+  const itemRes = await db.collection('redemption_items')
+    .where({ item_id: itemId, class_id: classId })
+    .limit(1)
+    .get();
+
+  if (!itemRes.data || itemRes.data.length === 0) {
+    return { success: false, message: '商品不存在' };
+  }
+
+  const pendingRes = await db.collection('redemption_requests')
+    .where({ item_id: itemId, class_id: classId, status: _.in(['待审批', '待班主任审批']) })
+    .count();
+
+  if (pendingRes.total > 0) {
+    return { success: false, message: '该商品有待审批的兑换请求，无法删除' };
+  }
+
+  await db.collection('redemption_items').doc(itemRes.data[0]._id).remove();
+
+  return { success: true, message: '商品已删除' };
 }

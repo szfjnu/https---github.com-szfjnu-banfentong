@@ -5,6 +5,8 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
+const { getCallerInfo, requireClassAccess, requireTeacher } = require('../utils/auth');
+const { withTransaction } = require('../utils/transaction');
 
 // 生成唯一ID
 function generateId(prefix) {
@@ -39,40 +41,35 @@ const DEFAULT_LEVELS = [
 
 exports.main = async (event, context) => {
   const { action, data } = event;
-  const { OPENID } = cloud.getWXContext();
 
   try {
+    const caller = await getCallerInfo(event, data?.class_id || data?.classId);
+
     switch (action) {
-      // ========== 处分级别配置 ==========
-      case 'getLevelConfigs': return await getLevelConfigs(data);
-      case 'initLevelConfigs': return await initLevelConfigs(data, OPENID);
-      case 'updateLevelConfig': return await updateLevelConfig(data);
-      case 'addLevelConfig': return await addLevelConfig(data, OPENID);
-      case 'deleteLevelConfig': return await deleteLevelConfig(data);
+      case 'getLevelConfigs': return await getLevelConfigs(data, caller);
+      case 'initLevelConfigs': requireClassAccess(caller, data.class_id, ['head_teacher', 'admin']); return await initLevelConfigs(data, caller);
+      case 'updateLevelConfig': requireTeacher(caller); return await updateLevelConfig(data, caller);
+      case 'addLevelConfig': requireClassAccess(caller, data.class_id, ['head_teacher', 'admin']); return await addLevelConfig(data, caller);
+      case 'deleteLevelConfig': requireClassAccess(caller, data.class_id, ['head_teacher', 'admin']); return await deleteLevelConfig(data, caller);
 
-      // ========== 处分记录管理 ==========
-      case 'getDisciplineRecords': return await getDisciplineRecords(data);
-      case 'addDisciplineRecord': return await addDisciplineRecord(data, OPENID);
-      case 'updateDisciplineRecord': return await updateDisciplineRecord(data);
-      case 'deleteDisciplineRecord': return await deleteDisciplineRecord(data);
-      case 'getDisciplineDetail': return await getDisciplineDetail(data);
-      case 'getMyDisciplineRecords': return await getMyDisciplineRecords(data);
+      case 'getDisciplineRecords': return await getDisciplineRecords(data, caller);
+      case 'addDisciplineRecord': requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin']); return await addDisciplineRecord(data, caller);
+      case 'updateDisciplineRecord': requireTeacher(caller); return await updateDisciplineRecord(data, caller);
+      case 'deleteDisciplineRecord': requireTeacher(caller); return await deleteDisciplineRecord(data, caller);
+      case 'getDisciplineDetail': return await getDisciplineDetail(data, caller);
+      case 'getMyDisciplineRecords': return await getMyDisciplineRecords(data, caller);
 
-      // ========== 撤销申请 ==========
-      case 'submitRevocationApplication': return await submitRevocationApplication(data, OPENID);
-      case 'getRevocationApplications': return await getRevocationApplications(data);
-      case 'reviewRevocationApplication': return await reviewRevocationApplication(data, OPENID);
-      case 'getMyRevocationApplications': return await getMyRevocationApplications(data);
-      case 'getRevocationApplications': return await getRevocationApplications(data);
+      case 'submitRevocationApplication': return await submitRevocationApplication(data, caller);
+      case 'getRevocationApplications': return await getRevocationApplications(data, caller);
+      case 'reviewRevocationApplication': requireClassAccess(caller, data.class_id, ['head_teacher', 'admin']); return await reviewRevocationApplication(data, caller);
+      case 'getMyRevocationApplications': return await getMyRevocationApplications(data, caller);
 
-      // ========== 思想汇报 / 服务令 ==========
-      case 'submitThoughtReport': return await submitThoughtReport(data, OPENID);
-      case 'submitServiceRecord': return await submitServiceRecord(data, OPENID);
-      case 'getThoughtReports': return await getThoughtReports(data);
-      case 'getServiceRecords': return await getServiceRecords(data);
+      case 'submitThoughtReport': return await submitThoughtReport(data, caller);
+      case 'submitServiceRecord': return await submitServiceRecord(data, caller);
+      case 'getThoughtReports': return await getThoughtReports(data, caller);
+      case 'getServiceRecords': return await getServiceRecords(data, caller);
 
-      // ========== 统计 ==========
-      case 'getDisciplineStats': return await getDisciplineStats(data);
+      case 'getDisciplineStats': return await getDisciplineStats(data, caller);
 
       default:
         return { success: false, message: `未知操作: ${action}` };
@@ -85,7 +82,7 @@ exports.main = async (event, context) => {
 
 // ==================== 处分级别配置 ====================
 
-async function getLevelConfigs(data) {
+async function getLevelConfigs(data, caller) {
   const { class_id } = data;
   if (!class_id) return { success: false, message: '缺少班级ID' };
 
@@ -103,7 +100,7 @@ async function getLevelConfigs(data) {
   return { success: true, data: res.data };
 }
 
-async function initLevelConfigs(data, openid) {
+async function initLevelConfigs(data, caller) {
   const { class_id } = data;
   if (!class_id) return { success: false, message: '缺少班级ID' };
 
@@ -126,7 +123,7 @@ async function initLevelConfigs(data, openid) {
         ...level,
         is_active: true,
         is_deleted: false,
-        created_by: openid,
+        created_by: caller.openid,
         created_at: now,
         updated_at: now
       }
@@ -137,7 +134,7 @@ async function initLevelConfigs(data, openid) {
   return { success: true, message: '初始化成功' };
 }
 
-async function addLevelConfig(data, openid) {
+async function addLevelConfig(data, caller) {
   const { class_id, level_code, level_name, level_order, probation_months, thought_reports, service_hours, score_deduction, color } = data;
   if (!class_id || !level_name) return { success: false, message: '缺少必要参数' };
 
@@ -158,7 +155,7 @@ async function addLevelConfig(data, openid) {
       color: color || '#faad14',
       is_active: true,
       is_deleted: false,
-      created_by: openid,
+      created_by: caller.openid,
       created_at: now,
       updated_at: now
     }
@@ -167,7 +164,7 @@ async function addLevelConfig(data, openid) {
   return { success: true, message: '添加成功' };
 }
 
-async function updateLevelConfig(data) {
+async function updateLevelConfig(data, caller) {
   const { config_id, level_name, level_order, probation_months, thought_reports, service_hours, score_deduction, color, is_active } = data;
   if (!config_id) return { success: false, message: '缺少配置ID' };
 
@@ -188,7 +185,7 @@ async function updateLevelConfig(data) {
   return { success: true, message: '更新成功' };
 }
 
-async function deleteLevelConfig(data) {
+async function deleteLevelConfig(data, caller) {
   const { config_id } = data;
   if (!config_id) return { success: false, message: '缺少配置ID' };
 
@@ -202,7 +199,7 @@ async function deleteLevelConfig(data) {
 
 // ==================== 处分记录管理 ====================
 
-async function getDisciplineRecords(data) {
+async function getDisciplineRecords(data, caller) {
   const { class_id, status, student_id, page = 1, pageSize = 20 } = data;
   if (!class_id) return { success: false, message: '缺少班级ID' };
 
@@ -222,7 +219,7 @@ async function getDisciplineRecords(data) {
   return { success: true, data: res.data, total, page, pageSize };
 }
 
-async function getMyDisciplineRecords(data) {
+async function getMyDisciplineRecords(data, caller) {
   const { student_id } = data;
   if (!student_id) return { success: false, message: '缺少学号' };
 
@@ -260,7 +257,7 @@ async function getMyDisciplineRecords(data) {
   return { success: true, data: records };
 }
 
-async function addDisciplineRecord(data, openid) {
+async function addDisciplineRecord(data, caller) {
   const { class_id, student_id, student_name, level_config_id, level_name, reason, issue_date, issuer, document_id, score_deduction, probation_months, thought_reports_required, service_hours_required, affects_excellence_award, semester_id } = data;
   if (!class_id || !student_id || !level_name || !reason) {
     return { success: false, message: '缺少必要参数' };
@@ -306,7 +303,7 @@ async function addDisciplineRecord(data, openid) {
     expiration_date,
     affects_excellence_award: affects_excellence_award !== false,
     semester_id: semester_id || '',
-    created_by: openid,
+    created_by: caller.openid,
     is_deleted: false,
     created_at: now,
     updated_at: now
@@ -314,7 +311,6 @@ async function addDisciplineRecord(data, openid) {
 
   await db.collection('discipline_records').add({ data: record });
 
-  // 自动扣减积分
   if (score_deduction && score_deduction > 0) {
     try {
       const scoreRes = await cloud.callFunction({
@@ -332,7 +328,7 @@ async function addDisciplineRecord(data, openid) {
             rule_name: `处分扣分：${level_name}`,
             rule_code: 'DISCIPLINE',
             reason_detail: `处分扣分：${level_name} - ${reason}`,
-            recorder_openid: openid,
+            recorder_openid: caller.openid,
             recorder_name: issuer || '系统',
             date: issueDate
           }
@@ -350,7 +346,6 @@ async function addDisciplineRecord(data, openid) {
     }
   }
 
-  // 发送通知给学生和家长
   try {
     await sendDisciplineNotification(class_id, student_id, student_name, level_name, reason, record_id);
   } catch (err) {
@@ -360,7 +355,7 @@ async function addDisciplineRecord(data, openid) {
   return { success: true, data: { record_id }, message: '处分记录添加成功' };
 }
 
-async function updateDisciplineRecord(data) {
+async function updateDisciplineRecord(data, caller) {
   const { record_id, reason, document_id, issuer, affects_excellence_award } = data;
   if (!record_id) return { success: false, message: '缺少记录ID' };
 
@@ -377,7 +372,7 @@ async function updateDisciplineRecord(data) {
   return { success: true, message: '更新成功' };
 }
 
-async function deleteDisciplineRecord(data) {
+async function deleteDisciplineRecord(data, caller) {
   const { record_id } = data;
   if (!record_id) return { success: false, message: '缺少记录ID' };
 
@@ -394,7 +389,11 @@ async function deleteDisciplineRecord(data) {
   }
 
   const record = recordRes.data[0];
-  const { student_id, score_deduction, related_score_record_id } = record;
+  const { student_id, score_deduction, related_score_record_id, class_id: recordClassId } = record;
+
+  if (caller.role !== 'admin' && caller.classId !== recordClassId) {
+    return { success: false, message: '无权删除其他班级的记录' };
+  }
 
   // 2. 软删除处分记录
   await db.collection('discipline_records')
@@ -438,7 +437,7 @@ async function deleteDisciplineRecord(data) {
   return { success: true, message: '删除成功，已恢复扣除的积分' };
 }
 
-async function getDisciplineDetail(data) {
+async function getDisciplineDetail(data, caller) {
   const { record_id } = data;
   if (!record_id) return { success: false, message: '缺少记录ID' };
 
@@ -481,7 +480,7 @@ async function getDisciplineDetail(data) {
 
 // ==================== 撤销申请 ====================
 
-async function submitRevocationApplication(data, openid) {
+async function submitRevocationApplication(data, caller) {
   const { discipline_record_id, student_id, student_name, application_reason, supporting_materials, teacher_recommendation, student_self_reflection } = data;
   if (!discipline_record_id || !student_id || !application_reason) {
     return { success: false, message: '缺少必要参数' };
@@ -514,7 +513,7 @@ async function submitRevocationApplication(data, openid) {
       review_comments: '',
       teacher_recommendation: teacher_recommendation || '',
       student_self_reflection: student_self_reflection || '',
-      created_by: openid,
+      created_by: caller.openid,
       created_at: now,
       updated_at: now
     }
@@ -559,7 +558,7 @@ async function submitRevocationApplication(data, openid) {
   return { success: true, data: { application_id }, message: '撤销申请已提交' };
 }
 
-async function getRevocationApplications(data) {
+async function getRevocationApplications(data, caller) {
   const { class_id, status, student_id } = data;
   if (!class_id) return { success: false, message: '缺少班级ID' };
 
@@ -590,7 +589,7 @@ async function getRevocationApplications(data) {
   return { success: true, data: res.data };
 }
 
-async function reviewRevocationApplication(data, openid) {
+async function reviewRevocationApplication(data, caller) {
   const { application_id, status, review_comments, reviewer_name } = data;
   if (!application_id || !status) return { success: false, message: '缺少必要参数' };
 
@@ -662,7 +661,7 @@ async function reviewRevocationApplication(data, openid) {
   return { success: true, message: status === 'approved' ? '已批准撤销' : '已拒绝申请' };
 }
 
-async function getMyRevocationApplications(data) {
+async function getMyRevocationApplications(data, caller) {
   const { student_id } = data;
   if (!student_id) return { success: false, message: '缺少学号' };
 
@@ -677,7 +676,7 @@ async function getMyRevocationApplications(data) {
 
 // ==================== 思想汇报 / 服务令 ====================
 
-async function submitThoughtReport(data, openid) {
+async function submitThoughtReport(data, caller) {
   const { discipline_record_id, student_id, student_name, title, content, attachment_urls, report_month } = data;
   if (!discipline_record_id || !student_id || !content) {
     return { success: false, message: '缺少必要参数' };
@@ -700,7 +699,7 @@ async function submitThoughtReport(data, openid) {
       reviewer_name: '',
       review_comments: '',
       reviewed_at: null,
-      created_by: openid,
+      created_by: caller.openid,
       created_at: now,
       updated_at: now
     }
@@ -709,7 +708,7 @@ async function submitThoughtReport(data, openid) {
   return { success: true, data: { report_id }, message: '思想汇报已提交' };
 }
 
-async function submitServiceRecord(data, openid) {
+async function submitServiceRecord(data, caller) {
   const { discipline_record_id, student_id, student_name, service_type, hours, description, date, proof_images } = data;
   if (!discipline_record_id || !student_id || !hours) {
     return { success: false, message: '缺少必要参数' };
@@ -733,7 +732,7 @@ async function submitServiceRecord(data, openid) {
       reviewer_name: '',
       review_comments: '',
       reviewed_at: null,
-      created_by: openid,
+      created_by: caller.openid,
       created_at: now,
       updated_at: now
     }
@@ -742,7 +741,7 @@ async function submitServiceRecord(data, openid) {
   return { success: true, data: { service_id }, message: '服务令记录已提交' };
 }
 
-async function getThoughtReports(data) {
+async function getThoughtReports(data, caller) {
   const { discipline_record_id, status } = data;
   if (!discipline_record_id) return { success: false, message: '缺少处分记录ID' };
 
@@ -758,7 +757,7 @@ async function getThoughtReports(data) {
   return { success: true, data: res.data };
 }
 
-async function getServiceRecords(data) {
+async function getServiceRecords(data, caller) {
   const { discipline_record_id, status } = data;
   if (!discipline_record_id) return { success: false, message: '缺少处分记录ID' };
 
@@ -776,7 +775,7 @@ async function getServiceRecords(data) {
 
 // ==================== 统计 ====================
 
-async function getDisciplineStats(data) {
+async function getDisciplineStats(data, caller) {
   const { class_id } = data;
   if (!class_id) return { success: false, message: '缺少班级ID' };
 
@@ -860,8 +859,7 @@ async function sendDisciplineNotification(class_id, student_id, student_name, le
   }
 }
 
-// 获取班级所有撤销申请（班主任端汇总）
-async function getRevocationApplications(data) {
+async function getRevocationApplications2(data, caller) {
   const { class_id } = data;
   if (!class_id) return { success: false, message: '缺少班级ID' };
 

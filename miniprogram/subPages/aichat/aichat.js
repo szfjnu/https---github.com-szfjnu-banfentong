@@ -141,20 +141,33 @@ Page({
       this.setData({ messages: withAssistant })
       this.scrollToBottom()
 
-      // 流式接收文本，实现打字机效果
+      // 流式接收文本，实现打字机效果（批量更新优化）
       let fullContent = ''
+      let streamBuffer = ''
+      let streamTimer = null
+      const lastIndex = withAssistant.length - 1
+
+      const flushBuffer = () => {
+        if (streamBuffer) {
+          const currentContent = this.data.messages[lastIndex]?.content || fullContent
+          this.setData({
+            [`messages[${lastIndex}].content`]: currentContent,
+            [`messages[${lastIndex}].displayContent`]: currentContent
+          })
+          streamBuffer = ''
+          this.scrollToBottom()
+        }
+        if (streamTimer) { clearTimeout(streamTimer); streamTimer = null }
+      }
+
       for await (let str of res.textStream) {
         fullContent += str
-        // 更新最后一条消息的显示内容
-        const updated = [...this.data.messages]
-        updated[updated.length - 1] = {
-          role: 'assistant',
-          content: fullContent,
-          displayContent: fullContent
+        streamBuffer += str
+        if (!streamTimer) {
+          streamTimer = setTimeout(flushBuffer, 100)
         }
-        this.setData({ messages: updated })
-        this.scrollToBottom()
       }
+      flushBuffer()
 
       // 流式完成，保存消息到数据库
       await wx.cloud.callFunction({

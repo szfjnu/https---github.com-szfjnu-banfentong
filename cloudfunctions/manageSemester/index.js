@@ -2,23 +2,43 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
+const { getCallerInfo, requireClassAccess, requireTeacher } = require('../utils/auth')
+const { withTransaction } = require('../utils/transaction')
+const { validateInput, SCHEMAS } = require('../utils/validator')
 
 exports.main = async (event, context) => {
   const { action, data } = event
-  const OPENID = cloud.getWXContext().OPENID
 
-  switch (action) {
-    case 'updateSemester': return await updateSemester(data)
-    case 'addSemester': return await addSemester(data, OPENID)
-    case 'setCurrentSemester': return await setCurrentSemester(data)
-    case 'getSemesterConfig': return await getSemesterConfig(data)
-    case 'initClassSemester': return await initClassSemester(data)
-    case 'deleteSemester': return await deleteSemester(data)
-    default: return { success: false, message: '未知操作' }
+  try {
+    const caller = await getCallerInfo(event, data?.class_id || data?.classId)
+
+    switch (action) {
+      case 'updateSemester':
+        requireClassAccess(caller, data.class_id, ['head_teacher', 'admin'])
+        return await updateSemester(data, caller)
+      case 'addSemester':
+        requireClassAccess(caller, data.class_id, ['head_teacher', 'admin'])
+        return await addSemester(data, caller)
+      case 'setCurrentSemester':
+        requireClassAccess(caller, data.class_id, ['head_teacher', 'admin'])
+        return await setCurrentSemester(data, caller)
+      case 'getSemesterConfig':
+        return await getSemesterConfig(data, caller)
+      case 'initClassSemester':
+        requireClassAccess(caller, data.class_id, ['head_teacher', 'admin'])
+        return await initClassSemester(data, caller)
+      case 'deleteSemester':
+        requireClassAccess(caller, data.class_id, ['head_teacher', 'admin'])
+        return await deleteSemester(data, caller)
+      default: return { success: false, message: '未知操作' }
+    }
+  } catch (err) {
+    console.error('manageSemester error:', err)
+    return { success: false, message: err.message }
   }
 }
 
-async function updateSemester(data) {
+async function updateSemester(data, caller) {
   const { _id, ...updateData } = data
   if (!_id) return { success: false, message: '缺少学期ID' }
 
@@ -45,13 +65,17 @@ async function updateSemester(data) {
   }
 }
 
-async function addSemester(data, openid) {
+async function addSemester(data, caller) {
   const required = ['semester_name', 'start_date', 'end_date']
   for (const field of required) {
     if (!data[field]) return { success: false, message: `缺少必填字段: ${field}` }
   }
 
-  // 重复检查：同一班级下不允许存在同名+同起止日期的学期
+  const validation = validateInput(data, SCHEMAS.semesterCreate)
+  if (!validation.valid) {
+    return { success: false, message: validation.errors.join('; ') }
+  }
+
   try {
     const dupCheck = await db.collection('semesters')
       .where({
@@ -84,6 +108,7 @@ async function addSemester(data, openid) {
     description: data.description || '',
     is_initialized: data.is_initialized || false,
     class_id: data.class_id || '',
+    created_by: caller.openid,
     created_at: now,
     updated_at: now
   }
@@ -97,42 +122,44 @@ async function addSemester(data, openid) {
   }
 }
 
-async function setCurrentSemester(data) {
+async function setCurrentSemester(data, caller) {
   const { semester_id, class_id } = data
   if (!semester_id) return { success: false, message: '缺少学期ID' }
 
   try {
-    const now = db.serverDate()
-    const query = {}
-    if (class_id) query.class_id = class_id
+    return await withTransaction(async (tx) => {
+      const now = db.serverDate()
+      const query = { class_id: class_id || caller.classId }
 
-    const allRes = await db.collection('semesters').where(query).get()
-    for (const sem of (allRes.data || [])) {
-      if (sem._id !== semester_id && sem.is_current) {
-        await db.collection('semesters').doc(sem._id).update({
-          data: { is_current: false, status: 'inactive', updated_at: now }
-        })
+      const allRes = await tx.collection('semesters').where(query).get()
+      for (const sem of (allRes.data || [])) {
+        if (sem._id !== semester_id && sem.is_current) {
+          await tx.collection('semesters').doc(sem._id).update({
+            data: { is_current: false, status: 'inactive', updated_at: now }
+          })
+        }
       }
-    }
 
-    await db.collection('semesters').doc(semester_id).update({
-      data: { is_current: true, status: 'active', updated_at: now }
+      await tx.collection('semesters').doc(semester_id).update({
+        data: { is_current: true, status: 'active', updated_at: now }
+      })
+
+      return { success: true }
     })
-
-    return { success: true }
   } catch (err) {
     console.error('setCurrentSemester error:', err)
     return { success: false, message: err.message || '设置失败' }
   }
 }
 
-async function getSemesterConfig(data) {
+async function getSemesterConfig(data, caller) {
   const { class_id } = data
+  const effectiveClassId = class_id || caller.classId
 
   try {
-    if (class_id) {
+    if (effectiveClassId) {
       const res = await db.collection('semesters')
-        .where({ class_id, is_current: true })
+        .where({ class_id: effectiveClassId, is_current: true })
         .limit(1)
         .get()
 
@@ -141,7 +168,7 @@ async function getSemesterConfig(data) {
       }
 
       const allRes = await db.collection('semesters')
-        .where({ class_id, status: 'active' })
+        .where({ class_id: effectiveClassId, status: 'active' })
         .limit(1)
         .get()
 
@@ -175,7 +202,7 @@ async function getSemesterConfig(data) {
   }
 }
 
-async function initClassSemester(data) {
+async function initClassSemester(data, caller) {
   const { class_id } = data
   if (!class_id) return { success: false, message: '缺少class_id' }
 
@@ -238,6 +265,7 @@ async function initClassSemester(data) {
       description: '班级初始化自动创建',
       is_initialized: true,
       class_id: class_id,
+      created_by: caller.openid,
       created_at: serverNow,
       updated_at: serverNow
     }
@@ -250,14 +278,17 @@ async function initClassSemester(data) {
   }
 }
 
-async function deleteSemester(data) {
+async function deleteSemester(data, caller) {
   const { semester_id } = data
   if (!semester_id) return { success: false, message: '缺少学期ID' }
 
   try {
-    // 检查是否为当前激活学期
     const semRes = await db.collection('semesters').doc(semester_id).get()
     if (!semRes.data) return { success: false, message: '学期不存在' }
+
+    if (caller.role !== 'admin' && caller.classId !== semRes.data.class_id) {
+      return { success: false, message: '无权删除其他班级的学期' }
+    }
 
     if (semRes.data.is_current || semRes.data.status === 'active') {
       return { success: false, message: '当前激活学期不可删除，请先切换到其他学期' }

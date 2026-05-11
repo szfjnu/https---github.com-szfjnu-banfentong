@@ -4,13 +4,15 @@ cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV
 })
 const db = cloud.database()
+const { getCallerInfo, requireClassAccess } = require('../utils/auth')
 
-// 云函数入口函数
 exports.main = async (event, context) => {
   console.log('开始导入宿舍规则...')
 
   try {
     const { class_id } = event
+    const caller = await getCallerInfo(event, class_id)
+    requireClassAccess(caller, class_id, ['head_teacher', 'admin'])
     // 获取当前学期
     let semesterQuery = { is_current: true };
     if (class_id) {

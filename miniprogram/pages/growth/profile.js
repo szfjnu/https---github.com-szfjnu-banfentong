@@ -509,7 +509,11 @@ Page({
   },
 
   saveComment: async function () {
-    if (!this.data.commentId || !this.data.commentContent) return
+    if (!this.data.commentId) return
+    if (!this.data.commentContent || !this.data.commentContent.trim()) {
+      wx.showToast({ title: '请输入评论内容', icon: 'none' })
+      return
+    }
     try {
       const res = await wx.cloud.callFunction({
         name: 'growthManager',

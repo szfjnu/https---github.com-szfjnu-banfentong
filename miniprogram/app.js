@@ -30,10 +30,6 @@ App({
       console.error('请使用 2.2.3 或以上的基础库以使用云能力');
     } else {
       wx.cloud.init({
-        env: "cloud1-8gu6objx6e491c6e", // env 参数说明:
-        //   env 参数决定接下来小程序发起的云开发调用(wx.cloud.xxx)会默认请求到哪个云环境的资源
-        //   此处请填入环境 ID, 环境 ID 可打开云控制台查看
-        //   如不填则使用默认环境(第一个创建的环境)
         env: this.getEnvId(),
         traceUser: true,
       });
@@ -51,8 +47,10 @@ App({
     const fontSizeMap = { small: '24rpx', medium: '28rpx', large: '32rpx' };
     const fontSize = fontSizeMap[fontSizeSetting] || '28rpx';
     const pages = getCurrentPages();
-    if (pages.length > 0) {
-      pages[0].setData({ _fontSizeBase: fontSize });
+    if (pages.length > 0 && pages[0] && typeof pages[0].setData === 'function') {
+      try {
+        pages[0].setData({ _fontSizeBase: fontSize });
+      } catch (e) { /* ignore */ }
     }
   },
 

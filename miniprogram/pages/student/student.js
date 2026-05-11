@@ -122,8 +122,6 @@ Page({
 
       // 1. 优先获取当前用户的班级ID
       let targetClassId = app.globalData.class_id; 
-      console.log('当前全局班级ID:', app.globalData.class_id);
-      console.log('当前角色:', role);
       console.log('当前班级ID (targetClassId):', targetClassId);      
       
       if (role !== 'admin' && !targetClassId) {
@@ -167,7 +165,7 @@ Page({
         students: refresh ? students : [...this.data.students, ...students],
         loading: false,
         hasMore: students.length === pageSize,
-        page: refresh ? 0 : page
+        page: refresh ? 0 : page + 1
       });
     } catch (err) {
       console.error('加载学生列表失败:', err);
@@ -420,7 +418,6 @@ Page({
   // 上拉加载更多
   onReachBottom: function () {
     if (this.data.hasMore && !this.data.loading) {
-      this.setData({ page: this.data.page + 1 });
       this.loadStudents(false);
     }
   }

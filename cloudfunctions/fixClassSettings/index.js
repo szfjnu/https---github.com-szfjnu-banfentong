@@ -5,12 +5,14 @@ cloud.init({
 })
 const db = cloud.database()
 const _ = db.command
+const { getCallerInfo, requireAdmin } = require('../utils/auth')
 
-// 云函数入口函数
 exports.main = async (event, context) => {
   console.log('开始修复班级设置数据...')
 
   try {
+    const caller = await getCallerInfo(event)
+    requireAdmin(caller)
     // 1. 删除 class_id 为空的无效数据
     const deleteRes = await db.collection('class_settings')
       .where({
