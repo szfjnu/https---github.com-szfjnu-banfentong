@@ -82,6 +82,7 @@ exports.main = async (event, context) => {
       // ========== 学生信息管理 ==========
       case 'updateStudentInfo': return await updateStudentInfo(data, OPENID);
       case 'getStudentDetail': return await getStudentDetail(data, OPENID);
+      case 'getAccessibleStudents': return await getAccessibleStudents(data, OPENID);
 
       default:
         return { success: false, message: `未知操作: ${action}` };
@@ -1242,5 +1243,128 @@ async function getStudentDetail(data, openid) {
     success: true,
     data: responseData,
     permission_level: permission_level
+  };
+}
+
+async function getAccessibleStudents(data, openid) {
+  console.log('[getAccessibleStudents] 开始权限预判断, openid:', openid);
+
+  const userRes = await db.collection('users')
+    .where({ _openid: openid })
+    .limit(1)
+    .get();
+
+  let userRole = '';
+  let userId = '';
+  let userStudentId = '';
+  
+  if (userRes.data && userRes.data.length > 0) {
+    userRole = userRes.data[0].role || '';
+    userId = userRes.data[0]._id;
+    userStudentId = userRes.data[0].student_id || '';
+  }
+
+  if (!userRole) {
+    const relRes = await db.collection('user_class_relation')
+      .where({ user_openid: openid, status: 'joined' })
+      .limit(1)
+      .get();
+    if (relRes.data && relRes.data.length > 0) {
+      userRole = relRes.data[0].role || '';
+    }
+  }
+
+  console.log('[getAccessibleStudents] 访问者信息:', { openid, userRole: userRole || '未知', userId, userStudentId });
+
+  const allowedRoles = ['admin', 'head_teacher', 'class_teacher'];
+  
+  if (allowedRoles.includes(userRole)) {
+    const allStudentsRes = await db.collection('students')
+      .field({ student_id: true, _id: true })
+      .limit(1000)
+      .get();
+    
+    const accessibleIds = allStudentsRes.data.map(s => s.student_id || s._id);
+    
+    console.log('[getAccessibleStudents] 管理员/教师权限，可访问所有学生:', accessibleIds.length);
+    
+    return {
+      success: true,
+      permission_type: 'all',
+      accessible_student_ids: accessibleIds,
+      message: '可访问所有学生'
+    };
+  }
+  
+  if (userRole === 'student' || userRole === '') {
+    if (userStudentId) {
+      console.log('[getAccessibleStudents] 学生权限，仅可访问自己:', userStudentId);
+      
+      return {
+        success: true,
+        permission_type: 'self_only',
+        accessible_student_ids: [userStudentId],
+        message: '仅可访问自己的信息'
+      };
+    }
+    
+    const studentRes = await db.collection('students')
+      .where({
+        _openid: openid
+      })
+      .limit(1)
+      .get();
+    
+    if (studentRes.data && studentRes.data.length > 0) {
+      const studentId = studentRes.data[0].student_id;
+      console.log('[getAccessibleStudents] 通过openid找到学生记录，仅可访问自己:', studentId);
+      
+      return {
+        success: true,
+        permission_type: 'self_only',
+        accessible_student_ids: [studentId],
+        message: '仅可访问自己的信息'
+      };
+    }
+    
+    console.warn('[getAccessibleStudents] 未找到学生记录，无权限访问任何学生');
+    
+    return {
+      success: true,
+      permission_type: 'none',
+      accessible_student_ids: [],
+      message: '无权限访问任何学生信息'
+    };
+  }
+  
+  if (userRole === 'parent') {
+    const relRes = await db.collection('user_class_relation')
+      .where({
+        user_openid: openid,
+        role: 'parent',
+        status: 'joined'
+      })
+      .field({ student_id: true })
+      .get();
+    
+    const boundStudentIds = relRes.data.map(r => r.student_id).filter(id => id);
+    
+    console.log('[getAccessibleStudents] 家长权限，可访问绑定学生:', boundStudentIds);
+    
+    return {
+      success: true,
+      permission_type: 'bound_students',
+      accessible_student_ids: boundStudentIds,
+      message: `可访问${boundStudentIds.length}个绑定学生`
+    };
+  }
+  
+  console.warn('[getAccessibleStudents] 未知角色，无权限访问任何学生');
+  
+  return {
+    success: true,
+    permission_type: 'none',
+    accessible_student_ids: [],
+    message: '无权限访问任何学生信息'
   };
 }

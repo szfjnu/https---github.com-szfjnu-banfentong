@@ -455,3 +455,27 @@
   font-size: 24rpx;
   color: var(--text-color);
 }
+
+/* 排行榜权限控制样式 */
+.ranking-item.disabled {
+  opacity: 0.5;
+  position: relative;
+}
+
+.ranking-item.disabled:active {
+  background: var(--white);
+}
+
+.no-permission-mask {
+  position: absolute;
+  top: 10rpx;
+  right: 10rpx;
+  background: rgba(255, 77, 79, 0.1);
+  border-radius: 8rpx;
+  padding: 4rpx 12rpx;
+}
+
+.no-permission-text {
+  font-size: 20rpx;
+  color: #ff4d4f;
+}

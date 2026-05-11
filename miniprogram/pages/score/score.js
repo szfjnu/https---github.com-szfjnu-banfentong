@@ -13,14 +13,18 @@ Page({
     page: 0,
     pageSize: 50,
     hasMore: true,
-    userRole: '',  // 用户角色
+    userRole: '',
     currentClassId: '',
 
     // 学生个人积分信息（学生/家长模式）
     myScoreInfo: null,
     myRank: 0,
     totalStudents: 0,
-    isStudentMode: false
+    isStudentMode: false,
+    
+    // 权限控制
+    accessibleStudentIds: [],
+    permissionType: 'none'
   },
 
   onLoad: function () {
@@ -41,17 +45,44 @@ Page({
   },
 
   // 根据角色初始化视图
-  initView: function () {
+  initView: async function () {
     const role = this.data.userRole;
     const canAddScore = app.hasPermission('score', 'add');
     const canViewAll = app.hasPermission('score', 'view');
     const isStudentMode = !canViewAll;
     this.setData({ isStudentMode, canAddScore });
 
+    await this.loadPermissionInfo();
+
     if (isStudentMode) {
       this.loadMyScore();
     } else {
       this.loadRanking();
+    }
+  },
+
+  // 加载权限信息
+  loadPermissionInfo: async function () {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'manageUserCenter',
+        data: {
+          action: 'getAccessibleStudents',
+          data: {}
+        }
+      });
+
+      if (res.result && res.result.success) {
+        const { permission_type, accessible_student_ids } = res.result;
+        console.log('[权限预判断] 权限类型:', permission_type, '可访问学生数:', accessible_student_ids.length);
+        
+        this.setData({
+          permissionType: permission_type,
+          accessibleStudentIds: accessible_student_ids
+        });
+      }
+    } catch (err) {
+      console.error('权限预判断失败:', err);
     }
   },
 
@@ -139,7 +170,8 @@ Page({
       let students = allStudents.map(student => ({
         ...student,
         scoreLevel: util.getScoreLevel(student.current_score || 100),
-        scoreColor: util.getScoreColor(student.current_score || 100)
+        scoreColor: util.getScoreColor(student.current_score || 100),
+        canView: this.data.permissionType === 'all' || this.data.accessibleStudentIds.includes(student.student_id)
       }));
 
       if (searchKeyword) {
@@ -184,6 +216,18 @@ Page({
   // 查看详情
   onViewDetail: function (e) {
     const studentId = e.currentTarget.dataset.id;
+    
+    if (this.data.permissionType !== 'all') {
+      if (!this.data.accessibleStudentIds.includes(studentId)) {
+        wx.showToast({
+          title: '无权限查看该学生信息',
+          icon: 'none',
+          duration: 2000
+        });
+        return;
+      }
+    }
+    
     wx.navigateTo({
       url: `/subPages/student/detail/detail?id=${studentId}`
     });

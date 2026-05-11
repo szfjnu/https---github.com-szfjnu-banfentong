@@ -145,7 +145,7 @@
       <view class="card-title">积分排行榜</view>
       <view class="ranking-list" wx:if="{{!loading && students.length > 0}}">
         <view
-          class="ranking-item"
+          class="ranking-item {{item.canView ? '' : 'disabled'}}"
           wx:for="{{students}}"
           wx:key="_id"
           bindtap="onViewDetail"
@@ -169,6 +169,9 @@
               {{item.current_score || 100}}
             </view>
             <view class="score-level">{{item.scoreLevel}}</view>
+          </view>
+          <view class="no-permission-mask" wx:if="{{!item.canView}}">
+            <text class="no-permission-text">无权限</text>
           </view>
         </view>
       </view>
