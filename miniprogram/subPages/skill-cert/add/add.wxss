@@ -1,0 +1,74 @@
+.form-group {
+  background: var(--white);
+  padding: 24rpx 32rpx;
+  margin-bottom: 2rpx;
+}
+
+.form-label {
+  display: block;
+  font-size: 28rpx;
+  color: var(--text-color-secondary);
+  margin-bottom: 12rpx;
+}
+
+.form-input {
+  width: 100%;
+  height: 72rpx;
+  padding: 0 20rpx;
+  background: var(--background-color);
+  border-radius: 8rpx;
+  font-size: 28rpx;
+}
+
+.form-picker {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 72rpx;
+  padding: 0 20rpx;
+  background: var(--background-color);
+  border-radius: 8rpx;
+  font-size: 28rpx;
+}
+
+.picker-arrow {
+  font-size: 20rpx;
+  color: var(--text-color-light);
+}
+
+.student-picker {
+  background: var(--white);
+  max-height: 400rpx;
+  overflow-y: auto;
+  padding: 16rpx 32rpx;
+  margin-bottom: 2rpx;
+}
+
+.search-box {
+  margin-bottom: 16rpx;
+}
+
+.search-box input {
+  width: 100%;
+  height: 64rpx;
+  padding: 0 20rpx;
+  background: var(--background-color);
+  border-radius: 8rpx;
+  font-size: 26rpx;
+}
+
+.student-list {
+  max-height: 300rpx;
+  overflow-y: auto;
+}
+
+.student-item {
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid var(--border-color);
+  font-size: 28rpx;
+}
+
+.submit-btn {
+  margin: 48rpx 32rpx;
+  width: calc(100% - 64rpx);
+}

@@ -18,11 +18,15 @@
 
     <view class="grid-row" wx:for="{{gridData}}" wx:key="row" wx:for-item="rowArr" wx:for-index="rowIdx">
       <view
-        class="grid-cell {{item.genderClass}} {{item.isEmpty ? 'empty' : ''}} {{item.isLocked ? 'locked' : ''}} {{item.isHighlight ? 'highlight' : ''}}"
+        class="grid-cell {{item.genderClass}} {{item.isEmpty ? 'empty' : ''}} {{item.isLocked ? 'locked' : ''}} {{item.isHighlight ? 'highlight' : ''}} {{isDragging && dragSourceKey === item.key ? 'drag-source-ghost' : ''}} {{isDragging && dragTargetKey === item.key && isTargetValid ? 'drag-target-valid' : ''}} {{isDragging && dragTargetKey === item.key && !isTargetValid ? 'drag-target-invalid' : ''}}"
         wx:for="{{rowArr}}" wx:key="col"
         style="width:{{cellSize}}px; height:{{cellSize * 0.85}}px;"
         bindtap="onSeatTap"
-        bindlongpress="onSeatLongPress"
+        bindlongpress="{{enableDrag ? '' : 'onSeatLongPress'}}"
+        bindtouchstart="onDragTouchStart"
+        bindtouchmove="onDragTouchMove"
+        bindtouchend="onDragTouchEnd"
+        bindtouchcancel="onDragTouchCancel"
         data-row="{{item.row}}"
         data-col="{{item.col}}"
       >
@@ -38,6 +42,26 @@
         </block>
         <text class="cell-empty" wx:elif="{{item.isEmpty && mode !== 'view'}}">+</text>
         <text class="cell-seat-no-empty" wx:elif="{{item.isEmpty}}">{{item.seatNo}}</text>
+        <view class="drag-target-overlay" wx:if="{{isDragging && dragTargetKey === item.key && isTargetValid}}">
+          <text class="drag-target-overlay-text">{{dragTargetStudentName ? '交换' : '放此'}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view
+    class="drag-float {{dragSourceCell.genderClass}}"
+    wx:if="{{isDragging && dragSourceCell}}"
+    style="left:{{dragFloatX}}px; top:{{dragFloatY}}px; opacity:{{dragFloatOpacity}};"
+  >
+    <text class="drag-float-name">{{dragSourceCell.studentName}}</text>
+    <text class="drag-float-gender">{{dragSourceCell.gender}}</text>
+    <view class="drag-float-target" wx:if="{{dragTargetSeatNo}}">
+      <view class="drag-float-target-arrow"></view>
+      <view class="drag-float-target-body">
+        <text class="drag-float-target-label">放到</text>
+        <text class="drag-float-target-seat">{{dragTargetSeatNo}}</text>
+        <text class="drag-float-target-name" wx:if="{{dragTargetStudentName}}">({{dragTargetStudentName}})</text>
       </view>
     </view>
   </view>

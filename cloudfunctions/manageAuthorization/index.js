@@ -15,7 +15,8 @@ const ALLOWED_MODULES = {
   dorm: { label: '宿舍管理', actions: ['read', 'write', 'approve'] },
   volunteer: { label: '志愿服务', actions: ['read', 'write', 'approve'] },
   discipline: { label: '处分管理', actions: ['read', 'approve'] },
-  notification: { label: '通知管理', actions: ['read', 'write'] }
+  notification: { label: '通知管理', actions: ['read', 'write'] },
+  skill_cert: { label: '技能证书', actions: ['read', 'write', 'approve'] }
 };
 
 const MODULE_PERMISSIONS = {
@@ -24,7 +25,8 @@ const MODULE_PERMISSIONS = {
   DORM_SCORE: 'dorm_score',
   DUTY_CHECK: 'duty_check',
   DUTY_ARRANGE: 'duty_arrange',
-  ATTENDANCE_REGISTER: 'attendance_register'
+  ATTENDANCE_REGISTER: 'attendance_register',
+  SKILL_CERT_APPROVE: 'skill_cert_approve'
 };
 
 const VALID_MODULE_CODES = Object.values(MODULE_PERMISSIONS);

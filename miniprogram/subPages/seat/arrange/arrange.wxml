@@ -35,7 +35,8 @@
 
       <view class="manual-area" wx:if="{{arrangeMode === 'manual'}}">
         <view class="manual-hint">
-          <text>选择学生后点击空座位安排</text>
+          <text wx:if="{{!isDragging}}">选择学生后点击座位安排，或长按已入座座位拖拽交换</text>
+          <text wx:if="{{isDragging}}">拖拽中...拖到目标座位释放完成交换</text>
         </view>
         <student-picker
           id="studentPicker"
@@ -46,6 +47,7 @@
           title="选择学生"
           bind:select="onStudentSelect"
           bind:deselect="onStudentDeselect"
+          disable="{{isDragging}}"
         />
       </view>
 
@@ -54,7 +56,11 @@
           layout="{{layout}}"
           arrangement="{{arrangement}}"
           mode="edit"
+          enableDrag="{{arrangeMode === 'manual'}}"
           bind:seatclick="onSeatClick"
+          bind:dragstart="onDragStart"
+          bind:dragend="onDragEnd"
+          bind:dragcancel="onDragCancel"
         />
       </view>
     </block>

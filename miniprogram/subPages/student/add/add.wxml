@@ -164,40 +164,39 @@
       <!-- 住宿信息 - 仅住宿生显示 -->
       <view wx:if="{{formData.is_boarding}}" class="dorm-section">
         <view class="dorm-title">🏠 住宿信息</view>
-        <view class="form-item">
-          <text class="form-label">楼栋号</text>
-          <input 
-            class="form-input" 
-            name="dorm_building" 
-            placeholder="请输入楼栋号（如：1号楼）"
-            value="{{formData.dorm_info.building}}"
-            bindinput="onDormInput"
-            data-field="building"
-          />
+
+        <view wx:if="{{dormDataEmpty}}" class="dorm-empty-tip">
+          <text class="empty-text">请先在宿舍管理中添加楼栋/房间/床位</text>
         </view>
 
         <view class="form-item">
-          <text class="form-label">宿舍号</text>
-          <input 
-            class="form-input" 
-            name="dorm_room" 
-            placeholder="请输入宿舍号（如：301）"
-            value="{{formData.dorm_info.room}}"
-            bindinput="onDormInput"
-            data-field="room"
-          />
+          <text class="form-label">楼栋</text>
+          <picker mode="selector" range="{{buildingOptions}}" range-key="label" value="{{selectedBuildingIndex}}" bindchange="onBuildingChange" disabled="{{dormDataEmpty}}">
+            <view class="picker-value {{dormDataEmpty ? 'picker-disabled' : ''}}">
+              <text>{{selectedBuildingIndex >= 0 && buildingOptions[selectedBuildingIndex] ? buildingOptions[selectedBuildingIndex].label : '请选择楼栋'}}</text>
+              <text class="arrow">▼</text>
+            </view>
+          </picker>
         </view>
 
         <view class="form-item">
-          <text class="form-label">床位号</text>
-          <input 
-            class="form-input" 
-            name="dorm_bed" 
-            placeholder="请输入床位号（如：1）"
-            value="{{formData.dorm_info.bed}}"
-            bindinput="onDormInput"
-            data-field="bed"
-          />
+          <text class="form-label">房间</text>
+          <picker mode="selector" range="{{roomOptions}}" range-key="label" value="{{selectedRoomIndex}}" bindchange="onRoomChange" disabled="{{roomOptions.length === 0}}">
+            <view class="picker-value {{roomOptions.length === 0 ? 'picker-disabled' : ''}}">
+              <text>{{selectedRoomIndex >= 0 && roomOptions[selectedRoomIndex] ? roomOptions[selectedRoomIndex].label : '请选择房间'}}</text>
+              <text class="arrow">▼</text>
+            </view>
+          </picker>
+        </view>
+
+        <view class="form-item">
+          <text class="form-label">床位</text>
+          <picker mode="selector" range="{{bedOptions}}" range-key="label" value="{{selectedBedIndex}}" bindchange="onBedChange" disabled="{{bedOptions.length === 0}}">
+            <view class="picker-value {{bedOptions.length === 0 ? 'picker-disabled' : ''}}">
+              <text>{{selectedBedIndex >= 0 && bedOptions[selectedBedIndex] ? bedOptions[selectedBedIndex].label : '请选择床位'}}</text>
+              <text class="arrow">▼</text>
+            </view>
+          </picker>
         </view>
       </view>
 

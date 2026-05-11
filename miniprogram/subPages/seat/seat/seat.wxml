@@ -19,6 +19,7 @@
         <view class="tool-btn" bindtap="goHistory">历史记录</view>
         <view class="tool-btn" bindtap="exportImage">导出图片</view>
         <view class="tool-btn tool-btn-danger" bindtap="resetSeats">一键重置</view>
+        <view class="tool-btn tool-btn-danger" bindtap="clearLayout">一键清除布局</view>
       </view>
 
       <view class="no-arrangement" wx:if="{{!hasArrangement}}">

@@ -5,6 +5,26 @@ const _ = db.command
 
 const MAX_LIMIT = 100
 
+const DEFAULT_COMPETITION_SCORES = {
+  school: 5,
+  city: 10,
+  province: 15,
+  national: 20
+}
+
+const DEFAULT_CERTIFICATE_SCORES = {
+  vocational: 10,
+  skill_level: 8,
+  specialty: 6,
+  other: 3
+}
+
+const COMPETITION_LEVELS = ['school', 'city', 'province', 'national']
+const COMPETITION_LEVEL_LABELS = { school: '校级', city: '市级', province: '省级', national: '国家级' }
+
+const CERTIFICATE_CATEGORIES = ['vocational', 'skill_level', 'specialty', 'other']
+const CERTIFICATE_CATEGORY_LABELS = { vocational: '职业资格类', skill_level: '技能等级类', specialty: '专项能力类', other: '其他类' }
+
 let aiInstance = null
 function getAI() {
   if (!aiInstance) {
@@ -35,6 +55,13 @@ exports.main = async (event, context) => {
       case 'submitFeedback': return await submitFeedback(data, OPENID)
       case 'getClassSummary': return await getClassSummary(data, OPENID)
       case 'ensureCollection': return await ensureCollection()
+      case 'addSkillCertRecord': return await addSkillCertRecord(data, OPENID)
+      case 'getSkillCertRecords': return await getSkillCertRecords(data, OPENID)
+      case 'getSkillCertRecordDetail': return await getSkillCertRecordDetail(data, OPENID)
+      case 'approveSkillCertRecord': return await approveSkillCertRecord(data, OPENID)
+      case 'deleteSkillCertRecord': return await deleteSkillCertRecord(data, OPENID)
+      case 'getSkillCertScoreRules': return await getSkillCertScoreRules(data, OPENID)
+      case 'saveSkillCertScoreRules': return await saveSkillCertScoreRules(data, OPENID)
       default: return { success: false, message: '未知操作' }
     }
   } catch (err) {
@@ -1412,4 +1439,632 @@ async function submitFeedback(data, openid) {
   } catch (err) {
     return { success: false, message: '提交反馈失败: ' + err.message }
   }
+}
+
+async function resolveScoreValue(type, key, classId) {
+  try {
+    const classSettingsRes = await db.collection('class_settings')
+      .where({ class_id: classId })
+      .field({ skill_cert_rules: true })
+      .get()
+
+    const classRules = classSettingsRes.data && classSettingsRes.data.length > 0
+      ? classSettingsRes.data[0].skill_cert_rules
+      : null
+
+    if (type === 'competition') {
+      const classValue = classRules && classRules.competition && classRules.competition[key]
+      if (classValue != null && Number.isInteger(classValue) && classValue > 0) {
+        return { value: classValue, source: 'class_rule' }
+      }
+      if (DEFAULT_COMPETITION_SCORES[key] != null) {
+        return { value: DEFAULT_COMPETITION_SCORES[key], source: 'system_default' }
+      }
+      return null
+    }
+
+    if (type === 'certificate') {
+      const classValue = classRules && classRules.certificate && classRules.certificate[key]
+      if (classValue != null && Number.isInteger(classValue) && classValue > 0) {
+        return { value: classValue, source: 'class_rule' }
+      }
+      if (DEFAULT_CERTIFICATE_SCORES[key] != null) {
+        return { value: DEFAULT_CERTIFICATE_SCORES[key], source: 'system_default' }
+      }
+      return null
+    }
+
+    return null
+  } catch (err) {
+    console.error('resolveScoreValue错误:', err)
+    return null
+  }
+}
+
+function generateRecordId() {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
+  let random = ''
+  for (let i = 0; i < 9; i++) {
+    random += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return 'SC' + Date.now() + random
+}
+
+async function callScoreManager(params) {
+  try {
+    const res = await cloud.callFunction({
+      name: 'scoreManager',
+      data: {
+        action: 'applyScoreChange',
+        data: params
+      }
+    })
+    return res.result || { success: false, message: '云函数调用无返回' }
+  } catch (err) {
+    console.error('callScoreManager错误:', err)
+    return { success: false, message: err.message || '积分变更云函数调用失败' }
+  }
+}
+
+async function addSkillCertRecord(data, OPENID) {
+  const identity = await verifyIdentity(OPENID)
+  if (!identity.role) {
+    return { success: false, message: '未登录或身份未确认' }
+  }
+
+  const allowedRoles = ['admin', 'head_teacher', 'class_cadre', 'student']
+  if (!allowedRoles.includes(identity.role)) {
+    return { success: false, message: '您没有权限新增记录' }
+  }
+
+  const { type, name, level, category, award, issuer, event_date, remark, student_id, class_id, semester_id } = data
+
+  if (!type || !['competition', 'certificate'].includes(type)) {
+    return { success: false, message: '记录类型无效' }
+  }
+  if (!name || !name.trim()) {
+    return { success: false, message: type === 'competition' ? '比赛名称不能为空' : '证书名称不能为空' }
+  }
+
+  if (type === 'competition') {
+    if (!level || !COMPETITION_LEVELS.includes(level)) {
+      return { success: false, message: '无效的比赛级别' }
+    }
+  }
+
+  if (type === 'certificate') {
+    if (!category || !category.trim()) {
+      return { success: false, message: '证书类别不能为空' }
+    }
+  }
+
+  if (!event_date || !/^\d{4}-\d{2}-\d{2}$/.test(event_date)) {
+    return { success: false, message: '日期格式无效，请使用YYYY-MM-DD格式' }
+  }
+
+  let finalStudentId = student_id || ''
+  let finalStudentName = ''
+  let finalClassId = class_id || identity.classId || ''
+  let finalSemesterId = semester_id || ''
+
+  if (identity.role === 'student') {
+    finalStudentId = identity.studentId
+    finalClassId = identity.classId
+  }
+
+  if (!finalStudentId) {
+    return { success: false, message: '学生ID不能为空' }
+  }
+  if (!finalClassId) {
+    return { success: false, message: '班级ID不能为空' }
+  }
+
+  if (identity.role === 'class_cadre' && finalClassId !== identity.classId) {
+    return { success: false, message: '只能为本班学生新增记录' }
+  }
+
+  const studentRes = await db.collection('students').where({ student_id: finalStudentId }).limit(1).get()
+  if (!studentRes.data || studentRes.data.length === 0) {
+    return { success: false, message: '学生信息不存在' }
+  }
+  finalStudentName = studentRes.data[0].student_name || studentRes.data[0].name || ''
+
+  if (!finalSemesterId) {
+    const semesterRes = await db.collection('semesters').where({ is_active: true }).limit(1).get()
+    if (semesterRes.data && semesterRes.data.length > 0) {
+      finalSemesterId = semesterRes.data[0]._id || semesterRes.data[0].semester_id || ''
+    }
+  }
+
+  const recordId = generateRecordId()
+  const now = db.serverDate()
+
+  const record = {
+    record_id: recordId,
+    type,
+    student_id: finalStudentId,
+    student_name: finalStudentName,
+    class_id: finalClassId,
+    semester_id: finalSemesterId,
+    name: name.trim(),
+    level: level || '',
+    category: category || '',
+    award: award || '',
+    issuer: issuer || '',
+    event_date,
+    score_value: 0,
+    score_record_id: '',
+    approval_status: 'pending_first',
+    approval_log: [{
+      action: '提交',
+      operator: identity.userName || '',
+      operator_role: identity.role,
+      time: now
+    }],
+    recorder_openid: OPENID,
+    recorder_name: identity.userName || '',
+    recorder_role: identity.role,
+    remark: remark || '',
+    created_at: now,
+    updated_at: now
+  }
+
+  await db.collection('skill_cert_records').add({ data: record })
+
+  return {
+    success: true,
+    data: { record_id: recordId, approval_status: 'pending_first' }
+  }
+}
+
+async function getSkillCertRecords(data, OPENID) {
+  const identity = await verifyIdentity(OPENID)
+  if (!identity.role) {
+    return { success: false, message: '未登录或身份未确认' }
+  }
+
+  const { type, approval_status, student_id, page, pageSize } = data
+  const pageNum = Math.max(1, parseInt(page) || 1)
+  const size = Math.min(100, Math.max(1, parseInt(pageSize) || 20))
+
+  const query = {}
+
+  switch (identity.role) {
+    case 'student':
+      query.student_id = identity.studentId
+      break
+    case 'parent':
+      if (identity.studentId) {
+        query.student_id = identity.studentId
+      } else {
+        return { success: true, data: [], total: 0, page: pageNum, pageSize: size }
+      }
+      break
+    case 'head_teacher':
+    case 'class_cadre':
+      query.class_id = identity.classId
+      break
+    case 'subject_teacher':
+      if (identity.classList && identity.classList.length > 0) {
+        query.class_id = _.in(identity.classList.map(c => c.class_id))
+      } else {
+        query.class_id = identity.classId
+      }
+      break
+    case 'admin':
+      if (data.class_id) query.class_id = data.class_id
+      break
+    default:
+      return { success: false, message: '无权限查看' }
+  }
+
+  if (type) query.type = type
+  if (approval_status) query.approval_status = approval_status
+  if (student_id && identity.role !== 'student') query.student_id = student_id
+
+  try {
+    const countRes = await db.collection('skill_cert_records').where(query).count()
+    const total = countRes.total || 0
+
+    const recordsRes = await db.collection('skill_cert_records')
+      .where(query)
+      .skip((pageNum - 1) * size)
+      .limit(size)
+      .orderBy('created_at', 'desc')
+      .get()
+
+    return {
+      success: true,
+      data: recordsRes.data || [],
+      total,
+      page: pageNum,
+      pageSize: size
+    }
+  } catch (err) {
+    console.error('getSkillCertRecords查询失败:', err)
+    return { success: false, message: '查询失败' }
+  }
+}
+
+async function getSkillCertRecordDetail(data, OPENID) {
+  const identity = await verifyIdentity(OPENID)
+  if (!identity.role) {
+    return { success: false, message: '未登录或身份未确认' }
+  }
+
+  const { record_id } = data
+  if (!record_id) {
+    return { success: false, message: '记录ID不能为空' }
+  }
+
+  const recordRes = await db.collection('skill_cert_records').where({ record_id }).limit(1).get()
+  if (!recordRes.data || recordRes.data.length === 0) {
+    return { success: false, message: '记录不存在' }
+  }
+
+  const record = recordRes.data[0]
+
+  if (identity.role === 'student' && record.student_id !== identity.studentId) {
+    return { success: false, message: '无权查看该记录' }
+  }
+  if (identity.role === 'parent' && record.student_id !== identity.studentId) {
+    return { success: false, message: '无权查看该记录' }
+  }
+  if (['head_teacher', 'class_cadre'].includes(identity.role) && record.class_id !== identity.classId) {
+    return { success: false, message: '无权查看该记录' }
+  }
+
+  return { success: true, data: record }
+}
+
+async function approveSkillCertRecord(data, OPENID) {
+  const identity = await verifyIdentity(OPENID)
+  if (!identity.role) {
+    return { success: false, message: '未登录或身份未确认' }
+  }
+
+  const { record_id, approve_action, reject_reason } = data
+  if (!record_id || !approve_action) {
+    return { success: false, message: '参数不完整' }
+  }
+
+  const validActions = ['first_approve', 'first_reject', 'final_approve', 'final_reject']
+  if (!validActions.includes(approve_action)) {
+    return { success: false, message: '无效的审批动作' }
+  }
+
+  if (['first_approve', 'first_reject'].includes(approve_action)) {
+    if (!['admin', 'head_teacher', 'class_cadre'].includes(identity.role)) {
+      return { success: false, message: '您没有初审权限' }
+    }
+    if (identity.role === 'class_cadre') {
+      try {
+        const permRes = await cloud.callFunction({
+          name: 'manageAuthorization',
+          data: { action: 'checkModulePermission', data: { module: 'skill_cert', action: 'approve' } }
+        })
+        if (!permRes.result || !permRes.result.success) {
+          return { success: false, message: '您未被授权执行初审操作' }
+        }
+      } catch (err) {
+        console.error('班干部权限校验失败:', err)
+      }
+    }
+  }
+
+  if (['final_approve', 'final_reject'].includes(approve_action)) {
+    if (!['admin', 'head_teacher'].includes(identity.role)) {
+      return { success: false, message: '您没有终审权限' }
+    }
+  }
+
+  const recordRes = await db.collection('skill_cert_records').where({ record_id }).limit(1).get()
+  if (!recordRes.data || recordRes.data.length === 0) {
+    return { success: false, message: '记录不存在' }
+  }
+
+  const record = recordRes.data[0]
+
+  if (['first_approve', 'first_reject'].includes(approve_action) && record.approval_status !== 'pending_first') {
+    return { success: false, message: '该记录已处理，无法初审' }
+  }
+  if (['final_approve', 'final_reject'].includes(approve_action) && record.approval_status !== 'pending_final') {
+    return { success: false, message: '该记录状态不支持终审' }
+  }
+
+  const now = db.serverDate()
+  const logEntry = {
+    action: approve_action === 'first_approve' ? '初审通过' :
+            approve_action === 'first_reject' ? '初审驳回' :
+            approve_action === 'final_approve' ? '终审通过' : '终审驳回',
+    operator: identity.userName || '',
+    operator_role: identity.role,
+    time: now
+  }
+  if (reject_reason) logEntry.reason = reject_reason
+
+  if (approve_action === 'final_approve') {
+    const scoreKey = record.type === 'competition' ? record.level : record.category
+    const scoreResult = await resolveScoreValue(record.type, scoreKey, record.class_id)
+
+    if (!scoreResult) {
+      return { success: false, message: '该级别/类别暂未配置积分规则，请班主任先配置' }
+    }
+
+    const reasonDetail = `${record.type === 'competition' ? '技能比赛' : '技能证书'} - ${record.type === 'competition' ? (COMPETITION_LEVEL_LABELS[record.level] || record.level) : (CERTIFICATE_CATEGORY_LABELS[record.category] || record.category)} - ${record.name}`
+
+    const scoreChangeResult = await callScoreManager({
+      student_id: record.student_id,
+      class_id: record.class_id,
+      semester_id: record.semester_id,
+      score_change: scoreResult.value,
+      source_type: 'skill_cert',
+      item_name: record.name,
+      item_id: record.record_id,
+      reason_detail: reasonDetail,
+      recorder_openid: OPENID,
+      recorder_name: identity.userName || '',
+      date: record.event_date
+    })
+
+    if (!scoreChangeResult.success) {
+      return { success: false, message: '积分变更失败，审批未生效，请稍后重试' }
+    }
+
+    try {
+      await db.collection('skill_cert_records').doc(record._id).update({
+        data: {
+          approval_status: 'approved',
+          score_value: scoreResult.value,
+          score_record_id: scoreChangeResult.data && scoreChangeResult.data.record_id ? scoreChangeResult.data.record_id : '',
+          approval_log: _.push(logEntry),
+          updated_at: now
+        }
+      })
+    } catch (updateErr) {
+      console.error('[COMPENSATE] action=finalApprove, record_id=' + record_id + ', step=updateStatus, error=' + updateErr.message + ', compensate=rollbackScore')
+      await callScoreManager({
+        student_id: record.student_id,
+        class_id: record.class_id,
+        semester_id: record.semester_id,
+        score_change: -scoreResult.value,
+        source_type: 'skill_cert',
+        item_name: record.name,
+        item_id: record.record_id,
+        reason_detail: '终审状态更新失败-补偿回滚: ' + reasonDetail,
+        recorder_openid: OPENID,
+        recorder_name: identity.userName || '',
+        date: record.event_date
+      })
+      return { success: false, message: '审批状态更新失败，积分已回滚' }
+    }
+
+    return {
+      success: true,
+      data: {
+        record_id,
+        approval_status: 'approved',
+        score_change_result: {
+          score_before: scoreChangeResult.data ? scoreChangeResult.data.score_before : 0,
+          score_after: scoreChangeResult.data ? scoreChangeResult.data.score_after : 0,
+          score_change: scoreResult.value,
+          score_record_id: scoreChangeResult.data && scoreChangeResult.data.record_id ? scoreChangeResult.data.record_id : ''
+        }
+      }
+    }
+  }
+
+  let newStatus = ''
+  if (approve_action === 'first_approve') newStatus = 'pending_final'
+  if (approve_action === 'first_reject') newStatus = 'rejected'
+  if (approve_action === 'final_reject') newStatus = 'rejected'
+
+  try {
+    await db.collection('skill_cert_records').doc(record._id).update({
+      data: {
+        approval_status: newStatus,
+        approval_log: _.push(logEntry),
+        updated_at: now
+      }
+    })
+  } catch (err) {
+    return { success: false, message: '审批操作失败' }
+  }
+
+  return {
+    success: true,
+    data: { record_id, approval_status: newStatus }
+  }
+}
+
+async function deleteSkillCertRecord(data, OPENID) {
+  const identity = await verifyIdentity(OPENID)
+  if (!identity.role) {
+    return { success: false, message: '未登录或身份未确认' }
+  }
+
+  if (!['admin', 'head_teacher'].includes(identity.role)) {
+    return { success: false, message: '您没有删除权限' }
+  }
+
+  const { record_id } = data
+  if (!record_id) {
+    return { success: false, message: '记录ID不能为空' }
+  }
+
+  const recordRes = await db.collection('skill_cert_records').where({ record_id }).limit(1).get()
+  if (!recordRes.data || recordRes.data.length === 0) {
+    return { success: false, message: '该记录已被删除' }
+  }
+
+  const record = recordRes.data[0]
+
+  if (record.approval_status === 'approved') {
+    const reasonDetail = `删除回滚: ${record.type === 'competition' ? '技能比赛' : '技能证书'} - ${record.type === 'competition' ? (COMPETITION_LEVEL_LABELS[record.level] || record.level) : (CERTIFICATE_CATEGORY_LABELS[record.category] || record.category)} - ${record.name}`
+
+    const rollbackResult = await callScoreManager({
+      student_id: record.student_id,
+      class_id: record.class_id,
+      semester_id: record.semester_id,
+      score_change: -record.score_value,
+      source_type: 'skill_cert',
+      item_name: record.name,
+      item_id: record.record_id,
+      reason_detail: reasonDetail,
+      recorder_openid: OPENID,
+      recorder_name: identity.userName || '',
+      date: record.event_date
+    })
+
+    if (!rollbackResult.success) {
+      return { success: false, message: '积分回滚失败，记录未删除，请稍后重试' }
+    }
+
+    try {
+      await db.collection('skill_cert_records').doc(record._id).remove()
+    } catch (removeErr) {
+      console.error('[COMPENSATE] action=delete, record_id=' + record_id + ', step=removeRecord, error=' + removeErr.message + ', compensate=restoreScore')
+      await callScoreManager({
+        student_id: record.student_id,
+        class_id: record.class_id,
+        semester_id: record.semester_id,
+        score_change: record.score_value,
+        source_type: 'skill_cert',
+        item_name: record.name,
+        item_id: record.record_id,
+        reason_detail: '记录删除失败-补偿恢复: ' + record.name,
+        recorder_openid: OPENID,
+        recorder_name: identity.userName || '',
+        date: record.event_date
+      })
+      return { success: false, message: '记录删除失败，积分已恢复' }
+    }
+
+    return {
+      success: true,
+      data: {
+        record_id,
+        score_rolled_back: true,
+        score_change: -record.score_value,
+        score_before: rollbackResult.data ? rollbackResult.data.score_before : 0,
+        score_after: rollbackResult.data ? rollbackResult.data.score_after : 0
+      }
+    }
+  }
+
+  try {
+    await db.collection('skill_cert_records').doc(record._id).remove()
+  } catch (err) {
+    return { success: false, message: '删除失败' }
+  }
+
+  return {
+    success: true,
+    data: { record_id, score_rolled_back: false }
+  }
+}
+
+async function getSkillCertScoreRules(data, OPENID) {
+  const identity = await verifyIdentity(OPENID)
+  if (!identity.role) {
+    return { success: false, message: '未登录或身份未确认' }
+  }
+
+  const classId = data.class_id || identity.classId
+  if (!classId) {
+    return { success: false, message: '班级ID不能为空' }
+  }
+
+  let classRules = null
+  try {
+    const classSettingsRes = await db.collection('class_settings')
+      .where({ class_id: classId })
+      .field({ skill_cert_rules: true })
+      .limit(1)
+      .get()
+    if (classSettingsRes.data && classSettingsRes.data.length > 0) {
+      classRules = classSettingsRes.data[0].skill_cert_rules || null
+    }
+  } catch (err) {
+    console.error('查询班级积分规则失败:', err)
+  }
+
+  const result = { competition: {}, certificate: {} }
+
+  COMPETITION_LEVELS.forEach(level => {
+    const classValue = classRules && classRules.competition && classRules.competition[level]
+    result.competition[level] = classValue != null
+      ? { value: classValue, source: 'class_rule' }
+      : { value: DEFAULT_COMPETITION_SCORES[level], source: 'system_default' }
+  })
+
+  CERTIFICATE_CATEGORIES.forEach(cat => {
+    const classValue = classRules && classRules.certificate && classRules.certificate[cat]
+    result.certificate[cat] = classValue != null
+      ? { value: classValue, source: 'class_rule' }
+      : { value: DEFAULT_CERTIFICATE_SCORES[cat], source: 'system_default' }
+  })
+
+  return { success: true, data: result }
+}
+
+async function saveSkillCertScoreRules(data, OPENID) {
+  const identity = await verifyIdentity(OPENID)
+  if (!identity.role) {
+    return { success: false, message: '未登录或身份未确认' }
+  }
+
+  if (!['admin', 'head_teacher'].includes(identity.role)) {
+    return { success: false, message: '您没有配置积分规则的权限' }
+  }
+
+  const { class_id, rules } = data
+  if (!class_id) {
+    return { success: false, message: '班级ID不能为空' }
+  }
+  if (!rules) {
+    return { success: false, message: '规则数据不能为空' }
+  }
+
+  const validateValues = (obj) => {
+    if (!obj || typeof obj !== 'object') return false
+    for (const key of Object.keys(obj)) {
+      const val = obj[key]
+      if (typeof val !== 'number' || !Number.isInteger(val) || val <= 0) return false
+    }
+    return true
+  }
+
+  if (rules.competition && !validateValues(rules.competition)) {
+    return { success: false, message: '比赛积分值必须为正整数' }
+  }
+  if (rules.certificate && !validateValues(rules.certificate)) {
+    return { success: false, message: '证书积分值必须为正整数' }
+  }
+
+  const now = db.serverDate()
+  const skillCertRules = {
+    competition: rules.competition || {},
+    certificate: rules.certificate || {},
+    updated_by: OPENID,
+    updated_at: now
+  }
+
+  try {
+    const existRes = await db.collection('class_settings').where({ class_id }).limit(1).get()
+    if (existRes.data && existRes.data.length > 0) {
+      await db.collection('class_settings').doc(existRes.data[0]._id).update({
+        data: { skill_cert_rules: skillCertRules }
+      })
+    } else {
+      await db.collection('class_settings').add({
+        data: { class_id, skill_cert_rules: skillCertRules }
+      })
+    }
+  } catch (err) {
+    console.error('保存积分规则失败:', err)
+    return { success: false, message: '保存失败' }
+  }
+
+  return { success: true, data: { class_id } }
 }

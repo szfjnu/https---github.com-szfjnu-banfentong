@@ -108,7 +108,12 @@
         "seat/arrange/arrange",
         "seat/rotate/rotate",
         "seat/history/history",
-        "growth/warning-config/warning-config"
+        "growth/warning-config/warning-config",
+        "skill-cert/list/list",
+        "skill-cert/add/add",
+        "skill-cert/detail/detail",
+        "skill-cert/approve/approve",
+        "skill-cert/score-rules/score-rules"
       ]
     }
   ],

@@ -44,7 +44,8 @@ Page({
     perm_dorm_score: false,
     perm_duty_check: false,
     perm_duty_arrange: false,
-    perm_attendance_register: false
+    perm_attendance_register: false,
+    perm_skill_cert_approve: false
   },
 
   onLoad: function () {
@@ -1033,5 +1034,9 @@ fetchWeather: async function (location) {
 
   goToDutyArrange: function () {
     wx.navigateTo({ url: '/subPages/duty/duty' });
+  },
+
+  goToSkillCert: function () {
+    wx.navigateTo({ url: '/subPages/skill-cert/list/list' });
   }
 });

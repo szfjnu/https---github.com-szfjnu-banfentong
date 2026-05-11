@@ -1,0 +1,132 @@
+.filter-bar {
+  display: flex;
+  padding: 16rpx 32rpx;
+  gap: 24rpx;
+  background: var(--white);
+  border-bottom: 1rpx solid var(--border-color);
+}
+
+.filter-item {
+  display: flex;
+  align-items: center;
+  padding: 8rpx 20rpx;
+  background: var(--background-color);
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  color: var(--text-color-secondary);
+}
+
+.filter-arrow {
+  font-size: 20rpx;
+  margin-left: 8rpx;
+}
+
+.record-list {
+  padding: 24rpx 32rpx;
+  padding-bottom: 140rpx;
+}
+
+.record-card {
+  padding: 24rpx 32rpx;
+}
+
+.record-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.record-type-icon {
+  font-size: 32rpx;
+  margin-right: 8rpx;
+}
+
+.record-type-label {
+  font-size: 24rpx;
+  color: var(--text-color-light);
+  background: var(--background-color);
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+  margin-right: auto;
+}
+
+.record-status {
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.record-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 12rpx;
+}
+
+.record-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 26rpx;
+  color: var(--text-color-secondary);
+}
+
+.record-footer {
+  margin-top: 12rpx;
+}
+
+.record-score {
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 200rpx;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 24rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: var(--text-color-light);
+}
+
+.loading-state {
+  text-align: center;
+  padding-top: 200rpx;
+  font-size: 28rpx;
+  color: var(--text-color-light);
+}
+
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--white);
+  padding: 16rpx 32rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  border-top: 1rpx solid var(--border-color);
+  box-shadow: 0 -2rpx 8rpx rgba(0, 0, 0, 0.06);
+}
+
+.bottom-actions {
+  display: flex;
+  gap: 16rpx;
+  justify-content: center;
+}
+
+.btn-outline {
+  background: var(--white);
+  color: var(--primary-color);
+  border: 2rpx solid var(--primary-color);
+}
+
+.btn {
+  flex: 1;
+  max-width: 280rpx;
+}

@@ -1,4 +1,4 @@
-﻿// pages/dorm/beds/beds.js
+// pages/dorm/beds/beds.js
 const app = getApp();
 const db = wx.cloud.database();
 const _ = db.command;
@@ -8,16 +8,13 @@ Page({
     roomId: '',
     roomInfo: null,
 
-    // 统计
     totalBeds: 0,
     occupiedBeds: 0,
     availableBeds: 0,
 
-    // 床位列表
     beds: [],
     loading: false,
 
-    // 权限
     isAdmin: false
   },
 
@@ -32,7 +29,6 @@ Page({
     }
   },
 
-  // 加载房间信息
   loadRoom: async function () {
     try {
       const res = await db.collection('dorm_rooms').doc(this.data.roomId).get();
@@ -52,7 +48,6 @@ Page({
     }
   },
 
-  // 加载床位列表
   loadBeds: async function () {
     try {
       this.setData({ loading: true });
@@ -77,20 +72,24 @@ Page({
         });
       }
 
-      // 获取每个床位的学生信息
       const bedsWithStudents = await Promise.all(beds.map(async (bed) => {
         let student = null;
 
         console.log('处理床位:', bed.bed_number, 'occupied:', bed.occupied, 'student_id:', bed.student_id);
 
-        // 只有当 occupied 为 true 且 student_id 不为空时才获取学生信息
         if (bed.occupied === true && bed.student_id && bed.student_id.trim() !== '') {
           try {
             console.log('获取床位学生的信息，学生ID:', bed.student_id);
-            const studentRes = await db.collection('students')
-              .where({ student_id: bed.student_id })
+            let studentRes = await db.collection('students')
+              .where({ _id: bed.student_id })
               .limit(1)
               .get();
+            if (!studentRes.data || studentRes.data.length === 0) {
+              studentRes = await db.collection('students')
+                .where({ student_id: bed.student_id })
+                .limit(1)
+                .get();
+            }
             if (studentRes.data && studentRes.data.length > 0) {
               student = studentRes.data[0];
             }
@@ -107,7 +106,6 @@ Page({
         };
       }));
 
-      // 计算统计数据
       const totalBeds = bedsWithStudents.length;
       const occupiedBeds = bedsWithStudents.filter(b => b.occupied).length;
       const availableBeds = totalBeds - occupiedBeds;
@@ -132,7 +130,6 @@ Page({
     }
   },
 
-  // 查看详情
   onViewDetail: function (e) {
     const id = e.currentTarget.dataset.id;
     const bed = this.data.beds.find(b => b._id === id);
@@ -144,7 +141,6 @@ Page({
     }
   },
 
-  // 分配床位
   onAssign: function (e) {
     const id = e.currentTarget.dataset.id;
     wx.navigateTo({
@@ -152,7 +148,6 @@ Page({
     });
   },
 
-  // 释放床位
   onRelease: function (e) {
     const id = e.currentTarget.dataset.id;
     const bed = this.data.beds.find(b => b._id === id);
@@ -163,68 +158,48 @@ Page({
         content: `确定要释放床位 ${bed.bed_number} 吗？学生 ${bed.student.name} 将不再居住于此。`,
         success: async (res) => {
           if (res.confirm) {
-            await this.releaseBed(id, bed.student_id);
+            await this.releaseBed(bed.student._id);
           }
         }
       });
     }
   },
 
-  // 释放床位
-  releaseBed: async function (bedId, studentId) {
+  releaseBed: async function (studentDocId) {
     try {
-      console.log('开始释放床位');
-      console.log('床位ID:', bedId);
-      console.log('学生ID:', studentId);
+      console.log('开始释放床位，学生文档ID:', studentDocId);
 
       wx.showLoading({ title: '释放中...' });
 
-      // 更新床位状态
-      console.log('更新床位状态');
-      await db.collection('dorm_beds').doc(bedId).update({
+      const res = await wx.cloud.callFunction({
+        name: 'dormSyncManager',
         data: {
-          occupied: false,
-          student_id: '',
-          updated_at: db.serverDate()
+          action: 'releaseBed',
+          data: { student_doc_id: studentDocId }
         }
       });
-      console.log('床位状态更新成功');
-
-      // 验证床位状态是否已更新
-      const bedCheck = await db.collection('dorm_beds').doc(bedId).get();
-      console.log('验证床位状态:', bedCheck.data);
-
-      // 更新学生宿舍信息
-      console.log('清空学生宿舍信息');
-      const studentRes = await db.collection('students')
-        .where({ student_id: studentId })
-        .limit(1)
-        .get();
-      if (studentRes.data && studentRes.data.length > 0) {
-        await db.collection('students').doc(studentRes.data[0]._id).update({
-          data: {
-            is_boarding: false,
-            dorm_info: {},
-            dorm_building_id: '',
-            dorm_room_id: '',
-            dorm_bed_id: '',
-            updated_at: db.serverDate()
-          }
-        });
-      }
-      console.log('学生宿舍信息清空成功');
 
       wx.hideLoading();
-      wx.showToast({
-        title: '释放成功',
-        icon: 'success'
-      });
 
-      // 延迟一下再重新加载，确保数据库更新完成
-      setTimeout(() => {
-        console.log('重新加载床位列表');
-        this.loadBeds();
-      }, 500);
+      if (res.result && res.result.success) {
+        const tipMsg = res.result.data && res.result.data.repaired
+          ? '释放成功（床位数据异常已自动修复）'
+          : '释放成功';
+        wx.showToast({
+          title: tipMsg,
+          icon: 'success'
+        });
+
+        setTimeout(() => {
+          console.log('重新加载床位列表');
+          this.loadBeds();
+        }, 500);
+      } else {
+        wx.showToast({
+          title: res.result?.message || '释放失败',
+          icon: 'none'
+        });
+      }
 
     } catch (err) {
       console.error('释放失败:', err);
@@ -236,7 +211,6 @@ Page({
     }
   },
 
-  // 下拉刷新
   onPullDownRefresh: function () {
     this.loadBeds().then(() => {
       wx.stopPullDownRefresh();

@@ -1,3 +1,5 @@
+var dragHandler = require('./dragHandler.js')
+
 Component({
   properties: {
     layout: {
@@ -23,6 +25,10 @@ Component({
     className: {
       type: String,
       value: ''
+    },
+    enableDrag: {
+      type: Boolean,
+      value: false
     }
   },
 
@@ -32,7 +38,19 @@ Component({
     cols: 8,
     hasPodium: false,
     hasFrontDoor: false,
-    hasBackDoor: false
+    hasBackDoor: false,
+    isDragging: false,
+    dragSourceKey: '',
+    dragSourceCell: null,
+    dragTargetKey: '',
+    isTargetValid: false,
+    dragFloatX: 0,
+    dragFloatY: 0,
+    dragFloatOpacity: 0,
+    gridOffsetX: 0,
+    gridOffsetY: 0,
+    dragTargetSeatNo: '',
+    dragTargetStudentName: ''
   },
 
   observers: {
@@ -45,13 +63,14 @@ Component({
     attached: function () {
       this.calcCellSize()
       this.buildGrid()
+      this.calcGridOffset()
     }
   },
 
   methods: {
     calcCellSize: function () {
-      const sysInfo = wx.getSystemInfoSync()
-      const screenWidth = sysInfo.windowWidth
+      const windowInfo = wx.getWindowInfo()
+      const screenWidth = windowInfo.windowWidth
       const padding = 30
       const cols = this.data.layout.cols || 8
       const size = Math.floor((screenWidth - padding) / cols)
@@ -98,7 +117,11 @@ Component({
             genderClass: '',
             isLocked: lockedSet.has(key),
             isHighlight: highlight === key,
-            isEmpty: !seatMap[key] && !isSpecialPos
+            isEmpty: !seatMap[key] && !isSpecialPos,
+            isDragSource: false,
+            isDragTargetValid: false,
+            isDragTargetInvalid: false,
+            isDragGhost: false
           }
           if (seatMap[key]) {
             cell.studentId = seatMap[key].student_id || ''
@@ -119,6 +142,22 @@ Component({
       }
 
       this.setData({ gridData, hasPodium, hasFrontDoor, hasBackDoor })
+    },
+
+    onDragTouchStart: function (e) {
+      dragHandler.onTouchStart(e, this)
+    },
+
+    onDragTouchMove: function (e) {
+      dragHandler.onTouchMove(e, this)
+    },
+
+    onDragTouchEnd: function (e) {
+      dragHandler.onTouchEnd(e, this)
+    },
+
+    onDragTouchCancel: function (e) {
+      dragHandler.onTouchCancel(e, this)
     },
 
     onSeatTap: function (e) {
@@ -172,7 +211,7 @@ Component({
 
             const canvas = res[0].node
             const ctx = canvas.getContext('2d')
-            const dpr = wx.getSystemInfoSync().pixelRatio
+            const dpr = wx.getWindowInfo().pixelRatio
 
             const { rows, cols, special_positions } = this.data.layout
             const seatMap = this.data.arrangement.seat_map || {}
@@ -310,6 +349,115 @@ Component({
         [key + '.height']: '',
         [key + '.genderClass']: '',
         [key + '.isEmpty']: true
+      })
+    },
+
+    calcGridOffset: function () {
+      const query = wx.createSelectorQuery().in(this)
+      query.select('.grid-container').boundingClientRect(function (rect) {
+        if (rect) {
+          this.setData({ gridOffsetX: rect.left, gridOffsetY: rect.top })
+        }
+      }.bind(this)).exec()
+    },
+
+    onDragStartByWXS: function (detail) {
+      const { sourceKey } = detail
+      const parts = sourceKey.split('_')
+      const row = parseInt(parts[0])
+      const col = parseInt(parts[1])
+      const gridData = this.data.gridData
+      const cell = gridData[row - 1] && gridData[row - 1][col - 1]
+      if (!cell || !cell.studentId || cell.isSpecial || cell.isLocked) {
+        return
+      }
+      const sourceCell = {
+        studentId: cell.studentId,
+        studentName: cell.studentName,
+        gender: cell.gender,
+        genderClass: cell.genderClass,
+        height: cell.height
+      }
+      this.setData({
+        isDragging: true,
+        dragSourceKey: sourceKey,
+        dragSourceCell: sourceCell,
+        dragFloatOpacity: 1
+      })
+      this.triggerEvent('dragstart', { sourceKey, sourceCell })
+    },
+
+    onDragMoveByWXS: function (detail) {
+      const { clientX, clientY, floatX, floatY } = detail
+      this.setData({ dragFloatX: floatX, dragFloatY: floatY })
+      const target = this.calcSeatByPoint(clientX, clientY)
+      if (!target) {
+        this.setData({ dragTargetKey: '', isTargetValid: false, dragTargetSeatNo: '', dragTargetStudentName: '' })
+        return
+      }
+      const { key, row, col } = target
+      if (key === this.data.dragSourceKey) {
+        this.setData({ dragTargetKey: '', isTargetValid: false, dragTargetSeatNo: '', dragTargetStudentName: '' })
+        return
+      }
+      const parts = key.split('_')
+      const r = parseInt(parts[0])
+      const c = parseInt(parts[1])
+      const gridData = this.data.gridData
+      const cell = gridData[r - 1] && gridData[r - 1][c - 1]
+      const isValid = cell && !cell.isSpecial && !cell.isLocked
+      const targetSeatNo = row + '-' + col
+      const targetStudentName = (cell && cell.studentName) || ''
+      this.setData({
+        dragTargetKey: key,
+        isTargetValid: isValid,
+        dragTargetSeatNo: isValid ? targetSeatNo : '',
+        dragTargetStudentName: isValid ? targetStudentName : ''
+      })
+    },
+
+    onDragEndByWXS: function (detail) {
+      const { clientX, clientY } = detail
+      const sourceKey = this.data.dragSourceKey
+      const targetKey = this.data.dragTargetKey
+      const isValid = this.data.isTargetValid
+      this.resetDragState()
+      if (!isValid || !targetKey || sourceKey === targetKey) {
+        this.triggerEvent('dragcancel', {})
+        return
+      }
+      this.triggerEvent('dragend', { sourceKey, targetKey, isValid: true })
+    },
+
+    onDragCancelByWXS: function () {
+      this.resetDragState()
+      this.triggerEvent('dragcancel', {})
+    },
+
+    calcSeatByPoint: function (clientX, clientY) {
+      const relX = clientX - this.data.gridOffsetX
+      const relY = clientY - this.data.gridOffsetY
+      const cellSize = this.data.cellSize
+      if (cellSize <= 0) return null
+      const col = Math.floor(relX / cellSize) + 1
+      const row = Math.floor(relY / (cellSize * 0.85)) + 1
+      const { rows, cols } = this.data.layout
+      if (row < 1 || row > rows || col < 1 || col > cols) return null
+      return { row, col, key: row + '_' + col }
+    },
+
+    resetDragState: function () {
+      this.setData({
+        isDragging: false,
+        dragSourceKey: '',
+        dragSourceCell: null,
+        dragTargetKey: '',
+        isTargetValid: false,
+        dragFloatX: 0,
+        dragFloatY: 0,
+        dragFloatOpacity: 0,
+        dragTargetSeatNo: '',
+        dragTargetStudentName: ''
       })
     }
   }

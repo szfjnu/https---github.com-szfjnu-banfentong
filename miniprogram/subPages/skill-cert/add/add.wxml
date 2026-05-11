@@ -1,0 +1,95 @@
+<view class="container">
+  <!-- 类型选择 -->
+  <view class="form-group">
+    <text class="form-label">记录类型</text>
+    <picker mode="selector" range="{{typeOptions}}" range-key="label" bindchange="onSwitchType">
+      <view class="form-picker">
+        <text>{{formType === 'competition' ? '技能比赛' : '技能证书'}}</text>
+        <text class="picker-arrow">▼</text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 学生选择 -->
+  <view class="form-group" wx:if="{{!isStudentRole}}">
+    <text class="form-label">学生</text>
+    <view class="form-picker" bindtap="onToggleStudentPicker">
+      <text>{{selectedStudent.student_name || '请选择学生'}}</text>
+      <text class="picker-arrow">▼</text>
+    </view>
+  </view>
+
+  <!-- 学生搜索列表 -->
+  <view class="student-picker" wx:if="{{showStudentPicker}}">
+    <view class="search-box">
+      <input placeholder="搜索学生姓名" value="{{searchKeyword}}" bindinput="onSearchStudent" />
+    </view>
+    <view class="student-list">
+      <view class="student-item" wx:for="{{filteredStudents}}" wx:key="student_id" bindtap="onSelectStudent" data-idx="{{index}}">
+        <text>{{item.student_name}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 名称 -->
+  <view class="form-group">
+    <text class="form-label">{{formType === 'competition' ? '比赛名称' : '证书名称'}}</text>
+    <input class="form-input" placeholder="请输入名称" value="{{formData.name}}" bindinput="onInputName" />
+  </view>
+
+  <!-- 比赛级别 -->
+  <view class="form-group" wx:if="{{formType === 'competition'}}">
+    <text class="form-label">比赛级别</text>
+    <picker mode="selector" range="{{levelOptions}}" range-key="label" bindchange="onSelectLevel">
+      <view class="form-picker">
+        <text>{{formData.level ? levelOptions[0].label : '请选择级别'}}</text>
+        <text class="picker-arrow">▼</text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 证书类别 -->
+  <view class="form-group" wx:if="{{formType === 'certificate'}}">
+    <text class="form-label">证书类别</text>
+    <picker mode="selector" range="{{categoryOptions}}" range-key="label" bindchange="onSelectCategory">
+      <view class="form-picker">
+        <text>{{formData.category ? categoryOptions[0].label : '请选择类别'}}</text>
+        <text class="picker-arrow">▼</text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 获奖情况 -->
+  <view class="form-group" wx:if="{{formType === 'competition'}}">
+    <text class="form-label">获奖情况</text>
+    <input class="form-input" placeholder="如：一等奖（选填）" value="{{formData.award}}" bindinput="onInputAward" />
+  </view>
+
+  <!-- 颁发机构 -->
+  <view class="form-group" wx:if="{{formType === 'certificate'}}">
+    <text class="form-label">颁发机构</text>
+    <input class="form-input" placeholder="选填" value="{{formData.issuer}}" bindinput="onInputIssuer" />
+  </view>
+
+  <!-- 日期 -->
+  <view class="form-group">
+    <text class="form-label">日期</text>
+    <picker mode="date" value="{{formData.eventDate}}" bindchange="onDateChange">
+      <view class="form-picker">
+        <text>{{formData.eventDate || '请选择日期'}}</text>
+        <text class="picker-arrow">▼</text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 备注 -->
+  <view class="form-group">
+    <text class="form-label">备注</text>
+    <input class="form-input" placeholder="选填" value="{{formData.remark}}" bindinput="onInputRemark" />
+  </view>
+
+  <!-- 提交按钮 -->
+  <view class="btn btn-primary submit-btn" bindtap="onSubmit">
+    <text>{{submitting ? '提交中...' : '提交'}}</text>
+  </view>
+</view>

@@ -195,3 +195,125 @@
   background: #fce4ec;
   border: 1rpx solid #f48fb1;
 }
+
+.grid-cell.drag-source-ghost {
+  opacity: 0.3;
+  border: 2rpx dashed #999;
+  background: #f0f0f0;
+}
+
+.grid-cell.drag-target-valid {
+  border: 3rpx solid var(--primary-color, #1890ff);
+  background: #e6f7ff;
+  box-shadow: 0 0 12rpx rgba(24, 144, 255, 0.3);
+  transition: all 0.15s ease;
+}
+
+.grid-cell.drag-target-invalid {
+  border: 3rpx solid var(--error-color, #ff4d4f);
+}
+
+.drag-float {
+  position: fixed;
+  z-index: 999;
+  background: #fff;
+  border-radius: 8rpx;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.15);
+  transform: scale(1.1);
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8rpx 12rpx;
+  min-width: 80rpx;
+  min-height: 60rpx;
+}
+
+.drag-float.male {
+  background: #e3f2fd;
+  border: 2rpx solid #90caf9;
+}
+
+.drag-float.female {
+  background: #fce4ec;
+  border: 2rpx solid #f48fb1;
+}
+
+.drag-float-name {
+  font-size: 22rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.drag-float-gender {
+  font-size: 18rpx;
+  color: #666;
+}
+
+.drag-float-target {
+  margin-top: 6rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.drag-float-target-arrow {
+  width: 0;
+  height: 0;
+  border-left: 10rpx solid transparent;
+  border-right: 10rpx solid transparent;
+  border-top: 10rpx solid rgba(24, 144, 255, 0.9);
+}
+
+.drag-float-target-body {
+  background: rgba(24, 144, 255, 0.9);
+  border-radius: 8rpx;
+  padding: 4rpx 12rpx;
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  white-space: nowrap;
+}
+
+.drag-float-target-label {
+  font-size: 18rpx;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.drag-float-target-seat {
+  font-size: 22rpx;
+  font-weight: bold;
+  color: #fff;
+}
+
+.drag-float-target-name {
+  font-size: 18rpx;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.drag-target-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(24, 144, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4rpx;
+  animation: drag-target-pulse 0.8s ease-in-out infinite alternate;
+}
+
+.drag-target-overlay-text {
+  font-size: 20rpx;
+  font-weight: bold;
+  color: var(--primary-color, #1890ff);
+  text-shadow: 0 1rpx 4rpx rgba(255, 255, 255, 0.8);
+}
+
+@keyframes drag-target-pulse {
+  from { background: rgba(24, 144, 255, 0.2); }
+  to { background: rgba(24, 144, 255, 0.4); }
+}

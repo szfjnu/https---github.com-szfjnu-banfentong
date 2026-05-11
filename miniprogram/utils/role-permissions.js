@@ -69,21 +69,21 @@ const PERMISSIONS = {
 
   // 考勤管理
   attendance: {
-    view: ['admin', 'head_teacher', 'subject_teacher'],
-    add: ['admin', 'head_teacher', 'subject_teacher'],
+    view: ['admin', 'head_teacher', 'subject_teacher', 'class_cadre'],
+    add: ['admin', 'head_teacher', 'subject_teacher', 'class_cadre'],
     edit: ['admin', 'head_teacher'],
     leave: ['admin', 'head_teacher', 'subject_teacher', 'class_cadre', 'student', 'parent'],
-    self: ['student', 'parent']  // 学生/家长只能看自己的
+    self: ['student', 'parent']
   },
 
   // 积分管理
   score: {
     view: ['admin', 'head_teacher', 'subject_teacher', 'class_cadre', 'student', 'parent'],
-    add: ['admin', 'head_teacher'],
+    add: ['admin', 'head_teacher', 'class_cadre'],
     edit: ['admin', 'head_teacher'],
     delete: ['admin', 'head_teacher'],
-    appeal: ['student', 'parent'],  // 申诉
-    self: ['student', 'parent']     // 只看自己的
+    appeal: ['student', 'parent'],
+    self: ['student', 'parent']
   },
 
   // 积分商城
@@ -106,12 +106,12 @@ const PERMISSIONS = {
 
   // 宿舍管理
   dorm: {
-    view: ['admin', 'head_teacher'],
+    view: ['admin', 'head_teacher', 'class_cadre'],
     add: ['admin', 'head_teacher'],
     edit: ['admin', 'head_teacher'],
     delete: ['admin', 'head_teacher'],
-    score: ['admin', 'head_teacher'],            // 评分
-    self: ['student', 'parent']                  // 只看自己的
+    score: ['admin', 'head_teacher', 'class_cadre'],
+    self: ['student', 'parent']
   },
 
   // 值日管理
@@ -147,6 +147,18 @@ const PERMISSIONS = {
     add: ['admin', 'head_teacher'],
     edit: ['admin', 'head_teacher'],
     activate: ['admin', 'head_teacher']           // 激活学期
+  },
+
+  // 技能证书与技能大赛
+  skill_cert: {
+    view: ['admin', 'head_teacher', 'subject_teacher', 'class_cadre', 'student', 'parent'],
+    add: ['admin', 'head_teacher', 'class_cadre', 'student'],
+    edit: ['admin', 'head_teacher'],
+    delete: ['admin', 'head_teacher'],
+    approve_first: ['admin', 'head_teacher', 'class_cadre'],
+    approve_final: ['admin', 'head_teacher'],
+    config_score: ['admin', 'head_teacher'],
+    self: ['student', 'parent']
   },
 
   // 通知中心

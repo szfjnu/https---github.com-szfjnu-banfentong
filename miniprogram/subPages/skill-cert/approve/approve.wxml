@@ -1,0 +1,49 @@
+<view class="container">
+  <!-- 标签页 -->
+  <view class="tab-bar">
+    <view class="tab-item {{activeTab === 'first' ? 'tab-active' : ''}}" bindtap="onSwitchTab" data-tab="first">
+      <text>待初审</text>
+      <text class="tab-badge" wx:if="{{pendingFirstList.length > 0}}">{{pendingFirstList.length}}</text>
+    </view>
+    <view class="tab-item {{activeTab === 'final' ? 'tab-active' : ''}}" bindtap="onSwitchTab" data-tab="final">
+      <text>待终审</text>
+      <text class="tab-badge" wx:if="{{pendingFinalList.length > 0}}">{{pendingFinalList.length}}</text>
+    </view>
+  </view>
+
+  <!-- 待初审列表 -->
+  <view class="record-list" wx:if="{{activeTab === 'first'}}">
+    <view class="record-card card" wx:for="{{displayFirstList}}" wx:key="record_id" bindtap="onItemClick" data-id="{{item.record_id}}">
+      <view class="record-header">
+        <text class="record-type-icon">{{item.typeIcon}}</text>
+        <text class="record-type-label">{{item.typeLabel}}</text>
+      </view>
+      <view class="record-name">{{item.name}}</view>
+      <view class="record-info">
+        <text>{{item.student_name}}</text>
+        <text>{{item.event_date}}</text>
+      </view>
+    </view>
+    <view class="empty-state" wx:if="{{displayFirstList.length === 0 && !loading}}">
+      <text>暂无待初审记录</text>
+    </view>
+  </view>
+
+  <!-- 待终审列表 -->
+  <view class="record-list" wx:if="{{activeTab === 'final'}}">
+    <view class="record-card card" wx:for="{{displayFinalList}}" wx:key="record_id" bindtap="onItemClick" data-id="{{item.record_id}}">
+      <view class="record-header">
+        <text class="record-type-icon">{{item.typeIcon}}</text>
+        <text class="record-type-label">{{item.typeLabel}}</text>
+      </view>
+      <view class="record-name">{{item.name}}</view>
+      <view class="record-info">
+        <text>{{item.student_name}}</text>
+        <text>{{item.event_date}}</text>
+      </view>
+    </view>
+    <view class="empty-state" wx:if="{{displayFinalList.length === 0 && !loading}}">
+      <text>暂无待终审记录</text>
+    </view>
+  </view>
+</view>

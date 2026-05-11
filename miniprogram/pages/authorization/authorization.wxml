@@ -94,6 +94,15 @@
       </view>
       <scroll-view scroll-y class="modal-body">
         <view class="batch-hint">选择要授予的权限（将覆盖已有权限中相同的模块）：</view>
+        <view class="position-quick">
+          <text class="quick-label">按职务快速填充：</text>
+          <view class="quick-btns">
+            <view class="quick-btn {{appliedPosition === item ? 'active' : ''}}" wx:for="{{positionNames}}" wx:key="*this"
+                  bindtap="onApplyPositionDefault" data-position="{{item}}">
+              <text>{{item}}</text>
+            </view>
+          </view>
+        </view>
         <view class="perm-module" wx:for="{{permissionModules}}" wx:key="key">
           <view class="perm-module-title">{{item.label}}</view>
           <view class="perm-checkboxes">

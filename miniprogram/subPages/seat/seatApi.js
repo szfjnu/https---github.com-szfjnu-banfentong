@@ -49,5 +49,10 @@ module.exports = {
   getHistoryList: (classId, page, pageSize) =>
     callSeat('getHistoryList', { class_id: classId, page, page_size: pageSize }),
 
-  getHistoryDetail: (historyId) => callSeat('getHistoryDetail', { history_id: historyId })
+  getHistoryDetail: (historyId) => callSeat('getHistoryDetail', { history_id: historyId }),
+
+  swapSeats: (classId, sourceKey, targetKey) =>
+    callSeat('swapSeats', { class_id: classId, source_key: sourceKey, target_key: targetKey }),
+
+  clearLayout: (classId) => callSeat('clearLayout', { class_id: classId })
 }

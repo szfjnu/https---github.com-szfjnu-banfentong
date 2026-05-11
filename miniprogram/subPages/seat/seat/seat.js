@@ -222,5 +222,32 @@ Page({
     } finally {
       this.setData({ exporting: false })
     }
+  },
+
+  clearLayout: function () {
+    wx.showModal({
+      title: '确认清除布局',
+      content: '清除布局将删除当前所有行列设置、特殊位置和座位安排，且不可恢复，是否继续？',
+      confirmText: '确认清除',
+      confirmColor: '#ff4d4f',
+      success: async (res) => {
+        if (!res.confirm) return
+        wx.showLoading({ title: '清除中...' })
+        try {
+          await seatApi.clearLayout(this.data.classId)
+          this.setData({
+            layout: null,
+            arrangement: { seat_map: {}, locked_seats: [] },
+            hasLayout: false,
+            hasArrangement: false
+          })
+          wx.hideLoading()
+          wx.showToast({ title: '已清除布局', icon: 'success' })
+        } catch (err) {
+          wx.hideLoading()
+          wx.showToast({ title: err.message || '清除失败，请重试', icon: 'none' })
+        }
+      }
+    })
   }
 })

@@ -1,5 +1,6 @@
 // app.js
 const membership = require('./utils/membership.js');
+const rp = require('./utils/role-permissions.js');
 
 App({
   // 全局数据
@@ -17,9 +18,9 @@ App({
     // 会员相关
     membership: null, // 会员信息
     membershipPermissions: null, // 会员权限
-    authorizations: {}, // 用户授权权限（从student_authorizations加载）
-    isLeader: false, // 是否管理干部
-    leaderPermissions: [] // 管理干部权限列表
+    authorizations: {},
+    isLeader: false,
+    leaderPermissions: [],
   },
 
   // 小程序初始化
@@ -203,73 +204,29 @@ App({
     const role = this.globalData.role;
     if (!role) return false;
 
-    // 先检查授权记录中的权限（优先级高于基础角色权限）
+    if (role === 'admin') return true;
+
     const auths = this.globalData.authorizations || {};
     if (auths[module] && Array.isArray(auths[module])) {
       if (auths[module].includes(action)) return true;
     }
 
-    // 权限配置表
-    const permissions = {
-      admin: {
-        all: ['read', 'write', 'delete', 'approve'],
-        // 管理员拥有所有权限，数据隔离为全局
-      },
-      head_teacher: {
-        student: ['read', 'write', 'delete'],
-        score: ['read', 'write', 'approve'],
-        attendance: ['read', 'write'],
-        dorm: ['read', 'write'],
-        discipline: ['read', 'write'],
-        volunteer: ['read', 'write'],
-        redemption: ['read', 'write', 'approve'],
-        grade: ['read', 'write'],
-        duty: ['read', 'write'],
-        notification: ['read', 'write'],
-        settings: ['read', 'write'],
-        // 数据隔离范围：class_id 匹配本班
-      },
-      subject_teacher: {
-        student: ['read'],
-        score: ['read', 'write'],
-        grade: ['read', 'write'],
-        notification: ['read', 'write'],
-        settings: ['read'],
-        // 数据隔离范围：assigned_classes 中的班级
-      },
-      class_cadre: {
-        score: ['read', 'write'],
-        duty: ['read', 'write'],
-        attendance: ['read', 'write'],
-        notification: ['read'],
-        settings: ['read'],
-        // 数据隔离范围：本班
-      },
-      student: {
-        profile: ['read'],
-        score: ['read'],
-        duty: ['read'],
-        volunteer: ['read', 'write'],
-        redemption: ['read', 'write'],
-        notification: ['read'],
-        settings: ['read', 'write'],
-      },
-      parent: {
-        profile: ['read'],
-        score: ['read'],
-        duty: ['read'],
-        attendance: ['read'],
-        notification: ['read'],
-        settings: ['read'],
+    if (role === 'class_cadre') {
+      const modulePermissions = this.globalData.leaderPermissions || [];
+      const moduleCodeMap = {
+        attendance: 'attendance_register',
+        score: 'score_register',
+        volunteer: 'volunteer_submit',
+        dorm: 'dorm_score',
+        duty: 'duty_check'
+      };
+      const requiredCode = moduleCodeMap[module];
+      if (requiredCode && ['add', 'write', 'register', 'check', 'score'].includes(action)) {
+        if (!modulePermissions.includes(requiredCode)) return false;
       }
-    };
-
-    // 检查权限
-    if (role === 'admin') return true;
-    if (permissions[role] && permissions[role][module]) {
-      return permissions[role][module].includes(action);
     }
-    return false;
+
+    return rp.hasPermission(role, module, action);
   },
 
   // 加载用户授权权限（从student_authorizations集合）
@@ -300,7 +257,24 @@ App({
       }
     } catch (err) {
       console.error('加载授权权限失败:', err);
-      this.globalData.authorizations = {};
+    }
+
+    if (role === 'class_cadre') {
+      try {
+        const leaderRes = await db.collection('student_leader_permission')
+          .where({ class_id: classId, student_id: studentId, is_leader: true })
+          .limit(1)
+          .get();
+        if (leaderRes.data && leaderRes.data.length > 0) {
+          this.globalData.isLeader = true;
+          this.globalData.leaderPermissions = leaderRes.data[0].permissions || [];
+        } else {
+          this.globalData.isLeader = false;
+          this.globalData.leaderPermissions = [];
+        }
+      } catch (leaderErr) {
+        console.error('加载班干部权限失败:', leaderErr);
+      }
     }
   },
 

@@ -1,0 +1,48 @@
+<view class="container">
+  <!-- 比赛级别积分 -->
+  <view class="card" wx:if="{{!loading}}">
+    <view class="card-title">技能比赛积分</view>
+    <view class="rule-list">
+      <view class="rule-item" wx:for="{{displayCompetition}}" wx:key="key">
+        <text class="rule-label">{{item.label}}</text>
+        <block wx:if="{{!editing}}">
+          <text class="rule-value">{{item.value}}分</text>
+          <text class="rule-source" style="color: {{item.source === 'class_rule' ? 'var(--primary-color)' : 'var(--text-color-light)'}}">{{item.sourceLabel}}</text>
+        </block>
+        <block wx:if="{{editing}}">
+          <input class="rule-input" type="digit" value="{{editValues['competition_' + item.key]}}" bindinput="onValueInput" data-field="competition_{{item.key}}" />
+          <text class="rule-unit">分</text>
+        </block>
+      </view>
+    </view>
+  </view>
+
+  <!-- 证书类别积分 -->
+  <view class="card" wx:if="{{!loading}}">
+    <view class="card-title">技能证书积分</view>
+    <view class="rule-list">
+      <view class="rule-item" wx:for="{{displayCertificate}}" wx:key="key">
+        <text class="rule-label">{{item.label}}</text>
+        <block wx:if="{{!editing}}">
+          <text class="rule-value">{{item.value}}分</text>
+          <text class="rule-source" style="color: {{item.source === 'class_rule' ? 'var(--primary-color)' : 'var(--text-color-light)'}}">{{item.sourceLabel}}</text>
+        </block>
+        <block wx:if="{{editing}}">
+          <input class="rule-input" type="digit" value="{{editValues['certificate_' + item.key]}}" bindinput="onValueInput" data-field="certificate_{{item.key}}" />
+          <text class="rule-unit">分</text>
+        </block>
+      </view>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-bar" wx:if="{{!loading}}">
+    <view class="btn btn-primary" bindtap="onEdit" wx:if="{{!editing}}">编辑</view>
+    <view class="btn btn-primary" bindtap="onSave" wx:if="{{editing}}">保存</view>
+    <view class="btn btn-outline" bindtap="onCancel" wx:if="{{editing}}">取消</view>
+  </view>
+
+  <view class="loading-state" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

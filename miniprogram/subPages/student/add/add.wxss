@@ -172,6 +172,22 @@
   margin-bottom: 16rpx;
 }
 
+.dorm-empty-tip {
+  padding: 16rpx 24rpx;
+  background: #fffbe6;
+  border-radius: 8rpx;
+  margin-bottom: 16rpx;
+}
+
+.dorm-empty-tip .empty-text {
+  font-size: 24rpx;
+  color: #faad14;
+}
+
+.picker-disabled {
+  opacity: 0.5;
+}
+
 /* 操作按钮 */
 .form-actions {
   position: fixed;

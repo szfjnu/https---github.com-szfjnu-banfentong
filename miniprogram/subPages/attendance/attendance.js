@@ -64,13 +64,17 @@ Page({
     const classId = app.globalData.class_id;
     const role = app.globalData.role;
     const semesterId = app.globalData.currentSemesterId || '';
-    const isAdmin = ['admin', 'head_teacher'].includes(role);
+    const isAdmin = app.hasPermission('attendance', 'add');
+    const canViewAll = app.hasPermission('attendance', 'view');
+    const isStudentView = !canViewAll;
     
     this.setData({
       classId: classId,
       userRole: role,
       currentSemesterId: semesterId,
-      isAdmin: isAdmin
+      isAdmin: isAdmin,
+      canViewAll: canViewAll,
+      isStudentView: isStudentView
     });
     
     if (!classId) {

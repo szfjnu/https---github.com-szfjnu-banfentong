@@ -1,0 +1,97 @@
+<view class="container" wx:if="{{!loading && displayRecord}}">
+  <!-- 基本信息 -->
+  <view class="card">
+    <view class="detail-header">
+      <text class="detail-icon">{{displayRecord.typeIcon}}</text>
+      <view class="detail-title-area">
+        <text class="detail-type">{{displayRecord.typeLabel}}</text>
+        <text class="detail-status" style="color: {{displayRecord.statusColor}}">{{displayRecord.statusLabel}}</text>
+      </view>
+    </view>
+    <view class="detail-name">{{displayRecord.name}}</view>
+    <view class="detail-info-grid">
+      <view class="info-item">
+        <text class="info-label">学生</text>
+        <text class="info-value">{{displayRecord.student_name}}</text>
+      </view>
+      <view class="info-item" wx:if="{{displayRecord.levelLabel}}">
+        <text class="info-label">级别</text>
+        <text class="info-value">{{displayRecord.levelLabel}}</text>
+      </view>
+      <view class="info-item" wx:if="{{displayRecord.categoryLabel}}">
+        <text class="info-label">类别</text>
+        <text class="info-value">{{displayRecord.categoryLabel}}</text>
+      </view>
+      <view class="info-item" wx:if="{{displayRecord.award}}">
+        <text class="info-label">获奖</text>
+        <text class="info-value">{{displayRecord.award}}</text>
+      </view>
+      <view class="info-item" wx:if="{{displayRecord.issuer}}">
+        <text class="info-label">颁发机构</text>
+        <text class="info-value">{{displayRecord.issuer}}</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">日期</text>
+        <text class="info-value">{{displayRecord.event_date}}</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">积分</text>
+        <text class="info-value" style="color: var(--success-color)">{{displayRecord.scoreDisplay}}</text>
+      </view>
+      <view class="info-item" wx:if="{{displayRecord.remark}}">
+        <text class="info-label">备注</text>
+        <text class="info-value">{{displayRecord.remark}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 审批日志 -->
+  <view class="card" wx:if="{{displayRecord.displayLog.length > 0}}">
+    <view class="card-title">审批日志</view>
+    <view class="log-list">
+      <view class="log-item" wx:for="{{displayRecord.displayLog}}" wx:key="index">
+        <view class="log-dot"></view>
+        <view class="log-content">
+          <text class="log-action">{{item.action}}</text>
+          <text class="log-operator">{{item.operator}} ({{item.operator_role}})</text>
+          <text class="log-time">{{item.timeDisplay}}</text>
+          <text class="log-reason" wx:if="{{item.reason}}">原因: {{item.reason}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-bar">
+    <view class="btn btn-primary" bindtap="onApproveFirst" wx:if="{{displayRecord.showApproveFirst}}">初审通过</view>
+    <view class="btn btn-primary" bindtap="onApproveFinal" wx:if="{{displayRecord.showApproveFinal}}">终审通过</view>
+    <view class="btn btn-warning" bindtap="onShowRejectModal" wx:if="{{displayRecord.showReject}}">驳回</view>
+    <view class="btn btn-danger" bindtap="onShowDeleteModal" wx:if="{{displayRecord.showDelete}}">删除</view>
+  </view>
+
+  <!-- 驳回弹窗 -->
+  <view class="modal-mask" wx:if="{{showRejectModal}}" bindtap="onCancelReject"></view>
+  <view class="modal-content" wx:if="{{showRejectModal}}">
+    <text class="modal-title">驳回原因</text>
+    <textarea class="modal-input" placeholder="请输入驳回原因" value="{{rejectReason}}" bindinput="onInputRejectReason" />
+    <view class="modal-actions">
+      <view class="btn btn-outline" bindtap="onCancelReject">取消</view>
+      <view class="btn btn-primary" bindtap="onConfirmReject">确认驳回</view>
+    </view>
+  </view>
+
+  <!-- 删除确认弹窗 -->
+  <view class="modal-mask" wx:if="{{showDeleteModal}}" bindtap="onCancelDelete"></view>
+  <view class="modal-content" wx:if="{{showDeleteModal}}">
+    <text class="modal-title">确认删除</text>
+    <text class="modal-desc">删除后无法恢复，已生效记录将回滚积分</text>
+    <view class="modal-actions">
+      <view class="btn btn-outline" bindtap="onCancelDelete">取消</view>
+      <view class="btn btn-danger" bindtap="onConfirmDelete">确认删除</view>
+    </view>
+  </view>
+</view>
+
+<view class="loading-state" wx:if="{{loading}}">
+  <text>加载中...</text>
+</view>

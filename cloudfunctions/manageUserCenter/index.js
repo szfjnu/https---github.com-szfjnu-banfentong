@@ -946,14 +946,18 @@ async function updateStudentInfo(data, openid) {
     allowedFields = [
       'name', 'gender', 'date_of_birth', 'ethnicity', 'political_status',
       'enrollment_date', 'phone_number', 'parent_phone_number', 'home_address',
-      'is_boarding', 'dorm_info', 'position', 'class_name', 'class_id'
+      'is_boarding', 'position', 'class_name', 'class_id'
     ];
   } else {
     allowedFields = [
       'date_of_birth', 'ethnicity', 'political_status',
       'enrollment_date', 'phone_number', 'parent_phone_number', 'home_address',
-      'is_boarding', 'dorm_info'
+      'is_boarding'
     ];
+  }
+
+  if (updateData.dorm_info !== undefined) {
+    return { success: false, message: '住宿信息请通过宿舍同步接口(dormSyncManager)更新' };
   }
 
   const filteredData = {};

@@ -14,7 +14,10 @@ Page({
     selectedStudent: null,
     loading: false,
     arranging: false,
-    hasLayout: false
+    hasLayout: false,
+    isDragging: false,
+    dragSourceKey: '',
+    dragTargetKey: ''
   },
 
   onLoad: function () {
@@ -128,6 +131,7 @@ Page({
   },
 
   onSeatClick: function (e) {
+    if (this.data.isDragging) return
     const { row, col, is_special, is_empty, student_id, student_name } = e.detail
     if (is_special) return
 
@@ -173,6 +177,50 @@ Page({
       wx.showToast({ title: '安排成功', icon: 'success' })
     } catch (err) {
       wx.showToast({ title: err.message || '安排失败', icon: 'none' })
+    } finally {
+      this.setData({ arranging: false })
+    }
+  },
+
+  onDragStart: function (e) {
+    const { sourceKey } = e.detail
+    this.setData({
+      isDragging: true,
+      dragSourceKey: sourceKey,
+      selectedStudent: null
+    })
+    const picker = this.selectComponent('#studentPicker')
+    if (picker) picker.clearSelection()
+  },
+
+  onDragEnd: function (e) {
+    const { sourceKey, targetKey, isValid } = e.detail
+    this.setData({ isDragging: false, dragSourceKey: '', dragTargetKey: '' })
+
+    if (!isValid || !targetKey || sourceKey === targetKey) {
+      wx.showToast({ title: '已取消交换', icon: 'none' })
+      return
+    }
+
+    this.doSwapSeats(sourceKey, targetKey)
+  },
+
+  onDragCancel: function () {
+    this.setData({ isDragging: false, dragSourceKey: '', dragTargetKey: '' })
+  },
+
+  doSwapSeats: async function (sourceKey, targetKey) {
+    this.setData({ arranging: true })
+    try {
+      const result = await seatApi.swapSeats(this.data.classId, sourceKey, targetKey)
+      const newAssignedIds = Object.values(result.data.seat_map).map(s => s.student_id)
+      this.setData({
+        arrangement: { ...this.data.arrangement, seat_map: result.data.seat_map },
+        assignedIds: newAssignedIds
+      })
+      wx.showToast({ title: '交换成功', icon: 'success' })
+    } catch (err) {
+      wx.showToast({ title: err.message || '交换失败，请重试', icon: 'none' })
     } finally {
       this.setData({ arranging: false })
     }

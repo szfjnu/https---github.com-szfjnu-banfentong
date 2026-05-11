@@ -86,7 +86,7 @@
           </view>
           <text class="nav-label">积分记录</text>
         </view>
-        <view class="nav-item" bindtap="onAddScore">
+        <view class="nav-item" bindtap="onAddScore" wx:if="{{canAddScore}}">
           <view class="nav-icon-wrap" style="background: #52c41a15;">
             <text class="nav-icon">➕</text>
           </view>

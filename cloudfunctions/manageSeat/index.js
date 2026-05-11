@@ -30,6 +30,8 @@ exports.main = async (event, context) => {
       case 'releaseLock': return await releaseLock(data, OPENID)
       case 'getHistoryList': return await getHistoryList(data)
       case 'getHistoryDetail': return await getHistoryDetail(data)
+      case 'swapSeats': return await swapSeats(data, OPENID)
+      case 'clearLayout': return await clearLayout(data, OPENID)
       default: return { success: false, message: '未知操作' }
     }
   } catch (err) {
@@ -880,5 +882,134 @@ async function getHistoryDetail(data) {
       snapshot_before: res.data.snapshot_before,
       snapshot_after: res.data.snapshot_after
     }
+  }
+}
+
+async function swapSeats(data, openid) {
+  const { class_id, source_key, target_key } = data || {}
+  if (!class_id || !source_key || !target_key) {
+    return { success: false, message: '缺少必要参数' }
+  }
+  if (source_key === target_key) {
+    return { success: false, message: '源座位和目标座位不能相同' }
+  }
+
+  const { canWrite, userName } = await verifyRole(openid)
+  if (!canWrite) return { success: false, message: '无操作权限' }
+
+  const lockResult = await doAcquireLock(class_id, openid)
+  if (!lockResult.acquired) {
+    return { success: false, message: '当前有人正在操作座位，请稍后再试' }
+  }
+
+  try {
+    await ensureCollections()
+    const seatDoc = await db.collection('seats').where({ class_id }).limit(1).get()
+    if (!seatDoc.data || seatDoc.data.length === 0) {
+      return { success: false, message: '当前无座位数据' }
+    }
+    const doc = seatDoc.data[0]
+    const seatMap = { ...(doc.seat_map || {}) }
+
+    const sourceStudent = seatMap[source_key] || null
+    const targetStudent = seatMap[target_key] || null
+
+    if (!sourceStudent) {
+      return { success: false, message: '源座位无学生，无法交换' }
+    }
+
+    const sourceParts = source_key.split('_')
+    const targetParts = target_key.split('_')
+    const sourceRow = parseInt(sourceParts[0])
+    const sourceCol = parseInt(sourceParts[1])
+    const targetRow = parseInt(targetParts[0])
+    const targetCol = parseInt(targetParts[1])
+
+    if (targetStudent) {
+      seatMap[source_key] = { ...targetStudent, row: sourceRow, col: sourceCol }
+    } else {
+      delete seatMap[source_key]
+    }
+
+    seatMap[target_key] = { ...sourceStudent, row: targetRow, col: targetCol }
+
+    const now = Date.now()
+    const snapshotBefore = {
+      rows: doc.rows, cols: doc.cols,
+      special_positions: doc.special_positions || [],
+      seat_map: doc.seat_map || {}
+    }
+
+    await db.collection('seats').doc(doc._id).update({
+      data: { seat_map: seatMap, updatedAt: now }
+    })
+
+    const snapshotAfter = {
+      rows: doc.rows, cols: doc.cols,
+      special_positions: doc.special_positions || [],
+      seat_map: seatMap
+    }
+
+    try {
+      await recordHistory(class_id, 'seat_swap', openid, userName, snapshotBefore, snapshotAfter, '拖拽交换座位: ' + source_key + ' ↔ ' + target_key)
+    } catch (historyErr) {
+      console.error('历史记录保存失败:', historyErr)
+    }
+
+    return { success: true, data: { seat_map: seatMap } }
+  } finally {
+    await doReleaseLock(class_id, openid)
+  }
+}
+
+async function clearLayout(data, openid) {
+  const { class_id } = data || {}
+  if (!class_id) return { success: false, message: '缺少class_id' }
+
+  const { canWrite, userName } = await verifyRole(openid)
+  if (!canWrite) return { success: false, message: '无操作权限' }
+
+  const lockResult = await doAcquireLock(class_id, openid)
+  if (!lockResult.acquired) {
+    return { success: false, message: '当前有人正在操作座位，请稍后再试' }
+  }
+
+  try {
+    await ensureCollections()
+    const seatDoc = await db.collection('seats').where({ class_id }).limit(1).get()
+    if (!seatDoc.data || seatDoc.data.length === 0) {
+      return { success: false, message: '当前无座位布局' }
+    }
+    const doc = seatDoc.data[0]
+
+    const snapshotBefore = {
+      rows: doc.rows, cols: doc.cols,
+      special_positions: doc.special_positions || [],
+      seat_map: doc.seat_map || {},
+      locked_seats: doc.locked_seats || [],
+      rotate_config: doc.rotate_config || {}
+    }
+
+    const now = Date.now()
+    await db.collection('seats').doc(doc._id).update({
+      data: {
+        rows: 0, cols: 0,
+        special_positions: [],
+        seat_map: {},
+        locked_seats: [],
+        updatedAt: now
+      }
+    })
+
+    const snapshotAfter = { rows: 0, cols: 0, special_positions: [], seat_map: {}, locked_seats: [] }
+    try {
+      await recordHistory(class_id, 'layout_clear', openid, userName, snapshotBefore, snapshotAfter, '一键清除布局')
+    } catch (historyErr) {
+      console.error('历史记录保存失败:', historyErr)
+    }
+
+    return { success: true, data: { cleared: true } }
+  } finally {
+    await doReleaseLock(class_id, openid)
   }
 }

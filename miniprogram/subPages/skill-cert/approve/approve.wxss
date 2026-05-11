@@ -1,0 +1,89 @@
+.tab-bar {
+  display: flex;
+  background: var(--white);
+  border-bottom: 1rpx solid var(--border-color);
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24rpx 0;
+  font-size: 30rpx;
+  color: var(--text-color-secondary);
+  position: relative;
+}
+
+.tab-active {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.tab-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60rpx;
+  height: 6rpx;
+  background: var(--primary-color);
+  border-radius: 3rpx;
+}
+
+.tab-badge {
+  font-size: 22rpx;
+  background: var(--error-color);
+  color: var(--white);
+  padding: 2rpx 12rpx;
+  border-radius: 20rpx;
+  margin-left: 8rpx;
+}
+
+.record-list {
+  padding: 24rpx 32rpx;
+}
+
+.record-card {
+  padding: 24rpx 32rpx;
+}
+
+.record-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.record-type-icon {
+  font-size: 32rpx;
+  margin-right: 8rpx;
+}
+
+.record-type-label {
+  font-size: 24rpx;
+  color: var(--text-color-light);
+  background: var(--background-color);
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+}
+
+.record-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 12rpx;
+}
+
+.record-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 26rpx;
+  color: var(--text-color-secondary);
+}
+
+.empty-state {
+  text-align: center;
+  padding-top: 120rpx;
+  font-size: 28rpx;
+  color: var(--text-color-light);
+}

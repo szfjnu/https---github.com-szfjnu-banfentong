@@ -10,10 +10,31 @@ const PERMISSION_MODULES = [
   { key: 'dorm', label: '宿舍管理', actions: ['read', 'write', 'approve'] },
   { key: 'volunteer', label: '志愿服务', actions: ['read', 'write', 'approve'] },
   { key: 'discipline', label: '处分管理', actions: ['read', 'approve'] },
-  { key: 'notification', label: '通知管理', actions: ['read', 'write'] }
+  { key: 'notification', label: '通知管理', actions: ['read', 'write'] },
+  { key: 'skill_cert', label: '技能证书', actions: ['read', 'write', 'approve'] }
 ];
 
 const ACTION_LABELS = { read: '查看', write: '编辑', approve: '审批' };
+
+const LEADER_MODULE_PERMISSIONS = [
+  { code: 'score_register', label: '积分登记', module: '积分管理' },
+  { code: 'attendance_register', label: '考勤登记', module: '考勤管理' },
+  { code: 'volunteer_submit', label: '志愿提交', module: '志愿服务' },
+  { code: 'dorm_score', label: '宿舍评分', module: '宿舍管理' },
+  { code: 'duty_check', label: '值日检查', module: '值日管理' },
+  { code: 'duty_arrange', label: '值日安排', module: '值日管理' },
+  { code: 'skill_cert_approve', label: '技能证书审批', module: '技能证书' }
+];
+
+const POSITION_DEFAULT_PERMISSIONS = {
+  '班长': LEADER_MODULE_PERMISSIONS.map(m => m.code),
+  '副班长': ['score_register', 'attendance_register', 'duty_check'],
+  '班主任助理': LEADER_MODULE_PERMISSIONS.map(m => m.code),
+  '纪律委员': ['attendance_register', 'duty_check', 'duty_arrange'],
+  '卫生委员': ['duty_check', 'duty_arrange', 'dorm_score'],
+  '学习委员': ['score_register', 'volunteer_submit', 'skill_cert_approve'],
+  '生活委员': ['dorm_score', 'duty_check']
+};
 
 // 级联规则：选中高级自动勾选低级，取消低级自动取消高级
 const CASCADE_ON_CHECK = {
@@ -55,10 +76,15 @@ Page({
     showBatchModal: false,
     batchPermissions: {},
     batchPermMap: {},
+    appliedPosition: '',
     submitting: false,
     // 选中状态
     selectedStudentIds: [],
-    selectAll: false
+    selectAll: false,
+    // 班干部模块权限
+    leaderModules: LEADER_MODULE_PERMISSIONS,
+    positionNames: Object.keys(POSITION_DEFAULT_PERMISSIONS),
+    positionDefaults: POSITION_DEFAULT_PERMISSIONS
   },
 
   onLoad: function () {
@@ -318,7 +344,7 @@ Page({
       wx.showToast({ title: '请先选择学生', icon: 'none' });
       return;
     }
-    this.setData({ showBatchModal: true, batchPermissions: {}, batchPermMap: {} });
+    this.setData({ showBatchModal: true, batchPermissions: {}, batchPermMap: {}, appliedPosition: '' });
   },
 
   onHideBatchModal: function () {
@@ -370,6 +396,30 @@ Page({
   },
 
   // 执行批量授权（前端直写数据库）
+  onApplyPositionDefault: function (e) {
+    const position = e.currentTarget.dataset.position;
+    const defaults = POSITION_DEFAULT_PERMISSIONS[position];
+    if (!defaults) return;
+
+    const leaderPermMap = {};
+    defaults.forEach(code => {
+      const mod = LEADER_MODULE_PERMISSIONS.find(m => m.code === code);
+      if (mod) {
+        const moduleKey = PERMISSION_MODULES.find(pm => pm.label === mod.module);
+        if (moduleKey) {
+          leaderPermMap[`${moduleKey.key}_read`] = true;
+          leaderPermMap[`${moduleKey.key}_write`] = true;
+        }
+      }
+    });
+
+    const existingMap = { ...this.data.batchPermMap };
+    const mergedMap = { ...existingMap, ...leaderPermMap };
+    this.setData({ batchPermMap: mergedMap, appliedPosition: position });
+
+    wx.showToast({ title: `已填充${position}默认权限`, icon: 'none' });
+  },
+
   onBatchAuthorize: async function () {
     const { selectedStudentIds, batchPermissions, students } = this.data;
 

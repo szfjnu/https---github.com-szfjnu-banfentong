@@ -84,6 +84,20 @@
           </view>
         </view>
       </view>
+
+      <!-- 管理功能导航 -->
+      <view class="student-nav-card">
+        <view class="nav-section-title">
+          <view class="nav-title-bar"></view>
+          <text>常用功能</text>
+        </view>
+        <view class="nav-grid">
+          <view class="nav-entry" bindtap="goToSkillCert">
+            <view class="nav-entry-icon" style="background: #1890ff15;">📜</view>
+            <text class="nav-entry-label">技能证书</text>
+          </view>
+        </view>
+      </view>
     </block>
 
     <!-- 学生视图 -->
@@ -141,6 +155,10 @@
             <view class="nav-entry-icon" style="background: #722ed115;">📊</view>
             <text class="nav-entry-label">成绩管理</text>
           </view>
+          <view class="nav-entry" bindtap="goToSkillCert">
+            <view class="nav-entry-icon" style="background: #1890ff15;">📜</view>
+            <text class="nav-entry-label">技能证书</text>
+          </view>
         </view>
       </view>
 
@@ -174,6 +192,10 @@
           <view class="nav-entry" wx:if="{{perm_duty_arrange}}" bindtap="goToDutyArrange">
             <view class="nav-entry-icon" style="background: #1890ff15;">📅</view>
             <text class="nav-entry-label">安排值日</text>
+          </view>
+          <view class="nav-entry" wx:if="{{perm_skill_cert_approve}}" bindtap="goToSkillCert">
+            <view class="nav-entry-icon" style="background: #1890ff15;">📜</view>
+            <text class="nav-entry-label">技能证书</text>
           </view>
         </view>
       </view>
@@ -225,6 +247,10 @@
           <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/grade/grade">
             <view class="nav-entry-icon" style="background: #722ed115;">📊</view>
             <text class="nav-entry-label">成绩管理</text>
+          </view>
+          <view class="nav-entry" bindtap="goToSkillCert">
+            <view class="nav-entry-icon" style="background: #1890ff15;">📜</view>
+            <text class="nav-entry-label">技能证书</text>
           </view>
         </view>
       </view>

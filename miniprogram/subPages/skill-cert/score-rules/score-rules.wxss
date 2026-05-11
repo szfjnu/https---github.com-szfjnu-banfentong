@@ -1,0 +1,67 @@
+.rule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.rule-item {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 0;
+  border-bottom: 1rpx solid var(--border-color);
+}
+
+.rule-label {
+  width: 180rpx;
+  font-size: 28rpx;
+  color: var(--text-color);
+  flex-shrink: 0;
+}
+
+.rule-value {
+  flex: 1;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.rule-source {
+  font-size: 22rpx;
+  padding: 4rpx 12rpx;
+  background: var(--background-color);
+  border-radius: 6rpx;
+}
+
+.rule-input {
+  flex: 1;
+  height: 64rpx;
+  padding: 0 16rpx;
+  background: var(--background-color);
+  border-radius: 8rpx;
+  font-size: 28rpx;
+}
+
+.rule-unit {
+  font-size: 26rpx;
+  color: var(--text-color-secondary);
+  margin-left: 8rpx;
+}
+
+.action-bar {
+  display: flex;
+  gap: 16rpx;
+  padding: 32rpx;
+}
+
+.btn-outline {
+  background: var(--white);
+  color: var(--text-color);
+  border: 2rpx solid var(--border-color);
+}
+
+.loading-state {
+  text-align: center;
+  padding-top: 200rpx;
+  font-size: 28rpx;
+  color: var(--text-color-light);
+}

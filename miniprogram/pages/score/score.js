@@ -43,8 +43,10 @@ Page({
   // 根据角色初始化视图
   initView: function () {
     const role = this.data.userRole;
-    const isStudentMode = role === 'student' || role === 'parent';
-    this.setData({ isStudentMode });
+    const canAddScore = app.hasPermission('score', 'add');
+    const canViewAll = app.hasPermission('score', 'view');
+    const isStudentMode = !canViewAll;
+    this.setData({ isStudentMode, canAddScore });
 
     if (isStudentMode) {
       this.loadMyScore();
