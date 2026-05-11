@@ -90,39 +90,45 @@
 .form-label {
   width: 160rpx;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color, #333);
   flex-shrink: 0;
 }
 
 .form-value {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color, #333);
 }
 
 .form-value.readonly {
   color: #999;
 }
 
+/* BUG1修复：text-align:right + 无padding导致文字贴右边界被遮蔽，新增padding和box-sizing */
 .form-input {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color, #333);
   text-align: right;
+  padding: 0 24rpx;
+  box-sizing: border-box;
 }
 
+/* BUG1修复：textarea同理新增padding和box-sizing */
 .form-textarea {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color, #333);
   min-height: 120rpx;
   width: auto;
+  padding: 16rpx 24rpx;
+  box-sizing: border-box;
 }
 
 .picker-value {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color, #333);
   text-align: right;
 }
 
@@ -135,7 +141,7 @@
 }
 
 .save-btn {
-  background: linear-gradient(135deg, #1890ff, #096dd9);
+  background: linear-gradient(135deg, var(--primary-color, #1890ff), var(--primary-color, #096dd9));
   color: #fff;
   border: none;
   border-radius: 16rpx;

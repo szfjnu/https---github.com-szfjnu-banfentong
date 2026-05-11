@@ -105,7 +105,8 @@ Page({
   loadData: async function () {
     this.setData({ loading: true });
     try {
-      await Promise.all([this.loadStudents(), this.loadAuthorizations()]);
+      const students = await this.loadStudents();
+      await this.loadAuthorizations(students);
     } catch (err) {
       console.error('加载数据失败:', err);
     }
@@ -127,12 +128,14 @@ Page({
         permissions: {}
       }));
       this.setData({ students, filteredStudents: students });
+      return students;
     } catch (err) {
       console.error('加载学生列表失败:', err);
+      return [];
     }
   },
 
-  loadAuthorizations: async function () {
+  loadAuthorizations: async function (studentsArr) {
     try {
       const res = await wx.cloud.callFunction({
         name: 'manageAuthorization',
@@ -144,7 +147,7 @@ Page({
         authMap[auth.student_id] = auth.permissions || {};
       });
 
-      const students = this.data.students.map(s => ({
+      const students = (studentsArr || this.data.students).map(s => ({
         ...s,
         permissions: authMap[s.student_id] || {}
       }));
@@ -286,7 +289,7 @@ Page({
     this.setData(updateData);
   },
 
-  // 保存单个学生权限（前端直写数据库）
+  // 保存单个学生权限（走云函数）
   onSaveSingleAuth: async function () {
     const student = this.data.currentStudent;
     const moduleList = this.data.currentModuleList;
@@ -300,32 +303,23 @@ Page({
 
     wx.showLoading({ title: '保存中...' });
     try {
-      const db = wx.cloud.database();
-      const classId = this.data.classId;
-      const studentId = student.student_id;
-
-      const existing = await db.collection('student_authorizations')
-        .where({ class_id: classId, student_id: studentId })
-        .limit(1)
-        .get();
-
-      if (existing.data && existing.data.length > 0) {
-        await db.collection('student_authorizations')
-          .doc(existing.data[0]._id)
-          .update({ data: { permissions, updated_at: db.serverDate() } });
-      } else {
-        await db.collection('student_authorizations').add({
+      const res = await wx.cloud.callFunction({
+        name: 'manageAuthorization',
+        data: {
+          action: 'updateStudentAuthorization',
           data: {
-            auth_id: `auth_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 8)}`,
-            class_id: classId,
-            student_id: studentId,
+            class_id: this.data.classId,
+            student_id: student.student_id,
             student_name: student.name || '',
-            permissions,
-            created_at: db.serverDate(),
-            updated_at: db.serverDate()
+            permissions
           }
-        });
+        }
+      });
+
+      if (!(res.result && res.result.success)) {
+        throw new Error((res.result && res.result.message) || '保存失败');
       }
+
       wx.hideLoading();
       wx.showToast({ title: '保存成功', icon: 'success' });
       this.setData({ showSingleModal: false });
@@ -428,7 +422,6 @@ Page({
       return;
     }
 
-    // 深拷贝权限
     const permsCopy = {};
     for (const [k, v] of Object.entries(batchPermissions)) {
       permsCopy[k] = [...v];
@@ -438,40 +431,24 @@ Page({
     wx.showLoading({ title: '批量授权中...' });
 
     try {
-      const db = wx.cloud.database();
-      const classId = this.data.classId;
       const studentList = students
         .filter(s => selectedStudentIds.includes(s.student_id))
-        .map(s => ({ student_id: s.student_id, name: s.name || '' }));
+        .map(s => ({ student_id: s.student_id, student_name: s.name || '' }));
 
-      for (let i = 0; i < studentList.length; i += 3) {
-        const batch = studentList.slice(i, i + 3);
-        await Promise.all(batch.map(async (stu) => {
-          const existing = await db.collection('student_authorizations')
-            .where({ class_id: classId, student_id: stu.student_id })
-            .limit(1)
-            .get();
-
-          if (existing.data && existing.data.length > 0) {
-            const existingPerms = existing.data[0].permissions || {};
-            const mergedPerms = { ...existingPerms, ...permsCopy };
-            await db.collection('student_authorizations')
-              .doc(existing.data[0]._id)
-              .update({ data: { permissions: mergedPerms, updated_at: db.serverDate() } });
-          } else {
-            await db.collection('student_authorizations').add({
-              data: {
-                auth_id: `auth_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 8)}`,
-                class_id: classId,
-                student_id: stu.student_id,
-                student_name: stu.name,
-                permissions: permsCopy,
-                created_at: db.serverDate(),
-                updated_at: db.serverDate()
-              }
-            });
+      const res = await wx.cloud.callFunction({
+        name: 'manageAuthorization',
+        data: {
+          action: 'batchAuthorize',
+          data: {
+            class_id: this.data.classId,
+            students: studentList,
+            permissions: permsCopy
           }
-        }));
+        }
+      });
+
+      if (!(res.result && res.result.success)) {
+        throw new Error((res.result && res.result.message) || '批量授权失败');
       }
 
       wx.hideLoading();

@@ -75,6 +75,8 @@ Page({
         phone_number: student.phone_number || '',
         parent_phone_number: student.parent_phone_number || '',
         home_address: student.home_address || '',
+        previousIsBoarding: student.is_boarding || false,
+        previousDormBedId: student.dorm_bed_id || '',
         loading: false
       });
 
@@ -178,39 +180,116 @@ Page({
       return;
     }
 
-    const updateData = {
-      _id: d.studentDocId,
-      enrollment_date: d.enrollment_date,
-      date_of_birth: d.date_of_birth,
-      political_status: d.political_status,
-      is_boarding: d.is_boarding,
-      ethnicity: d.ethnicity,
-      phone_number: d.phone_number,
-      parent_phone_number: d.parent_phone_number,
-      home_address: d.home_address
-    };
+    this.setData({ loading: true });
 
-    if (d.is_boarding) {
-      updateData.dorm_info = {
-        building: d.dorm_building,
-        room: d.dorm_room,
-        bed: d.dorm_bed
-      };
-    } else {
-      updateData.dorm_info = null;
-    }
-
-    wx.showLoading({ title: '保存中...' });
     try {
+      const needRelease = d.previousIsBoarding && !d.is_boarding && d.previousDormBedId;
+
+      if (d.is_boarding && d.dorm_building && d.dorm_room && d.dorm_bed) {
+        const buildingsRes = await wx.cloud.callFunction({
+          name: 'dormSyncManager',
+          data: { action: 'getDormCandidates', data: { level: 'buildings' } }
+        });
+
+        if (buildingsRes.result && buildingsRes.result.success) {
+          const buildings = buildingsRes.result.data || [];
+          const matchedBuilding = buildings.find(b => b.building_name === d.dorm_building);
+
+          if (matchedBuilding) {
+            const roomsRes = await wx.cloud.callFunction({
+              name: 'dormSyncManager',
+              data: { action: 'getDormCandidates', data: { level: 'rooms', building_id: matchedBuilding._id } }
+            });
+
+            if (roomsRes.result && roomsRes.result.success) {
+              const rooms = roomsRes.result.data || [];
+              const matchedRoom = rooms.find(r => r.room_number === d.dorm_room);
+
+              if (matchedRoom) {
+                const bedsRes = await wx.cloud.callFunction({
+                  name: 'dormSyncManager',
+                  data: { action: 'getDormCandidates', data: { level: 'beds', room_id: matchedRoom._id } }
+                });
+
+                if (bedsRes.result && bedsRes.result.success) {
+                  const beds = bedsRes.result.data || [];
+                  const matchedBed = beds.find(b => String(b.bed_index) === String(d.dorm_bed));
+
+                  if (matchedBed) {
+                    wx.showLoading({ title: '保存中...' });
+
+                    const syncRes = await wx.cloud.callFunction({
+                      name: 'dormSyncManager',
+                      data: {
+                        action: 'syncDormInfo',
+                        data: {
+                          student_doc_id: d.studentDocId,
+                          building_id: matchedBuilding._id,
+                          room_id: matchedRoom._id,
+                          bed_id: matchedBed._id,
+                          force_replace: false
+                        }
+                      }
+                    });
+
+                    if (!syncRes.result || !syncRes.result.success) {
+                      wx.hideLoading();
+                      this.setData({ loading: false });
+                      wx.showToast({
+                        title: syncRes.result?.message || '住宿信息同步失败',
+                        icon: 'none'
+                      });
+                      return;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (needRelease) {
+        wx.showLoading({ title: '保存中...' });
+        const releaseRes = await wx.cloud.callFunction({
+          name: 'dormSyncManager',
+          data: { action: 'releaseBed', data: { student_doc_id: d.studentDocId } }
+        });
+        if (!releaseRes.result || !releaseRes.result.success) {
+          wx.hideLoading();
+          this.setData({ loading: false });
+          wx.showToast({ title: releaseRes.result?.message || '退宿失败', icon: 'none' });
+          return;
+        }
+      }
+
+      const updateData = {
+        _id: d.studentDocId,
+        enrollment_date: d.enrollment_date,
+        date_of_birth: d.date_of_birth,
+        political_status: d.political_status,
+        is_boarding: d.is_boarding,
+        ethnicity: d.ethnicity,
+        phone_number: d.phone_number,
+        parent_phone_number: d.parent_phone_number,
+        home_address: d.home_address
+      };
+
+      wx.showLoading({ title: '保存中...' });
       const res = await wx.cloud.callFunction({
         name: 'manageUserCenter',
         data: {
           action: 'updateStudentInfo',
-          data: updateData
+          data: {
+            ...updateData,
+            operation_type: 'info_completion'
+          }
         }
       });
 
       wx.hideLoading();
+      this.setData({ loading: false });
+
       if (res.result && res.result.success) {
         wx.showToast({ title: '保存成功', icon: 'success' });
         setTimeout(() => {
@@ -221,6 +300,7 @@ Page({
       }
     } catch (err) {
       wx.hideLoading();
+      this.setData({ loading: false });
       console.error('保存失败:', err);
       wx.showToast({ title: '保存失败', icon: 'none' });
     }

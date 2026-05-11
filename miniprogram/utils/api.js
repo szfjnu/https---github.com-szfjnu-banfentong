@@ -64,12 +64,20 @@ const studentApi = {
         return res;
       });
   },
-  // 获取学生详情
-  getStudent: (studentId) => {
-    return db.collection('students').doc(studentId).get();
+  // 按文档_id获取学生详情（BUG3修复：明确按主键查询）
+  getStudentById: (docId) => {
+    return db.collection('students').doc(docId).get();
   },
 
-  // 根据学号获取学生详情
+  // 按学号获取学生详情（BUG3修复：原getStudent误用doc()将学号当_id查询）
+  getStudent: (studentId) => {
+    return db.collection('students')
+      .where({ student_id: studentId })
+      .limit(1)
+      .get();
+  },
+
+  // 根据学号获取学生详情（显式命名，语义更清晰）
   getStudentByStudentId: (studentId) => {
     return db.collection('students')
       .where({ student_id: studentId })

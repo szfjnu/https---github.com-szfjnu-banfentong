@@ -81,6 +81,7 @@ exports.main = async (event, context) => {
 
       // ========== 学生信息管理 ==========
       case 'updateStudentInfo': return await updateStudentInfo(data, OPENID);
+      case 'getStudentDetail': return await getStudentDetail(data, OPENID);
 
       default:
         return { success: false, message: `未知操作: ${action}` };
@@ -875,7 +876,8 @@ async function sendSystemNotification(data) {
 // ==================== 学生信息管理 ====================
 
 async function updateStudentInfo(data, openid) {
-  const { _id, ...updateData } = data;
+  const { _id, operation_type, ...updateData } = data;
+  console.log('[updateStudentInfo] 操作场景:', operation_type || '未指定', '学生ID:', _id);
   if (!_id) return { success: false, message: '缺少学生记录ID' };
 
   const allowedRoles = ['admin', 'head_teacher', 'class_teacher'];
@@ -887,11 +889,19 @@ async function updateStudentInfo(data, openid) {
   let userRole = '';
   let userId = '';
   if (userRes.data && userRes.data.length > 0) {
-    userRole = userRes.data[0].role;
+    userRole = userRes.data[0].role || '';
     userId = userRes.data[0]._id;
   }
+  console.log('[updateStudentInfo] 用户信息:', { 
+    openid, 
+    userRole: userRole || '空', 
+    userRoleRaw: userRes.data && userRes.data[0] ? userRes.data[0].role : 'undefined',
+    userId, 
+    userRecordFound: userRes.data && userRes.data.length > 0 
+  });
 
   let isAdminOrTeacher = allowedRoles.includes(userRole);
+  console.log('[updateStudentInfo] 管理员/教师权限检查:', { isAdminOrTeacher, userRole });
   if (!isAdminOrTeacher) {
     const relRes = await db.collection('user_class_relation')
       .where({ user_openid: openid, role: _.in(['head_teacher', 'class_teacher', 'admin']), status: 'joined' })
@@ -903,39 +913,109 @@ async function updateStudentInfo(data, openid) {
   }
 
   let isSelfOrParent = false;
-  if (userRole === 'student' || userRole === 'parent') {
+  
+  console.log('[updateStudentInfo] 开始学生/家长权限验证:', { userRole, shouldCheck: userRole === 'student' || userRole === 'parent' || userRole === '' });
+  
+  if (userRole === 'student' || userRole === 'parent' || userRole === '') {
     try {
       const docRes = await db.collection('students').doc(_id).get().catch(() => null);
       let studentRecord = docRes && docRes.data ? docRes.data : null;
+      console.log('[updateStudentInfo] 查询学生记录 (通过doc):', { found: !!studentRecord, _id });
+      
       if (!studentRecord) {
         const byStudentId = await db.collection('students').where({ student_id: _id }).limit(1).get();
         studentRecord = byStudentId.data && byStudentId.data.length > 0 ? byStudentId.data[0] : null;
+        console.log('[updateStudentInfo] 查询学生记录 (通过student_id):', { found: !!studentRecord, student_id: _id });
       }
       if (!studentRecord) {
         const byOpenid = await db.collection('students').where({ _openid: _id }).limit(1).get();
         studentRecord = byOpenid.data && byOpenid.data.length > 0 ? byOpenid.data[0] : null;
+        console.log('[updateStudentInfo] 查询学生记录 (通过_openid):', { found: !!studentRecord, _openid: _id });
       }
       if (studentRecord) {
-        if (userRole === 'student' && (studentRecord._openid === openid || studentRecord.user_openid === openid)) {
-          isSelfOrParent = true;
+        if (userRole === 'student' || userRole === '') {
+          const studentOpenidMatch = 
+            studentRecord._openid === openid ||
+            studentRecord.user_openid === openid ||
+            studentRecord.openid === openid;
+          
+          const studentIdMatch = 
+            studentRecord.student_id === userId ||
+            (userRes.data && userRes.data[0] && userRes.data[0].student_id && studentRecord.student_id === userRes.data[0].student_id);
+          
+          if (studentOpenidMatch || studentIdMatch) {
+            isSelfOrParent = true;
+            console.log('[updateStudentInfo] 学生本人权限验证通过:', {
+              openid,
+              studentRecordOpenid: studentRecord._openid,
+              studentRecordUserOpenid: studentRecord.user_openid,
+              studentRecordOpenid2: studentRecord.openid,
+              studentId: studentRecord.student_id,
+              userId,
+              userRole: userRole || '未知'
+            });
+          } else if (userRole === 'student') {
+            console.warn('[updateStudentInfo] 学生openid不匹配:', {
+              currentOpenid: openid,
+              studentRecordOpenid: studentRecord._openid,
+              studentRecordUserOpenid: studentRecord.user_openid,
+              studentRecordOpenid2: studentRecord.openid,
+              studentId: studentRecord.student_id,
+              userId
+            });
+          }
         }
-        if (userRole === 'parent') {
+        if (userRole === 'parent' || (userRole === '' && !isSelfOrParent)) {
           const studentIdVal = studentRecord.student_id;
           if (studentIdVal) {
-            const relCheck = await db.collection('user_class_relation')
+            let relCheck = await db.collection('user_class_relation')
               .where({ user_openid: openid, student_id: studentIdVal, status: 'joined' })
               .limit(1)
               .get();
+            
+            if (!relCheck.data || relCheck.data.length === 0) {
+              relCheck = await db.collection('user_class_relation')
+                .where({ _openid: openid, student_id: studentIdVal, status: 'joined' })
+                .limit(1)
+                .get();
+            }
+            
+            if ((!relCheck.data || relCheck.data.length === 0) && userId) {
+              relCheck = await db.collection('user_class_relation')
+                .where({ user_id: userId, student_id: studentIdVal, status: 'joined' })
+                .limit(1)
+                .get();
+            }
+            
             if (relCheck.data && relCheck.data.length > 0) {
               isSelfOrParent = true;
+              console.log('[updateStudentInfo] 家长权限验证通过:', {
+                parentOpenid: openid,
+                parentId: userId,
+                studentId: studentIdVal,
+                relationRecord: relCheck.data[0]._id,
+                userRole: userRole || '未知'
+              });
+            } else if (userRole === 'parent') {
+              console.warn('[updateStudentInfo] 家长绑定关系未找到:', {
+                parentOpenid: openid,
+                parentId: userId,
+                studentId: studentIdVal
+              });
             }
+          } else {
+            console.warn('[updateStudentInfo] 学生记录缺少student_id:', studentRecord._id);
           }
         }
+      } else {
+        console.warn('[updateStudentInfo] 未找到学生记录:', _id);
       }
     } catch (e) {
       console.error('updateStudentInfo self-check error:', e);
     }
   }
+
+  console.log('[updateStudentInfo] 权限检查结果:', { isAdminOrTeacher, isSelfOrParent, hasPermission: isAdminOrTeacher || isSelfOrParent });
 
   if (!isAdminOrTeacher && !isSelfOrParent) {
     return { success: false, message: '无权限修改学生信息' };
@@ -996,9 +1076,171 @@ async function updateStudentInfo(data, openid) {
     }
 
     await db.collection('students').doc(studentDocId).update({ data: filteredData });
+    console.log('[updateStudentInfo] 数据库更新成功，使用云函数管理员权限:', {
+      studentDocId,
+      updatedFields: Object.keys(filteredData),
+      operator: openid,
+      userRole: userRole || '未知',
+      isAdminOrTeacher,
+      isSelfOrParent
+    });
     return { success: true };
   } catch (err) {
-    console.error('updateStudentInfo error:', err);
+    console.error('[updateStudentInfo] 更新失败:', {
+      error: err.message,
+      stack: err.stack,
+      studentDocId: studentDocId || _id,
+      operator: openid,
+      userRole: userRole || '未知'
+    });
     return { success: false, message: err.message || '更新失败' };
   }
+}
+
+async function getStudentDetail(data, openid) {
+  const { target_student_id, operation_type } = data;
+  console.log('[getStudentDetail] 操作场景:', operation_type || '未指定', '目标学生ID:', target_student_id);
+  
+  if (!target_student_id) {
+    return { success: false, message: '缺少目标学生ID' };
+  }
+
+  const userRes = await db.collection('users')
+    .where({ _openid: openid })
+    .limit(1)
+    .get();
+
+  let userRole = '';
+  let userId = '';
+  if (userRes.data && userRes.data.length > 0) {
+    userRole = userRes.data[0].role || '';
+    userId = userRes.data[0]._id;
+  }
+
+  if (!userRole) {
+    const relRes = await db.collection('user_class_relation')
+      .where({ user_openid: openid, status: 'joined' })
+      .limit(1)
+      .get();
+    if (relRes.data && relRes.data.length > 0) {
+      userRole = relRes.data[0].role || '';
+    }
+  }
+
+  console.log('[getStudentDetail] 访问者信息:', { openid, userRole: userRole || '未知', userId });
+
+  let studentRecord = null;
+  let studentDocId = target_student_id;
+
+  const docRes = await db.collection('students').doc(target_student_id).get().catch(() => null);
+  if (docRes && docRes.data) {
+    studentRecord = docRes.data;
+  } else {
+    const byStudentId = await db.collection('students')
+      .where({ student_id: target_student_id })
+      .limit(1)
+      .get();
+    if (byStudentId.data && byStudentId.data.length > 0) {
+      studentRecord = byStudentId.data[0];
+      studentDocId = studentRecord._id;
+    }
+  }
+
+  if (!studentRecord) {
+    console.warn('[getStudentDetail] 未找到学生记录:', target_student_id);
+    return { success: false, message: '未找到学生记录' };
+  }
+
+  console.log('[getStudentDetail] 找到学生记录:', { studentDocId, student_id: studentRecord.student_id });
+
+  let permission_level = 'no_access';
+  const allowedRoles = ['admin', 'head_teacher', 'class_teacher'];
+
+  if (allowedRoles.includes(userRole)) {
+    permission_level = 'full_access';
+    console.log('[getStudentDetail] 管理员/教师权限:', { userRole, permission_level });
+  } else if (userRole === 'student' || userRole === 'parent' || userRole === '') {
+    if (userRole === 'student' || userRole === '') {
+      const studentOpenidMatch = 
+        studentRecord._openid === openid ||
+        studentRecord.user_openid === openid ||
+        studentRecord.openid === openid;
+      
+      const studentIdMatch = 
+        studentRecord.student_id === userId ||
+        (userRes.data && userRes.data[0] && userRes.data[0].student_id && studentRecord.student_id === userRes.data[0].student_id);
+
+      if (studentOpenidMatch || studentIdMatch) {
+        permission_level = 'full_access';
+        console.log('[getStudentDetail] 学生本人权限:', { permission_level });
+      } else if (userRole === 'student') {
+        permission_level = 'partial_access';
+        console.log('[getStudentDetail] 学生查看其他学生:', { permission_level });
+      }
+    }
+
+    if (userRole === 'parent' || (userRole === '' && permission_level === 'no_access')) {
+      const studentIdVal = studentRecord.student_id;
+      if (studentIdVal) {
+        let relCheck = await db.collection('user_class_relation')
+          .where({ user_openid: openid, student_id: studentIdVal, status: 'joined' })
+          .limit(1)
+          .get();
+        
+        if (!relCheck.data || relCheck.data.length === 0) {
+          relCheck = await db.collection('user_class_relation')
+            .where({ _openid: openid, student_id: studentIdVal, status: 'joined' })
+            .limit(1)
+            .get();
+        }
+        
+        if ((!relCheck.data || relCheck.data.length === 0) && userId) {
+          relCheck = await db.collection('user_class_relation')
+            .where({ user_id: userId, student_id: studentIdVal, status: 'joined' })
+            .limit(1)
+            .get();
+        }
+        
+        if (relCheck.data && relCheck.data.length > 0) {
+          permission_level = 'full_access';
+          console.log('[getStudentDetail] 家长查看绑定学生:', { permission_level });
+        } else if (userRole === 'parent') {
+          permission_level = 'no_access';
+          console.log('[getStudentDetail] 家长查看非绑定学生:', { permission_level });
+        }
+      }
+    }
+  }
+
+  console.log('[getStudentDetail] 最终权限级别:', { permission_level });
+
+  if (permission_level === 'no_access') {
+    return { 
+      success: false, 
+      message: '无权限查看该学生详情',
+      permission_level: 'no_access'
+    };
+  }
+
+  const sensitiveFields = ['phone_number', 'parent_phone_number', 'home_address', 'id_card_number', 'dorm_info'];
+  
+  let responseData;
+  if (permission_level === 'partial_access') {
+    responseData = { ...studentRecord };
+    sensitiveFields.forEach(field => {
+      if (responseData[field] !== undefined) {
+        responseData[field] = '***';
+      }
+    });
+    console.log('[getStudentDetail] 数据脱敏完成，隐藏字段:', sensitiveFields.filter(f => studentRecord[f] !== undefined));
+  } else {
+    responseData = studentRecord;
+    console.log('[getStudentDetail] 返回完整数据');
+  }
+
+  return {
+    success: true,
+    data: responseData,
+    permission_level: permission_level
+  };
 }

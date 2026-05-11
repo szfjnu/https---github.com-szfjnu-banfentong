@@ -168,9 +168,9 @@ Page({
         // 学生和家长只能看到自己的记录
         const studentId = app.globalData.student_id;
         if (studentId) {
-          const res = await api.studentApi.getStudent(studentId);
-          if (res.data) {
-            students = [res.data];
+          const res = await api.studentApi.getStudentByStudentId(studentId);
+          if (res.data && res.data.length > 0) {
+            students = [res.data[0]];
           }
         }
       } else if (role === 'head_teacher' && classId) {

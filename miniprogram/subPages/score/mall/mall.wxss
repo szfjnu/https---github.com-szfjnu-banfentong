@@ -440,7 +440,7 @@
 }
 
 /* 弹窗通用样式 */
-.bid-modal, .wish-modal {
+.bid-modal, .wish-modal, .bid-input-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -451,6 +451,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* BUG2修复：投标输入弹窗遮罩层级高于其他弹窗 */
+.bid-input-modal {
+  z-index: 1001;
 }
 
 .modal-content {
@@ -779,4 +784,87 @@
   .item-actions {
     flex-direction: column;
   }
+}
+
+/* BUG2修复：投标输入弹窗专用样式 */
+.bid-info-section {
+  background: var(--background-color);
+  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+  margin-bottom: 20rpx;
+}
+
+.bid-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8rpx 0;
+}
+
+.bid-info-label {
+  font-size: 26rpx;
+  color: var(--text-color-light);
+}
+
+.bid-info-value {
+  font-size: 28rpx;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.bid-score-min {
+  color: var(--error-color);
+  font-weight: bold;
+}
+
+.bid-score-mine {
+  color: var(--primary-color);
+  font-weight: bold;
+}
+
+.bid-tip-text {
+  font-size: 24rpx;
+  color: var(--text-color-light);
+  margin-bottom: 24rpx;
+  padding: 12rpx 16rpx;
+  background: #fff7e6;
+  border-radius: 8rpx;
+  border-left: 4rpx solid var(--warning-color);
+}
+
+.bid-input-section {
+  margin-bottom: 16rpx;
+}
+
+.bid-input-label {
+  display: block;
+  font-size: 28rpx;
+  color: var(--text-color);
+  font-weight: 500;
+  margin-bottom: 12rpx;
+}
+
+.bid-score-input {
+  width: 100%;
+  height: 88rpx;
+  background: var(--background-color);
+  border-radius: 12rpx;
+  padding: 0 24rpx;
+  font-size: 32rpx;
+  text-align: center;
+  box-sizing: border-box;
+  color: var(--text-color);
+  border: 2rpx solid var(--border-color);
+}
+
+.bid-input-error {
+  padding: 12rpx 16rpx;
+  background: #fff2f0;
+  border-radius: 8rpx;
+  border-left: 4rpx solid var(--error-color);
+}
+
+.bid-input-error text {
+  font-size: 24rpx;
+  color: var(--error-color);
 }

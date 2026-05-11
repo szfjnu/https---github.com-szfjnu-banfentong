@@ -14,6 +14,7 @@ Page({
     loading: true,
     activeTab: 'info',
     canEdit: false,
+    permissionLevel: 'no_access',
     // 考勤统计
     attendanceStats: {
       sick_leave: 0,
@@ -120,23 +121,29 @@ Page({
       const studentId = this.data.studentId;
       console.log('开始加载学生信息, studentId:', studentId);
 
-      // 使用 get 方法获取最新数据，避免缓存
-      const db = wx.cloud.database();
-      const res = await db.collection('students')
-        .where({
-          student_id: studentId
-        })
-        //.limit(1)
-        .get();
+      const res = await wx.cloud.callFunction({
+        name: 'manageUserCenter',
+        data: {
+          action: 'getStudentDetail',
+          data: {
+            target_student_id: studentId,
+            operation_type: 'detail_view'
+          }
+        }
+      });
 
-      console.log('API返回结果:', res);
+      console.log('云函数返回结果:', res);
 
-      if (res.data && res.data.length > 0) {
-        const student = res.data[0];
+      if (res.result && res.result.success) {
+        const student = res.result.data;
+        const permissionLevel = res.result.permission_level;
+        
         console.log('找到学生信息:', student);
+        console.log('权限级别:', permissionLevel);
         console.log('学生当前积分 (current_score):', student.current_score);
 
         this.setData({
+          permissionLevel: permissionLevel,
           student: {
             ...student,
             scoreLevel: util.getScoreLevel(student.current_score || 100),
@@ -147,12 +154,16 @@ Page({
         });
         console.log('学生信息已设置到data, current_score:', this.data.student.current_score);
       } else {
-        console.log('未找到学生信息');
+        const errorMsg = (res.result && res.result.message) || '未找到学生信息';
+        console.log('加载失败:', errorMsg);
         wx.showToast({
-          title: '未找到学生信息',
+          title: errorMsg,
           icon: 'none',
           duration: 2000
         });
+        setTimeout(() => {
+          wx.navigateBack();
+        }, 2000);
       }
     } catch (err) {
       console.error('加载学生信息失败:', err);
@@ -161,6 +172,9 @@ Page({
         icon: 'none',
         duration: 2000
       });
+      setTimeout(() => {
+        wx.navigateBack();
+      }, 2000);
     }
   },
 

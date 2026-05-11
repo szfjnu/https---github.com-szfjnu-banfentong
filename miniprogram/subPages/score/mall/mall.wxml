@@ -56,12 +56,17 @@
 
         <!-- 物品图片 -->
         <view class="item-image" bindtap="onRedeem" data-item="{{item}}">
-          <image
-            wx:if="{{item.image_url}}"
-            src="{{item.image_url}}"
-            mode="aspectFill"
-          />
-          <text wx:else class="default-icon">🎁</text>
+            <!-- 增加加载状态和错误处理 -->
+            <image 
+              wx:if="{{item.image_url}}" 
+              src="{{item.image_url}}" 
+              mode="aspectFill" 
+              lazy-load
+              binderror="onImageError" 
+              data-id="{{item._id}}"
+            />
+            <!-- 默认图标作为占位符 -->
+            <text class="default-icon">🛍️</text>
         </view>
 
         <!-- 物品信息 -->
@@ -202,6 +207,57 @@
           <text>💡 投标积分越高，中标概率越大</text>
         </view>
         <button class="modal-btn" bindtap="onCloseBidModal">关闭</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 投标输入弹窗（BUG2修复：替换wx.showModal为自定义弹窗，蓝色主题） -->
+  <view class="bid-input-modal" wx:if="{{showBidInputDialog}}" catchtap="onCloseBidInputModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">投标兑换</text>
+        <text class="modal-close" bindtap="onCloseBidInputModal">✕</text>
+      </view>
+
+      <view class="modal-body">
+        <view class="bid-info-section" wx:if="{{bidInputItem}}">
+          <view class="bid-info-row">
+            <text class="bid-info-label">商品</text>
+            <text class="bid-info-value">{{bidInputItem.name}}</text>
+          </view>
+          <view class="bid-info-row">
+            <text class="bid-info-label">最低投标积分</text>
+            <text class="bid-info-value bid-score-min">{{bidInputItem.required_score}}</text>
+          </view>
+          <view class="bid-info-row">
+            <text class="bid-info-label">您的积分</text>
+            <text class="bid-info-value bid-score-mine">{{myScore}}</text>
+          </view>
+        </view>
+
+        <view class="bid-tip-text">
+          <text>💡 投标积分越高，中标概率越大</text>
+        </view>
+
+        <view class="bid-input-section">
+          <text class="bid-input-label">投标积分</text>
+          <input
+            class="bid-score-input"
+            type="number"
+            placeholder="请输入投标积分数值"
+            value="{{bidInputValue}}"
+            bindinput="onBidScoreInput"
+          />
+        </view>
+
+        <view class="bid-input-error" wx:if="{{bidInputError}}">
+          <text>{{bidInputError}}</text>
+        </view>
+      </view>
+
+      <view class="modal-footer">
+        <button class="modal-btn cancel-btn" bindtap="onCloseBidInputModal">取消</button>
+        <button class="modal-btn confirm-btn" bindtap="onConfirmBidInput">确认投标</button>
       </view>
     </view>
   </view>

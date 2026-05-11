@@ -17,6 +17,12 @@ Page({
     bidList: [],
     bidLoading: false,
     
+    // 投标输入弹窗（BUG2修复：新增字段）
+    showBidInputDialog: false,
+    bidInputItem: null,
+    bidInputValue: '',
+    bidInputError: '',
+    
     // 商品建议弹窗
     showWishModal: false,
     wishForm: {
@@ -309,37 +315,86 @@ Page({
     }
   },
 
-  // 显示投标输入框
+  // BUG2修复：显示投标输入弹窗（替换wx.showModal为自定义弹窗）
   showBidInputDialog: function (item) {
-    const minScore = item.required_score;
-    const myScore = this.data.myScore;
-    
-    wx.showModal({
-      title: '投标兑换',
-      content: `最低投标积分：${minScore}\n您的积分：${myScore}\n\n投标积分越高，中标概率越大`,
-      editable: true,
-      placeholderText: `请输入投标积分（≥${minScore}）`,
-      success: (res) => {
-        if (res.confirm) {
-          const bidScore = parseInt(res.content);
-          if (isNaN(bidScore) || bidScore < minScore) {
-            wx.showToast({
-              title: `投标积分不能低于${minScore}`,
-              icon: 'none'
-            });
-            return;
-          }
-          if (bidScore > myScore) {
-            wx.showToast({
-              title: '投标积分不能超过您的积分',
-              icon: 'none'
-            });
-            return;
-          }
-          this.submitRedemption(item, bidScore);
-        }
-      }
+    this.setData({
+      showBidInputDialog: true,
+      bidInputItem: item,
+      bidInputValue: '',
+      bidInputError: ''
     });
+  },
+
+  // BUG2修复：关闭投标输入弹窗
+  onCloseBidInputModal: function () {
+    this.setData({
+      showBidInputDialog: false,
+      bidInputItem: null,
+      bidInputValue: '',
+      bidInputError: ''
+    });
+  },
+
+  // BUG2修复：投标积分输入处理
+  onBidScoreInput: function (e) {
+    this.setData({
+      bidInputValue: e.detail.value,
+      bidInputError: ''
+    });
+  },
+
+  // BUG2修复：确认投标提交（含五步校验）
+  onConfirmBidInput: async function () {
+    const { bidInputItem, bidInputValue, myScore, studentId } = this.data;
+
+    if (!bidInputItem) return;
+
+    const inputStr = (bidInputValue || '').trim();
+
+    if (!inputStr) {
+      this.setData({ bidInputError: '请输入投标积分' });
+      return;
+    }
+
+    const bidScore = Number(inputStr);
+    if (isNaN(bidScore) || !Number.isInteger(bidScore)) {
+      this.setData({ bidInputError: '请输入有效的整数积分值' });
+      return;
+    }
+
+    const minScore = bidInputItem.required_score;
+    if (bidScore < minScore) {
+      this.setData({ bidInputError: `投标积分不能低于${minScore}` });
+      return;
+    }
+
+    if (bidScore > myScore) {
+      this.setData({ bidInputError: `投标积分不能超过您的积分（${myScore}）` });
+      return;
+    }
+
+    try {
+      const db = wx.cloud.database();
+      const _ = db.command;
+      const existRes = await db.collection('redemption_requests')
+        .where({
+          item_id: bidInputItem.item_id,
+          student_id: studentId,
+          status: _.in(['待审批', '已中标'])
+        })
+        .limit(1)
+        .count();
+
+      if (existRes.total > 0) {
+        this.setData({ bidInputError: '您已对该商品投过标，不可重复投标' });
+        return;
+      }
+    } catch (err) {
+      console.error('查询重复投标失败:', err);
+    }
+
+    this.setData({ showBidInputDialog: false });
+    this.submitRedemption(bidInputItem, bidScore);
   },
 
   // 提交兑换申请
@@ -363,10 +418,44 @@ Page({
 
       wx.showLoading({ title: '提交中...', mask: true });
 
-      // 提交兑换申请
+      // BUG2修复：投标模式走云函数双侧校验，直接兑换模式保持原逻辑
       const studentInfo = this.data.studentInfo || {};
       const db = wx.cloud.database();
-      
+
+      if (item.redemption_mode === '投标模式') {
+        const bidRes = await wx.cloud.callFunction({
+          name: 'handleBidAuction',
+          data: {
+            action: 'submitBid',
+            data: {
+              item_id: item.item_id,
+              student_id: studentId,
+              bid_score: bidScore,
+              class_id: studentInfo.class_id || app.globalData.class_id || ''
+            }
+          }
+        });
+
+        wx.hideLoading();
+
+        if (bidRes.result && bidRes.result.success) {
+          wx.showToast({
+            title: '投标成功',
+            icon: 'success',
+            duration: 2000
+          });
+          setTimeout(() => { this.loadData(); }, 2000);
+        } else {
+          wx.showToast({
+            title: bidRes.result?.message || '投标失败',
+            icon: 'none',
+            duration: 2000
+          });
+        }
+        return;
+      }
+
+      // 直接兑换模式
       await db.collection('redemption_requests').add({
         data: {
           request_id: `RR${Date.now()}`,

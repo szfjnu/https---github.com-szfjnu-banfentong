@@ -56,7 +56,7 @@
         </view>
       </view>
 
-      <view wx:if="{{student.is_boarding && student.dorm_info}}" class="dorm-info">
+      <view wx:if="{{student.is_boarding && student.dorm_info && permissionLevel === 'full_access'}}" class="dorm-info">
         <view class="section-title">住宿信息</view>
         <view class="info-row">
           <text class="label">楼栋:</text>
@@ -69,6 +69,21 @@
         <view class="info-row">
           <text class="label">床位:</text>
           <text class="value">{{student.dorm_info.bed}}</text>
+        </view>
+      </view>
+      <view wx:elif="{{student.is_boarding && student.dorm_info && permissionLevel !== 'full_access'}}" class="dorm-info">
+        <view class="section-title">住宿信息</view>
+        <view class="info-row">
+          <text class="label">楼栋:</text>
+          <text class="value" style="color: #999;">***</text>
+        </view>
+        <view class="info-row">
+          <text class="label">房间号:</text>
+          <text class="value" style="color: #999;">***</text>
+        </view>
+        <view class="info-row">
+          <text class="label">床位:</text>
+          <text class="value" style="color: #999;">***</text>
         </view>
       </view>
     </view>
@@ -99,15 +114,18 @@
         <view class="section-title">联系方式</view>
         <view class="info-row">
           <text class="label">手机号:</text>
-          <text class="value">{{student.phone_number || '未填写'}}</text>
+          <text class="value" wx:if="{{permissionLevel === 'full_access'}}">{{student.phone_number || '未填写'}}</text>
+          <text class="value" wx:else style="color: #999;">***</text>
         </view>
         <view class="info-row">
           <text class="label">家长手机:</text>
-          <text class="value">{{student.parent_phone_number || '未填写'}}</text>
+          <text class="value" wx:if="{{permissionLevel === 'full_access'}}">{{student.parent_phone_number || '未填写'}}</text>
+          <text class="value" wx:else style="color: #999;">***</text>
         </view>
         <view class="info-row">
           <text class="label">家庭住址:</text>
-          <text class="value">{{student.home_address || '未填写'}}</text>
+          <text class="value" wx:if="{{permissionLevel === 'full_access'}}">{{student.home_address || '未填写'}}</text>
+          <text class="value" wx:else style="color: #999;">***</text>
         </view>
       </view>
     </view>
