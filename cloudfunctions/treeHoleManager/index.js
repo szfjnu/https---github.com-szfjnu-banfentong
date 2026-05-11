@@ -6,29 +6,31 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
+const { getCallerInfo } = require('../utils/auth');
 
 exports.main = async (event, context) => {
   const { action, data } = event;
-  const { OPENID } = cloud.getWXContext();
 
   try {
+    const caller = await getCallerInfo(event, data?.class_id || data?.classId);
+
     switch (action) {
       case 'publishPost':
-        return await publishPost(data, OPENID);
+        return await publishPost(data, caller.openid);
       case 'getPosts':
-        return await getPosts(data, OPENID);
+        return await getPosts(data, caller.openid);
       case 'getPostDetail':
-        return await getPostDetail(data, OPENID);
+        return await getPostDetail(data, caller.openid);
       case 'replyPost':
-        return await replyPost(data, OPENID);
+        return await replyPost(data, caller.openid);
       case 'toggleHeart':
-        return await toggleHeart(data, OPENID);
+        return await toggleHeart(data, caller.openid);
       case 'reportPost':
-        return await reportPost(data, OPENID);
+        return await reportPost(data, caller.openid);
       case 'deletePost':
-        return await deletePost(data, OPENID);
+        return await deletePost(data, caller.openid);
       case 'hidePost':
-        return await hidePost(data, OPENID);
+        return await hidePost(data, caller.openid);
       default:
         return { success: false, message: '未知操作' };
     }

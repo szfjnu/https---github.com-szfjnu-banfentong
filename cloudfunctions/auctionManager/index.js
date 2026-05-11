@@ -3,7 +3,8 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
 
-// 分类映射
+const { getCallerInfo, requireRole, requireClassAccess, requireTeacher, AUTH_ERRORS } = require('../utils/auth')
+
 const CATEGORIES = {
   privilege: '特权卡',
   gift: '实物礼品',
@@ -12,46 +13,6 @@ const CATEGORIES = {
   other: '其他'
 }
 
-// 验证用户班级身份
-async function verifyUser(openid, classId) {
-  let rel = await db.collection('user_class_relation')
-    .where({ user_openid: openid, class_id: classId })
-    .count()
-  if (rel.total === 0) {
-    rel = await db.collection('user_class_relation')
-      .where({ _openid: openid, class_id: classId })
-      .count()
-  }
-  return rel.total > 0
-}
-
-async function getUserRole(openid, classId) {
-  let rel = await db.collection('user_class_relation')
-    .where({ user_openid: openid, class_id: classId })
-    .get()
-  if (rel.data.length === 0) {
-    rel = await db.collection('user_class_relation')
-      .where({ _openid: openid, class_id: classId })
-      .get()
-  }
-  if (rel.data.length === 0) return null
-  return rel.data[0].role || 'student'
-}
-
-async function getUserName(openid, classId) {
-  let rel = await db.collection('user_class_relation')
-    .where({ user_openid: openid, class_id: classId })
-    .get()
-  if (rel.data.length === 0) {
-    rel = await db.collection('user_class_relation')
-      .where({ _openid: openid, class_id: classId })
-      .get()
-  }
-  if (rel.data.length === 0) return '未知'
-  return rel.data[0].real_name || '匿名'
-}
-
-// 获取用户当前积分
 async function getUserScore(openid, classId) {
   const scoreRes = await db.collection('scores')
     .where({ user_id: openid, class_id: classId })
@@ -60,7 +21,6 @@ async function getUserScore(openid, classId) {
   return scoreRes.data[0].total_score || 0
 }
 
-// 扣除积分
 async function deductScore(openid, classId, amount) {
   const scoreRes = await db.collection('scores')
     .where({ user_id: openid, class_id: classId })
@@ -74,7 +34,6 @@ async function deductScore(openid, classId, amount) {
   return true
 }
 
-// 退还积分
 async function refundScore(openid, classId, amount) {
   const scoreRes = await db.collection('scores')
     .where({ user_id: openid, class_id: classId })
@@ -85,42 +44,65 @@ async function refundScore(openid, classId, amount) {
   })
 }
 
+async function getUserNameByOpenid(openid, classId) {
+  let rel = await db.collection('user_class_relation')
+    .where({ user_openid: openid, class_id: classId })
+    .get()
+  if (rel.data.length === 0) {
+    rel = await db.collection('user_class_relation')
+      .where({ _openid: openid, class_id: classId })
+      .get()
+  }
+  if (rel.data.length === 0) return '未知'
+  return rel.data[0].real_name || '匿名'
+}
+
 exports.main = async (event, context) => {
-  const wxContext = cloud.getWXContext()
-  const openid = wxContext.OPENID
   const { action, classId } = event
 
   if (!classId) return { code: 400, msg: '缺少 classId' }
 
-  const isMember = await verifyUser(openid, classId)
-  if (!isMember) return { code: 403, msg: '无权操作此班级' }
+  try {
+    const caller = await getCallerInfo(event, classId)
+    const { openid, role } = caller
 
-  const role = await getUserRole(openid, classId)
-
-  switch (action) {
-    case 'createItem': return createItem(event, openid, role)
-    case 'getItems': return getItems(event, openid)
-    case 'getItemDetail': return getItemDetail(event, openid)
-    case 'placeBid': return placeBid(event, openid)
-    case 'redeemItem': return redeemItem(event, openid)
-    case 'getMyBids': return getMyBids(event, openid)
-    case 'getMyRedemptions': return getMyRedemptions(event, openid)
-    case 'cancelItem': return cancelItem(event, openid, role)
-    case 'fulfillRedemption': return fulfillRedemption(event, openid, role)
-    case 'settleAuction': return settleAuction(event, openid, role)
-    case 'getBidHistory': return getBidHistory(event)
-    case 'getUserBalance': return getUserBalance(event, openid)
-    default: return { code: 400, msg: '未知 action' }
+    switch (action) {
+      case 'createItem': return createItem(event, caller)
+      case 'getItems': return getItems(event, openid, classId)
+      case 'getItemDetail': return getItemDetail(event, openid, classId)
+      case 'placeBid': return placeBid(event, caller)
+      case 'redeemItem': return redeemItem(event, caller)
+      case 'getMyBids': return getMyBids(event, openid, classId)
+      case 'getMyRedemptions': return getMyRedemptions(event, openid, classId)
+      case 'cancelItem': return cancelItem(event, caller)
+      case 'fulfillRedemption': return fulfillRedemption(event, caller)
+      case 'settleAuction': return settleAuction(event, caller)
+      case 'determineWinner': return determineWinner(event, caller)
+      case 'getBidHistory': return getBidHistory(event)
+      case 'getUserBalance': return getUserBalance(event, openid, classId)
+      default: return { code: 400, msg: '未知 action' }
+    }
+  } catch (err) {
+    if (Object.values(AUTH_ERRORS).includes(err.code)) {
+      const msgMap = {
+        [AUTH_ERRORS.NO_OPENID]: '未获取到用户身份',
+        [AUTH_ERRORS.NO_CLASS]: '用户未加入任何班级',
+        [AUTH_ERRORS.NO_ACCESS]: '无权操作此班级',
+        [AUTH_ERRORS.ROLE_DENIED]: err.message,
+        [AUTH_ERRORS.CLASS_DENIED]: '无权访问该班级数据'
+      }
+      return { code: 403, msg: msgMap[err.code] || err.message }
+    }
+    console.error('auctionManager error:', err)
+    return { code: 500, msg: '服务器错误' }
   }
 }
 
-// 创建拍品
-async function createItem(event, openid, role) {
-  if (role !== 'admin' && role !== 'teacher' && role !== 'head_teacher') {
-    return { code: 403, msg: '仅教师可发布拍品' }
-  }
+async function createItem(event, caller) {
+  requireRole(caller, ['admin', 'teacher', 'head_teacher'])
 
   const { classId, title, description, image, type, category, startingPrice, buyoutPrice, totalStock, maxPerUser, startTime, endTime } = event
+  const { openid, realName } = caller
 
   if (!title || !description || !type || !category || !startingPrice) {
     return { code: 400, msg: '缺少必填字段' }
@@ -129,7 +111,7 @@ async function createItem(event, openid, role) {
   if (!['auction', 'exchange'].includes(type)) return { code: 400, msg: '无效类型' }
   if (!CATEGORIES[category]) return { code: 400, msg: '无效分类' }
 
-  const sellerName = await getUserName(openid, classId)
+  const sellerName = realName
 
   const now = new Date()
   const start = startTime ? new Date(startTime) : now
@@ -167,9 +149,8 @@ async function createItem(event, openid, role) {
   return { code: 0, msg: '发布成功', data: { _id: res._id } }
 }
 
-// 获取拍品列表
-async function getItems(event, openid) {
-  const { classId, type, category, status, page = 1, pageSize = 10 } = event
+async function getItems(event, openid, classId) {
+  const { type, category, status, page = 1, pageSize = 10 } = event
 
   let where = { class_id: classId }
 
@@ -191,7 +172,6 @@ async function getItems(event, openid) {
     .limit(pageSize)
     .get()
 
-  // 查询用户竞拍状态
   let myBidItemIds = {}
   if (res.data.length > 0) {
     const itemIds = res.data.map(i => i._id)
@@ -216,24 +196,21 @@ async function getItems(event, openid) {
   }
 }
 
-// 获取详情
-async function getItemDetail(event, openid) {
+async function getItemDetail(event, openid, classId) {
   const { itemId } = event
   if (!itemId) return { code: 400, msg: '缺少 itemId' }
 
   const res = await db.collection('auction_items').doc(itemId).get()
   const item = res.data
 
-  if (item.class_id !== event.classId) return { code: 403, msg: '无权查看' }
+  if (item.class_id !== classId) return { code: 403, msg: '无权查看' }
 
-  // 查询用户竞拍状态
   const bidRes = await db.collection('auction_bids')
     .where({ item_id: itemId, user_id: openid })
     .orderBy('created_at', 'desc')
     .limit(1)
     .get()
 
-  // 查询竞拍前3名
   let topBids = []
   if (item.type === 'auction') {
     const topRes = await db.collection('auction_bids')
@@ -249,16 +226,15 @@ async function getItemDetail(event, openid) {
   item.top_bids = topBids
   item.is_owner = item.seller_id === openid
 
-  // 获取用户余额
-  const balance = await getUserScore(openid, event.classId)
+  const balance = await getUserScore(openid, classId)
   item.my_balance = balance
 
   return { code: 0, data: item }
 }
 
-// 出价（竞拍型）
-async function placeBid(event, openid) {
+async function placeBid(event, caller) {
   const { itemId, classId, bidPrice } = event
+  const { openid, realName } = caller
 
   if (!itemId || !bidPrice) return { code: 400, msg: '缺少必填字段' }
   const price = Number(bidPrice)
@@ -273,11 +249,9 @@ async function placeBid(event, openid) {
   if (item.seller_id === openid) return { code: 400, msg: '不能竞拍自己发布的商品' }
   if (price <= item.current_price) return { code: 400, msg: `出价必须高于当前价 ${item.current_price}` }
 
-  // 检查积分余额
   const balance = await getUserScore(openid, classId)
   if (balance < price) return { code: 400, msg: `积分不足，当前余额 ${balance}` }
 
-  // 检查限购
   const existingBids = await db.collection('auction_bids')
     .where({ item_id: itemId, user_id: openid, status: _.in(['pending', 'winning']) })
     .count()
@@ -286,9 +260,8 @@ async function placeBid(event, openid) {
     return { code: 400, msg: `每人最多出价 ${item.max_per_user} 次` }
   }
 
-  const userName = await getUserName(openid, classId)
+  const userName = realName
 
-  // 退还上一个最高出价者的积分
   const prevWinning = await db.collection('auction_bids')
     .where({ item_id: itemId, status: 'winning' })
     .get()
@@ -301,11 +274,9 @@ async function placeBid(event, openid) {
     })
   }
 
-  // 扣除当前出价者积分
   const deducted = await deductScore(openid, classId, price)
   if (!deducted) return { code: 400, msg: '积分扣除失败，余额可能已变化' }
 
-  // 创建出价记录
   await db.collection('auction_bids').add({
     data: {
       item_id: itemId,
@@ -318,7 +289,6 @@ async function placeBid(event, openid) {
     }
   })
 
-  // 更新拍品当前价
   await db.collection('auction_items').doc(itemId).update({
     data: {
       current_price: price,
@@ -330,9 +300,9 @@ async function placeBid(event, openid) {
   return { code: 0, msg: '出价成功', data: { current_price: price } }
 }
 
-// 直兑
-async function redeemItem(event, openid) {
+async function redeemItem(event, caller) {
   const { itemId, classId } = event
+  const { openid, realName } = caller
   if (!itemId) return { code: 400, msg: '缺少 itemId' }
 
   const itemRes = await db.collection('auction_items').doc(itemId).get()
@@ -342,12 +312,10 @@ async function redeemItem(event, openid) {
   if (item.status !== 'active') return { code: 400, msg: '商品不可兑换' }
   if (item.seller_id === openid) return { code: 400, msg: '不能兑换自己的商品' }
 
-  // 检查库存
   if (item.remaining_stock !== -1 && item.remaining_stock <= 0) {
     return { code: 400, msg: '已兑完' }
   }
 
-  // 检查限购
   const myRedemptions = await db.collection('auction_redemptions')
     .where({ item_id: itemId, user_id: openid, status: _.in(['pending', 'fulfilled']) })
     .count()
@@ -358,17 +326,14 @@ async function redeemItem(event, openid) {
 
   const price = item.buyout_price || item.starting_price
 
-  // 检查积分
   const balance = await getUserScore(openid, classId)
   if (balance < price) return { code: 400, msg: `积分不足，需 ${price}，余额 ${balance}` }
 
-  // 扣除积分
   const deducted = await deductScore(openid, classId, price)
   if (!deducted) return { code: 400, msg: '积分扣除失败' }
 
-  const userName = await getUserName(openid, classId)
+  const userName = realName
 
-  // 创建兑换记录
   await db.collection('auction_redemptions').add({
     data: {
       item_id: itemId,
@@ -382,14 +347,12 @@ async function redeemItem(event, openid) {
     }
   })
 
-  // 更新库存
   const updateData = {
     bid_count: _.inc(1),
     updated_at: db.serverDate()
   }
   if (item.remaining_stock !== -1) {
     updateData.remaining_stock = _.inc(-1)
-    // 如果库存变为0，自动结束
     if (item.remaining_stock - 1 <= 0) {
       updateData.status = 'ended'
     }
@@ -399,9 +362,8 @@ async function redeemItem(event, openid) {
   return { code: 0, msg: '兑换成功' }
 }
 
-// 我的竞拍
-async function getMyBids(event, openid) {
-  const { classId, page = 1, pageSize = 20 } = event
+async function getMyBids(event, openid, classId) {
+  const { page = 1, pageSize = 20 } = event
 
   const res = await db.collection('auction_bids')
     .where({ user_id: openid, class_id: classId })
@@ -410,7 +372,6 @@ async function getMyBids(event, openid) {
     .limit(pageSize)
     .get()
 
-  // 补充拍品信息
   const bids = []
   for (const bid of res.data) {
     try {
@@ -430,9 +391,8 @@ async function getMyBids(event, openid) {
   return { code: 0, data: bids }
 }
 
-// 我的兑换
-async function getMyRedemptions(event, openid) {
-  const { classId, page = 1, pageSize = 20 } = event
+async function getMyRedemptions(event, openid, classId) {
+  const { page = 1, pageSize = 20 } = event
 
   const res = await db.collection('auction_redemptions')
     .where({ user_id: openid, class_id: classId })
@@ -458,9 +418,9 @@ async function getMyRedemptions(event, openid) {
   return { code: 0, data: redemptions }
 }
 
-// 取消拍品
-async function cancelItem(event, openid, role) {
+async function cancelItem(event, caller) {
   const { itemId } = event
+  const { openid, role } = caller
   if (!itemId) return { code: 400, msg: '缺少 itemId' }
 
   const itemRes = await db.collection('auction_items').doc(itemId).get()
@@ -472,7 +432,6 @@ async function cancelItem(event, openid, role) {
 
   if (item.status === 'cancelled') return { code: 400, msg: '已取消' }
 
-  // 退还所有出价者的积分
   const bidsRes = await db.collection('auction_bids')
     .where({ item_id: itemId, status: _.in(['pending', 'winning']) })
     .get()
@@ -484,7 +443,6 @@ async function cancelItem(event, openid, role) {
     })
   }
 
-  // 退还未兑现的兑换积分
   const redemptionsRes = await db.collection('auction_redemptions')
     .where({ item_id: itemId, status: 'pending' })
     .get()
@@ -503,14 +461,11 @@ async function cancelItem(event, openid, role) {
   return { code: 0, msg: '已取消并退还积分' }
 }
 
-// 兑现兑换
-async function fulfillRedemption(event, openid, role) {
+async function fulfillRedemption(event, caller) {
   const { redemptionId } = event
   if (!redemptionId) return { code: 400, msg: '缺少 redemptionId' }
 
-  if (role !== 'admin' && role !== 'teacher' && role !== 'head_teacher') {
-    return { code: 403, msg: '仅教师可兑现' }
-  }
+  requireTeacher(caller)
 
   await db.collection('auction_redemptions').doc(redemptionId).update({
     data: { status: 'fulfilled', fulfilled_at: db.serverDate() }
@@ -519,14 +474,11 @@ async function fulfillRedemption(event, openid, role) {
   return { code: 0, msg: '已兑现' }
 }
 
-// 结算竞拍（手动或到期自动）
-async function settleAuction(event, openid, role) {
+async function settleAuction(event, caller) {
   const { itemId } = event
   if (!itemId) return { code: 400, msg: '缺少 itemId' }
 
-  if (role !== 'admin' && role !== 'teacher' && role !== 'head_teacher') {
-    return { code: 403, msg: '仅教师可结算' }
-  }
+  requireTeacher(caller)
 
   const itemRes = await db.collection('auction_items').doc(itemId).get()
   const item = itemRes.data
@@ -534,7 +486,6 @@ async function settleAuction(event, openid, role) {
   if (item.type !== 'auction') return { code: 400, msg: '非竞拍型' }
   if (item.status !== 'active') return { code: 400, msg: '状态不可结算' }
 
-  // 找最高出价
   const topBidRes = await db.collection('auction_bids')
     .where({ item_id: itemId, status: 'winning' })
     .orderBy('bid_price', 'desc')
@@ -543,11 +494,9 @@ async function settleAuction(event, openid, role) {
 
   if (topBidRes.data.length > 0) {
     const winner = topBidRes.data[0]
-    // 中标
     await db.collection('auction_bids').doc(winner._id).update({
       data: { status: 'won' }
     })
-    // 其余未中标者退还积分
     const otherBidsRes = await db.collection('auction_bids')
       .where({ item_id: itemId, status: 'pending' })
       .get()
@@ -557,7 +506,6 @@ async function settleAuction(event, openid, role) {
         data: { status: 'refunded' }
       })
     }
-    // 更新拍品
     await db.collection('auction_items').doc(itemId).update({
       data: {
         status: 'ended',
@@ -567,7 +515,6 @@ async function settleAuction(event, openid, role) {
       }
     })
   } else {
-    // 无人出价
     await db.collection('auction_items').doc(itemId).update({
       data: { status: 'ended', updated_at: db.serverDate() }
     })
@@ -576,7 +523,45 @@ async function settleAuction(event, openid, role) {
   return { code: 0, msg: '结算完成' }
 }
 
-// 出价历史
+async function determineWinner(event, caller) {
+  requireTeacher(caller)
+
+  const { itemId } = event
+  if (!itemId) return { code: 400, msg: '缺少 itemId' }
+
+  const itemRes = await db.collection('auction_items').doc(itemId).get()
+  const item = itemRes.data
+
+  if (item.type !== 'auction') return { code: 400, msg: '非竞拍型' }
+  if (item.status !== 'active' && item.status !== 'ended') return { code: 400, msg: '状态不可确定中标者' }
+
+  const topBidRes = await db.collection('auction_bids')
+    .where({ item_id: itemId, status: 'winning' })
+    .orderBy('bid_price', 'desc')
+    .limit(1)
+    .get()
+
+  if (topBidRes.data.length === 0) {
+    return { code: 400, msg: '无最高出价者' }
+  }
+
+  const winner = topBidRes.data[0]
+  await db.collection('auction_bids').doc(winner._id).update({
+    data: { status: 'won' }
+  })
+
+  await db.collection('auction_items').doc(itemId).update({
+    data: {
+      status: 'ended',
+      winner_id: winner.user_id,
+      winner_name: winner.user_name,
+      updated_at: db.serverDate()
+    }
+  })
+
+  return { code: 0, msg: '已确定中标者', data: { winner_id: winner.user_id, winner_name: winner.user_name } }
+}
+
 async function getBidHistory(event) {
   const { itemId, page = 1, pageSize = 20 } = event
   if (!itemId) return { code: 400, msg: '缺少 itemId' }
@@ -588,7 +573,6 @@ async function getBidHistory(event) {
     .limit(pageSize)
     .get()
 
-  // 隐藏出价者ID
   const bids = res.data.map(b => ({
     ...b,
     user_id: b.user_id === event.openid ? b.user_id : undefined
@@ -597,9 +581,7 @@ async function getBidHistory(event) {
   return { code: 0, data: bids }
 }
 
-// 获取用户余额
-async function getUserBalance(event, openid) {
-  const { classId } = event
+async function getUserBalance(event, openid, classId) {
   const balance = await getUserScore(openid, classId)
   return { code: 0, data: { balance } }
 }

@@ -7,12 +7,14 @@ cloud.init({
 
 const db = cloud.database()
 
-// 云函数入口函数
-exports.main = async (event, context) => {
-  const wxContext = cloud.getWXContext()
-  const openid = wxContext.OPENID
+const { getCallerInfo, requireAdmin, AUTH_ERRORS } = require('../utils/auth')
 
+exports.main = async (event, context) => {
   try {
+    const caller = await getCallerInfo(event)
+    requireAdmin(caller)
+
+    const openid = caller.openid
     // 1. 检查并创建管理员账号
     const userRes = await db.collection('users').where({
       _openid: openid
@@ -130,6 +132,9 @@ exports.main = async (event, context) => {
     }
   } catch (err) {
     console.error('初始化数据库失败:', err)
+    if (err.code && Object.values(AUTH_ERRORS).includes(err.code)) {
+      return { success: false, message: err.message, code: err.code }
+    }
     return {
       success: false,
       error: err.message || '初始化失败'

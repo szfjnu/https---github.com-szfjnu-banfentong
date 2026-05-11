@@ -8,23 +8,35 @@ cloud.init({
 const db = cloud.database()
 const _ = db.command
 
-// 云函数入口函数
+const { getCallerInfo, requireClassAccess, requireTeacher, AUTH_ERRORS } = require('../utils/auth')
+
 exports.main = async (event, context) => {
   const { action, item_id, student_id, bid_score, class_id } = event
 
-  if (action === 'submitBid') {
-    return await submitBid(item_id, student_id, bid_score, class_id)
-  } else if (action === 'cancelBid') {
-    return await cancelBid(item_id, student_id, class_id)
-  } else if (action === 'determineWinner') {
-    return await determineWinner(item_id, class_id)
+  try {
+    const caller = await getCallerInfo(event, class_id)
+
+    if (action === 'submitBid') {
+      return await submitBid(item_id, student_id, bid_score, class_id, caller)
+    } else if (action === 'cancelBid') {
+      return await cancelBid(item_id, student_id, class_id, caller)
+    } else if (action === 'determineWinner') {
+      requireClassAccess(caller, class_id, ['head_teacher', 'subject_teacher', 'admin'])
+      return await determineWinner(item_id, class_id, caller)
+    } else {
+      return { success: false, message: '未知操作' }
+    }
+  } catch (err) {
+    console.error('投标操作失败:', err)
+    if (err.code && Object.values(AUTH_ERRORS).includes(err.code)) {
+      return { success: false, message: err.message, code: err.code }
+    }
+    return { success: false, message: err.message || '操作失败' }
   }
 }
 
-// 提交投标
-async function submitBid(item_id, student_id, bid_score, class_id) {
+async function submitBid(item_id, student_id, bid_score, class_id, caller) {
   try {
-    // 1. 检查物品是否在投标期内（班级维度验证）
     const itemQuery = { _id: item_id };
     if (class_id) itemQuery.class_id = class_id;
     const itemRes = await db.collection('redemption_items').where(itemQuery).limit(1).get()
@@ -32,7 +44,7 @@ async function submitBid(item_id, student_id, bid_score, class_id) {
       return { success: false, message: '物品不存在' }
     }
 
-    const item = itemRes.data
+    const item = itemRes.data[0]
     const now = new Date()
 
     if (item.redemption_mode !== '投标模式') {
@@ -43,7 +55,6 @@ async function submitBid(item_id, student_id, bid_score, class_id) {
       return { success: false, message: '不在投标时间内' }
     }
 
-    // 2. 检查学生当前积分是否足够
     const studentRes = await db.collection('students').where({
       student_id: student_id
     }).get()
@@ -57,7 +68,6 @@ async function submitBid(item_id, student_id, bid_score, class_id) {
       return { success: false, message: '积分不足' }
     }
 
-    // 3. 检查是否已经投标
     const existingBidRes = await db.collection('redemption_requests').where({
       item_id: item_id,
       student_id: student_id,
@@ -69,7 +79,6 @@ async function submitBid(item_id, student_id, bid_score, class_id) {
       return { success: false, message: '您已经投标过了' }
     }
 
-    // 4. 创建投标记录
     await db.collection('redemption_requests').add({
       data: {
         item_id: item_id,
@@ -79,7 +88,8 @@ async function submitBid(item_id, student_id, bid_score, class_id) {
         bid_time: now,
         status: '待审批',
         is_winner: false,
-        created_at: now
+        created_at: now,
+        class_id: class_id
       }
     })
 
@@ -94,10 +104,8 @@ async function submitBid(item_id, student_id, bid_score, class_id) {
   }
 }
 
-// 取消投标
-async function cancelBid(item_id, student_id, class_id) {
+async function cancelBid(item_id, student_id, class_id, caller) {
   try {
-    // 1. 检查是否在投标截止前（班级维度验证）
     const itemQuery = { _id: item_id };
     if (class_id) itemQuery.class_id = class_id;
     const itemRes = await db.collection('redemption_items').where(itemQuery).limit(1).get()
@@ -105,14 +113,13 @@ async function cancelBid(item_id, student_id, class_id) {
       return { success: false, message: '物品不存在' }
     }
 
-    const item = itemRes.data
+    const item = itemRes.data[0]
     const now = new Date()
 
     if (now > new Date(item.bid_end_time)) {
       return { success: false, message: '投标已截止,无法取消' }
     }
 
-    // 2. 查找并取消投标记录
     const bidRes = await db.collection('redemption_requests').where({
       item_id: item_id,
       student_id: student_id,
@@ -142,10 +149,8 @@ async function cancelBid(item_id, student_id, class_id) {
   }
 }
 
-// 确定中标者
-async function determineWinner(item_id, class_id) {
+async function determineWinner(item_id, class_id, caller) {
   try {
-    // 1. 获取物品信息（班级维度验证）
     const itemQuery = { _id: item_id };
     if (class_id) itemQuery.class_id = class_id;
     const itemRes = await db.collection('redemption_items').where(itemQuery).limit(1).get()
@@ -153,9 +158,8 @@ async function determineWinner(item_id, class_id) {
       return { success: false, message: '物品不存在' }
     }
 
-    const item = itemRes.data
+    const item = itemRes.data[0]
 
-    // 2. 获取所有投标记录（班级维度隔离）
     let bidQuery = {
       item_id: item_id,
       redemption_mode: '投标',
@@ -170,10 +174,8 @@ async function determineWinner(item_id, class_id) {
       return { success: false, message: '没有有效投标' }
     }
 
-    // 3. 确定中标者(最高分,相同则按时间先后)
     const winnerBid = bidsRes.data[0]
 
-    // 4. 更新投标记录
     const now = new Date()
     const updatePromises = bidsRes.data.map(async (bid) => {
       const isWinner = bid._id === winnerBid._id
@@ -188,7 +190,6 @@ async function determineWinner(item_id, class_id) {
 
     await Promise.all(updatePromises)
 
-    // 5. 扣除中标学生积分
     if (winnerBid.bid_score > 0) {
       await db.collection('students').where({
         student_id: winnerBid.student_id
@@ -200,7 +201,6 @@ async function determineWinner(item_id, class_id) {
         }
       })
 
-      // 6. 创建积分记录
       await db.collection('score_records').add({
         data: {
           student_id: winnerBid.student_id,
@@ -209,7 +209,7 @@ async function determineWinner(item_id, class_id) {
           reason_detail: `积分兑换: ${item.name}`,
           date: now,
           recorder_name: '系统自动',
-          recorder_openid: 'system',
+          recorder_openid: caller.openid,
           semester_id: item.semester_id,
           source_type: '积分兑换',
           approval_status: '已通过',
@@ -218,7 +218,6 @@ async function determineWinner(item_id, class_id) {
       })
     }
 
-    // 7. 更新物品状态
     await db.collection('redemption_items').doc(item_id).update({
       data: {
         status: '已兑换',
@@ -243,7 +242,6 @@ async function determineWinner(item_id, class_id) {
   }
 }
 
-// 计算积分等级
 function calculateScoreLevel(score) {
   if (score >= 90) return '优秀'
   if (score >= 80) return '良好'

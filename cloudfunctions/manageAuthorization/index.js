@@ -7,6 +7,8 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 const batchQuery = require('./utils/batchQuery');
+const { getCallerInfo, requireClassAccess, requireTeacher } = require('../utils/auth');
+const { batchWithIndependentTransaction } = require('../utils/transaction');
 
 const ALLOWED_MODULES = {
   score: { label: '积分管理', actions: ['read', 'write', 'approve'] },
@@ -35,49 +37,27 @@ const OPEN_ACTIONS = ['getMyPermissions', 'checkModulePermission'];
 
 exports.main = async (event, context) => {
   const { action, data } = event;
-  const { OPENID } = cloud.getWXContext();
 
   try {
-    const userRes = await db.collection('users')
-      .where({ _openid: OPENID })
-      .limit(1)
-      .get();
-
-    if (!userRes.data || userRes.data.length === 0) {
-      return { success: false, message: '用户不存在' };
-    }
-
-    const userRole = userRes.data[0].role;
+    const caller = await getCallerInfo(event, data?.class_id || data?.classId);
 
     if (!OPEN_ACTIONS.includes(action)) {
-      if (action === 'getStudentPermissions') {
-        if (userRole !== 'admin' && userRole !== 'head_teacher') {
-          return { success: false, message: '无权限操作' };
-        }
-      } else if (action === 'saveStudentPermission' || action === 'removeStudentPermission') {
-        if (userRole !== 'admin' && userRole !== 'head_teacher') {
-          return { success: false, message: '仅班主任或管理员可操作' };
-        }
-      } else {
-        if (userRole !== 'admin' && userRole !== 'head_teacher') {
-          return { success: false, message: '无权限操作' };
-        }
-      }
+      requireClassAccess(caller, data?.class_id || caller.classId, ['head_teacher', 'admin']);
     }
 
     switch (action) {
-      case 'getStudents': return await getStudents(data);
-      case 'getAuthorizations': return await getAuthorizations(data);
-      case 'updateStudentAuthorization': return await updateStudentAuthorization(data);
-      case 'batchAuthorize': return await batchAuthorize(data);
-      case 'removeAuthorization': return await removeAuthorization(data);
-      case 'checkPermission': return await checkPermission(data);
-      case 'getStudentPermissions': return await getStudentPermissions(data, OPENID);
-      case 'saveStudentPermission': return await saveStudentPermission(data, OPENID);
-      case 'removeStudentPermission': return await removeStudentPermission(data, OPENID);
-      case 'getMyPermissions': return await getMyPermissions(data, OPENID);
-      case 'checkModulePermission': return await checkModulePermission(data, OPENID);
-      case 'migrateOldBindings': return await migrateOldBindings(data, OPENID);
+      case 'getStudents': return await getStudents(data, caller);
+      case 'getAuthorizations': return await getAuthorizations(data, caller);
+      case 'updateStudentAuthorization': return await updateStudentAuthorization(data, caller);
+      case 'batchAuthorize': return await batchAuthorize(data, caller);
+      case 'removeAuthorization': return await removeAuthorization(data, caller);
+      case 'checkPermission': return await checkPermission(data, caller);
+      case 'getStudentPermissions': return await getStudentPermissions(data, caller);
+      case 'saveStudentPermission': return await saveStudentPermission(data, caller);
+      case 'removeStudentPermission': return await removeStudentPermission(data, caller);
+      case 'getMyPermissions': return await getMyPermissions(data, caller);
+      case 'checkModulePermission': return await checkModulePermission(data, caller);
+      case 'migrateOldBindings': return await migrateOldBindings(data, caller);
       default:
         return { success: false, message: `未知操作: ${action}` };
     }
@@ -154,55 +134,58 @@ async function updateStudentAuthorization(data) {
 }
 
 // 批量授权
-async function batchAuthorize(data) {
+async function batchAuthorize(data, caller) {
   const { class_id, students, permissions } = data;
   if (!class_id || !students || students.length === 0) {
     return { success: false, message: '缺少必要参数' };
   }
 
+  if (caller.role !== 'admin' && caller.classId !== class_id) {
+    return { success: false, message: '无权操作其他班级' };
+  }
+
   const sanitizedPermissions = sanitizePermissions(permissions);
   const now = db.serverDate();
 
-  const tasks = students.map(student => {
-    return (async () => {
-      const existing = await db.collection('student_authorizations')
-        .where({ class_id, student_id: student.student_id })
-        .limit(1)
-        .get();
+  const result = await batchWithIndependentTransaction(students, async (tx, student) => {
+    const existing = await tx.collection('student_authorizations')
+      .where({ class_id, student_id: student.student_id })
+      .limit(1)
+      .get();
 
-      if (existing.data && existing.data.length > 0) {
-        // 合并权限：新权限覆盖旧权限中相同的模块
-        const existingPerms = existing.data[0].permissions || {};
-        const mergedPerms = { ...existingPerms, ...sanitizedPermissions };
+    if (existing.data && existing.data.length > 0) {
+      const existingPerms = existing.data[0].permissions || {};
+      const mergedPerms = { ...existingPerms, ...sanitizedPermissions };
 
-        await db.collection('student_authorizations')
-          .doc(existing.data[0]._id)
-          .update({
-            data: {
-              permissions: mergedPerms,
-              updated_at: now
-            }
-          });
-      } else {
-        await db.collection('student_authorizations').add({
+      await tx.collection('student_authorizations')
+        .doc(existing.data[0]._id)
+        .update({
           data: {
-            auth_id: `auth_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 8)}`,
-            class_id,
-            student_id: student.student_id,
-            student_name: student.student_name || '',
-            permissions: sanitizedPermissions,
-            created_at: now,
+            permissions: mergedPerms,
             updated_at: now
           }
         });
-      }
-    })();
+    } else {
+      await tx.collection('student_authorizations').add({
+        data: {
+          auth_id: `auth_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 8)}`,
+          class_id,
+          student_id: student.student_id,
+          student_name: student.student_name || '',
+          permissions: sanitizedPermissions,
+          created_at: now,
+          updated_at: now
+        }
+      });
+    }
   });
 
-  // 分批执行，每批5个
-  for (let i = 0; i < tasks.length; i += 5) {
-    const batch = tasks.slice(i, i + 5);
-    await Promise.all(batch);
+  if (result.failureCount > 0) {
+    return {
+      success: true,
+      message: `已为 ${result.successCount} 名学生授权，${result.failureCount} 名失败`,
+      data: { successCount: result.successCount, failureCount: result.failureCount, failures: result.failures }
+    };
   }
 
   return { success: true, message: `已为 ${students.length} 名学生授权`, data: { count: students.length } };

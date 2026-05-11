@@ -3,6 +3,8 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
+const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('../utils/auth');
+
 const DEFAULT_WARNING_LEVELS = [
   { level_code: 'warning', level_name: '警告处分', min_sections: 20, max_sections: 40, color: '#faad14' },
   { level_code: 'serious_warning', level_name: '严重警告处分', min_sections: 40, max_sections: 60, color: '#fa8c16' },
@@ -29,42 +31,54 @@ const DEFAULT_TIMETABLE = [
 
 exports.main = async (event, context) => {
   const { action, data } = event;
-  const { OPENID } = cloud.getWXContext();
 
   try {
+    const classId = data && data.class_id
+    const caller = await getCallerInfo(event, classId)
+
+    const READ_ACTIONS = ['getTimetableByDate', 'getTimetableConfig', 'getHolidayAdjustments',
+      'getAbsentWarningConfig', 'getLeaveWarningConfig', 'getWarnings', 'getWarningStats']
+    const WRITE_ACTIONS = ['saveTimetableConfig', 'resetTimetableConfig', 'saveHolidayAdjustment',
+      'deleteHolidayAdjustment', 'saveAbsentWarningConfig', 'resetAbsentWarningConfig',
+      'saveLeaveWarningConfig', 'resetLeaveWarningConfig', 'detectWarnings']
+
+    if (WRITE_ACTIONS.includes(action)) {
+      requireTeacher(caller)
+    }
+
     switch (action) {
       case 'getTimetableByDate':
-        return await getTimetableByDate(data, OPENID);
+        return await getTimetableByDate(data, caller.openid);
       case 'getTimetableConfig':
-        return await getTimetableConfig(data, OPENID);
+        return await getTimetableConfig(data, caller.openid);
       case 'saveTimetableConfig':
-        return await saveTimetableConfig(data, OPENID);
+        return await saveTimetableConfig(data, caller.openid);
       case 'resetTimetableConfig':
-        return await resetTimetableConfig(data, OPENID);
+        return await resetTimetableConfig(data, caller.openid);
       case 'getHolidayAdjustments':
-        return await getHolidayAdjustments(data, OPENID);
+        return await getHolidayAdjustments(data, caller.openid);
       case 'saveHolidayAdjustment':
-        return await saveHolidayAdjustment(data, OPENID);
+        return await saveHolidayAdjustment(data, caller.openid);
       case 'deleteHolidayAdjustment':
-        return await deleteHolidayAdjustment(data, OPENID);
+        return await deleteHolidayAdjustment(data, caller.openid);
       case 'getAbsentWarningConfig':
-        return await getAbsentWarningConfig(data, OPENID);
+        return await getAbsentWarningConfig(data, caller.openid);
       case 'saveAbsentWarningConfig':
-        return await saveAbsentWarningConfig(data, OPENID);
+        return await saveAbsentWarningConfig(data, caller.openid);
       case 'resetAbsentWarningConfig':
-        return await resetAbsentWarningConfig(data, OPENID);
+        return await resetAbsentWarningConfig(data, caller.openid);
       case 'getLeaveWarningConfig':
-        return await getLeaveWarningConfig(data, OPENID);
+        return await getLeaveWarningConfig(data, caller.openid);
       case 'saveLeaveWarningConfig':
-        return await saveLeaveWarningConfig(data, OPENID);
+        return await saveLeaveWarningConfig(data, caller.openid);
       case 'resetLeaveWarningConfig':
-        return await resetLeaveWarningConfig(data, OPENID);
+        return await resetLeaveWarningConfig(data, caller.openid);
       case 'detectWarnings':
-        return await detectWarnings(data, OPENID);
+        return await detectWarnings(data, caller.openid);
       case 'getWarnings':
-        return await getWarnings(data, OPENID);
+        return await getWarnings(data, caller.openid);
       case 'getWarningStats':
-        return await getWarningStats(data, OPENID);
+        return await getWarningStats(data, caller.openid);
       default:
         return { success: false, message: '未知操作' };
     }

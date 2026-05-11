@@ -3,23 +3,29 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
+const { getCallerInfo } = require('../utils/auth')
 
 exports.main = async (event, context) => {
-  const { OPENID } = cloud.getWXContext()
-  const { action } = event
+  const { action, data } = event
+
+  try {
+    const caller = await getCallerInfo(event, data?.class_id || data?.classId)
 
   switch (action) {
-    case 'create': return await createActivity(event, OPENID)
-    case 'list': return await listActivities(event, OPENID)
+    case 'create': return await createActivity(event, caller.openid)
+    case 'list': return await listActivities(event, caller.openid)
     case 'detail': return await getActivity(event)
-    case 'join': return await joinActivity(event, OPENID)
-    case 'leave': return await leaveActivity(event, OPENID)
-    case 'cancel': return await cancelActivity(event, OPENID)
+    case 'join': return await joinActivity(event, caller.openid)
+    case 'leave': return await leaveActivity(event, caller.openid)
+    case 'cancel': return await cancelActivity(event, caller.openid)
     case 'auditList': return await getAuditList(event)
-    case 'audit': return await auditActivity(event, OPENID)
-    case 'myActivities': return await getMyActivities(event, OPENID)
-    case 'finish': return await finishActivity(event, OPENID)
+    case 'audit': return await auditActivity(event, caller.openid)
+    case 'myActivities': return await getMyActivities(event, caller.openid)
+    case 'finish': return await finishActivity(event, caller.openid)
     default: return { success: false, message: '未知操作' }
+  }
+  } catch (err) {
+    return { success: false, message: err.message }
   }
 }
 

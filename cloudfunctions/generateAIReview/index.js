@@ -8,12 +8,16 @@ cloud.init({
 const db = cloud.database()
 const _ = db.command
 
-// 云函数入口函数
+const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('../utils/auth')
+
 exports.main = async (event, context) => {
   const { student_id, review_type, review_period } = event
+  const { class_id } = event
 
   try {
-    // 1. 获取学生信息
+    const caller = await getCallerInfo(event, class_id)
+    requireTeacher(caller)
+
     const studentRes = await db.collection('students').where({
       student_id: student_id
     }).get()
@@ -24,7 +28,6 @@ exports.main = async (event, context) => {
 
     const student = studentRes.data[0]
 
-    // 2. 确定学期ID
     const { class_id } = event
     let semesterQuery = { status: 'active' };
     if (class_id) {
@@ -188,6 +191,9 @@ exports.main = async (event, context) => {
 
   } catch (err) {
     console.error('生成AI点评失败:', err)
+    if (err.code && Object.values(AUTH_ERRORS).includes(err.code)) {
+      return { success: false, message: err.message, code: err.code }
+    }
     return { success: false, message: `生成失败: ${err.message}` }
   }
 }

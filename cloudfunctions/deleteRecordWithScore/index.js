@@ -3,17 +3,20 @@ const cloud = require('wx-server-sdk')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
+const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('../utils/auth')
+
 /**
  * 删除记录并回退积分的云函数
  * 支持：考勤记录、志愿服务记录、卫生值日记录
  * 
  * @param {string} recordType - 记录类型：attendance(考勤) 或 volunteer(志愿服务) 或 duty(卫生值日)
  * @param {string} recordId - 记录ID
+ * @param {string} classId - 班级ID（用于鉴权）
  */
 exports.main = async (event, context) => {
   const db = cloud.database()
   const _ = db.command
-  const { recordType, recordId } = event
+  const { recordType, recordId, classId } = event
 
   if (!recordType || !recordId) {
     return {
@@ -23,6 +26,9 @@ exports.main = async (event, context) => {
   }
 
   try {
+    const caller = await getCallerInfo(event, classId)
+    requireTeacher(caller)
+
     let record = null
     let studentId = ''
     let scoreChange = 0
@@ -30,7 +36,6 @@ exports.main = async (event, context) => {
     let relatedScoreRecordId = ''
     let sourceTypeLabel = ''
 
-    // 根据记录类型获取记录信息
     if (recordType === 'attendance') {
       collectionName = 'attendance_records'
       sourceTypeLabel = '考勤'
@@ -68,16 +73,14 @@ exports.main = async (event, context) => {
       return { success: false, message: '不支持的记录类型' }
     }
 
-    console.log(`删除${recordType}记录:`, recordId, '学生:', studentId, '积分变化:', scoreChange)
+    if (caller.role !== 'admin' && record.class_id && record.class_id !== caller.classId) {
+      return { success: false, message: '无权删除其他班级的记录', code: AUTH_ERRORS.CLASS_DENIED }
+    }
 
-    // 1. 删除原始记录
     await db.collection(collectionName).doc(recordId).remove()
-    console.log('原始记录已删除')
 
-    // 2. 删除关联的积分记录
     if (relatedScoreRecordId) {
       await db.collection('score_records').doc(relatedScoreRecordId).remove()
-      console.log('关联积分记录已删除:', relatedScoreRecordId)
     } else {
       const scoreRecordsRes = await db.collection('score_records')
         .where({
@@ -90,12 +93,10 @@ exports.main = async (event, context) => {
       if (scoreRecordsRes.data && scoreRecordsRes.data.length > 0) {
         for (const sr of scoreRecordsRes.data) {
           await db.collection('score_records').doc(sr._id).remove()
-          console.log('找到并删除积分记录:', sr._id)
         }
       }
     }
 
-    // 3. 回退学生积分（使用原子操作）
     if (scoreChange !== 0) {
       const reverseChange = -scoreChange
       try {
@@ -107,7 +108,6 @@ exports.main = async (event, context) => {
               updated_at: db.serverDate()
             }
           })
-        console.log('学生积分已回退(原子操作):', reverseChange)
       } catch (incErr) {
         console.error('原子操作回退失败，尝试补偿:', incErr)
         const studentRes = await db.collection('students')
@@ -122,7 +122,6 @@ exports.main = async (event, context) => {
               updated_at: db.serverDate()
             }
           })
-          console.log('学生积分已回退(补偿):', student.current_score, '->', newScore)
         }
       }
     }
@@ -139,6 +138,9 @@ exports.main = async (event, context) => {
 
   } catch (err) {
     console.error('删除记录失败:', err)
+    if (err.code && Object.values(AUTH_ERRORS).includes(err.code)) {
+      return { success: false, message: err.message, code: err.code }
+    }
     return {
       success: false,
       message: '删除失败: ' + err.message,

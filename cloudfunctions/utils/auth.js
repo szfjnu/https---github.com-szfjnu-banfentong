@@ -55,6 +55,7 @@ async function getCallerInfo(event, classId) {
     classId: targetRelation.class_id,
     studentId: targetRelation.student_id || null,
     isOwner: targetRelation.is_owner || false,
+    realName: targetRelation.real_name || '匿名',
     allClasses
   }
 }

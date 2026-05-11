@@ -3,6 +3,8 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
+const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('../utils/auth');
+
 function validateParams(data, requiredFields) {
   for (const field of requiredFields) {
     if (data[field] === undefined || data[field] === null || data[field] === '') {
@@ -10,31 +12,6 @@ function validateParams(data, requiredFields) {
     }
   }
   return { valid: true };
-}
-
-async function checkPermission(openid) {
-  const userRes = await db.collection('users')
-    .where({ _openid: openid })
-    .limit(1)
-    .get();
-
-  if (userRes.data && userRes.data.length > 0) {
-    const role = userRes.data[0].role;
-    if (['admin', 'head_teacher', 'class_teacher'].includes(role)) {
-      return { allowed: true, role };
-    }
-  }
-
-  const relRes = await db.collection('user_class_relation')
-    .where({ user_openid: openid, role: _.in(['head_teacher', 'class_teacher', 'admin']), status: 'joined' })
-    .limit(1)
-    .get();
-
-  if (relRes.data && relRes.data.length > 0) {
-    return { allowed: true, role: 'class_teacher' };
-  }
-
-  return { allowed: false };
 }
 
 async function getDormCandidates(data) {
@@ -325,7 +302,6 @@ async function releaseBed(data, openid) {
 }
 
 exports.main = async (event, context) => {
-  const { OPENID } = cloud.getWXContext();
   const { action, data } = event;
 
   if (!action) {
@@ -337,16 +313,29 @@ exports.main = async (event, context) => {
   }
 
   if (action === 'syncDormInfo' || action === 'releaseBed') {
-    const permCheck = await checkPermission(OPENID);
-    if (!permCheck.allowed) {
-      return { success: false, message: '无权限执行此操作', code: 'PERMISSION_DENIED' };
-    }
+    try {
+      const caller = await getCallerInfo(event);
+      requireTeacher(caller);
 
-    if (action === 'syncDormInfo') {
-      return await syncDormInfo(data || {}, OPENID);
-    }
-    if (action === 'releaseBed') {
-      return await releaseBed(data || {}, OPENID);
+      if (action === 'syncDormInfo') {
+        return await syncDormInfo(data || {}, caller.openid);
+      }
+      if (action === 'releaseBed') {
+        return await releaseBed(data || {}, caller.openid);
+      }
+    } catch (err) {
+      if (Object.values(AUTH_ERRORS).includes(err.code)) {
+        const msgMap = {
+          [AUTH_ERRORS.NO_OPENID]: '未获取到用户身份',
+          [AUTH_ERRORS.NO_CLASS]: '用户未加入任何班级',
+          [AUTH_ERRORS.NO_ACCESS]: '无权操作此班级',
+          [AUTH_ERRORS.ROLE_DENIED]: err.message,
+          [AUTH_ERRORS.CLASS_DENIED]: '无权访问该班级数据'
+        }
+        return { success: false, message: msgMap[err.code] || err.message, code: 'PERMISSION_DENIED' };
+      }
+      console.error('dormSyncManager error:', err);
+      return { success: false, message: '服务器错误', code: 'INTERNAL_ERROR' };
     }
   }
 

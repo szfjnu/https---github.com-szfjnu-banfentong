@@ -3,6 +3,8 @@ const cloud = require('wx-server-sdk')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
+const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('../utils/auth')
+
 /**
  * 重置学生积分的云函数
  * 
@@ -17,6 +19,8 @@ exports.main = async (event, context) => {
   const { classId, studentId, initialScore = 100, semesterId } = event
 
   try {
+    const caller = await getCallerInfo(event, classId)
+    requireTeacher(caller)
     // 构建查询条件
     let query = {}
     if (studentId) {
@@ -65,7 +69,7 @@ exports.main = async (event, context) => {
           student_count: students.length,
           initial_score: initialScore,
           semester_id: semesterId,
-          reset_by: event.userInfo ? event.userInfo.openId : 'system',
+          reset_by: caller.openid,
           reset_at: db.serverDate(),
           created_at: db.serverDate()
         }

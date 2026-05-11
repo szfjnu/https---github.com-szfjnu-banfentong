@@ -3,13 +3,16 @@ const cloud = require('wx-server-sdk')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
-// 云函数入口函数
+const { getCallerInfo, requireAdmin, AUTH_ERRORS } = require('../utils/auth')
+
 exports.main = async (event, context) => {
   const db = cloud.database()
   const _ = db.command
 
   try {
-    // 检查是否已初始化
+    const caller = await getCallerInfo(event)
+    requireAdmin(caller)
+
     const existCount = await db.collection('score_categories').count()
     
     if (existCount.total > 0) {
@@ -251,6 +254,9 @@ exports.main = async (event, context) => {
 
   } catch (err) {
     console.error('初始化积分类别失败:', err)
+    if (err.code && Object.values(AUTH_ERRORS).includes(err.code)) {
+      return { success: false, message: err.message, code: err.code }
+    }
     return {
       success: false,
       message: '初始化失败: ' + err.message,

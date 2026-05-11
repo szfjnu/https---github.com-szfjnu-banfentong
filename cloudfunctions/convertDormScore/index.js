@@ -8,13 +8,16 @@ cloud.init({
 const db = cloud.database()
 const _ = db.command
 
-// 云函数入口函数
+const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('../utils/auth')
+
 exports.main = async (event, context) => {
-  const { student_id, dorm_score_change, recorder_openid, semester_id } = event
+  const { student_id, dorm_score_change, semester_id } = event
+  const { class_id } = event
 
   try {
-    // 1. 获取当前学期信息
-    const { class_id } = event
+    const caller = await getCallerInfo(event, class_id)
+    requireTeacher(caller)
+
     let semesterQuery = { status: 'active' };
     if (class_id) {
       semesterQuery = { class_id: class_id, status: 'active' };
@@ -39,7 +42,6 @@ exports.main = async (event, context) => {
     const targetSemesterId = semester_id || currentSemester._id
     const conversionRatio = currentSemester.dorm_conversion_ratio || 0.3
 
-    // 2. 获取或创建宿舍积分账户
     let dormAccount
     const accountRes = await db.collection('dorm_score_accounts').where({
       student_id: student_id,
@@ -47,7 +49,6 @@ exports.main = async (event, context) => {
     }).get()
     
     if (accountRes.data.length === 0) {
-      // 创建新账户
       const createRes = await db.collection('dorm_score_accounts').add({
         data: {
           student_id: student_id,
@@ -65,22 +66,17 @@ exports.main = async (event, context) => {
       dormAccount = accountRes.data[0]
     }
 
-    // 3. 计算折算积分（保留两位小数）
     const convertedScoreChange = Math.round(dorm_score_change * conversionRatio * 100) / 100
-    
-    console.log('宿舍积分变化:', dorm_score_change, '折算比例:', conversionRatio, '折算积分变化:', convertedScoreChange)
 
-    // 4. 更新宿舍积分账户
     await db.collection('dorm_score_accounts').doc(dormAccount._id).update({
       data: {
         original_score: _.inc(dorm_score_change),
-        current_score: _.inc(dorm_score_change),  // 同时更新当前积分
+        current_score: _.inc(dorm_score_change),
         converted_score: _.inc(convertedScoreChange),
         updated_at: new Date()
       }
     })
 
-    // 5. 在日常积分记录中创建折算记录
     if (convertedScoreChange !== 0) {
       await db.collection('score_records').add({
         data: {
@@ -90,7 +86,7 @@ exports.main = async (event, context) => {
           reason_detail: `宿舍积分折算 (系数${conversionRatio})`,
           date: new Date(),
           recorder_name: '系统自动',
-          recorder_openid: 'system',
+          recorder_openid: caller.openid,
           semester_id: targetSemesterId,
           source_type: '宿舍折算',
           approval_status: '已通过',
@@ -98,7 +94,6 @@ exports.main = async (event, context) => {
         }
       })
 
-      // 6. 先获取当前学生积分，计算新积分等级
       const studentRes = await db.collection('students').where({
         student_id: student_id
       }).get()
@@ -108,7 +103,6 @@ exports.main = async (event, context) => {
         const newScore = (currentStudent.current_score || 100) + convertedScoreChange
         const newScoreLevel = calculateScoreLevel(newScore)
         
-        // 更新学生总积分
         await db.collection('students').where({
           student_id: student_id
         }).update({
@@ -119,12 +113,9 @@ exports.main = async (event, context) => {
             updated_at: new Date()
           }
         })
-        
-        console.log('学生积分更新:', '原积分:', currentStudent.current_score, '变化:', convertedScoreChange, '新积分:', newScore)
       }
     }
 
-    // 7. 检查是否需要发送预警
     const updatedAccountRes = await db.collection('dorm_score_accounts').doc(dormAccount._id).get()
     const updatedAccount = updatedAccountRes.data
     const warningThreshold = currentSemester.dorm_warning_threshold || 60
@@ -160,6 +151,9 @@ exports.main = async (event, context) => {
 
   } catch (err) {
     console.error('宿舍积分折算失败:', err)
+    if (err.code && Object.values(AUTH_ERRORS).includes(err.code)) {
+      return { success: false, message: err.message, code: err.code }
+    }
     return {
       success: false,
       message: `折算失败: ${err.message}`
@@ -167,7 +161,6 @@ exports.main = async (event, context) => {
   }
 }
 
-// 计算积分等级
 function calculateScoreLevel(score) {
   if (score >= 90) return '优秀'
   if (score >= 80) return '良好'

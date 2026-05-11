@@ -6,6 +6,8 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
 
+const { getCallerInfo, AUTH_ERRORS } = require('../utils/auth')
+
 // NPC 系统提示词字典
 const SYSTEM_PROMPTS = {
   companion: {
@@ -23,8 +25,6 @@ const SYSTEM_PROMPTS = {
 }
 
 exports.main = async (event, context) => {
-  const wxContext = cloud.getWXContext()
-  const openid = wxContext.OPENID
   const { action, npc_type, messages: newMessages } = event
 
   if (!npc_type) {
@@ -32,11 +32,13 @@ exports.main = async (event, context) => {
   }
 
   try {
+    const caller = await getCallerInfo(event)
+
     switch (action) {
       case 'getHistory':
-        return await getHistory(openid, npc_type)
+        return await getHistory(caller.openid, npc_type)
       case 'saveMessages':
-        return await saveMessages(openid, npc_type, newMessages)
+        return await saveMessages(caller.openid, npc_type, newMessages)
       case 'getSystemPrompt':
         return { success: true, data: { prompt: SYSTEM_PROMPTS[npc_type] || SYSTEM_PROMPTS.companion } }
       default:
@@ -44,6 +46,9 @@ exports.main = async (event, context) => {
     }
   } catch (err) {
     console.error('aiNpc 错误:', err)
+    if (err.code && Object.values(AUTH_ERRORS).includes(err.code)) {
+      return { success: false, message: err.message, code: err.code }
+    }
     return { success: false, message: err.message || '操作失败' }
   }
 }

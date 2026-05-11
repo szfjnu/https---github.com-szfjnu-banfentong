@@ -8,6 +8,8 @@ cloud.init({
 const db = cloud.database();
 const _ = db.command;
 
+const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('../utils/auth');
+
 /**
  * 积分规则引擎验证云函数
  * 用于验证规则的外键约束和数据一致性
@@ -15,7 +17,12 @@ const _ = db.command;
 exports.main = async (event, context) => {
   const { action, data } = event;
   
-  switch (action) {
+  try {
+    const classId = data && data.class_id
+    const caller = await getCallerInfo(event, classId)
+    requireTeacher(caller)
+
+    switch (action) {
     case 'validateRuleConstraints':
       return await validateRuleConstraints(data);
     case 'validateScoreRecord':
@@ -29,6 +36,12 @@ exports.main = async (event, context) => {
         success: false,
         errMsg: '未知的操作类型'
       };
+  }
+  } catch (err) {
+    if (err.code && Object.values(AUTH_ERRORS).includes(err.code)) {
+      return { success: false, errMsg: err.message, code: err.code };
+    }
+    return { success: false, errMsg: err.message || '操作失败' };
   }
 };
 

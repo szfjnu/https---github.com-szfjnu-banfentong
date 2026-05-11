@@ -2,6 +2,7 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
+const { getCallerInfo } = require('../utils/auth')
 
 const SECTION_NAMES = ['', '第一节课', '第二节课', '第三节课', '第四节课', '第五节课', '第六节课', '第七节课']
 const WEEK_DAY_NAMES = ['', '星期一', '星期二', '星期三', '星期四', '星期五']
@@ -11,16 +12,21 @@ const WRITE_ROLES = ['admin', 'head_teacher']
 
 exports.main = async (event, context) => {
   const { action, data } = event
-  const OPENID = cloud.getWXContext().OPENID
+
+  try {
+    const caller = await getCallerInfo(event, data?.class_id || data?.classId)
 
   switch (action) {
-    case 'getSchedule': return await getSchedule(data, OPENID)
-    case 'importSchedule': return await importSchedule(data, OPENID)
-    case 'updateSchedule': return await updateSchedule(data, OPENID)
-    case 'deleteSchedule': return await deleteSchedule(data, OPENID)
+    case 'getSchedule': return await getSchedule(data, caller.openid)
+    case 'importSchedule': return await importSchedule(data, caller.openid)
+    case 'updateSchedule': return await updateSchedule(data, caller.openid)
+    case 'deleteSchedule': return await deleteSchedule(data, caller.openid)
     case 'ensureCollection': return await ensureCollection()
-    case 'fixMissingIsBase': return await fixMissingIsBase(data, OPENID)
+    case 'fixMissingIsBase': return await fixMissingIsBase(data, caller.openid)
     default: return { success: false, message: '未知操作' }
+  }
+  } catch (err) {
+    return { success: false, message: err.message }
   }
 }
 

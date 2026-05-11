@@ -3,7 +3,8 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
 
-// 分类映射
+const { getCallerInfo, requireRole, requireClassAccess, requireTeacher, AUTH_ERRORS } = require('../utils/auth')
+
 const CATEGORIES = {
   textbook: '教材书籍',
   electronics: '电子数码',
@@ -13,7 +14,6 @@ const CATEGORIES = {
   other: '其他'
 }
 
-// 成色映射
 const CONDITIONS = {
   new: '全新',
   'like-new': '几乎全新',
@@ -22,66 +22,50 @@ const CONDITIONS = {
   poor: '仍可使用'
 }
 
-// 验证用户班级身份
-async function verifyUser(openid, classId) {
-  let rel = await db.collection('user_class_relation')
-    .where({ user_openid: openid, class_id: classId })
-    .count()
-  if (rel.total > 0) return true
-  rel = await db.collection('user_class_relation')
-    .where({ _openid: openid, class_id: classId })
-    .count()
-  return rel.total > 0
-}
-
-// 获取用户角色
-async function getUserRole(openid, classId) {
-  let rel = await db.collection('user_class_relation')
-    .where({ user_openid: openid, class_id: classId })
-    .get()
-  if (rel.data.length === 0) {
-    rel = await db.collection('user_class_relation')
-      .where({ _openid: openid, class_id: classId })
-      .get()
-  }
-  if (rel.data.length === 0) return null
-  return rel.data[0].role || 'student'
-}
-
 exports.main = async (event, context) => {
-  const wxContext = cloud.getWXContext()
-  const openid = wxContext.OPENID
   const { action, classId } = event
 
   if (!classId) return { code: 400, msg: '缺少 classId' }
 
-  // 验证身份
-  const isMember = await verifyUser(openid, classId)
-  if (!isMember) return { code: 403, msg: '无权操作此班级' }
+  try {
+    const caller = await getCallerInfo(event, classId)
+    const { openid, role, realName } = caller
 
-  const role = await getUserRole(openid, classId)
-
-  switch (action) {
-    case 'publishItem': return publishItem(event, openid)
-    case 'getItems': return getItems(event, openid)
-    case 'getItemDetail': return getItemDetail(event, openid)
-    case 'updateItem': return updateItem(event, openid)
-    case 'deleteItem': return deleteItem(event, openid, role)
-    case 'toggleWant': return toggleWant(event, openid)
-    case 'reserveItem': return reserveItem(event, openid)
-    case 'markSold': return markSold(event, openid)
-    case 'getMyItems': return getMyItems(event, openid)
-    case 'addMessage': return addMessage(event, openid)
-    case 'getMessages': return getMessages(event)
-    case 'reportItem': return reportItem(event, openid)
-    case 'handleReport': return handleReport(event, openid, role)
-    default: return { code: 400, msg: '未知 action' }
+    switch (action) {
+      case 'publishItem': return publishItem(event, caller)
+      case 'getItems': return getItems(event, openid, classId)
+      case 'getItemDetail': return getItemDetail(event, openid, classId)
+      case 'updateItem': return updateItem(event, caller)
+      case 'deleteItem': return deleteItem(event, caller)
+      case 'toggleWant': return toggleWant(event, openid, classId)
+      case 'reserveItem': return reserveItem(event, openid)
+      case 'markSold': return markSold(event, openid)
+      case 'getMyItems': return getMyItems(event, openid, classId)
+      case 'addMessage': return addMessage(event, caller)
+      case 'getMessages': return getMessages(event)
+      case 'reportItem': return reportItem(event, openid, classId)
+      case 'handleReport': return handleReport(event, caller)
+      default: return { code: 400, msg: '未知 action' }
+    }
+  } catch (err) {
+    if (Object.values(AUTH_ERRORS).includes(err.code)) {
+      const msgMap = {
+        [AUTH_ERRORS.NO_OPENID]: '未获取到用户身份',
+        [AUTH_ERRORS.NO_CLASS]: '用户未加入任何班级',
+        [AUTH_ERRORS.NO_ACCESS]: '无权操作此班级',
+        [AUTH_ERRORS.ROLE_DENIED]: err.message,
+        [AUTH_ERRORS.CLASS_DENIED]: '无权访问该班级数据'
+      }
+      return { code: 403, msg: msgMap[err.code] || err.message }
+    }
+    console.error('fleaMarketManager error:', err)
+    return { code: 500, msg: '服务器错误' }
   }
 }
 
-// 发布商品
-async function publishItem(event, openid) {
+async function publishItem(event, caller) {
   const { classId, title, description, category, price, originalPrice, condition, images, sellerContact, tags } = event
+  const { openid, realName } = caller
 
   if (!title || !description || !category || price === undefined || !condition) {
     return { code: 400, msg: '缺少必填字段' }
@@ -90,16 +74,7 @@ async function publishItem(event, openid) {
   if (!CATEGORIES[category]) return { code: 400, msg: '无效分类' }
   if (!CONDITIONS[condition]) return { code: 400, msg: '无效成色' }
 
-  // 获取卖家信息
-  const userRes = await db.collection('user_class_relation')
-    .where({ user_openid: openid, class_id: classId })
-    .get()
-  const sellerRel = userRes.data.length > 0 ? userRes : await db.collection('user_class_relation')
-    .where({ _openid: openid, class_id: classId })
-    .get()
-  if (sellerRel.data.length === 0) return { code: 403, msg: '非班级成员' }
-
-  const sellerName = sellerRel.data[0].real_name || '匿名'
+  const sellerName = realName
 
   const item = {
     title,
@@ -127,9 +102,8 @@ async function publishItem(event, openid) {
   return { code: 0, msg: '发布成功', data: { _id: res._id } }
 }
 
-// 获取商品列表
-async function getItems(event, openid) {
-  const { classId, category, status, keyword, page = 1, pageSize = 10 } = event
+async function getItems(event, openid, classId) {
+  const { category, status, keyword, page = 1, pageSize = 10 } = event
 
   let where = { class_id: classId }
 
@@ -155,7 +129,6 @@ async function getItems(event, openid) {
     .limit(pageSize)
     .get()
 
-  // 查询用户想要的商品
   let wantItemIds = []
   if (res.data.length > 0) {
     const itemIds = res.data.map(i => i._id)
@@ -179,23 +152,19 @@ async function getItems(event, openid) {
   }
 }
 
-// 获取商品详情
-async function getItemDetail(event, openid) {
+async function getItemDetail(event, openid, classId) {
   const { itemId } = event
   if (!itemId) return { code: 400, msg: '缺少 itemId' }
 
   const res = await db.collection('flea_items').doc(itemId).get()
   const item = res.data
 
-  // 验证班级
-  if (item.class_id !== event.classId) return { code: 403, msg: '无权查看' }
+  if (item.class_id !== classId) return { code: 403, msg: '无权查看' }
 
-  // 增加浏览量
   await db.collection('flea_items').doc(itemId).update({
     data: { view_count: _.inc(1) }
   })
 
-  // 查询想要状态
   const wantRes = await db.collection('flea_wants')
     .where({ item_id: itemId, user_id: openid })
     .count()
@@ -209,13 +178,14 @@ async function getItemDetail(event, openid) {
   return { code: 0, data: item }
 }
 
-// 更新商品
-async function updateItem(event, openid) {
+async function updateItem(event, caller) {
+  requireTeacher(caller)
+
   const { itemId, title, description, category, price, originalPrice, condition, images, sellerContact, tags } = event
+  const { openid } = caller
 
   if (!itemId) return { code: 400, msg: '缺少 itemId' }
 
-  // 验证所有者
   const itemRes = await db.collection('flea_items').doc(itemId).get()
   if (itemRes.data.seller_id !== openid) return { code: 403, msg: '只能编辑自己的商品' }
 
@@ -234,9 +204,11 @@ async function updateItem(event, openid) {
   return { code: 0, msg: '更新成功' }
 }
 
-// 删除商品（卖家自己或管理员）
-async function deleteItem(event, openid, role) {
+async function deleteItem(event, caller) {
+  requireTeacher(caller)
+
   const { itemId } = event
+  const { openid, role } = caller
   if (!itemId) return { code: 400, msg: '缺少 itemId' }
 
   const itemRes = await db.collection('flea_items').doc(itemId).get()
@@ -246,7 +218,6 @@ async function deleteItem(event, openid, role) {
     return { code: 403, msg: '无权删除' }
   }
 
-  // 软删除
   await db.collection('flea_items').doc(itemId).update({
     data: { status: 'removed', updated_at: db.serverDate() }
   })
@@ -254,9 +225,8 @@ async function deleteItem(event, openid, role) {
   return { code: 0, msg: '已删除' }
 }
 
-// 切换想要
-async function toggleWant(event, openid) {
-  const { itemId, classId } = event
+async function toggleWant(event, openid, classId) {
+  const { itemId } = event
   if (!itemId) return { code: 400, msg: '缺少 itemId' }
 
   const existRes = await db.collection('flea_wants')
@@ -264,14 +234,12 @@ async function toggleWant(event, openid) {
     .get()
 
   if (existRes.data.length > 0) {
-    // 取消想要
     await db.collection('flea_wants').doc(existRes.data[0]._id).remove()
     await db.collection('flea_items').doc(itemId).update({
       data: { want_count: _.inc(-1) }
     })
     return { code: 0, msg: '已取消', data: { wanted: false } }
   } else {
-    // 添加想要
     await db.collection('flea_wants').add({
       data: {
         item_id: itemId,
@@ -287,7 +255,6 @@ async function toggleWant(event, openid) {
   }
 }
 
-// 预留商品（卖家操作）
 async function reserveItem(event, openid) {
   const { itemId, buyerId } = event
   if (!itemId || !buyerId) return { code: 400, msg: '缺少参数' }
@@ -307,7 +274,6 @@ async function reserveItem(event, openid) {
   return { code: 0, msg: '已预留' }
 }
 
-// 标记成交
 async function markSold(event, openid) {
   const { itemId, buyerId } = event
   if (!itemId) return { code: 400, msg: '缺少 itemId' }
@@ -326,9 +292,8 @@ async function markSold(event, openid) {
   return { code: 0, msg: '已标记成交' }
 }
 
-// 我的发布
-async function getMyItems(event, openid) {
-  const { classId, status, page = 1, pageSize = 10 } = event
+async function getMyItems(event, openid, classId) {
+  const { status, page = 1, pageSize = 10 } = event
 
   let where = { seller_id: openid, class_id: classId }
   if (status) where.status = status
@@ -353,20 +318,13 @@ async function getMyItems(event, openid) {
   }
 }
 
-// 添加留言
-async function addMessage(event, openid) {
+async function addMessage(event, caller) {
   const { itemId, classId, content } = event
+  const { openid, realName } = caller
 
   if (!itemId || !content) return { code: 400, msg: '缺少必填字段' }
 
-  // 获取用户名
-  const userRes = await db.collection('user_class_relation')
-    .where({ user_openid: openid, class_id: classId })
-    .get()
-  const senderRel = userRes.data.length > 0 ? userRes : await db.collection('user_class_relation')
-    .where({ _openid: openid, class_id: classId })
-    .get()
-  const senderName = senderRel.data.length > 0 ? (senderRel.data[0].real_name || '匿名') : '匿名'
+  const senderName = realName
 
   await db.collection('flea_messages').add({
     data: {
@@ -382,7 +340,6 @@ async function addMessage(event, openid) {
   return { code: 0, msg: '留言成功' }
 }
 
-// 获取留言
 async function getMessages(event) {
   const { itemId, page = 1, pageSize = 20 } = event
 
@@ -398,9 +355,8 @@ async function getMessages(event) {
   return { code: 0, data: res.data }
 }
 
-// 举报商品
-async function reportItem(event, openid) {
-  const { itemId, classId, reason, detail } = event
+async function reportItem(event, openid, classId) {
+  const { itemId, reason, detail } = event
 
   if (!itemId || !reason) return { code: 400, msg: '缺少必填字段' }
 
@@ -419,11 +375,11 @@ async function reportItem(event, openid) {
   return { code: 0, msg: '举报已提交' }
 }
 
-// 处理举报（管理员）
-async function handleReport(event, openid, role) {
+async function handleReport(event, caller) {
+  requireTeacher(caller)
+
   const { reportId, action: reportAction } = event
 
-  if (role !== 'admin' && role !== 'teacher') return { code: 403, msg: '无权操作' }
   if (!reportId) return { code: 400, msg: '缺少 reportId' }
 
   const validActions = ['resolved', 'dismissed']
@@ -433,7 +389,6 @@ async function handleReport(event, openid, role) {
     data: { status: reportAction }
   })
 
-  // 如果确认违规，下架商品
   if (reportAction === 'resolved') {
     const reportRes = await db.collection('flea_reports').doc(reportId).get()
     await db.collection('flea_items').doc(reportRes.data.item_id).update({

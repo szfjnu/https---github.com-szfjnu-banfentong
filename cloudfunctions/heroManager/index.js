@@ -6,31 +6,33 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
+const { getCallerInfo } = require('../utils/auth');
 
 exports.main = async (event, context) => {
   const { action, data } = event;
-  const { OPENID } = cloud.getWXContext();
 
   try {
+    const caller = await getCallerInfo(event, data?.class_id || data?.classId);
+
     switch (action) {
       case 'awardHonor':
-        return await awardHonor(data, OPENID);
+        return await awardHonor(data, caller.openid);
       case 'getHonorWall':
-        return await getHonorWall(data, OPENID);
+        return await getHonorWall(data, caller.openid);
       case 'getMyHonors':
-        return await getMyHonors(data, OPENID);
+        return await getMyHonors(data, caller.openid);
       case 'toggleCheer':
-        return await toggleCheer(data, OPENID);
+        return await toggleCheer(data, caller.openid);
       case 'revokeHonor':
-        return await revokeHonor(data, OPENID);
+        return await revokeHonor(data, caller.openid);
       case 'pinHonor':
-        return await pinHonor(data, OPENID);
+        return await pinHonor(data, caller.openid);
       case 'getTemplates':
-        return await getTemplates(data, OPENID);
+        return await getTemplates(data, caller.openid);
       case 'saveTemplate':
-        return await saveTemplate(data, OPENID);
+        return await saveTemplate(data, caller.openid);
       case 'getHonorStats':
-        return await getHonorStats(data, OPENID);
+        return await getHonorStats(data, caller.openid);
       default:
         return { success: false, message: '未知操作' };
     }

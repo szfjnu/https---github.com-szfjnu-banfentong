@@ -7,12 +7,14 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 const $ = db.command.aggregate;
+const { getCallerInfo, requireTeacher } = require('../utils/auth');
 
 exports.main = async (event, context) => {
   const { action, data } = event;
-  const { OPENID } = cloud.getWXContext();
 
   try {
+    const caller = await getCallerInfo(event, data?.class_id || data?.classId);
+    requireTeacher(caller);
     await ensureCollection('grades');
     await ensureCollection('grade_subjects');
     await ensureCollection('grade_import_logs');

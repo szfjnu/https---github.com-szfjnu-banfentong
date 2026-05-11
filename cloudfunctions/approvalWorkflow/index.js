@@ -11,6 +11,8 @@ cloud.init({
 const db = cloud.database()
 const _ = db.command
 
+const { getCallerInfo, AUTH_ERRORS } = require('../utils/auth')
+
 /**
  * 审批流程状态：
  * - pending_cadre: 待班委审核（学生/家长提交后）
@@ -29,29 +31,33 @@ const _ = db.command
  * 6. getApprovalStats - 获取审批统计
  */
 exports.main = async (event, context) => {
-  const wxContext = cloud.getWXContext()
-  const openid = wxContext.OPENID
   const { action, data } = event
+  const classId = data && data.classId
 
   try {
+    const caller = await getCallerInfo(event, classId)
+
     switch (action) {
       case 'submitApproval':
-        return await submitApproval(openid, data)
+        return await submitApproval(caller, data)
       case 'approveByCadre':
-        return await approveByCadre(openid, data)
+        return await approveByCadre(caller, data)
       case 'approveByTeacher':
-        return await approveByTeacher(openid, data)
+        return await approveByTeacher(caller, data)
       case 'getPendingApprovals':
-        return await getPendingApprovals(openid, data)
+        return await getPendingApprovals(caller, data)
       case 'getApprovalDetail':
         return await getApprovalDetail(data)
       case 'getApprovalStats':
-        return await getApprovalStats(openid, data)
+        return await getApprovalStats(caller, data)
       default:
         return { success: false, error: '未知操作' }
     }
   } catch (err) {
     console.error(`approvalWorkflow ${action} 失败:`, err)
+    if (err.code && Object.values(AUTH_ERRORS).includes(err.code)) {
+      return { success: false, error: err.message, code: err.code }
+    }
     return { success: false, error: err.message || '操作失败' }
   }
 }
@@ -136,15 +142,14 @@ async function hasApprovePermission(openid, classId, businessType) {
 }
 
 // 提交审批
-async function submitApproval(openid, data) {
+async function submitApproval(caller, data) {
   const { businessType, businessId, classId, studentId, submitNote } = data
 
   if (!businessType || !businessId || !classId) {
     return { success: false, error: '缺少必要参数' }
   }
 
-  // 获取提交者角色
-  const role = await getUserRole(openid, classId)
+  const role = caller.role
 
   // 确定初始审批状态
   let initialStatus
@@ -161,9 +166,8 @@ async function submitApproval(openid, data) {
     return { success: false, error: '无权提交审批' }
   }
 
-  // 获取提交者信息
   const userRes = await db.collection('users')
-    .where({ _openid: openid })
+    .where({ _openid: caller.openid })
     .limit(1)
     .get()
   const submitterName = userRes.data.length > 0
@@ -178,14 +182,14 @@ async function submitApproval(openid, data) {
     student_id: studentId || '',
     status: initialStatus,
     current_step: initialStatus === 'pending_cadre' ? 'cadre' : (initialStatus === 'pending_teacher' ? 'teacher' : 'done'),
-    submitter_openid: openid,
+    submitter_openid: caller.openid,
     submitter_name: submitterName,
     submitter_role: role,
     submit_note: submitNote || '',
     approval_history: [
       {
         step: 'submit',
-        operator_openid: openid,
+        operator_openid: caller.openid,
         operator_name: submitterName,
         operator_role: role,
         action: 'submit',
@@ -201,13 +205,13 @@ async function submitApproval(openid, data) {
 
   // 如果是班主任/管理员直接提交，更新业务记录为已通过
   if (initialStatus === 'approved') {
-    await updateBusinessStatus(businessType, businessId, 'approved', openid, submitterName)
+    await updateBusinessStatus(businessType, businessId, 'approved', caller.openid, submitterName)
     // 同时更新审批记录
     await db.collection('approvals').doc(approvalRes._id).update({
       data: {
         approval_history: _.push({
           step: 'teacher',
-          operator_openid: openid,
+          operator_openid: caller.openid,
           operator_name: submitterName,
           operator_role: role,
           action: 'approve',
@@ -220,7 +224,7 @@ async function submitApproval(openid, data) {
     })
   } else {
     // 更新业务记录为待审批
-    await updateBusinessStatus(businessType, businessId, initialStatus, openid, submitterName)
+    await updateBusinessStatus(businessType, businessId, initialStatus, caller.openid, submitterName)
   }
 
   return {
@@ -233,7 +237,7 @@ async function submitApproval(openid, data) {
 }
 
 // 班委审核
-async function approveByCadre(openid, data) {
+async function approveByCadre(caller, data) {
   const { approvalId, approved, note } = data
 
   if (!approvalId) {
@@ -248,18 +252,16 @@ async function approveByCadre(openid, data) {
     return { success: false, error: '当前状态不允许班委审核' }
   }
 
-  // 获取审核者信息
-  const cadreRole = await getUserRole(openid, approval.class_id)
-  // 扩展权限检查：班委角色 OR 拥有该模块的审批权限
+  const cadreRole = await getUserRole(caller.openid, approval.class_id)
   const hasPermission = cadreRole === 'class_cadre' || cadreRole === 'head_teacher' || cadreRole === 'admin'
-    || await hasApprovePermission(openid, approval.class_id, approval.business_type)
+    || await hasApprovePermission(caller.openid, approval.class_id, approval.business_type)
 
   if (!hasPermission) {
     return { success: false, error: '无权进行班委审核，请联系班主任授权' }
   }
 
   const userRes = await db.collection('users')
-    .where({ _openid: openid })
+    .where({ _openid: caller.openid })
     .limit(1)
     .get()
   const cadreName = userRes.data.length > 0
@@ -280,14 +282,14 @@ async function approveByCadre(openid, data) {
     data: {
       status: newStatus,
       current_step: approved ? 'teacher' : 'done',
-      cadre_approver_openid: openid,
+      cadre_approver_openid: caller.openid,
       cadre_approver_name: cadreName,
       cadre_approved: approved,
       cadre_note: note || '',
       cadre_approved_at: db.serverDate(),
       approval_history: _.push({
         step: 'cadre',
-        operator_openid: openid,
+        operator_openid: caller.openid,
         operator_name: cadreName,
         operator_role: cadreRole,
         action: approved ? 'approve' : 'reject',
@@ -298,8 +300,7 @@ async function approveByCadre(openid, data) {
     }
   })
 
-  // 更新业务记录状态
-  await updateBusinessStatus(approval.business_type, approval.business_id, newStatus, openid, cadreName)
+  await updateBusinessStatus(approval.business_type, approval.business_id, newStatus, caller.openid, cadreName)
 
   return {
     success: true,
@@ -311,7 +312,7 @@ async function approveByCadre(openid, data) {
 }
 
 // 班主任审核
-async function approveByTeacher(openid, data) {
+async function approveByTeacher(caller, data) {
   const { approvalId, approved, note } = data
 
   if (!approvalId) {
@@ -326,14 +327,13 @@ async function approveByTeacher(openid, data) {
     return { success: false, error: '当前状态不允许班主任审核' }
   }
 
-  // 获取审核者信息
-  const teacherRole = await getUserRole(openid, approval.class_id)
+  const teacherRole = await getUserRole(caller.openid, approval.class_id)
   if (teacherRole !== 'head_teacher' && teacherRole !== 'admin') {
     return { success: false, error: '无权进行班主任审核' }
   }
 
   const userRes = await db.collection('users')
-    .where({ _openid: openid })
+    .where({ _openid: caller.openid })
     .limit(1)
     .get()
   const teacherName = userRes.data.length > 0
@@ -346,14 +346,14 @@ async function approveByTeacher(openid, data) {
   const updateData = {
     status: newStatus,
     current_step: 'done',
-    teacher_approver_openid: openid,
+    teacher_approver_openid: caller.openid,
     teacher_approver_name: teacherName,
     teacher_approved: approved,
     teacher_note: note || '',
     teacher_approved_at: db.serverDate(),
     approval_history: _.push({
       step: 'teacher',
-      operator_openid: openid,
+      operator_openid: caller.openid,
       operator_name: teacherName,
       operator_role: teacherRole,
       action: approved ? 'approve' : 'reject',
@@ -369,10 +369,8 @@ async function approveByTeacher(openid, data) {
 
   await db.collection('approvals').doc(approvalId).update({ data: updateData })
 
-  // 更新业务记录状态
-  await updateBusinessStatus(approval.business_type, approval.business_id, newStatus, openid, teacherName)
+  await updateBusinessStatus(approval.business_type, approval.business_id, newStatus, caller.openid, teacherName)
 
-  // 如果通过，触发积分发放等后续操作
   if (approved) {
     await onApprovalApproved(approval)
   }
@@ -483,17 +481,15 @@ async function updateBusinessStatus(businessType, businessId, status, operatorOp
 }
 
 // 获取待审批列表
-async function getPendingApprovals(openid, data) {
+async function getPendingApprovals(caller, data) {
   const { classId, businessType, status, page = 0, pageSize = 20 } = data
 
   if (!classId) {
     return { success: false, error: '缺少班级ID' }
   }
 
-  // 获取用户角色
-  const role = await getUserRole(openid, classId)
+  const role = await getUserRole(caller.openid, classId)
 
-  // 构建查询条件
   let query = { class_id: classId }
   if (businessType) {
     query.business_type = businessType
@@ -508,7 +504,7 @@ async function getPendingApprovals(openid, data) {
     query.status = status || 'pending_teacher'
   } else {
     // 学生/家长：看到自己提交的
-    query.submitter_openid = openid
+    query.submitter_openid = caller.openid
   }
 
   const res = await db.collection('approvals')
@@ -549,7 +545,7 @@ async function getApprovalDetail(data) {
 }
 
 // 获取审批统计
-async function getApprovalStats(openid, data) {
+async function getApprovalStats(caller, data) {
   const { classId, businessType } = data
 
   if (!classId) {

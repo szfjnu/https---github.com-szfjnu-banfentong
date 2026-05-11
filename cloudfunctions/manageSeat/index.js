@@ -2,6 +2,7 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
+const { getCallerInfo } = require('../utils/auth')
 
 const MAX_LIMIT = 100
 const WRITE_ROLES = ['admin', 'head_teacher']
@@ -9,29 +10,29 @@ const LOCK_TIMEOUT = 5 * 60 * 1000
 
 exports.main = async (event, context) => {
   const { action, data } = event
-  const OPENID = cloud.getWXContext().OPENID
 
   try {
+    const caller = await getCallerInfo(event, data?.class_id || data?.classId)
     switch (action) {
       case 'ensureCollection': return await ensureCollection()
       case 'getLayout': return await getLayout(data)
-      case 'saveLayout': return await saveLayout(data, OPENID)
+      case 'saveLayout': return await saveLayout(data, caller.openid)
       case 'getArrangement': return await getArrangement(data)
       case 'getStudentsForArrange': return await getStudentsForArrange(data)
-      case 'randomArrange': return await randomArrange(data, OPENID)
-      case 'groupArrange': return await groupArrange(data, OPENID)
-      case 'manualArrange': return await manualArrange(data, OPENID)
+      case 'randomArrange': return await randomArrange(data, caller.openid)
+      case 'groupArrange': return await groupArrange(data, caller.openid)
+      case 'manualArrange': return await manualArrange(data, caller.openid)
       case 'getRotateConfig': return await getRotateConfig(data)
-      case 'saveRotateConfig': return await saveRotateConfig(data, OPENID)
-      case 'executeRotate': return await executeRotate(data, OPENID)
-      case 'lockSeat': return await lockSeat(data, OPENID)
-      case 'unlockSeat': return await unlockSeat(data, OPENID)
-      case 'acquireLock': return await acquireLock(data, OPENID)
-      case 'releaseLock': return await releaseLock(data, OPENID)
+      case 'saveRotateConfig': return await saveRotateConfig(data, caller.openid)
+      case 'executeRotate': return await executeRotate(data, caller.openid)
+      case 'lockSeat': return await lockSeat(data, caller.openid)
+      case 'unlockSeat': return await unlockSeat(data, caller.openid)
+      case 'acquireLock': return await acquireLock(data, caller.openid)
+      case 'releaseLock': return await releaseLock(data, caller.openid)
       case 'getHistoryList': return await getHistoryList(data)
       case 'getHistoryDetail': return await getHistoryDetail(data)
-      case 'swapSeats': return await swapSeats(data, OPENID)
-      case 'clearLayout': return await clearLayout(data, OPENID)
+      case 'swapSeats': return await swapSeats(data, caller.openid)
+      case 'clearLayout': return await clearLayout(data, caller.openid)
       default: return { success: false, message: '未知操作' }
     }
   } catch (err) {

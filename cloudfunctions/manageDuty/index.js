@@ -7,6 +7,8 @@ const db = cloud.database();
 const _ = db.command;
 const batchQuery = require('./utils/batchQuery');
 
+const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('../utils/auth');
+
 // 生成唯一ID
 function generateId(prefix) {
   const ts = Date.now().toString(36);
@@ -36,29 +38,39 @@ function getWeekNumber(semesterStartDate) {
 
 exports.main = async (event, context) => {
   const { action, data } = event;
-  const { OPENID } = cloud.getWXContext();
 
   try {
+    const classId = data && data.class_id
+    const caller = await getCallerInfo(event, classId)
+
+    const WRITE_ACTIONS = ['addTemplate', 'updateTemplate', 'deleteTemplate',
+      'saveRotation', 'advanceRotation', 'arrangeDuty',
+      'inspectTask', 'batchInspect', 'updateDutyTask', 'deleteDutyTask']
+
+    if (WRITE_ACTIONS.includes(action)) {
+      requireTeacher(caller)
+    }
+
     switch (action) {
       // ========== 任务模板管理 ==========
       case 'getTemplates': return await getTemplates(data);
-      case 'addTemplate': return await addTemplate(data, OPENID);
+      case 'addTemplate': return await addTemplate(data, caller.openid);
       case 'updateTemplate': return await updateTemplate(data);
       case 'deleteTemplate': return await deleteTemplate(data);
 
       // ========== 值日轮转配置 ==========
       case 'getRotation': return await getRotation(data);
-      case 'saveRotation': return await saveRotation(data, OPENID);
+      case 'saveRotation': return await saveRotation(data, caller.openid);
       case 'advanceRotation': return await advanceRotation(data);
 
       // ========== 值日安排（任务分派） ==========
-      case 'arrangeDuty': return await arrangeDuty(data, OPENID);
+      case 'arrangeDuty': return await arrangeDuty(data, caller.openid);
       case 'getDutyTasks': return await getDutyTasks(data);
       case 'getDutyTasksByDate': return await getDutyTasksByDate(data);
 
       // ========== 值日检查+加减分 ==========
-      case 'inspectTask': return await inspectTask(data, OPENID);
-      case 'batchInspect': return await batchInspect(data, OPENID);
+      case 'inspectTask': return await inspectTask(data, caller.openid);
+      case 'batchInspect': return await batchInspect(data, caller.openid);
 
       // ========== 我的值日（学生端） ==========
       case 'getMyDutyTasks': return await getMyDutyTasks(data);
@@ -66,8 +78,8 @@ exports.main = async (event, context) => {
       case 'markReminderRead': return await markReminderRead(data);
 
       // ========== 值日任务修改/删除 ==========
-      case 'updateDutyTask': return await updateDutyTask(data, OPENID);
-      case 'deleteDutyTask': return await deleteDutyTask(data, OPENID);
+      case 'updateDutyTask': return await updateDutyTask(data, caller.openid);
+      case 'deleteDutyTask': return await deleteDutyTask(data, caller.openid);
 
       // ========== 值日统计 ==========
       case 'getDutyStats': return await getDutyStats(data);
@@ -77,6 +89,9 @@ exports.main = async (event, context) => {
     }
   } catch (err) {
     console.error(`manageDuty ${action} error:`, err);
+    if (err.code && Object.values(AUTH_ERRORS).includes(err.code)) {
+      return { success: false, message: err.message, code: err.code };
+    }
     return { success: false, message: err.message || '操作失败' };
   }
 };
