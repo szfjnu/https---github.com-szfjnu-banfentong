@@ -229,14 +229,14 @@ Page({
     }
     
     wx.navigateTo({
-      url: `/subPages/student/detail/detail?id=${studentId}`
+      url: `/subPkg1/student/detail/detail?id=${studentId}`
     });
   },
 
   // 查看积分记录
   onViewRecords: function () {
     wx.navigateTo({
-      url: '/subPages/score/record/record'
+      url: '/subPkg1/score/record/record'
     });
   },
 
@@ -252,56 +252,56 @@ Page({
       return;
     }
     wx.navigateTo({
-      url: '/subPages/score/add/add'
+      url: '/subPkg1/score/add/add'
     });
   },
 
   // 积分规则管理
   onManageRules: function () {
     wx.navigateTo({
-      url: '/subPages/score/rules/rules'
+      url: '/subPkg1/score/rules/rules'
     });
   },
 
   // 兑换管理
   onManageExchange: function () {
     wx.navigateTo({
-      url: '/subPages/score/mall/admin/admin'
+      url: '/subPkg1/score/mall/admin/admin'
     });
   },
 
   // 兑换台账
   onManageLedger: function () {
     wx.navigateTo({
-      url: '/subPages/score/mall/ledger/ledger'
+      url: '/subPkg1/score/mall/ledger/ledger'
     });
   },
 
   // 学生端：去积分商城
   onGoMall: function () {
     wx.navigateTo({
-      url: '/subPages/score/mall/mall'
+      url: '/subPkg1/score/mall/mall'
     });
   },
 
   // 学生端：去志愿服务
   onGoVolunteer: function () {
     wx.navigateTo({
-      url: '/subPages/volunteer/volunteer'
+      url: '/subPkg1/volunteer/volunteer'
     });
   },
 
   // 学生端：去住宿积分
   onGoDorm: function () {
     wx.navigateTo({
-      url: '/subPages/dorm/mydorm/mydorm'
+      url: '/subPkg2/dorm/mydorm/mydorm'
     });
   },
 
   // 查看积分规则（学生/家长端）
   onViewRules: function () {
     wx.navigateTo({
-      url: '/subPages/score/rules/rules'
+      url: '/subPkg1/score/rules/rules'
     });
   },
 

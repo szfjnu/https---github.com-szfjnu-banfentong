@@ -28,7 +28,7 @@ Page({
         desc: '考试成绩记录与分析',
         icon: '📊',
         color: '#1890ff',
-        url: '/subPages/grade/grade'
+        url: '/subPkg3/grade/grade'
       },
       {
         id: 'aichat',
@@ -36,7 +36,7 @@ Page({
         desc: 'AI 伙伴，温暖倾听',
         icon: '💬',
         color: '#667eea',
-        url: '/subPages/aichat/aichat'
+        url: '/subPkg3/aichat/aichat'
       }
     ]
 
@@ -48,7 +48,7 @@ Page({
         desc: '校园活动，点亮精彩',
         icon: '🎪',
         color: '#667eea',
-        url: '/subPages/activity/list/list'
+        url: '/subPkg3/activity/list/list'
       },
       {
         id: 'treehole',
@@ -56,7 +56,7 @@ Page({
         desc: '匿名倾诉，温暖回应',
         icon: '🌳',
         color: '#52c41a',
-        url: '/subPages/treehole/treehole'
+        url: '/subPkg3/treehole/treehole'
       },
       {
         id: 'hero',
@@ -64,7 +64,7 @@ Page({
         desc: '荣誉殿堂，榜样力量',
         icon: '🏆',
         color: '#faad14',
-        url: '/subPages/hero/hero'
+        url: '/subPkg3/hero/hero'
       },
       {
         id: 'flea',
@@ -72,7 +72,7 @@ Page({
         desc: '闲置流转，物尽其用',
         icon: '🏷',
         color: '#fa8c16',
-        url: '/subPages/flea/flea'
+        url: '/subPkg3/flea/flea'
       }
     ]
 
@@ -84,7 +84,7 @@ Page({
         desc: '志愿记录，服务社会',
         icon: '🤝',
         color: '#13c2c2',
-        url: '/subPages/volunteer/volunteer'
+        url: '/subPkg1/volunteer/volunteer'
       },
       {
         id: 'duty',
@@ -92,7 +92,7 @@ Page({
         desc: '值日安排与检查',
         icon: '🧹',
         color: '#eb2f96',
-        url: '/subPages/duty/duty'
+        url: '/subPkg1/duty/duty'
       },
       {
         id: 'discipline',
@@ -100,7 +100,7 @@ Page({
         desc: '处分记录与撤销',
         icon: '📋',
         color: '#ff4d4f',
-        url: '/subPages/discipline/record/record'
+        url: '/subPkg1/discipline/record/record'
       },
       {
         id: 'approval',
@@ -108,7 +108,7 @@ Page({
         desc: '申请审批一站式处理',
         icon: '✅',
         color: '#722ed1',
-        url: '/subPages/approval/approval'
+        url: '/subPkg1/approval/approval'
       }
     ]
 
@@ -117,8 +117,8 @@ Page({
     if (role === 'student' || role === 'parent') {
       filteredToolFeatures = [
         toolFeatures[0], // 志愿服务
-        { ...toolFeatures[1], title: '我的值日', url: '/subPages/duty/myduty/myduty' },
-        { ...toolFeatures[2], title: '我的处分', url: '/subPages/discipline/my-discipline/my-discipline' }
+        { ...toolFeatures[1], title: '我的值日', url: '/subPkg1/duty/myduty/myduty' },
+        { ...toolFeatures[2], title: '我的处分', url: '/subPkg1/discipline/my-discipline/my-discipline' }
       ]
     }
 

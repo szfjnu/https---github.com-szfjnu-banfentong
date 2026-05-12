@@ -3,7 +3,7 @@ const cloud = require('wx-server-sdk')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
-const { getCallerInfo, requireAdmin, AUTH_ERRORS } = require('../utils/auth')
+const { getCallerInfo, requireAdmin, AUTH_ERRORS } = require('./utils/auth')
 
 exports.main = async (event, context) => {
   const db = cloud.database()

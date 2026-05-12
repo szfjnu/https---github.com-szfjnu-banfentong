@@ -131,27 +131,27 @@
           <text>发现精彩</text>
         </view>
         <view class="nav-grid">
-          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/aichat/aichat">
+          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPkg3/aichat/aichat">
             <view class="nav-entry-icon" style="background: #667eea15;">💬</view>
             <text class="nav-entry-label">微聊陪伴</text>
           </view>
-          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/treehole/treehole">
+          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPkg3/treehole/treehole">
             <view class="nav-entry-icon" style="background: #52c41a15;">🌳</view>
             <text class="nav-entry-label">心灵树洞</text>
           </view>
-          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/activity/list/list">
+          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPkg3/activity/list/list">
             <view class="nav-entry-icon" style="background: #667eea15;">🎪</view>
             <text class="nav-entry-label">聚光点</text>
           </view>
-          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/hero/hero">
+          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPkg3/hero/hero">
             <view class="nav-entry-icon" style="background: #faad1415;">🏆</view>
             <text class="nav-entry-label">英雄台</text>
           </view>
-          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/flea/flea">
+          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPkg3/flea/flea">
             <view class="nav-entry-icon" style="background: #fa8c1615;">🏷</view>
             <text class="nav-entry-label">校园闲鱼</text>
           </view>
-          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/grade/grade">
+          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPkg3/grade/grade">
             <view class="nav-entry-icon" style="background: #722ed115;">📊</view>
             <text class="nav-entry-label">成绩管理</text>
           </view>
@@ -224,27 +224,27 @@
           <text>校园服务</text>
         </view>
         <view class="nav-grid">
-          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/aichat/aichat">
+          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPkg3/aichat/aichat">
             <view class="nav-entry-icon" style="background: #667eea15;">💬</view>
             <text class="nav-entry-label">微聊陪伴</text>
           </view>
-          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/treehole/treehole">
+          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPkg3/treehole/treehole">
             <view class="nav-entry-icon" style="background: #52c41a15;">🌳</view>
             <text class="nav-entry-label">心灵树洞</text>
           </view>
-          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/activity/list/list">
+          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPkg3/activity/list/list">
             <view class="nav-entry-icon" style="background: #667eea15;">🎪</view>
             <text class="nav-entry-label">聚光点</text>
           </view>
-          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/hero/hero">
+          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPkg3/hero/hero">
             <view class="nav-entry-icon" style="background: #faad1415;">🏆</view>
             <text class="nav-entry-label">英雄台</text>
           </view>
-          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/flea/flea">
+          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPkg3/flea/flea">
             <view class="nav-entry-icon" style="background: #fa8c1615;">🏷</view>
             <text class="nav-entry-label">校园闲鱼</text>
           </view>
-          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPages/grade/grade">
+          <view class="nav-entry" bindtap="onQuickAction" data-url="/subPkg3/grade/grade">
             <view class="nav-entry-icon" style="background: #722ed115;">📊</view>
             <text class="nav-entry-label">成绩管理</text>
           </view>

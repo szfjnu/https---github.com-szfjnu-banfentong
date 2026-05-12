@@ -7,7 +7,7 @@ cloud.init({
 
 const db = cloud.database()
 
-const { getCallerInfo, requireAdmin, AUTH_ERRORS } = require('../utils/auth')
+const { getCallerInfo, requireAdmin, AUTH_ERRORS } = require('./utils/auth')
 
 exports.main = async (event, context) => {
   try {

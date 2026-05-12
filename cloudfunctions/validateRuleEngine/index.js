@@ -8,7 +8,7 @@ cloud.init({
 const db = cloud.database();
 const _ = db.command;
 
-const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('../utils/auth');
+const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('./utils/auth');
 
 /**
  * 积分规则引擎验证云函数

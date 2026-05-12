@@ -69,7 +69,7 @@ Page({
   checkLogin: function () {
     if (!app.globalData.userInfo || !app.globalData.openid) {
       wx.redirectTo({
-        url: '/pages/login/login'
+        url: '/subPkg5/login/login'
       });
       return;
     }
@@ -779,73 +779,73 @@ fetchWeather: async function (location) {
     if (role === 'admin' || role === 'head_teacher') {
       actions = [
         { title: '学生管理', icon: 'student', color: '#1890ff', colorDark: '#096dd9', url: '/pages/student/student', disabled: false },
-        { title: '班级管理', icon: 'class', color: '#13c2c2', colorDark: '#08979c', url: '/subPages/class/class', disabled: false },
-        { title: '分组管理', icon: 'class', color: '#eb2f96', colorDark: '#c41d7f', url: '/subPages/group/group', disabled: false },
-        { title: '考勤管理', icon: 'attendance', color: '#722ed1', colorDark: '#531dab', url: '/subPages/attendance/attendance', disabled: false },
+        { title: '班级管理', icon: 'class', color: '#13c2c2', colorDark: '#08979c', url: '/subPkg1/class/class', disabled: false },
+        { title: '分组管理', icon: 'class', color: '#eb2f96', colorDark: '#c41d7f', url: '/subPkg4/group/group', disabled: false },
+        { title: '考勤管理', icon: 'attendance', color: '#722ed1', colorDark: '#531dab', url: '/subPkg1/attendance/attendance', disabled: false },
         { title: '积分管理', icon: 'score', color: '#52c41a', colorDark: '#389e0d', url: '/pages/score/score', disabled: false },
-        { title: '积分台账', icon: 'score', color: '#2f54eb', colorDark: '#1d39c4', url: '/subPages/score/mall/ledger/ledger', disabled: false },
-        { title: '志愿服务', icon: 'volunteer', color: '#fa8c16', colorDark: '#d46b08', url: '/subPages/volunteer/volunteer', disabled: false },
-        { title: '宿舍管理', icon: 'dorm', color: '#faad14', colorDark: '#d48806', url: '/subPages/dorm/dorm', disabled: false },
-        { title: '值日管理', icon: 'duty', color: '#13c2c2', colorDark: '#08979c', url: '/subPages/duty/duty', disabled: false },
-        { title: '处分管理', icon: 'record', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/discipline/record/record', disabled: false },
-        { title: '审批中心', icon: 'approval', color: '#722ed1', colorDark: '#531dab', url: '/subPages/approval/approval', disabled: false },
-        { title: '学期管理', icon: 'semester', color: '#722ed1', colorDark: '#531dab', url: '/subPages/semester/semester', disabled: false },
-        { title: '通知中心', icon: 'notification', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/usercenter/notifications/notifications', disabled: false },
-        { title: '座位管理', icon: 'duty', color: '#faad14', colorDark: '#d48806', url: '/subPages/seat/seat/seat', disabled: false },
-        { title: '成长档案', icon: 'score', color: '#52c41a', colorDark: '#389e0d', url: '/pages/growth/profile', disabled: false }
+        { title: '积分台账', icon: 'score', color: '#2f54eb', colorDark: '#1d39c4', url: '/subPkg1/score/mall/ledger/ledger', disabled: false },
+        { title: '志愿服务', icon: 'volunteer', color: '#fa8c16', colorDark: '#d46b08', url: '/subPkg1/volunteer/volunteer', disabled: false },
+        { title: '宿舍管理', icon: 'dorm', color: '#faad14', colorDark: '#d48806', url: '/subPkg2/dorm/dorm', disabled: false },
+        { title: '值日管理', icon: 'duty', color: '#13c2c2', colorDark: '#08979c', url: '/subPkg1/duty/duty', disabled: false },
+        { title: '处分管理', icon: 'record', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPkg1/discipline/record/record', disabled: false },
+        { title: '审批中心', icon: 'approval', color: '#722ed1', colorDark: '#531dab', url: '/subPkg1/approval/approval', disabled: false },
+        { title: '学期管理', icon: 'semester', color: '#722ed1', colorDark: '#531dab', url: '/subPkg1/semester/semester', disabled: false },
+        { title: '通知中心', icon: 'notification', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPkg5/usercenter/notifications/notifications', disabled: false },
+        { title: '座位管理', icon: 'duty', color: '#faad14', colorDark: '#d48806', url: '/subPkg4/seat/seat/seat', disabled: false },
+        { title: '成长档案', icon: 'score', color: '#52c41a', colorDark: '#389e0d', url: '/subPkg5/growth/growth/profile', disabled: false }
       ];
     } else if (role === 'subject_teacher') {
       // 科任老师：可查看班级信息、学生、积分、志愿服务、审批
       actions = [
         { title: '学生管理', icon: 'student', color: '#1890ff', colorDark: '#096dd9', url: '/pages/student/student', disabled: false },
-        { title: '考勤查看', icon: 'attendance', color: '#722ed1', colorDark: '#531dab', url: '/subPages/attendance/attendance', disabled: false },
+        { title: '考勤查看', icon: 'attendance', color: '#722ed1', colorDark: '#531dab', url: '/subPkg1/attendance/attendance', disabled: false },
         { title: '积分查看', icon: 'score', color: '#52c41a', colorDark: '#389e0d', url: '/pages/score/score', disabled: false },
-        { title: '志愿服务', icon: 'volunteer', color: '#fa8c16', colorDark: '#d46b08', url: '/subPages/volunteer/volunteer', disabled: false },
-        { title: '审批中心', icon: 'approval', color: '#722ed1', colorDark: '#531dab', url: '/subPages/approval/approval', disabled: false },
-        { title: '通知中心', icon: 'notification', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/usercenter/notifications/notifications', disabled: false },
-        { title: '成长档案', icon: 'score', color: '#52c41a', colorDark: '#389e0d', url: '/pages/growth/profile', disabled: false }
+        { title: '志愿服务', icon: 'volunteer', color: '#fa8c16', colorDark: '#d46b08', url: '/subPkg1/volunteer/volunteer', disabled: false },
+        { title: '审批中心', icon: 'approval', color: '#722ed1', colorDark: '#531dab', url: '/subPkg1/approval/approval', disabled: false },
+        { title: '通知中心', icon: 'notification', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPkg5/usercenter/notifications/notifications', disabled: false },
+        { title: '成长档案', icon: 'score', color: '#52c41a', colorDark: '#389e0d', url: '/subPkg5/growth/growth/profile', disabled: false }
       ];
     } else if (role === 'class_cadre') {
       // 班干部：可管理值日、查看学生、提交志愿服务、审批
       actions = [
         { title: '学生名单', icon: 'student', color: '#1890ff', colorDark: '#096dd9', url: '/pages/student/student', disabled: false },
         { title: '我的积分', icon: 'score', color: '#52c41a', colorDark: '#389e0d', url: '/pages/score/score', disabled: false },
-        { title: '志愿服务', icon: 'volunteer', color: '#fa8c16', colorDark: '#d46b08', url: '/subPages/volunteer/volunteer', disabled: false },
-        { title: '值日管理', icon: 'duty', color: '#13c2c2', colorDark: '#08979c', url: '/subPages/duty/duty', disabled: false },
-        { title: '微聊陪伴', icon: 'aichat', color: '#667eea', colorDark: '#5b6abf', url: '/subPages/aichat/aichat', disabled: false },
-        { title: '聚光点', icon: 'activity', color: '#667eea', colorDark: '#5b6abf', url: '/subPages/activity/list/list', disabled: false },
-        { title: '心灵树洞', icon: 'treehole', color: '#52c41a', colorDark: '#389e0d', url: '/subPages/treehole/treehole', disabled: false },
-        { title: '英雄台', icon: 'hero', color: '#faad14', colorDark: '#d48806', url: '/subPages/hero/hero', disabled: false },
-        { title: '校园闲鱼', icon: 'flea', color: '#fa8c16', colorDark: '#d46b08', url: '/subPages/flea/flea', disabled: false },
-        { title: '成绩管理', icon: 'grade', color: '#722ed1', colorDark: '#531dab', url: '/subPages/grade/grade', disabled: false },
-        { title: '我的处分', icon: 'record', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/discipline/my-discipline/my-discipline', disabled: false },
-        { title: '审批中心', icon: 'approval', color: '#722ed1', colorDark: '#531dab', url: '/subPages/approval/approval', disabled: false },
-        { title: '通知中心', icon: 'notification', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/usercenter/notifications/notifications', disabled: false }
+        { title: '志愿服务', icon: 'volunteer', color: '#fa8c16', colorDark: '#d46b08', url: '/subPkg1/volunteer/volunteer', disabled: false },
+        { title: '值日管理', icon: 'duty', color: '#13c2c2', colorDark: '#08979c', url: '/subPkg1/duty/duty', disabled: false },
+        { title: '微聊陪伴', icon: 'aichat', color: '#667eea', colorDark: '#5b6abf', url: '/subPkg3/aichat/aichat', disabled: false },
+        { title: '聚光点', icon: 'activity', color: '#667eea', colorDark: '#5b6abf', url: '/subPkg3/activity/list/list', disabled: false },
+        { title: '心灵树洞', icon: 'treehole', color: '#52c41a', colorDark: '#389e0d', url: '/subPkg3/treehole/treehole', disabled: false },
+        { title: '英雄台', icon: 'hero', color: '#faad14', colorDark: '#d48806', url: '/subPkg3/hero/hero', disabled: false },
+        { title: '校园闲鱼', icon: 'flea', color: '#fa8c16', colorDark: '#d46b08', url: '/subPkg3/flea/flea', disabled: false },
+        { title: '成绩管理', icon: 'grade', color: '#722ed1', colorDark: '#531dab', url: '/subPkg3/grade/grade', disabled: false },
+        { title: '我的处分', icon: 'record', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPkg1/discipline/my-discipline/my-discipline', disabled: false },
+        { title: '审批中心', icon: 'approval', color: '#722ed1', colorDark: '#531dab', url: '/subPkg1/approval/approval', disabled: false },
+        { title: '通知中心', icon: 'notification', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPkg5/usercenter/notifications/notifications', disabled: false }
       ];
     } else if (role === 'student') {
       actions = [
         { title: '我的积分', icon: 'score', color: '#1890ff', colorDark: '#096dd9', url: '/pages/score/score', disabled: false },
-        { title: '志愿服务', icon: 'volunteer', color: '#52c41a', colorDark: '#389e0d', url: '/subPages/volunteer/volunteer', disabled: false },
-        { title: '积分商城', icon: 'mall', color: '#fa8c16', colorDark: '#d46b08', url: '/subPages/score/mall/mall', disabled: false },
-        { title: '住宿积分', icon: 'dorm', color: '#13c2c2', colorDark: '#08979c', url: '/subPages/dorm/mydorm/mydorm', disabled: false, isDorm: true },
-        { title: '我的值日', icon: 'duty', color: '#eb2f96', colorDark: '#c41d7f', url: '/subPages/duty/myduty/myduty', disabled: false },
-        { title: '我的座位', icon: 'duty', color: '#faad14', colorDark: '#d48806', url: '/subPages/seat/seat/seat', disabled: false },
-        { title: '成长档案', icon: 'score', color: '#52c41a', colorDark: '#389e0d', url: '/pages/growth/profile', disabled: false },
-        { title: '我的处分', icon: 'record', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/discipline/my-discipline/my-discipline', disabled: false },
-        { title: '个人设置', icon: 'settings', color: '#8c8c8c', colorDark: '#595959', url: '/subPages/usercenter/settings/settings', disabled: false },
-        { title: '通知中心', icon: 'notification', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/usercenter/notifications/notifications', disabled: false }
+        { title: '志愿服务', icon: 'volunteer', color: '#52c41a', colorDark: '#389e0d', url: '/subPkg1/volunteer/volunteer', disabled: false },
+        { title: '积分商城', icon: 'mall', color: '#fa8c16', colorDark: '#d46b08', url: '/subPkg1/score/mall/mall', disabled: false },
+        { title: '住宿积分', icon: 'dorm', color: '#13c2c2', colorDark: '#08979c', url: '/subPkg2/dorm/mydorm/mydorm', disabled: false, isDorm: true },
+        { title: '我的值日', icon: 'duty', color: '#eb2f96', colorDark: '#c41d7f', url: '/subPkg1/duty/myduty/myduty', disabled: false },
+        { title: '我的座位', icon: 'duty', color: '#faad14', colorDark: '#d48806', url: '/subPkg4/seat/seat/seat', disabled: false },
+        { title: '成长档案', icon: 'score', color: '#52c41a', colorDark: '#389e0d', url: '/subPkg5/growth/growth/profile', disabled: false },
+        { title: '我的处分', icon: 'record', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPkg1/discipline/my-discipline/my-discipline', disabled: false },
+        { title: '个人设置', icon: 'settings', color: '#8c8c8c', colorDark: '#595959', url: '/subPkg5/usercenter/settings/settings', disabled: false },
+        { title: '通知中心', icon: 'notification', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPkg5/usercenter/notifications/notifications', disabled: false }
       ];
     } else if (role === 'parent') {
       actions = [
         { title: '孩子积分', icon: 'score', color: '#1890ff', colorDark: '#096dd9', url: '/pages/score/score', disabled: false },
-        { title: '志愿服务', icon: 'volunteer', color: '#52c41a', colorDark: '#389e0d', url: '/subPages/volunteer/volunteer', disabled: false },
-        { title: '积分商城', icon: 'mall', color: '#fa8c16', colorDark: '#d46b08', url: '/subPages/score/mall/mall', disabled: false },
-        { title: '孩子值日', icon: 'duty', color: '#eb2f96', colorDark: '#c41d7f', url: '/subPages/duty/myduty/myduty', disabled: false },
-        { title: '孩子座位', icon: 'duty', color: '#faad14', colorDark: '#d48806', url: '/subPages/seat/seat/seat', disabled: false },
-        { title: '成长档案', icon: 'score', color: '#52c41a', colorDark: '#389e0d', url: '/pages/growth/profile', disabled: false },
-        { title: '孩子处分', icon: 'record', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/discipline/my-discipline/my-discipline', disabled: false },
-        { title: '个人设置', icon: 'settings', color: '#8c8c8c', colorDark: '#595959', url: '/subPages/usercenter/settings/settings', disabled: false },
-        { title: '通知中心', icon: 'notification', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/usercenter/notifications/notifications', disabled: false }
+        { title: '志愿服务', icon: 'volunteer', color: '#52c41a', colorDark: '#389e0d', url: '/subPkg1/volunteer/volunteer', disabled: false },
+        { title: '积分商城', icon: 'mall', color: '#fa8c16', colorDark: '#d46b08', url: '/subPkg1/score/mall/mall', disabled: false },
+        { title: '孩子值日', icon: 'duty', color: '#eb2f96', colorDark: '#c41d7f', url: '/subPkg1/duty/myduty/myduty', disabled: false },
+        { title: '孩子座位', icon: 'duty', color: '#faad14', colorDark: '#d48806', url: '/subPkg4/seat/seat/seat', disabled: false },
+        { title: '成长档案', icon: 'score', color: '#52c41a', colorDark: '#389e0d', url: '/subPkg5/growth/growth/profile', disabled: false },
+        { title: '孩子处分', icon: 'record', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPkg1/discipline/my-discipline/my-discipline', disabled: false },
+        { title: '个人设置', icon: 'settings', color: '#8c8c8c', colorDark: '#595959', url: '/subPkg5/usercenter/settings/settings', disabled: false },
+        { title: '通知中心', icon: 'notification', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPkg5/usercenter/notifications/notifications', disabled: false }
       ];
     }
 
@@ -858,27 +858,27 @@ fetchWeather: async function (location) {
       }
       // 考勤管理授权
       if (authorizations.attendance && (authorizations.attendance.includes('write') || authorizations.attendance.includes('approve'))) {
-        authActions.push({ title: '考勤管理', icon: 'attendance', color: '#722ed1', colorDark: '#531dab', url: '/subPages/attendance/attendance', disabled: false });
+        authActions.push({ title: '考勤管理', icon: 'attendance', color: '#722ed1', colorDark: '#531dab', url: '/subPkg1/attendance/attendance', disabled: false });
       }
       // 值日管理授权
       if (authorizations.duty && (authorizations.duty.includes('write') || authorizations.duty.includes('approve'))) {
-        authActions.push({ title: '值日检查', icon: 'duty', color: '#13c2c2', colorDark: '#08979c', url: '/subPages/duty/check/check', disabled: false });
+        authActions.push({ title: '值日检查', icon: 'duty', color: '#13c2c2', colorDark: '#08979c', url: '/subPkg1/duty/check/check', disabled: false });
       }
       // 宿舍管理授权
       if (authorizations.dorm && (authorizations.dorm.includes('write') || authorizations.dorm.includes('approve'))) {
-        authActions.push({ title: '宿舍管理', icon: 'dorm', color: '#faad14', colorDark: '#d48806', url: '/subPages/dorm/dorm', disabled: false });
+        authActions.push({ title: '宿舍管理', icon: 'dorm', color: '#faad14', colorDark: '#d48806', url: '/subPkg2/dorm/dorm', disabled: false });
       }
       // 志愿服务管理授权
       if (authorizations.volunteer && (authorizations.volunteer.includes('write') || authorizations.volunteer.includes('approve'))) {
-        authActions.push({ title: '志愿管理', icon: 'volunteer', color: '#fa8c16', colorDark: '#d46b08', url: '/subPages/volunteer/volunteer', disabled: false });
+        authActions.push({ title: '志愿管理', icon: 'volunteer', color: '#fa8c16', colorDark: '#d46b08', url: '/subPkg1/volunteer/volunteer', disabled: false });
       }
       // 处分管理授权
       if (authorizations.discipline && (authorizations.discipline.includes('write') || authorizations.discipline.includes('approve'))) {
-        authActions.push({ title: '处分管理', icon: 'record', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/discipline/record/record', disabled: false });
+        authActions.push({ title: '处分管理', icon: 'record', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPkg1/discipline/record/record', disabled: false });
       }
       // 通知管理授权
       if (authorizations.notification && authorizations.notification.includes('write')) {
-        authActions.push({ title: '发布通知', icon: 'notification', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPages/usercenter/notifications/notifications?tab=publish', disabled: false });
+        authActions.push({ title: '发布通知', icon: 'notification', color: '#ff4d4f', colorDark: '#cf1322', url: '/subPkg5/usercenter/notifications/notifications?tab=publish', disabled: false });
       }
       // 学生管理授权（查看学生列表）
       if (authorizations.score && authorizations.score.includes('read') && !actions.find(a => a.url === '/pages/student/student')) {
@@ -942,7 +942,7 @@ fetchWeather: async function (location) {
     const studentId = e.currentTarget.dataset.id;
     if (!studentId) return;
     wx.navigateTo({
-      url: `/subPages/student/detail/detail?id=${studentId}`
+      url: `/subPkg1/student/detail/detail?id=${studentId}`
     });
   },
 
@@ -963,28 +963,28 @@ fetchWeather: async function (location) {
   // 跳转到考勤页面
   goToAttendance: function () {
     wx.navigateTo({
-      url: '/subPages/attendance/attendance'
+      url: '/subPkg1/attendance/attendance'
     });
   },
 
   // 跳转到审批页面
   goToApproval: function () {
     wx.navigateTo({
-      url: '/subPages/approval/approval'
+      url: '/subPkg1/approval/approval'
     });
   },
 
   // 跳转到志愿服务页面
   goToVolunteer: function () {
     wx.navigateTo({
-      url: '/subPages/volunteer/volunteer'
+      url: '/subPkg1/volunteer/volunteer'
     });
   },
 
   // 查看课程表
   goToSchedule: function () {
     wx.navigateTo({
-      url: '/subPages/schedule/schedule/schedule'
+      url: '/subPkg4/schedule/schedule/schedule'
     });
   },
 
@@ -1016,26 +1016,26 @@ fetchWeather: async function (location) {
   },
 
   goToAttendanceRegister: function () {
-    wx.navigateTo({ url: '/subPages/attendance/record/record' });
+    wx.navigateTo({ url: '/subPkg1/attendance/record/record' });
   },
 
   goToVolunteerSubmit: function () {
-    wx.navigateTo({ url: '/subPages/volunteer/volunteer' });
+    wx.navigateTo({ url: '/subPkg1/volunteer/volunteer' });
   },
 
   goToDormScore: function () {
-    wx.navigateTo({ url: '/subPages/dorm/dorm' });
+    wx.navigateTo({ url: '/subPkg2/dorm/dorm' });
   },
 
   goToDutyCheck: function () {
-    wx.navigateTo({ url: '/subPages/duty/check/check' });
+    wx.navigateTo({ url: '/subPkg1/duty/check/check' });
   },
 
   goToDutyArrange: function () {
-    wx.navigateTo({ url: '/subPages/duty/duty' });
+    wx.navigateTo({ url: '/subPkg1/duty/duty' });
   },
 
   goToSkillCert: function () {
-    wx.navigateTo({ url: '/subPages/skill-cert/list/list' });
+    wx.navigateTo({ url: '/subPkg1/skill-cert/list/list' });
   }
 });

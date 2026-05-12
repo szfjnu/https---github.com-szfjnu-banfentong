@@ -1,6 +1,0 @@
-{
-  "navigationBarTitleText": "座位变更历史",
-  "usingComponents": {
-    "seat-grid": "/components/seat-grid/seat-grid"
-  }
-}

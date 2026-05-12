@@ -1,20 +1,15 @@
 {
   "pages": [
-    "pages/login/login",
-    "pages/welcome/welcome",
     "pages/index/index",
     "pages/student/student",
     "pages/score/score",
-    "pages/join/join",
     "pages/discover/discover",
-    "pages/usercenter/usercenter",
-    "pages/authorization/authorization",
-    "pages/growth/profile"
+    "pages/usercenter/usercenter"
   ],
   "subPackages": [
     {
-      "root": "subPages",
-      "name": "main",
+      "root": "subPkg1",
+      "name": "core",
       "pages": [
         "student/detail/detail",
         "student/add/add",
@@ -23,9 +18,6 @@
         "class/add/add",
         "class/detail/detail",
         "class/settings/settings",
-        "join/info/info",
-        "join/bind/bind",
-        "join/confirm/confirm",
         "attendance/attendance",
         "attendance/leave/leave",
         "attendance/record/record",
@@ -51,9 +43,33 @@
         "volunteer/add/add",
         "volunteer/records/records",
         "volunteer/detail/detail",
-        "group/group",
-        "group/add/add",
+        "duty/duty",
+        "duty/template/template",
+        "duty/arrange/arrange",
+        "duty/check/check",
+        "duty/myduty/myduty",
+        "discipline/level-config/level-config",
+        "discipline/record/record",
+        "discipline/record/add/add",
+        "discipline/my-discipline/my-discipline",
+        "discipline/revoke-apply/revoke-apply",
+        "discipline/revoke-review/revoke-review",
+        "discipline/revoke-admin/revoke-admin",
+        "approval/approval",
+        "approval/detail/detail",
         "semester/semester",
+        "skill-cert/list/list",
+        "skill-cert/add/add",
+        "skill-cert/detail/detail",
+        "skill-cert/approve/approve",
+        "skill-cert/score-rules/score-rules",
+        "debug/debug"
+      ]
+    },
+    {
+      "root": "subPkg2",
+      "name": "dorm",
+      "pages": [
         "dorm/dorm",
         "dorm/rules/rules",
         "dorm/score/add/add",
@@ -69,38 +85,32 @@
         "dorm/mydorm/mydorm",
         "dorm/inspection/inspection",
         "dorm/inspection/add/add",
-        "dorm/record/add/add",
-        "duty/duty",
-        "duty/template/template",
-        "duty/arrange/arrange",
-        "duty/check/check",
-        "duty/myduty/myduty",
-        "discipline/level-config/level-config",
-        "discipline/record/record",
-        "discipline/record/add/add",
-        "discipline/my-discipline/my-discipline",
-        "discipline/revoke-apply/revoke-apply",
-        "discipline/revoke-review/revoke-review",
-        "discipline/revoke-admin/revoke-admin",
-        "approval/approval",
-        "approval/detail/detail",
-        "usercenter/settings/settings",
-        "usercenter/notifications/notifications",
-        "usercenter/notification-detail/notification-detail",
-        "usercenter/complete/complete",
-        "debug/debug",
-        "grade/grade",
+        "dorm/record/add/add"
+      ]
+    },
+    {
+      "root": "subPkg3",
+      "name": "social",
+      "pages": [
+        "flea/flea",
+        "flea/detail/detail",
         "treehole/treehole",
         "treehole/detail/detail",
         "hero/hero",
-        "flea/flea",
-        "flea/detail/detail",
         "aichat/aichat",
         "activity/list/list",
         "activity/detail/detail",
         "activity/create/create",
         "activity/audit/audit",
         "activity/myactivity/myactivity",
+        "grade/grade"
+      ]
+    },
+    {
+      "root": "subPkg4",
+      "name": "admin",
+      "pages": [
+        "authorization/authorization",
         "schedule/schedule/schedule",
         "schedule/import/import",
         "seat/seat/seat",
@@ -108,12 +118,26 @@
         "seat/arrange/arrange",
         "seat/rotate/rotate",
         "seat/history/history",
+        "group/group",
+        "group/add/add"
+      ]
+    },
+    {
+      "root": "subPkg5",
+      "name": "profile",
+      "pages": [
+        "login/login",
+        "welcome/welcome",
+        "join/join",
+        "join/info/info",
+        "join/bind/bind",
+        "join/confirm/confirm",
+        "growth/growth/profile",
         "growth/warning-config/warning-config",
-        "skill-cert/list/list",
-        "skill-cert/add/add",
-        "skill-cert/detail/detail",
-        "skill-cert/approve/approve",
-        "skill-cert/score-rules/score-rules"
+        "usercenter/settings/settings",
+        "usercenter/notifications/notifications",
+        "usercenter/notification-detail/notification-detail",
+        "usercenter/complete/complete"
       ]
     }
   ],

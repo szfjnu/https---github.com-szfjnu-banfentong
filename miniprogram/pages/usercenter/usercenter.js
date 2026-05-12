@@ -57,7 +57,7 @@ Page({
             title: '待我审批',
             icon: '✅',
             color: '#52c41a',
-            url: '/subPages/approval/approval'
+            url: '/subPkg1/approval/approval'
           });
           // 更新已渲染的菜单
           this.setData({
@@ -87,7 +87,7 @@ Page({
     const studentId = app.globalData.student_id;
 
     if (!openid) {
-      wx.redirectTo({ url: '/pages/login/login' });
+      wx.redirectTo({ url: '/subPkg5/login/login' });
       return;
     }
 
@@ -167,7 +167,7 @@ Page({
           title: '我的通知',
           icon: '📢',
           color: '#1890ff',
-          url: '/subPages/usercenter/notifications/notifications',
+          url: '/subPkg5/usercenter/notifications/notifications',
           badge: this.data.unreadCount || 0
         }
       ]
@@ -183,21 +183,21 @@ Page({
             title: '发布通知',
             icon: '✉️',
             color: '#722ed1',
-            url: '/subPages/usercenter/notifications/notifications?tab=publish'
+            url: '/subPkg5/usercenter/notifications/notifications?tab=publish'
           },
           {
             id: 'discipline',
             title: '处分管理',
             icon: '⚠️',
             color: '#ff4d4f',
-            url: '/subPages/discipline/record/record'
+            url: '/subPkg1/discipline/record/record'
           },
           {
             id: 'activity_audit',
             title: '活动审核',
             icon: '🎪',
             color: '#667eea',
-            url: '/subPages/activity/audit/audit'
+            url: '/subPkg3/activity/audit/audit'
           }
         ]
       });
@@ -213,42 +213,42 @@ Page({
             title: '成绩管理',
             icon: '📊',
             color: '#722ed1',
-            url: '/subPages/grade/grade'
+            url: '/subPkg3/grade/grade'
           },
           {
             id: 'aichat',
             title: '微聊陪伴',
             icon: '💬',
             color: '#667eea',
-            url: '/subPages/aichat/aichat'
+            url: '/subPkg3/aichat/aichat'
           },
           {
             id: 'treehole',
             title: '心灵树洞',
             icon: '🌳',
             color: '#52c41a',
-            url: '/subPages/treehole/treehole'
+            url: '/subPkg3/treehole/treehole'
           },
           {
             id: 'activity',
             title: '聚光点',
             icon: '🎪',
             color: '#667eea',
-            url: '/subPages/activity/list/list'
+            url: '/subPkg3/activity/list/list'
           },
           {
             id: 'hero',
             title: '英雄台',
             icon: '🏆',
             color: '#faad14',
-            url: '/subPages/hero/hero'
+            url: '/subPkg3/hero/hero'
           },
           {
             id: 'flea',
             title: '校园闲鱼',
             icon: '🏷',
             color: '#fa8c16',
-            url: '/subPages/flea/flea'
+            url: '/subPkg3/flea/flea'
           }
         ]
       });
@@ -264,21 +264,21 @@ Page({
             title: '成绩管理',
             icon: '📊',
             color: '#722ed1',
-            url: '/subPages/grade/grade'
+            url: '/subPkg3/grade/grade'
           },
           {
             id: 'activity',
             title: '聚光点',
             icon: '🎪',
             color: '#667eea',
-            url: '/subPages/activity/list/list'
+            url: '/subPkg3/activity/list/list'
           },
           {
             id: 'hero',
             title: '英雄台',
             icon: '🏆',
             color: '#faad14',
-            url: '/subPages/hero/hero'
+            url: '/subPkg3/hero/hero'
           }
         ]
       });
@@ -294,7 +294,7 @@ Page({
             title: '授权管理',
             icon: '🔐',
             color: '#13c2c2',
-            url: '/pages/authorization/authorization'
+            url: '/subPkg4/authorization/authorization'
           }
         ]
       });
@@ -333,63 +333,63 @@ Page({
           title: '信息补全',
           icon: '📝',
           color: '#1890ff',
-          url: '/subPages/usercenter/complete/complete'
+          url: '/subPkg5/usercenter/complete/complete'
         },
         {
           id: 'my_discipline',
           title: '我的处分',
           icon: '⚠️',
           color: '#ff4d4f',
-          url: '/subPages/discipline/my-discipline/my-discipline'
+          url: '/subPkg1/discipline/my-discipline/my-discipline'
         },
         {
           id: 'aichat',
           title: '微聊陪伴',
           icon: '💬',
           color: '#667eea',
-          url: '/subPages/aichat/aichat'
+          url: '/subPkg3/aichat/aichat'
         },
         {
           id: 'treehole',
           title: '心灵树洞',
           icon: '🌳',
           color: '#52c41a',
-          url: '/subPages/treehole/treehole'
+          url: '/subPkg3/treehole/treehole'
         },
         {
           id: 'activity',
           title: '聚光点',
           icon: '🎪',
           color: '#667eea',
-          url: '/subPages/activity/list/list'
+          url: '/subPkg3/activity/list/list'
         },
         {
           id: 'hero',
           title: '英雄台',
           icon: '🏆',
           color: '#faad14',
-          url: '/subPages/hero/hero'
+          url: '/subPkg3/hero/hero'
         },
         {
           id: 'flea',
           title: '校园闲鱼',
           icon: '🏷',
           color: '#fa8c16',
-          url: '/subPages/flea/flea'
+          url: '/subPkg3/flea/flea'
         },
         {
           id: 'grade',
           title: '成绩管理',
           icon: '📊',
           color: '#722ed1',
-          url: '/subPages/grade/grade'
+          url: '/subPkg3/grade/grade'
         },
         {
           id: 'my_duty',
           title: '我的值日',
           icon: '🧹',
           color: '#13c2c2',
-          url: '/subPages/duty/myduty/myduty'
+          url: '/subPkg1/duty/myduty/myduty'
         }
       ];
 
@@ -410,7 +410,7 @@ Page({
             title: '信息补全',
             icon: '📝',
             color: '#1890ff',
-            url: '/subPages/usercenter/complete/complete'
+            url: '/subPkg5/usercenter/complete/complete'
           }
         ]
       });
@@ -422,14 +422,14 @@ Page({
             title: '处分记录',
             icon: '⚠️',
             color: '#ff4d4f',
-            url: '/subPages/discipline/my-discipline/my-discipline'
+            url: '/subPkg1/discipline/my-discipline/my-discipline'
           },
           {
             id: 'child_duty',
             title: '值日信息',
             icon: '🧹',
             color: '#13c2c2',
-            url: '/subPages/duty/myduty/myduty'
+            url: '/subPkg1/duty/myduty/myduty'
           }
         ]
       });
@@ -441,42 +441,42 @@ Page({
             title: '微聊陪伴',
             icon: '💬',
             color: '#667eea',
-            url: '/subPages/aichat/aichat'
+            url: '/subPkg3/aichat/aichat'
           },
           {
             id: 'treehole',
             title: '心灵树洞',
             icon: '🌳',
             color: '#52c41a',
-            url: '/subPages/treehole/treehole'
+            url: '/subPkg3/treehole/treehole'
           },
           {
             id: 'activity',
             title: '聚光点',
             icon: '🎪',
             color: '#667eea',
-            url: '/subPages/activity/list/list'
+            url: '/subPkg3/activity/list/list'
           },
           {
             id: 'hero',
             title: '英雄台',
             icon: '🏆',
             color: '#faad14',
-            url: '/subPages/hero/hero'
+            url: '/subPkg3/hero/hero'
           },
           {
             id: 'flea',
             title: '校园闲鱼',
             icon: '🏷',
             color: '#fa8c16',
-            url: '/subPages/flea/flea'
+            url: '/subPkg3/flea/flea'
           },
           {
             id: 'grade',
             title: '成绩管理',
             icon: '📊',
             color: '#722ed1',
-            url: '/subPages/grade/grade'
+            url: '/subPkg3/grade/grade'
           }
         ]
       });
@@ -493,8 +493,8 @@ Page({
     menuGroups.push({
       title: '设置',
       items: [
-        { id: 'settings', title: '个人设置', icon: '⚙️', color: '#8c8c8c', url: '/subPages/usercenter/settings/settings' },
-        { id: 'notification_settings', title: '通知偏好', icon: '🔔', color: '#faad14', url: '/subPages/usercenter/settings/settings?tab=notification' },
+        { id: 'settings', title: '个人设置', icon: '⚙️', color: '#8c8c8c', url: '/subPkg5/usercenter/settings/settings' },
+        { id: 'notification_settings', title: '通知偏好', icon: '🔔', color: '#faad14', url: '/subPkg5/usercenter/settings/settings?tab=notification' },
         { id: 'about', title: '关于', icon: 'ℹ️', color: '#1890ff', url: '' }
       ]
     });
@@ -545,7 +545,7 @@ Page({
           app.globalData.class_id = null;
           app.globalData.student_id = null;
 
-          wx.redirectTo({ url: '/pages/login/login' });
+          wx.redirectTo({ url: '/subPkg5/login/login' });
         }
       }
     });

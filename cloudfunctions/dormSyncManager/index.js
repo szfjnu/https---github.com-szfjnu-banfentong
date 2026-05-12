@@ -3,7 +3,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
-const { getCallerInfo, requireTeacher, requireAdmin, AUTH_ERRORS } = require('../utils/auth');
+const { getCallerInfo, requireTeacher, requireAdmin, AUTH_ERRORS } = require('./utils/auth');
 
 function validateParams(data, requiredFields) {
   for (const field of requiredFields) {

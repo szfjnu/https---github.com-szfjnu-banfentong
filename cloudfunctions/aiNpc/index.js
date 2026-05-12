@@ -6,7 +6,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
 
-const { getCallerInfo, AUTH_ERRORS } = require('../utils/auth')
+const { getCallerInfo, AUTH_ERRORS } = require('./utils/auth')
 
 // NPC 系统提示词字典
 const SYSTEM_PROMPTS = {

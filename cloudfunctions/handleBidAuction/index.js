@@ -8,7 +8,7 @@ cloud.init({
 const db = cloud.database()
 const _ = db.command
 
-const { getCallerInfo, requireClassAccess, requireTeacher, AUTH_ERRORS } = require('../utils/auth')
+const { getCallerInfo, requireClassAccess, requireTeacher, AUTH_ERRORS } = require('./utils/auth')
 
 exports.main = async (event, context) => {
   const { action, item_id, student_id, bid_score, class_id } = event

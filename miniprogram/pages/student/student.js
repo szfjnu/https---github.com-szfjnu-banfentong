@@ -70,19 +70,19 @@ Page({
 
   // 班级功能导航
   onNavAttendance: function () {
-    wx.navigateTo({ url: '/subPages/attendance/attendance' });
+    wx.navigateTo({ url: '/subPkg1/attendance/attendance' });
   },
   onNavDuty: function () {
-    wx.navigateTo({ url: '/subPages/duty/duty' });
+    wx.navigateTo({ url: '/subPkg1/duty/duty' });
   },
   onNavDorm: function () {
-    wx.navigateTo({ url: '/subPages/dorm/dorm' });
+    wx.navigateTo({ url: '/subPkg2/dorm/dorm' });
   },
   onNavDiscipline: function () {
-    wx.navigateTo({ url: '/subPages/discipline/record/record' });
+    wx.navigateTo({ url: '/subPkg1/discipline/record/record' });
   },
   onNavGroup: function () {
-    wx.navigateTo({ url: '/subPages/group/group' });
+    wx.navigateTo({ url: '/subPkg4/group/group' });
   },
 
   // 加载班级列表
@@ -254,7 +254,7 @@ Page({
   onViewDetail: function (e) {
     const studentId = e.currentTarget.dataset.id;
     wx.navigateTo({
-      url: `/subPages/student/detail/detail?id=${studentId}`
+      url: `/subPkg1/student/detail/detail?id=${studentId}`
     });
   },
 
@@ -291,7 +291,7 @@ Page({
   onEditStudent: function (e) {
     const studentId = e.currentTarget.dataset.id;
     wx.navigateTo({
-      url: `/subPages/student/add/add?id=${studentId}`
+      url: `/subPkg1/student/add/add?id=${studentId}`
     });
   },
 
@@ -333,14 +333,14 @@ Page({
   // 添加学生
   onAddStudent: function () {
     wx.navigateTo({
-      url: '/subPages/student/add/add'
+      url: '/subPkg1/student/add/add'
     });
   },
 
   // 批量导入学生
   onImportStudents: function () {
     wx.navigateTo({
-      url: '/subPages/student/import/import'
+      url: '/subPkg1/student/import/import'
     });
   },
 

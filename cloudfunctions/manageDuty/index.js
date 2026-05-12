@@ -7,7 +7,7 @@ const db = cloud.database();
 const _ = db.command;
 const batchQuery = require('./utils/batchQuery');
 
-const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('../utils/auth');
+const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('./utils/auth');
 
 // 生成唯一ID
 function generateId(prefix) {

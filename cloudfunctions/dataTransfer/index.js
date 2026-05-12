@@ -8,7 +8,7 @@ const { exportAttendanceHandler } = require('./handlers/exportAttendance')
 const { importScheduleHandler } = require('./handlers/importSchedule')
 const { importGradeHandler } = require('./handlers/importGrade')
 
-const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('../utils/auth')
+const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('./utils/auth')
 
 const IMPORT_ACTIONS = ['importStudent', 'importSchedule', 'importGrade']
 

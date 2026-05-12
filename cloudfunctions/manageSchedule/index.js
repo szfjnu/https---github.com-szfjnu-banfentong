@@ -2,7 +2,7 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
-const { getCallerInfo } = require('../utils/auth')
+const { getCallerInfo } = require('./utils/auth')
 
 const SECTION_NAMES = ['', '第一节课', '第二节课', '第三节课', '第四节课', '第五节课', '第六节课', '第七节课']
 const WEEK_DAY_NAMES = ['', '星期一', '星期二', '星期三', '星期四', '星期五']

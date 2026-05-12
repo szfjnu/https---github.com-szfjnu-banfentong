@@ -11,7 +11,7 @@ cloud.init({
 const db = cloud.database()
 const _ = db.command
 
-const { getCallerInfo, AUTH_ERRORS } = require('../utils/auth')
+const { getCallerInfo, AUTH_ERRORS } = require('./utils/auth')
 
 /**
  * 审批流程状态：

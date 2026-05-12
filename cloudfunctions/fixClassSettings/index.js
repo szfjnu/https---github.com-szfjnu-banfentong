@@ -5,7 +5,7 @@ cloud.init({
 })
 const db = cloud.database()
 const _ = db.command
-const { getCallerInfo, requireAdmin } = require('../utils/auth')
+const { getCallerInfo, requireAdmin } = require('./utils/auth')
 
 exports.main = async (event, context) => {
   console.log('开始修复班级设置数据...')

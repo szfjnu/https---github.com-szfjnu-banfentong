@@ -6,7 +6,7 @@ cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV
 })
 
-const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('../utils/auth')
+const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('./utils/auth')
 
 const db = cloud.database()
 const _ = db.command

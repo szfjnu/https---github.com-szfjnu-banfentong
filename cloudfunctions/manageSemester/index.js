@@ -2,9 +2,9 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
-const { getCallerInfo, requireClassAccess, requireTeacher } = require('../utils/auth')
-const { withTransaction } = require('../utils/transaction')
-const { validateInput, SCHEMAS } = require('../utils/validator')
+const { getCallerInfo, requireClassAccess, requireTeacher } = require('./utils/auth')
+const { withTransaction } = require('./utils/transaction')
+const { validateInput, SCHEMAS } = require('./utils/validator')
 
 exports.main = async (event, context) => {
   const { action, data } = event

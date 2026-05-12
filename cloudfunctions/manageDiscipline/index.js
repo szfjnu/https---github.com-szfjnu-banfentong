@@ -5,8 +5,8 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
-const { getCallerInfo, requireClassAccess, requireTeacher } = require('../utils/auth');
-const { withTransaction } = require('../utils/transaction');
+const { getCallerInfo, requireClassAccess, requireTeacher } = require('./utils/auth');
+const { withTransaction } = require('./utils/transaction');
 
 // 生成唯一ID
 function generateId(prefix) {

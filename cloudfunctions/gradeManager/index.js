@@ -7,7 +7,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 const $ = db.command.aggregate;
-const { getCallerInfo, requireTeacher } = require('../utils/auth');
+const { getCallerInfo, requireTeacher } = require('./utils/auth');
 
 exports.main = async (event, context) => {
   const { action, data } = event;

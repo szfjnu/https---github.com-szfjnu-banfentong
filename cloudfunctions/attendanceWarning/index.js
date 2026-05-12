@@ -3,7 +3,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
-const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('../utils/auth');
+const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('./utils/auth');
 
 const DEFAULT_WARNING_LEVELS = [
   { level_code: 'warning', level_name: '警告处分', min_sections: 20, max_sections: 40, color: '#faad14' },

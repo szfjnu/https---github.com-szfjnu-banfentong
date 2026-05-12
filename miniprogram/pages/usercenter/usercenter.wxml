@@ -15,7 +15,7 @@
         </view>
       </view>
     </view>
-    <view class="notification-entry" bindtap="onMenuItemTap" data-id="notifications" data-url="/subPages/usercenter/notifications/notifications">
+    <view class="notification-entry" bindtap="onMenuItemTap" data-id="notifications" data-url="/subPkg5/usercenter/notifications/notifications">
       <image class="notification-icon" src="/images/icons/notification.png" mode="aspectFit" />
       <view class="notification-badge" wx:if="{{unreadCount > 0}}">
         {{unreadCount > 99 ? '99+' : unreadCount}}

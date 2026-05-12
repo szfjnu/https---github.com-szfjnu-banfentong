@@ -2,7 +2,7 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
-const { getCallerInfo } = require('../utils/auth')
+const { getCallerInfo } = require('./utils/auth')
 
 const MAX_LIMIT = 100
 const WRITE_ROLES = ['admin', 'head_teacher']

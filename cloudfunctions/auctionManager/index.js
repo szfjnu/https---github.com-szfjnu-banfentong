@@ -3,7 +3,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
 
-const { getCallerInfo, requireRole, requireClassAccess, requireTeacher, AUTH_ERRORS } = require('../utils/auth')
+const { getCallerInfo, requireRole, requireClassAccess, requireTeacher, AUTH_ERRORS } = require('./utils/auth')
 
 const CATEGORIES = {
   privilege: '特权卡',

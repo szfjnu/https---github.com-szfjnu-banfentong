@@ -7,8 +7,8 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 const batchQuery = require('./utils/batchQuery');
-const { getCallerInfo, requireClassAccess, requireTeacher } = require('../utils/auth');
-const { batchWithIndependentTransaction } = require('../utils/transaction');
+const { getCallerInfo, requireClassAccess, requireTeacher } = require('./utils/auth');
+const { batchWithIndependentTransaction } = require('./utils/transaction');
 
 const ALLOWED_MODULES = {
   score: { label: '积分管理', actions: ['read', 'write', 'approve'] },
