@@ -305,16 +305,12 @@ async function checkCreateClassPermission(openid) {
  */
 async function updateUsage(openid, type, delta) {
   try {
-    const db = getDb();
-    const _ = getCmd();
-    const updateField = {};
-    updateField[`membership_usage.${type}`] = _.inc(delta);
-    updateField['membership_usage.last_usage_update'] = db.serverDate();
-
-    await db.collection('users').where({
-      _openid: openid
-    }).update({
-      data: updateField
+    await wx.cloud.callFunction({
+      name: 'manageUserCenter',
+      data: {
+        action: 'updateUsage',
+        data: { openid, type, delta }
+      }
     });
   } catch (err) {
     console.error('更新使用量失败:', err);
@@ -330,7 +326,6 @@ async function updateUsage(openid, type, delta) {
  */
 async function logFeatureAccess(openid, featureCode, allowed, reason) {
   try {
-    const db = getDb();
     const featureNames = {
       'create_class': '创建班级',
       'authorize_admin': '授权管理',
@@ -341,16 +336,17 @@ async function logFeatureAccess(openid, featureCode, allowed, reason) {
       'import_grade_excel': '成绩Excel导入'
     };
 
-    await db.collection('feature_access_logs').add({
+    await wx.cloud.callFunction({
+      name: 'manageUserCenter',
       data: {
-        log_id: `FAL-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-        user_openid: openid,
-        feature_code: featureCode,
-        feature_name: featureNames[featureCode] || featureCode,
-        access_time: db.serverDate(),
-        access_result: allowed ? 'allowed' : 'denied',
-        deny_reason: allowed ? '' : reason,
-        created_at: db.serverDate()
+        action: 'logFeatureAccess',
+        data: {
+          openid,
+          feature_code: featureCode,
+          feature_name: featureNames[featureCode] || featureCode,
+          allowed,
+          reason
+        }
       }
     });
   } catch (err) {
@@ -365,7 +361,6 @@ async function logFeatureAccess(openid, featureCode, allowed, reason) {
 async function initUserMembership(openid) {
   try {
     const db = getDb();
-    // 检查是否已有会员信息
     const res = await db.collection('users').where({
       _openid: openid
     }).field({
@@ -373,33 +368,27 @@ async function initUserMembership(openid) {
     }).get();
 
     if (res.data.length > 0 && res.data[0].membership) {
-      return; // 已有会员信息，不需要初始化
+      return;
     }
 
-    // 初始化免费会员
-    await db.collection('users').where({
-      _openid: openid
-    }).update({
+    await wx.cloud.callFunction({
+      name: 'manageUserCenter',
       data: {
-        membership: {
-          level: MEMBERSHIP_LEVELS.FREE,
-          status: MEMBERSHIP_STATUS.ACTIVE,
-          start_date: db.serverDate(),
-          expire_date: null,
-          auto_renew: false,
-          days_remaining: -1
-        },
-        membership_permissions: DEFAULT_PERMISSIONS[MEMBERSHIP_LEVELS.FREE],
-        membership_usage: {
-          classes_created: 0,
-          storage_used_mb: 0,
-          last_usage_update: db.serverDate()
-        },
-        invite_info: {
-          invite_code: generateInviteCode(),
-          invited_by: null,
-          invite_count: 0,
-          invite_rewards: 0
+        action: 'initUserMembership',
+        data: {
+          openid,
+          membership: {
+            level: MEMBERSHIP_LEVELS.FREE,
+            status: MEMBERSHIP_STATUS.ACTIVE,
+            auto_renew: false,
+            days_remaining: -1
+          },
+          permissions: DEFAULT_PERMISSIONS[MEMBERSHIP_LEVELS.FREE],
+          usage: {
+            classes_created: 0,
+            storage_used_mb: 0
+          },
+          invite_code: generateInviteCode()
         }
       }
     });

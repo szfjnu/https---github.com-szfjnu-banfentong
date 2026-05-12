@@ -467,22 +467,34 @@ Page({
       
       if (checkRes.data && checkRes.data.length > 0) {
         // 更新
-        await db.collection('class_settings').doc(checkRes.data[0]._id).update({
+        const res = await wx.cloud.callFunction({
+          name: 'manageSemester',
           data: {
-            volunteer_score_per_hour: scorePerHour,
-            updated_at: db.serverDate()
+            action: 'updateClassSettings',
+            data: {
+              _id: checkRes.data[0]._id,
+              volunteer_score_per_hour: scorePerHour
+            }
           }
         });
+        if (!res.result || !res.result.success) {
+          throw new Error(res.result?.message || '保存失败');
+        }
       } else {
         // 新增
-        await db.collection('class_settings').add({
+        const res = await wx.cloud.callFunction({
+          name: 'manageSemester',
           data: {
-            class_id: this.data.currentClassId,
-            volunteer_score_per_hour: scorePerHour,
-            created_at: db.serverDate(),
-            updated_at: db.serverDate()
+            action: 'addClassSettings',
+            data: {
+              class_id: this.data.currentClassId,
+              volunteer_score_per_hour: scorePerHour
+            }
           }
         });
+        if (!res.result || !res.result.success) {
+          throw new Error(res.result?.message || '保存失败');
+        }
       }
       
       this.setData({

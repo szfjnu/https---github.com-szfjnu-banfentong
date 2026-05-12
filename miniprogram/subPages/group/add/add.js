@@ -205,28 +205,33 @@ Page({
       }
 
       // 复制分组到当前学期
-      const serverDate = db.serverDate();
-      for (const group of res.data) {
-        const newGroup = {
-          group_name: group.group_name,
-          group_type: group.group_type,
-          group_color: group.group_color || '#1890ff',
-          description: group.description || '',
-          leader_id: group.leader_id || '',
-          leader_name: group.leader_name || '',
-          members: group.members || [],
-          semester_id: currentSemesterId,
-          semester_name: currentSemesterName,
-          class_id: currentClassId,
-          creator_openid: app.globalData.openid,
-          creator_name: app.globalData.userInfo?.nickName || '未知',
-          is_deleted: false,
-          copied_from: group._id,
-          created_at: serverDate,
-          updated_at: serverDate
-        };
-        
-        await db.collection('student_groups').add({ data: newGroup });
+      const groupsToCopy = res.data.map(group => ({
+        group_name: group.group_name,
+        group_type: group.group_type,
+        group_color: group.group_color || '#1890ff',
+        description: group.description || '',
+        leader_id: group.leader_id || '',
+        leader_name: group.leader_name || '',
+        members: group.members || [],
+        semester_id: currentSemesterId,
+        semester_name: currentSemesterName,
+        class_id: currentClassId,
+        creator_openid: app.globalData.openid,
+        creator_name: app.globalData.userInfo?.nickName || '未知',
+        is_deleted: false,
+        copied_from: group._id
+      }));
+
+      const cfRes = await wx.cloud.callFunction({
+        name: 'scoreManager',
+        data: {
+          action: 'batchAddStudentGroups',
+          data: { groups: groupsToCopy }
+        }
+      });
+
+      if (!cfRes.result || !cfRes.result.success) {
+        throw new Error(cfRes.result?.message || '复制分组失败');
       }
 
       util.showSuccess(`已复制 ${res.data.length} 个分组`);
@@ -599,20 +604,33 @@ Page({
       };
 
       if (mode === 'add') {
-        await db.collection('student_groups').add({
+        const res = await wx.cloud.callFunction({
+          name: 'scoreManager',
           data: {
-            ...commonData,
-            creator_openid: app.globalData.openid,
-            creator_name: app.globalData.userInfo?.nickName || '未知',
-            is_deleted: false,
-            created_at: serverDate
+            action: 'addStudentGroup',
+            data: {
+              ...commonData,
+              creator_openid: app.globalData.openid,
+              creator_name: app.globalData.userInfo?.nickName || '未知',
+              is_deleted: false
+            }
           }
         });
+        if (!res.result || !res.result.success) {
+          throw new Error(res.result?.message || '创建失败');
+        }
         util.showSuccess('创建成功');
       } else {
-        await db.collection('student_groups').doc(groupId).update({
-          data: commonData
+        const res = await wx.cloud.callFunction({
+          name: 'scoreManager',
+          data: {
+            action: 'updateStudentGroup',
+            data: { _id: groupId, ...commonData }
+          }
         });
+        if (!res.result || !res.result.success) {
+          throw new Error(res.result?.message || '更新失败');
+        }
         util.showSuccess('更新成功');
       }
 

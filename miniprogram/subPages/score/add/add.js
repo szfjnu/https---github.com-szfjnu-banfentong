@@ -1064,8 +1064,18 @@ Page({
             updated_at: new Date()
           };
 
-          // 添加积分变更记录到 score_records 集合
-          await wx.cloud.database().collection('score_records').add({ data: recordData });
+          // 添加积分变更记录到 score_records 集合（通过云函数）
+          try {
+            const addRecordRes = await wx.cloud.callFunction({
+              name: 'scoreManager',
+              data: { action: 'addScoreRecord', data: recordData }
+            });
+            if (!addRecordRes.result || !addRecordRes.result.success) {
+              console.error('积分记录添加失败:', addRecordRes.result);
+            }
+          } catch (err) {
+            console.error('积分记录添加云函数调用失败:', err);
+          }
           console.log(`积分记录添加成功: ${student.name}`);
 
           // 使用云函数更新学生积分（绕过数据库权限限制）

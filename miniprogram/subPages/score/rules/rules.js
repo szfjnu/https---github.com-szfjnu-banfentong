@@ -500,16 +500,36 @@ Page({
         await this.createVersionSnapshot(editingRule, data);
         
         // 更新规则
-        await db.collection('score_items').doc(editingRule._id).update({ data });
+        const updateRes = await wx.cloud.callFunction({
+          name: 'scoreManager',
+          data: {
+            action: 'updateScoreItem',
+            data: { itemId: editingRule._id, updateData: data }
+          }
+        });
+        if (!updateRes.result || !updateRes.result.success) {
+          throw new Error(updateRes.result?.message || '更新失败');
+        }
         util.showSuccess('更新成功');
       } else {
         // 新增 - 创建初始版本
         data.created_at = new Date();
-        const addRes = await db.collection('score_items').add({ data });
+        const addRes = await wx.cloud.callFunction({
+          name: 'scoreManager',
+          data: {
+            action: 'addScoreItem',
+            data: { itemData: data }
+          }
+        });
+        
+        if (!addRes.result || !addRes.result.success) {
+          throw new Error(addRes.result?.message || '添加失败');
+        }
         
         // 创建初始版本快照
-        if (addRes._id) {
-          await this.createInitialVersion(data, addRes._id);
+        const newDocId = addRes.result.data?._id;
+        if (newDocId) {
+          await this.createInitialVersion(data, newDocId);
         }
         util.showSuccess('添加成功');
       }
@@ -529,7 +549,6 @@ Page({
   createVersionSnapshot: async function (oldRule, newRule) {
     try {
       const db = wx.cloud.database();
-      const _ = db.command;
       
       // 获取当前活跃版本
       const versionsRes = await db.collection('score_rule_versions')
@@ -577,26 +596,25 @@ Page({
         class_id: newRule.class_id,
         semester_id: app.globalData.current_semester_id || '',
         created_by: app.globalData.openid || '',
-        created_by_name: app.globalData.name || '未知用户',
-        created_at: new Date(),
-        activated_at: new Date(),
-        deprecated_at: null
+        created_by_name: app.globalData.name || '未知用户'
       };
       
-      // 将旧版本设为非活跃
-      if (currentVersion) {
-        await db.collection('score_rule_versions').doc(currentVersion._id).update({
+      const res = await wx.cloud.callFunction({
+        name: 'scoreManager',
+        data: {
+          action: 'createVersionSnapshot',
           data: {
-            is_active: false,
-            deprecated_at: new Date()
+            currentVersionId: currentVersion ? currentVersion._id : null,
+            versionData: versionData
           }
-        });
+        }
+      });
+      
+      if (!res.result || !res.result.success) {
+        console.error('版本快照创建失败:', res.result?.message);
+      } else {
+        console.log('版本快照创建成功:', newVersionNumber);
       }
-      
-      // 添加新版本
-      await db.collection('score_rule_versions').add({ data: versionData });
-      
-      console.log('版本快照创建成功:', newVersionNumber);
     } catch (err) {
       console.error('创建版本快照失败:', err);
       // 不中断主流程
@@ -606,8 +624,6 @@ Page({
   // 创建初始版本
   createInitialVersion: async function (rule, ruleDocId) {
     try {
-      const db = wx.cloud.database();
-      
       const versionData = {
         version_id: `VER-${Date.now()}`,
         rule_id: rule.record_id,
@@ -630,14 +646,22 @@ Page({
         class_id: rule.class_id,
         semester_id: app.globalData.current_semester_id || '',
         created_by: app.globalData.openid || '',
-        created_by_name: app.globalData.name || '未知用户',
-        created_at: new Date(),
-        activated_at: new Date(),
-        deprecated_at: null
+        created_by_name: app.globalData.name || '未知用户'
       };
       
-      await db.collection('score_rule_versions').add({ data: versionData });
-      console.log('初始版本创建成功: 1.0.0');
+      const res = await wx.cloud.callFunction({
+        name: 'scoreManager',
+        data: {
+          action: 'createInitialVersion',
+          data: { versionData: versionData }
+        }
+      });
+      
+      if (!res.result || !res.result.success) {
+        console.error('初始版本创建失败:', res.result?.message);
+      } else {
+        console.log('初始版本创建成功: 1.0.0');
+      }
     } catch (err) {
       console.error('创建初始版本失败:', err);
     }
@@ -830,8 +854,19 @@ Page({
         if (res.confirm) {
           try {
             wx.showLoading({ title: '删除中...', mask: true });
-            const db = wx.cloud.database();
-            await db.collection('score_items').doc(rule._id).remove();
+            
+            const res = await wx.cloud.callFunction({
+              name: 'scoreManager',
+              data: {
+                action: 'deleteScoreItem',
+                data: { itemId: rule._id }
+              }
+            });
+            
+            if (!res.result || !res.result.success) {
+              throw new Error(res.result?.message || '删除失败');
+            }
+            
             util.showSuccess('删除成功');
             this.loadRules();
           } catch (err) {
@@ -851,15 +886,26 @@ Page({
     const newStatus = !rule.is_enabled;
 
     try {
-      const db = wx.cloud.database();
-      await db.collection('score_items').doc(rule._id).update({
-        data: { is_enabled: newStatus, updated_at: new Date() }
+      const res = await wx.cloud.callFunction({
+        name: 'scoreManager',
+        data: {
+          action: 'updateScoreItem',
+          data: {
+            itemId: rule._id,
+            updateData: { is_enabled: newStatus, updated_at: new Date() }
+          }
+        }
       });
+      
+      if (!res.result || !res.result.success) {
+        throw new Error(res.result?.message || '操作失败');
+      }
+      
       util.showSuccess(newStatus ? '已启用' : '已禁用');
       this.loadRules();
     } catch (err) {
       console.error('更新状态失败:', err);
-      util.showError('操作失败');
+      util.showError(err.message || '操作失败');
     }
   },
 

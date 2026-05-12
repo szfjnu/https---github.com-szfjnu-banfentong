@@ -532,87 +532,38 @@ Page({
       // 遍历每个选中的学生
       for (const student of selectedStudents) {
         const recordId = `DSR-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
-        // 修复浮点数精度问题：保留两位小数
         const personalScore = linkToPersonal ? Math.round(selectedRule.score_value * conversionRatio * 100) / 100 : 0;
 
-        // 创建宿舍积分记录
-        const dormRecordData = {
-          record_id: recordId,
-          student_id: student.student_id,
-          dorm_info: student.dorm_info,
-          rule_id: selectedRule._id,
-          rule_name: selectedRule.rule_name,
-          rule_category: selectedRule.category,
-          record_type: recordType,
-          score_value: selectedRule.score_value,
-          remark: remark,
-          link_to_personal: linkToPersonal,
-          personal_score: linkToPersonal ? personalScore : 0,
-          recorder_name: app.globalData.userInfo?.nickName || app.globalData.userInfo?.name || '未知',
-          recorder_openid: app.globalData.openid,
-          semester_id: currentSemesterId,
-          class_id: app.globalData.class_id || '',
-          record_date: new Date(),
-          created_at: db.serverDate(),
-          updated_at: db.serverDate()
-        };
+        const dormScoreChange = selectedRule.score_value;
 
-        await db.collection('dorm_score_records').add({ data: dormRecordData });
-
-        // 更新学生宿舍积分（核心修复：确保 dorm_score 被实时更新）
+        // 使用云函数 convertDormScore 处理宿舍积分记录、学生积分和账户更新
         try {
-          const dormScoreChange = selectedRule.score_value;
-          const stuRes = await db.collection('students').where({
-            student_id: student.student_id
-          }).limit(1).get();
-          if (stuRes.data && stuRes.data.length > 0) {
-            await db.collection('students').doc(stuRes.data[0]._id).update({
-              data: {
-                dorm_score: _.inc(dormScoreChange),
-                updated_at: db.serverDate()
-              }
-            });
-          }
-          console.log(`学生宿舍积分已更新: ${student.name}, 变化: ${dormScoreChange}`);
-        } catch (dormScoreErr) {
-          console.error('更新学生宿舍积分失败:', dormScoreErr);
-        }
-
-        // 更新或创建宿舍积分账户（用于预警和统计）
-        try {
-          const accountRes = await db.collection('dorm_score_accounts').where({
-            student_id: student.student_id,
-            semester_id: currentSemesterId
-          }).limit(1).get();
-
-          const dormScoreChange = selectedRule.score_value;
-
-          if (accountRes.data.length > 0) {
-            await db.collection('dorm_score_accounts').doc(accountRes.data[0]._id).update({
-              data: {
-                original_score: _.inc(dormScoreChange),
-                current_score: _.inc(dormScoreChange),
-                updated_at: db.serverDate()
-              }
-            });
-          } else {
-            await db.collection('dorm_score_accounts').add({
+          const dormRes = await wx.cloud.callFunction({
+            name: 'convertDormScore',
+            data: {
+              action: 'convertDormScore',
               data: {
                 student_id: student.student_id,
+                score_change: dormScoreChange,
                 semester_id: currentSemesterId,
                 class_id: app.globalData.class_id || '',
-                original_score: 100 + dormScoreChange,
-                current_score: 100 + dormScoreChange,
-                converted_score: 0,
-                conversion_ratio: conversionRatio,
-                warning_count: 0,
-                created_at: db.serverDate(),
-                updated_at: db.serverDate()
+                record_type: recordType,
+                rule_id: selectedRule._id,
+                rule_name: selectedRule.rule_name,
+                rule_category: selectedRule.category,
+                dorm_info: student.dorm_info,
+                remark: remark,
+                recorder_name: app.globalData.userInfo?.nickName || app.globalData.userInfo?.name || '未知',
+                recorder_openid: app.globalData.openid
               }
-            });
+            }
+          });
+
+          if (!dormRes.result || !dormRes.result.success) {
+            console.error('宿舍积分记录保存失败:', dormRes.result?.message);
           }
-        } catch (accountErr) {
-          console.error('更新宿舍积分账户失败:', accountErr);
+        } catch (dormScoreErr) {
+          console.error('更新学生宿舍积分失败:', dormScoreErr);
         }
 
         // 如果关联个人积分，创建个人积分记录（保持原有逻辑不变）

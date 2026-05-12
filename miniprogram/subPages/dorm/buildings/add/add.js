@@ -131,17 +131,30 @@ Page({
 
       if (editingBuilding) {
         // 更新
-        await db.collection('dorm_buildings').doc(editingBuilding._id).update({
-          data: buildingData
+        const res = await wx.cloud.callFunction({
+          name: 'dormSyncManager',
+          data: {
+            action: 'updateBuilding',
+            data: { _id: editingBuilding._id, ...buildingData }
+          }
         });
+        if (!res.result || !res.result.success) {
+          throw new Error(res.result?.message || '更新楼栋失败');
+        }
       } else {
         // 新增
-        buildingData.created_at = db.serverDate();
         buildingData.created_by = app.globalData.openid;
 
-        await db.collection('dorm_buildings').add({
-          data: buildingData
+        const res = await wx.cloud.callFunction({
+          name: 'dormSyncManager',
+          data: {
+            action: 'addBuilding',
+            data: buildingData
+          }
         });
+        if (!res.result || !res.result.success) {
+          throw new Error(res.result?.message || '新增楼栋失败');
+        }
       }
 
       wx.hideLoading();

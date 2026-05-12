@@ -85,22 +85,46 @@ const studentApi = {
       .get();
   },
 
-  // 添加学生
-  addStudent: (data) => {
+  addStudent: async (data) => {
     data.created_at = db.serverDate();
     data.updated_at = db.serverDate();
-    return db.collection('students').add({ data });
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'joinClass',
+        data: { action: 'addStudent', data }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('addStudent云函数调用失败:', err);
+      throw err;
+    }
   },
 
-  // 更新学生
-  updateStudent: (studentId, data) => {
+  updateStudent: async (studentId, data) => {
     data.updated_at = db.serverDate();
-    return db.collection('students').doc(studentId).update({ data });
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'joinClass',
+        data: { action: 'updateStudent', data: { studentId, ...data } }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('updateStudent云函数调用失败:', err);
+      throw err;
+    }
   },
 
-  // 删除学生
-  deleteStudent: (studentId) => {
-    return db.collection('students').doc(studentId).remove();
+  deleteStudent: async (studentId) => {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'joinClass',
+        data: { action: 'deleteStudent', data: { studentId } }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('deleteStudent云函数调用失败:', err);
+      throw err;
+    }
   }
 };
 
@@ -166,10 +190,18 @@ const scoreApi = {
     return db.collection('score_records').doc(recordId).get();
   },
 
-  // 添加积分记录
-  addScoreRecord: (data) => {
+  addScoreRecord: async (data) => {
     data.created_at = db.serverDate();
-    return db.collection('score_records').add({ data });
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'scoreManager',
+        data: { action: 'addScoreRecord', data }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('addScoreRecord云函数调用失败:', err);
+      throw err;
+    }
   },
 
   // 获取积分项目
@@ -192,22 +224,46 @@ const scoreApi = {
       .get();
   },
 
-  // 添加积分规则
-  addScoreItem: (data) => {
+  addScoreItem: async (data) => {
     data.created_at = db.serverDate();
     data.updated_at = db.serverDate();
-    return db.collection('score_items').add({ data });
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'scoreManager',
+        data: { action: 'addScoreItem', data }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('addScoreItem云函数调用失败:', err);
+      throw err;
+    }
   },
 
-  // 更新积分规则
-  updateScoreItem: (itemId, data) => {
+  updateScoreItem: async (itemId, data) => {
     data.updated_at = db.serverDate();
-    return db.collection('score_items').doc(itemId).update({ data });
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'scoreManager',
+        data: { action: 'updateScoreItem', data: { itemId, ...data } }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('updateScoreItem云函数调用失败:', err);
+      throw err;
+    }
   },
 
-  // 删除积分规则
-  deleteScoreItem: (itemId) => {
-    return db.collection('score_items').doc(itemId).remove();
+  deleteScoreItem: async (itemId) => {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'scoreManager',
+        data: { action: 'deleteScoreItem', data: { itemId } }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('deleteScoreItem云函数调用失败:', err);
+      throw err;
+    }
   }
 };
 
@@ -277,10 +333,18 @@ const volunteerApi = {
       .get();
   },
 
-  // 添加志愿服务记录
-  addVolunteerRecord: (data) => {
+  addVolunteerRecord: async (data) => {
     data.created_at = db.serverDate();
-    return db.collection('volunteer_records').add({ data });
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'scoreManager',
+        data: { action: 'addVolunteerRecord', data }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('addVolunteerRecord云函数调用失败:', err);
+      throw err;
+    }
   },
 
   // 获取志愿服务详情
@@ -301,11 +365,19 @@ const disciplineApi = {
       .get();
   },
 
-  // 添加处分记录（通过云函数处理，保留此方法兼容）
-  addDisciplineRecord: (data) => {
+  addDisciplineRecord: async (data) => {
     data.createdAt = db.serverDate();
     data.updatedAt = db.serverDate();
-    return db.collection('discipline_records').add({ data });
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'manageDiscipline',
+        data: { action: 'addDisciplineRecord', data }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('addDisciplineRecord云函数调用失败:', err);
+      throw err;
+    }
   }
 };
 
@@ -488,17 +560,33 @@ const classApi = {
     return db.collection('classes').doc(classId).get();
   },
 
-  // 添加班级
-  addClass: (data) => {
+  addClass: async (data) => {
     data.created_at = db.serverDate();
     data.updated_at = db.serverDate();
-    return db.collection('classes').add({ data });
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'joinClass',
+        data: { action: 'createClass', data }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('addClass云函数调用失败:', err);
+      throw err;
+    }
   },
 
-  // 更新班级
-  updateClass: (classId, data) => {
+  updateClass: async (classId, data) => {
     data.updated_at = db.serverDate();
-    return db.collection('classes').doc(classId).update({ data });
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'joinClass',
+        data: { action: 'updateClass', data: { classId, ...data } }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('updateClass云函数调用失败:', err);
+      throw err;
+    }
   },
 
   // 根据班级代码查找班级（兼容无status字段的旧数据）
@@ -535,17 +623,33 @@ const userApi = {
       .get();
   },
 
-  // 更新用户信息
-  updateUser: (userId, data) => {
+  updateUser: async (userId, data) => {
     data.updated_at = db.serverDate();
-    return db.collection('users').doc(userId).update({ data });
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'manageUserCenter',
+        data: { action: 'updateUser', data: { userId, ...data } }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('updateUser云函数调用失败:', err);
+      throw err;
+    }
   },
 
-  // 添加用户
-  addUser: (data) => {
+  addUser: async (data) => {
     data.created_at = db.serverDate();
     data.updated_at = db.serverDate();
-    return db.collection('users').add({ data });
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'initDatabase',
+        data
+      });
+      return res.result;
+    } catch (err) {
+      console.error('addUser云函数调用失败:', err);
+      throw err;
+    }
   },
 
   // 根据用户ID获取用户详情
@@ -578,23 +682,47 @@ const redemptionApi = {
       .get();
   },
 
-  // 添加兑换物品
-  addItem: (data) => {
+  addItem: async (data) => {
     data.created_at = db.serverDate();
     data.updated_at = db.serverDate();
-    return db.collection('redemption_items').add({ data });
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'processRedemption',
+        data: { action: 'addItem', data }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('addItem云函数调用失败:', err);
+      throw err;
+    }
   },
 
-  // 更新兑换物品
-  updateItem: (itemId, data) => {
+  updateItem: async (itemId, data) => {
     data.updated_at = db.serverDate();
-    return db.collection('redemption_items').doc(itemId).update({ data });
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'processRedemption',
+        data: { action: 'updateItem', data: { itemId, ...data } }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('updateItem云函数调用失败:', err);
+      throw err;
+    }
   },
 
-  // 提交兑换申请
-  submitRedemption: (data) => {
+  submitRedemption: async (data) => {
     data.created_at = db.serverDate();
-    return db.collection('redemption_requests').add({ data });
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'processRedemption',
+        data: { action: 'submitRedemption', data }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('submitRedemption云函数调用失败:', err);
+      throw err;
+    }
   },
 
   // 获取兑换记录（按班级过滤）
@@ -627,9 +755,17 @@ const redemptionApi = {
       .get();
   },
 
-  // 更新兑换请求
-  updateRequest: (requestId, data) => {
-    return db.collection('redemption_requests').doc(requestId).update({ data });
+  updateRequest: async (requestId, data) => {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'processRedemption',
+        data: { action: 'updateRequest', data: { requestId, ...data } }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('updateRequest云函数调用失败:', err);
+      throw err;
+    }
   }
 };
 
@@ -645,10 +781,18 @@ const dormScoreApi = {
       .get();
   },
 
-  // 添加宿舍积分记录
-  addDormScoreRecord: (data) => {
+  addDormScoreRecord: async (data) => {
     data.created_at = db.serverDate();
-    return db.collection('dorm_score_records').add({ data });
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'convertDormScore',
+        data
+      });
+      return res.result;
+    } catch (err) {
+      console.error('addDormScoreRecord云函数调用失败:', err);
+      throw err;
+    }
   }
 };
 
@@ -664,10 +808,18 @@ const gradeApi = {
       .get();
   },
 
-  // 添加成绩记录
-  addGradeRecord: (data) => {
+  addGradeRecord: async (data) => {
     data.created_at = db.serverDate();
-    return db.collection('grade_records').add({ data });
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'gradeManager',
+        data: { action: 'addGradeRecord', data }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('addGradeRecord云函数调用失败:', err);
+      throw err;
+    }
   }
 };
 
@@ -685,18 +837,17 @@ const dutyApi = {
       .get();
   },
 
-  // 更新值日任务状态
-  updateDutyTask: (scheduleId, taskId, data) => {
-    return db.collection('duty_schedule').doc(scheduleId).update({
-      data: {
-        tasks: _.map(data.tasks, task => {
-          if (task.task_id === taskId) {
-            return { ...task, ...data };
-          }
-          return task;
-        })
-      }
-    });
+  updateDutyTask: async (scheduleId, taskId, data) => {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'manageDuty',
+        data: { action: 'updateDutyTask', data: { scheduleId, taskId, ...data } }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('updateDutyTask云函数调用失败:', err);
+      throw err;
+    }
   }
 };
 
@@ -716,22 +867,46 @@ const groupApi = {
     return db.collection('student_groups').doc(groupId).get();
   },
 
-  // 添加分组
-  addGroup: (data) => {
+  addGroup: async (data) => {
     data.created_at = db.serverDate();
     data.updated_at = db.serverDate();
-    return db.collection('student_groups').add({ data });
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'scoreManager',
+        data: { action: 'addGroup', data }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('addGroup云函数调用失败:', err);
+      throw err;
+    }
   },
 
-  // 更新分组
-  updateGroup: (groupId, data) => {
+  updateGroup: async (groupId, data) => {
     data.updated_at = db.serverDate();
-    return db.collection('student_groups').doc(groupId).update({ data });
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'scoreManager',
+        data: { action: 'updateGroup', data: { groupId, ...data } }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('updateGroup云函数调用失败:', err);
+      throw err;
+    }
   },
 
-  // 删除分组
-  deleteGroup: (groupId) => {
-    return db.collection('student_groups').doc(groupId).remove();
+  deleteGroup: async (groupId) => {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'scoreManager',
+        data: { action: 'deleteGroup', data: { groupId } }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('deleteGroup云函数调用失败:', err);
+      throw err;
+    }
   }
 };
 
@@ -790,22 +965,46 @@ const relationApi = {
       .get();
   },
 
-  // 添加用户班级关系
-  addRelation: (data) => {
+  addRelation: async (data) => {
     data.created_at = db.serverDate();
     data.updated_at = db.serverDate();
-    return db.collection('user_class_relation').add({ data });
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'joinClass',
+        data: { action: 'addRelation', data }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('addRelation云函数调用失败:', err);
+      throw err;
+    }
   },
 
-  // 更新用户班级关系
-  updateRelation: (relationId, data) => {
+  updateRelation: async (relationId, data) => {
     data.updated_at = db.serverDate();
-    return db.collection('user_class_relation').doc(relationId).update({ data });
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'joinClass',
+        data: { action: 'updateRelation', data: { relationId, ...data } }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('updateRelation云函数调用失败:', err);
+      throw err;
+    }
   },
 
-  // 删除用户班级关系（退出班级）
-  deleteRelation: (relationId) => {
-    return db.collection('user_class_relation').doc(relationId).remove();
+  deleteRelation: async (relationId) => {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'joinClass',
+        data: { action: 'deleteRelation', data: { relationId } }
+      });
+      return res.result;
+    } catch (err) {
+      console.error('deleteRelation云函数调用失败:', err);
+      throw err;
+    }
   },
 
   // 检查用户是否已加入班级

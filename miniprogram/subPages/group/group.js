@@ -182,13 +182,17 @@ Page({
           try {
             wx.showLoading({ title: '删除中...', mask: true });
             
-            const db = wx.cloud.database();
-            await db.collection('student_groups').doc(group._id).update({
+            const res = await wx.cloud.callFunction({
+              name: 'scoreManager',
               data: {
-                is_deleted: true,
-                deleted_at: db.serverDate()
+                action: 'deleteStudentGroup',
+                data: { group_id: group._id }
               }
             });
+
+            if (!res.result || !res.result.success) {
+              throw new Error(res.result?.message || '删除失败');
+            }
 
             wx.hideLoading();
             util.showSuccess('删除成功');

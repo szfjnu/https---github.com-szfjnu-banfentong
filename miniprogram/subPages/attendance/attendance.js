@@ -305,17 +305,36 @@ Page({
       };
       
       if (checkRes.data && checkRes.data.length > 0) {
-        // 更新
-        await db.collection('attendance_statistics')
-          .doc(checkRes.data[0]._id)
-          .update({
-            data: statData
-          });
+        const updateRes = await wx.cloud.callFunction({
+          name: 'attendanceWarning',
+          data: {
+            action: 'updateAttendanceStatistics',
+            data: {
+              statId: checkRes.data[0]._id,
+              ...statData,
+              class_id: this.data.classId
+            }
+          }
+        });
+        if (!updateRes.result || !updateRes.result.success) {
+          console.error('更新考勤统计失败:', updateRes.result?.message || '未知错误');
+        }
       } else {
-        // 新增
         statData.stat_id = `STAT${Date.now()}${Math.random().toString(36).substr(2, 9)}`;
         statData.created_at = db.serverDate();
-        await db.collection('attendance_statistics').add({ data: statData });
+        const addRes = await wx.cloud.callFunction({
+          name: 'attendanceWarning',
+          data: {
+            action: 'addAttendanceStatistics',
+            data: {
+              ...statData,
+              class_id: this.data.classId
+            }
+          }
+        });
+        if (!addRes.result || !addRes.result.success) {
+          console.error('添加考勤统计失败:', addRes.result?.message || '未知错误');
+        }
       }
     } catch (err) {
       console.error('保存统计数据失败:', err);

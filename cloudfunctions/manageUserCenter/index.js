@@ -79,6 +79,8 @@ exports.main = async (event, context) => {
       case 'getStudentDetail': return await getStudentDetail(data, caller);
       case 'getAccessibleStudents': return await getAccessibleStudents(data, caller);
 
+      case 'getClassInfo': return await getClassInfo(data, caller);
+
       default:
         return { success: false, message: `未知操作: ${action}` };
     }
@@ -1362,4 +1364,17 @@ async function getAccessibleStudents(data, openid) {
     accessible_student_ids: [],
     message: '无权限访问任何学生信息'
   };
+}
+
+async function getClassInfo(data, caller) {
+  const { classId } = data || {}
+  if (!classId) return { success: false, message: '缺少必要参数: classId' }
+  try {
+    const res = await db.collection('classes').doc(classId).get()
+    if (!res.data) return { success: false, message: '班级不存在' }
+    return { success: true, data: res.data }
+  } catch (err) {
+    console.error('getClassInfo error:', err)
+    return { success: false, message: err.message || '获取班级信息失败' }
+  }
 }

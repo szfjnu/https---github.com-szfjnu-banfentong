@@ -508,120 +508,63 @@ Page({
       const dormScoreChange = recordType === 'violation' ? -dormScore : dormScore;
       const personalScore = linkToPersonal ? (dormScoreChange * conversionRatio).toFixed(2) : 0;
 
-      // 创建宿舍积分记录
-      const dormRecord = {
-        class_id: classId,
-        semester_id: semesterId,
-        record_type: recordType,
-        select_mode: selectMode,
-        dorm_info: selectMode === 'dorm' ? selectedDorm : '',
-        item_id: recordType === 'violation' ? selectedViolation : selectedService,
-        item_name: recordType === 'violation' ? this.data.selectedViolationLabel : this.data.selectedServiceLabel,
-        dorm_score: dormScore,
-        conversion_ratio: conversionRatio,
-        personal_score: parseFloat(personalScore),
-        link_to_personal: linkToPersonal,
-        affected_students: selectedStudents,
-        student_count: selectedStudents.length,
-        remark: remark,
-        created_at: db.serverDate(),
-        updated_at: db.serverDate()
-      };
-
-      const dormRes = await db.collection('dorm_score_records').add({
-        data: dormRecord
+      // 使用云函数 convertDormScore 处理宿舍积分记录和账户更新
+      const dormRes = await wx.cloud.callFunction({
+        name: 'convertDormScore',
+        data: {
+          action: 'batchConvertDormScore',
+          data: {
+            student_ids: selectedStudents,
+            score_change: dormScoreChange,
+            semester_id: semesterId,
+            class_id: classId,
+            record_type: recordType,
+            select_mode: selectMode,
+            dorm_info: selectMode === 'dorm' ? selectedDorm : '',
+            item_id: recordType === 'violation' ? selectedViolation : selectedService,
+            item_name: recordType === 'violation' ? this.data.selectedViolationLabel : this.data.selectedServiceLabel,
+            dorm_score: dormScore,
+            conversion_ratio: conversionRatio,
+            remark: remark,
+            recorder_name: app.globalData.userInfo?.nickName || app.globalData.userInfo?.name || '管理员',
+            recorder_openid: app.globalData.openid
+          }
+        }
       });
 
-      const dormRecordId = dormRes._id;
-
-      // 更新每个受影响学生的宿舍积分
-      for (const studentId of selectedStudents) {
-        try {
-          const stuRes = await db.collection('students').where({
-            student_id: studentId
-          }).limit(1).get();
-          if (stuRes.data && stuRes.data.length > 0) {
-            await db.collection('students').doc(stuRes.data[0]._id).update({
-              data: {
-                dorm_score: _.inc(dormScoreChange),
-                updated_at: db.serverDate()
-              }
-            });
-          }
-        } catch (err) {
-          console.error(`更新学生 ${studentId} 宿舍积分失败:`, err);
-        }
-
-        // 更新或创建宿舍积分账户
-        try {
-          const accountRes = await db.collection('dorm_score_accounts').where({
-            student_id: studentId,
-            semester_id: semesterId
-          }).limit(1).get();
-
-          if (accountRes.data.length > 0) {
-            await db.collection('dorm_score_accounts').doc(accountRes.data[0]._id).update({
-              data: {
-                original_score: _.inc(dormScoreChange),
-                current_score: _.inc(dormScoreChange),
-                updated_at: db.serverDate()
-              }
-            });
-          } else {
-            await db.collection('dorm_score_accounts').add({
-              data: {
-                student_id: studentId,
-                semester_id: semesterId,
-                class_id: classId,
-                original_score: 100 + dormScoreChange,
-                current_score: 100 + dormScoreChange,
-                converted_score: 0,
-                conversion_ratio: conversionRatio,
-                warning_count: 0,
-                created_at: db.serverDate(),
-                updated_at: db.serverDate()
-              }
-            });
-          }
-        } catch (accountErr) {
-          console.error(`更新学生 ${studentId} 宿舍积分账户失败:`, accountErr);
-        }
+      if (!dormRes.result || !dormRes.result.success) {
+        throw new Error(dormRes.result?.message || '宿舍积分记录保存失败');
       }
 
-      // 如果关联到个人积分，创建个人积分记录（保持原有逻辑不变）
+      const dormRecordId = dormRes.result.data?.record_id || '';
+
+      // 如果关联到个人积分，使用 scoreManager 云函数处理
       if (linkToPersonal) {
-        const personalRecords = selectedStudents.map(studentId => ({
-          class_id: classId,
-          semester_id: semesterId,
-          student_id: studentId,
-          category: 'dorm',
-          score_change: parseFloat(personalScore),
-          score_value: parseFloat(personalScore),
-          item_name: recordType === 'violation' ? this.data.selectedViolationLabel : this.data.selectedServiceLabel,
-          description: `${this.data.selectedViolationLabel || this.data.selectedServiceLabel}（宿舍积分${dormScore}分）`,
-          related_dorm_record_id: dormRecordId,
-          created_at: db.serverDate(),
-          updated_at: db.serverDate()
-        }));
-
-        // 批量创建个人积分记录
-        for (const record of personalRecords) {
-          await db.collection('score_records').add({ data: record });
-        }
-
-        // 更新学生个人积分
         for (const studentId of selectedStudents) {
-          const stuRes = await db.collection('students')
-            .where({ student_id: studentId })
-            .limit(1)
-            .get();
-          if (stuRes.data && stuRes.data.length > 0) {
-            await db.collection('students').doc(stuRes.data[0]._id).update({
+          try {
+            await wx.cloud.callFunction({
+              name: 'scoreManager',
               data: {
-                current_score: _.inc(parseFloat(personalScore)),
-                updated_at: db.serverDate()
+                action: 'applyScoreChange',
+                data: {
+                  student_id: studentId,
+                  class_id: classId,
+                  semester_id: semesterId,
+                  score_change: parseFloat(personalScore),
+                  source_type: '宿舍管理',
+                  item_id: 'dorm_score',
+                  item_name: `${recordType === 'violation' ? '宿舍扣分' : '宿舍加分'}: ${this.data.selectedViolationLabel || this.data.selectedServiceLabel}`,
+                  rule_name: `宿舍${recordType === 'violation' ? '扣分' : '加分'}: ${this.data.selectedViolationLabel || this.data.selectedServiceLabel}`,
+                  rule_code: 'DORM_SCORE',
+                  reason_detail: `${this.data.selectedViolationLabel || this.data.selectedServiceLabel}（宿舍积分${dormScore}分）${remark ? '，' + remark : ''}`,
+                  recorder_openid: app.globalData.openid,
+                  recorder_name: app.globalData.userInfo?.nickName || app.globalData.userInfo?.name || '管理员',
+                  date: new Date()
+                }
               }
             });
+          } catch (scoreErr) {
+            console.error(`学生 ${studentId} 宿舍积分同步个人积分失败:`, scoreErr);
           }
         }
       }

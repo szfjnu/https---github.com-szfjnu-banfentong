@@ -6,7 +6,7 @@ cloud.init({
 
 const db = cloud.database()
 const _ = db.command
-const { getCallerInfo } = require('../utils/auth')
+const { getCallerInfo, requireTeacher, requireAdmin } = require('../utils/auth')
 
 exports.main = async (event, context) => {
   const { action, data } = event
@@ -29,6 +29,18 @@ exports.main = async (event, context) => {
         return await joinClass(caller, data)
       case 'getUserClasses':
         return await getUserClasses(caller, data)
+      case 'updateClass':
+        return await updateClass(data, caller)
+      case 'createClass':
+        return await createClass(data, caller)
+      case 'deleteClass':
+        return await deleteClass(data, caller)
+      case 'markClassGraduated':
+        return await markClassGraduated(data, caller)
+      case 'transferClass':
+        return await transferClass(data, caller)
+      case 'dissolveClass':
+        return await dissolveClass(data, caller)
       default:
         return { success: false, error: '未知操作' }
     }
@@ -421,4 +433,162 @@ async function getUserClasses(caller, data) {
       pending: pendingClasses
     }
   }
+}
+
+async function updateClass(data, caller) {
+  requireTeacher(caller)
+
+  const { classId, class_name, class_code, ...rest } = data
+  if (!classId) {
+    return { success: false, error: '请提供班级ID' }
+  }
+
+  const updateData = { updated_at: db.serverDate() }
+  if (class_name) updateData.class_name = class_name
+  if (class_code) updateData.class_code = class_code
+  const allowedFields = ['grade_name', 'creator_name', 'creator_phone', 'description', 'status']
+  for (const field of allowedFields) {
+    if (rest[field] !== undefined) updateData[field] = rest[field]
+  }
+
+  await db.collection('classes').doc(classId).update({ data: updateData })
+
+  return { success: true, data: { classId } }
+}
+
+async function createClass(data, caller) {
+  requireTeacher(caller)
+
+  const { class_name, class_code, creator_phone, creator_name, grade_name, description } = data
+  if (!class_name || !class_code) {
+    return { success: false, error: '请提供班级名称和班级码' }
+  }
+
+  const existRes = await db.collection('classes')
+    .where({ class_code })
+    .limit(1)
+    .get()
+
+  if (existRes.data.length > 0) {
+    return { success: false, error: '该班级码已存在' }
+  }
+
+  const classData = {
+    class_name,
+    class_code,
+    creator_phone: creator_phone || '',
+    creator_name: creator_name || '',
+    grade_name: grade_name || '',
+    description: description || '',
+    status: 'active',
+    created_at: db.serverDate(),
+    updated_at: db.serverDate()
+  }
+
+  const addRes = await db.collection('classes').add({ data: classData })
+
+  return { success: true, data: { classId: addRes._id, class_name, class_code } }
+}
+
+async function deleteClass(data, caller) {
+  requireAdmin(caller)
+
+  const { classId } = data
+  if (!classId) {
+    return { success: false, error: '请提供班级ID' }
+  }
+
+  await db.collection('classes').doc(classId).remove()
+
+  return { success: true, data: { classId } }
+}
+
+async function markClassGraduated(data, caller) {
+  requireTeacher(caller)
+
+  const { classId } = data
+  if (!classId) {
+    return { success: false, error: '请提供班级ID' }
+  }
+
+  await db.collection('classes').doc(classId).update({
+    data: { status: 'graduated', updated_at: db.serverDate() }
+  })
+
+  return { success: true, data: { classId, status: 'graduated' } }
+}
+
+async function transferClass(data, caller) {
+  requireTeacher(caller)
+
+  const { classId, newCreatorPhone } = data
+  if (!classId || !newCreatorPhone) {
+    return { success: false, error: '请提供班级ID和新创建者手机号' }
+  }
+
+  await db.collection('classes').doc(classId).update({
+    data: { creator_phone: newCreatorPhone, updated_at: db.serverDate() }
+  })
+
+  return { success: true, data: { classId, newCreatorPhone } }
+}
+
+async function dissolveClass(data, caller) {
+  requireAdmin(caller)
+
+  const { classId } = data
+  if (!classId) {
+    return { success: false, error: '请提供班级ID' }
+  }
+
+  const allStudents = []
+  let skip = 0
+  const limit = 100
+  let hasMore = true
+  while (hasMore) {
+    const res = await db.collection('students')
+      .where({ class_id: classId })
+      .skip(skip)
+      .limit(limit)
+      .get()
+    allStudents.push(...res.data)
+    if (res.data.length < limit) {
+      hasMore = false
+    } else {
+      skip += limit
+    }
+  }
+
+  const deletePromises = allStudents.map(s =>
+    db.collection('students').doc(s._id).remove()
+  )
+  await Promise.all(deletePromises)
+
+  await db.collection('classes').doc(classId).remove()
+
+  try {
+    const settingsRes = await db.collection('class_settings')
+      .where({ class_id: classId })
+      .get()
+    const settingDeletePromises = settingsRes.data.map(s =>
+      db.collection('class_settings').doc(s._id).remove()
+    )
+    await Promise.all(settingDeletePromises)
+  } catch (err) {
+    console.error('删除class_settings失败:', err)
+  }
+
+  try {
+    const relationRes = await db.collection('user_class_relation')
+      .where({ class_id: classId })
+      .get()
+    const relationDeletePromises = relationRes.data.map(r =>
+      db.collection('user_class_relation').doc(r._id).remove()
+    )
+    await Promise.all(relationDeletePromises)
+  } catch (err) {
+    console.error('删除user_class_relation失败:', err)
+  }
+
+  return { success: true, data: { classId, dissolvedStudents: allStudents.length } }
 }

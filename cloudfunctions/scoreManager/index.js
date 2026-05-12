@@ -24,6 +24,32 @@ exports.main = async (event, context) => {
       case 'applyScoreChange':
         requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin'])
         return await applyScoreChange(data, caller)
+      case 'addLeaveRecord':
+        return await addLeaveRecord(data, caller)
+      case 'generateLeaveAttendanceRecords':
+        requireTeacher(caller)
+        return await generateLeaveAttendanceRecords(data, caller)
+      case 'deleteLeaveRecord':
+        requireTeacher(caller)
+        return await deleteLeaveRecord(data, caller)
+      case 'addStudentGroup':
+        requireTeacher(caller)
+        return await addStudentGroup(data, caller)
+      case 'updateStudentGroup':
+        requireTeacher(caller)
+        return await updateStudentGroup(data, caller)
+      case 'deleteStudentGroup':
+        requireTeacher(caller)
+        return await deleteStudentGroup(data, caller)
+      case 'batchAddStudentGroups':
+        requireTeacher(caller)
+        return await batchAddStudentGroups(data, caller)
+      case 'updateAttendanceRecord':
+        requireTeacher(caller)
+        return await updateAttendanceRecord(data, caller)
+      case 'addAttendanceRecord':
+        requireTeacher(caller)
+        return await addAttendanceRecord(data, caller)
       default:
         return { success: false, message: '未知操作' }
     }
@@ -257,6 +283,152 @@ async function applyScoreChange(data, caller) {
     })
   } catch (err) {
     console.error('applyScoreChange失败:', err)
+    return { success: false, message: err.message }
+  }
+}
+
+async function addLeaveRecord(data, caller) {
+  try {
+    const now = db.serverDate()
+    const recordData = {
+      ...data,
+      created_at: now
+    }
+    const res = await db.collection('leave_approval_records').add({ data: recordData })
+    return { success: true, data: { _id: res._id } }
+  } catch (err) {
+    console.error('addLeaveRecord失败:', err)
+    return { success: false, message: err.message }
+  }
+}
+
+async function generateLeaveAttendanceRecords(data, caller) {
+  const { student_id, class_id, attendance_data } = data || {}
+  if (!student_id || !class_id || !attendance_data) {
+    return { success: false, message: '缺少必要参数: student_id, class_id, attendance_data' }
+  }
+  try {
+    const now = db.serverDate()
+    const records = Array.isArray(attendance_data) ? attendance_data : [attendance_data]
+    const results = []
+    for (const record of records) {
+      const res = await db.collection('attendance_records').add({
+        data: {
+          student_id,
+          class_id,
+          ...record,
+          source_type: 'leave',
+          created_at: now
+        }
+      })
+      results.push(res._id)
+    }
+    return { success: true, data: { added: results.length, ids: results } }
+  } catch (err) {
+    console.error('generateLeaveAttendanceRecords失败:', err)
+    return { success: false, message: err.message }
+  }
+}
+
+async function deleteLeaveRecord(data, caller) {
+  const { recordId } = data || {}
+  if (!recordId) return { success: false, message: '缺少必要参数: recordId' }
+  try {
+    await db.collection('leave_approval_records').doc(recordId).remove()
+    return { success: true }
+  } catch (err) {
+    console.error('deleteLeaveRecord失败:', err)
+    return { success: false, message: err.message }
+  }
+}
+
+async function addStudentGroup(data, caller) {
+  try {
+    const now = db.serverDate()
+    const groupData = {
+      ...data,
+      created_at: now
+    }
+    const res = await db.collection('student_groups').add({ data: groupData })
+    return { success: true, data: { _id: res._id } }
+  } catch (err) {
+    console.error('addStudentGroup失败:', err)
+    return { success: false, message: err.message }
+  }
+}
+
+async function updateStudentGroup(data, caller) {
+  const { groupId, ...updateFields } = data || {}
+  if (!groupId) return { success: false, message: '缺少必要参数: groupId' }
+  try {
+    await db.collection('student_groups').doc(groupId).update({ data: updateFields })
+    return { success: true }
+  } catch (err) {
+    console.error('updateStudentGroup失败:', err)
+    return { success: false, message: err.message }
+  }
+}
+
+async function deleteStudentGroup(data, caller) {
+  const { groupId } = data || {}
+  if (!groupId) return { success: false, message: '缺少必要参数: groupId' }
+  try {
+    const now = db.serverDate()
+    await db.collection('student_groups').doc(groupId).update({
+      data: { is_deleted: true, updated_at: now }
+    })
+    return { success: true }
+  } catch (err) {
+    console.error('deleteStudentGroup失败:', err)
+    return { success: false, message: err.message }
+  }
+}
+
+async function batchAddStudentGroups(data, caller) {
+  const { groups } = data || {}
+  if (!groups || !Array.isArray(groups) || groups.length === 0) {
+    return { success: false, message: '缺少必要参数: groups(非空数组)' }
+  }
+  try {
+    const now = db.serverDate()
+    const results = []
+    for (const group of groups) {
+      const res = await db.collection('student_groups').add({
+        data: { ...group, created_at: now }
+      })
+      results.push(res._id)
+    }
+    return { success: true, data: { added: results.length, ids: results } }
+  } catch (err) {
+    console.error('batchAddStudentGroups失败:', err)
+    return { success: false, message: err.message }
+  }
+}
+
+async function updateAttendanceRecord(data, caller) {
+  const { recordId, ...updateFields } = data || {}
+  if (!recordId) return { success: false, message: '缺少必要参数: recordId' }
+  try {
+    const now = db.serverDate()
+    const fields = { ...updateFields, updated_at: now }
+    delete fields.classId
+    await db.collection('attendance_records').doc(recordId).update({ data: fields })
+    return { success: true }
+  } catch (err) {
+    console.error('updateAttendanceRecord失败:', err)
+    return { success: false, message: err.message }
+  }
+}
+
+async function addAttendanceRecord(data, caller) {
+  try {
+    const now = db.serverDate()
+    const recordData = { ...data, created_at: now, updated_at: now }
+    delete recordData.classId
+    const res = await db.collection('attendance_records').add({ data: recordData })
+    return { success: true, data: { _id: res._id } }
+  } catch (err) {
+    console.error('addAttendanceRecord失败:', err)
     return { success: false, message: err.message }
   }
 }

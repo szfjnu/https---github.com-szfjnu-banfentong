@@ -420,7 +420,6 @@ Page({
 
       // BUG2修复：投标模式走云函数双侧校验，直接兑换模式保持原逻辑
       const studentInfo = this.data.studentInfo || {};
-      const db = wx.cloud.database();
 
       if (item.redemption_mode === '投标模式') {
         const bidRes = await wx.cloud.callFunction({
@@ -456,25 +455,34 @@ Page({
       }
 
       // 直接兑换模式
-      await db.collection('redemption_requests').add({
+      const cfRes = await wx.cloud.callFunction({
+        name: 'processRedemption',
         data: {
-          request_id: `RR${Date.now()}`,
-          item_id: item.item_id,
-          item_name: item.name,
-          student_id: studentId,
-          student_name: studentInfo.name || '',
-          class_name: studentInfo.class_name || '',
-          class_id: studentInfo.class_id || app.globalData.class_id || '',
-          required_score: item.required_score,
-          redemption_mode: item.redemption_mode,
-          bid_score: bidScore,
-          bid_time: db.serverDate(),
-          status: '待审批',
-          created_at: db.serverDate()
+          action: 'submitRedemption',
+          data: {
+            item_id: item.item_id,
+            item_name: item.name,
+            student_id: studentId,
+            student_name: studentInfo.name || '',
+            class_name: studentInfo.class_name || '',
+            class_id: studentInfo.class_id || app.globalData.class_id || '',
+            required_score: item.required_score,
+            redemption_mode: item.redemption_mode,
+            bid_score: bidScore
+          }
         }
       });
 
       wx.hideLoading();
+
+      if (!cfRes.result || !cfRes.result.success) {
+        wx.showToast({
+          title: cfRes.result?.message || '提交失败',
+          icon: 'none',
+          duration: 2000
+        });
+        return;
+      }
       wx.showToast({
         title: item.redemption_mode === '投标模式' ? '投标成功' : '兑换申请已提交',
         icon: 'success',

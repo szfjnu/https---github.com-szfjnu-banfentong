@@ -454,7 +454,20 @@ Page({
           volunteerData.verifier_name = volunteerData.recorder_name;
         }
         
-        const volRes = await db.collection('volunteer_records').add({ data: volunteerData });
+        const volRes = await wx.cloud.callFunction({
+          name: 'scoreManager',
+          data: {
+            action: 'addVolunteerRecord',
+            data: volunteerData
+          }
+        });
+
+        if (!volRes.result || !volRes.result.success) {
+          console.error('创建志愿服务记录失败:', volRes.result?.message);
+          continue;
+        }
+
+        const volRecordId = volRes.result.data?._id || '';
         
         // 班主任/管理员直接通过，创建积分记录并更新积分
         if (isTeacher && earnedScore > 0) {
@@ -494,7 +507,7 @@ Page({
                 action: 'submitApproval',
                 data: {
                   businessType: 'volunteer',
-                  businessId: volRes._id,
+                  businessId: volRecordId,
                   classId: currentClassId,
                   studentId: student.student_id,
                   submitNote: `${userRole === 'class_cadre' ? '班委' : (userRole === 'student' ? '学生' : '家长')}提交志愿服务: ${formData.activity_name}`

@@ -251,7 +251,6 @@ Page({
 
       const room = this.data.rooms.find(r => r._id === roomId);
 
-      // 检查是否有学生入住
       if (room.occupied_count > 0) {
         wx.hideLoading();
         wx.showToast({
@@ -261,17 +260,17 @@ Page({
         return;
       }
 
-      // 删除该房间的所有床位
-      const bedsRes = await db.collection('dorm_beds')
-        .where({ room_id: roomId })
-        .get();
+      const res = await wx.cloud.callFunction({
+        name: 'dormSyncManager',
+        data: {
+          action: 'deleteRoom',
+          data: { room_id: roomId }
+        }
+      });
 
-      for (const bed of bedsRes.data) {
-        await db.collection('dorm_beds').doc(bed._id).remove();
+      if (!res.result || !res.result.success) {
+        throw new Error(res.result?.message || '删除房间失败');
       }
-
-      // 删除房间
-      await db.collection('dorm_rooms').doc(roomId).remove();
 
       wx.hideLoading();
       wx.showToast({
@@ -279,7 +278,6 @@ Page({
         icon: 'success'
       });
 
-      // 重新加载
       this.loadRooms();
 
     } catch (err) {

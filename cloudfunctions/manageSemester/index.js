@@ -30,6 +30,12 @@ exports.main = async (event, context) => {
       case 'deleteSemester':
         requireClassAccess(caller, data.class_id, ['head_teacher', 'admin'])
         return await deleteSemester(data, caller)
+      case 'updateClassSettings':
+        requireTeacher(caller)
+        return await updateClassSettings(data, caller)
+      case 'addClassSettings':
+        requireTeacher(caller)
+        return await addClassSettings(data, caller)
       default: return { success: false, message: '未知操作' }
     }
   } catch (err) {
@@ -299,5 +305,33 @@ async function deleteSemester(data, caller) {
   } catch (err) {
     console.error('deleteSemester error:', err)
     return { success: false, message: err.message || '删除失败' }
+  }
+}
+
+async function updateClassSettings(data, caller) {
+  const { settingsId, ...updateFields } = data || {}
+  if (!settingsId) return { success: false, message: '缺少必要参数: settingsId' }
+  try {
+    const now = db.serverDate()
+    await db.collection('class_settings').doc(settingsId).update({
+      data: { ...updateFields, updated_at: now }
+    })
+    return { success: true }
+  } catch (err) {
+    console.error('updateClassSettings error:', err)
+    return { success: false, message: err.message || '更新失败' }
+  }
+}
+
+async function addClassSettings(data, caller) {
+  try {
+    const now = db.serverDate()
+    const res = await db.collection('class_settings').add({
+      data: { ...data, created_at: now }
+    })
+    return { success: true, data: { _id: res._id } }
+  } catch (err) {
+    console.error('addClassSettings error:', err)
+    return { success: false, message: err.message || '添加失败' }
   }
 }

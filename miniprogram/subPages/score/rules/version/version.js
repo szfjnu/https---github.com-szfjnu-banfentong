@@ -186,47 +186,25 @@ Page({
           try {
             wx.showLoading({ title: '回滚中...', mask: true });
 
-            const db = wx.cloud.database();
-            const _ = db.command;
-
-            // 1. 将当前活跃版本设为非活跃
-            await db.collection('score_rule_versions')
-              .where({
-                rule_id: version.rule_id,
-                is_active: true
-              })
-              .update({
+            const res = await wx.cloud.callFunction({
+              name: 'scoreManager',
+              data: {
+                action: 'rollbackVersion',
                 data: {
-                  is_active: false,
-                  deprecated_at: db.serverDate()
+                  versionId: version._id,
+                  ruleId: version.rule_id,
+                  ruleName: version.rule_name,
+                  ruleCode: version.rule_code,
+                  scoreValue: version.score_value,
+                  categoryId: version.category_id,
+                  description: version.description
                 }
-              });
+              }
+            });
 
-            // 2. 将目标版本设为活跃
-            await db.collection('score_rule_versions')
-              .doc(version._id)
-              .update({
-                data: {
-                  is_active: true,
-                  activated_at: db.serverDate()
-                }
-              });
-
-            // 3. 更新 score_records 中的规则
-            await db.collection('score_records')
-              .where({
-                record_id: version.rule_id
-              })
-              .update({
-                data: {
-                  rule_name: version.rule_name,
-                  rule_code: version.rule_code,
-                  score_value: version.score_value,
-                  category_id: version.category_id,
-                  description: version.description,
-                  updated_at: db.serverDate()
-                }
-              });
+            if (!res.result || !res.result.success) {
+              throw new Error(res.result?.message || '回滚失败');
+            }
 
             wx.hideLoading();
             util.showSuccess('回滚成功');

@@ -40,7 +40,8 @@ exports.main = async (event, context) => {
       'getAbsentWarningConfig', 'getLeaveWarningConfig', 'getWarnings', 'getWarningStats']
     const WRITE_ACTIONS = ['saveTimetableConfig', 'resetTimetableConfig', 'saveHolidayAdjustment',
       'deleteHolidayAdjustment', 'saveAbsentWarningConfig', 'resetAbsentWarningConfig',
-      'saveLeaveWarningConfig', 'resetLeaveWarningConfig', 'detectWarnings']
+      'saveLeaveWarningConfig', 'resetLeaveWarningConfig', 'detectWarnings',
+      'updateAttendanceStatistics', 'addAttendanceStatistics']
 
     if (WRITE_ACTIONS.includes(action)) {
       requireTeacher(caller)
@@ -79,6 +80,10 @@ exports.main = async (event, context) => {
         return await getWarnings(data, caller.openid);
       case 'getWarningStats':
         return await getWarningStats(data, caller.openid);
+      case 'updateAttendanceStatistics':
+        return await updateAttendanceStatistics(data, caller.openid);
+      case 'addAttendanceStatistics':
+        return await addAttendanceStatistics(data, caller.openid);
       default:
         return { success: false, message: '未知操作' };
     }
@@ -607,4 +612,32 @@ async function getWarningStats(data, openId) {
       warning_level_distribution: levelDistribution
     }
   };
+}
+
+async function updateAttendanceStatistics(data, openId) {
+  const { statId, ...updateFields } = data || {};
+  if (!statId) return { success: false, message: '缺少必要参数: statId' };
+  try {
+    const now = db.serverDate();
+    const fields = { ...updateFields, updated_at: now };
+    delete fields.class_id;
+    await db.collection('attendance_statistics').doc(statId).update({ data: fields });
+    return { success: true };
+  } catch (err) {
+    console.error('updateAttendanceStatistics失败:', err);
+    return { success: false, message: err.message };
+  }
+}
+
+async function addAttendanceStatistics(data, openId) {
+  try {
+    const now = db.serverDate();
+    const recordData = { ...data, created_at: now, updated_at: now };
+    delete recordData.class_id;
+    const res = await db.collection('attendance_statistics').add({ data: recordData });
+    return { success: true, data: { _id: res._id } };
+  } catch (err) {
+    console.error('addAttendanceStatistics失败:', err);
+    return { success: false, message: err.message };
+  }
 }

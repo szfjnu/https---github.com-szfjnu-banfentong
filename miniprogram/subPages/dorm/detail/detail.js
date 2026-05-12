@@ -266,73 +266,32 @@ Page({
       const semesterId = app.globalData.semesterId || '';
       const operatorName = app.globalData.userInfo?.nickName || app.globalData.userInfo?.name || '管理员';
 
-      // 1. 创建调整记录
-      const recordData = {
-        record_id: `ADJ-${Date.now()}`,
-        student_id: studentId,
-        record_type: adjustValue > 0 ? 'service' : 'violation',
-        rule_name: '手动调整',
-        rule_category: '手动调整',
-        score_value: adjustValue,
-        score_change: adjustValue,
-        remark: '管理员手动调整宿舍积分',
-        recorder_name: operatorName,
-        recorder_openid: app.globalData.openid,
-        semester_id: semesterId,
-        class_id: app.globalData.class_id || '',
-        record_date: new Date(),
-        date: new Date(),
-        created_at: db.serverDate(),
-        updated_at: db.serverDate()
-      };
-
-      await db.collection('dorm_score_records').add({ data: recordData });
-
-      // 2. 更新学生宿舍积分
-      await db.collection('students').where({
-        student_id: studentId
-      }).update({
+      const res = await wx.cloud.callFunction({
+        name: 'convertDormScore',
         data: {
-          dorm_score: _.inc(adjustValue),
-          updated_at: db.serverDate()
+          action: 'adjustDormScore',
+          data: {
+            student_id: studentId,
+            score_change: adjustValue,
+            semester_id: semesterId,
+            class_id: app.globalData.class_id || '',
+            record_type: adjustValue > 0 ? 'service' : 'violation',
+            rule_name: '手动调整',
+            rule_category: '手动调整',
+            remark: '管理员手动调整宿舍积分',
+            recorder_name: operatorName,
+            recorder_openid: app.globalData.openid
+          }
         }
       });
 
-      // 3. 更新宿舍积分账户
-      const accountRes = await db.collection('dorm_score_accounts').where({
-        student_id: studentId,
-        semester_id: semesterId
-      }).limit(1).get();
-
-      if (accountRes.data.length > 0) {
-        await db.collection('dorm_score_accounts').doc(accountRes.data[0]._id).update({
-          data: {
-            original_score: _.inc(adjustValue),
-            current_score: _.inc(adjustValue),
-            updated_at: db.serverDate()
-          }
-        });
-      } else {
-        await db.collection('dorm_score_accounts').add({
-          data: {
-            student_id: studentId,
-            semester_id: semesterId,
-            class_id: app.globalData.class_id || '',
-            original_score: 100 + adjustValue,
-            current_score: 100 + adjustValue,
-            converted_score: 0,
-            conversion_ratio: 0.2,
-            warning_count: 0,
-            created_at: db.serverDate(),
-            updated_at: db.serverDate()
-          }
-        });
+      if (!res.result || !res.result.success) {
+        throw new Error(res.result?.message || '云函数调用失败');
       }
 
       wx.hideLoading();
       wx.showToast({ title: '调整成功', icon: 'success' });
 
-      // 刷新页面数据
       await this.loadStudentInfo();
       this.loadRecords(true);
 

@@ -184,19 +184,29 @@ Page({
   // 执行状态切换
   doToggleStatus: async function (category, newStatus) {
     try {
-      const db = wx.cloud.database();
-      await db.collection('score_categories').doc(category._id).update({
+      const res = await wx.cloud.callFunction({
+        name: 'scoreManager',
         data: {
-          is_active: newStatus,
-          updated_at: new Date()
+          action: 'updateScoreCategory',
+          data: {
+            categoryId: category._id,
+            updateData: {
+              is_active: newStatus,
+              updated_at: new Date()
+            }
+          }
         }
       });
+      
+      if (!res.result || !res.result.success) {
+        throw new Error(res.result?.message || '操作失败');
+      }
       
       util.showSuccess(newStatus ? '已启用' : '已停用');
       this.loadCategories();
     } catch (err) {
       console.error('更新类别状态失败:', err);
-      util.showError('操作失败');
+      util.showError(err.message || '操作失败');
     }
   },
 
@@ -282,8 +292,6 @@ Page({
     try {
       wx.showLoading({ title: '保存中...', mask: true });
       
-      const db = wx.cloud.database();
-      
       const data = {
         category_id: editingCategory?.category_id || `CAT-${Date.now()}`,
         category_name: formData.category_name.trim(),
@@ -298,18 +306,33 @@ Page({
         class_id: formData.class_id,
         semester_id: formData.semester_id,
         sort_order: editingCategory?.sort_order || 99,
-        applicable_grades: [],
-        updated_at: new Date()
+        applicable_grades: []
       };
       
       if (editingCategory && editingCategory._id) {
-        // 更新
-        await db.collection('score_categories').doc(editingCategory._id).update({ data });
+        const res = await wx.cloud.callFunction({
+          name: 'scoreManager',
+          data: {
+            action: 'updateScoreCategory',
+            data: { categoryId: editingCategory._id, updateData: data }
+          }
+        });
+        if (!res.result || !res.result.success) {
+          throw new Error(res.result?.message || '更新失败');
+        }
         util.showSuccess('更新成功');
       } else {
-        // 新增
         data.created_at = new Date();
-        await db.collection('score_categories').add({ data });
+        const res = await wx.cloud.callFunction({
+          name: 'scoreManager',
+          data: {
+            action: 'addScoreCategory',
+            data: { categoryData: data }
+          }
+        });
+        if (!res.result || !res.result.success) {
+          throw new Error(res.result?.message || '添加失败');
+        }
         util.showSuccess('添加成功');
       }
       

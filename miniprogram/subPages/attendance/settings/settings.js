@@ -233,9 +233,18 @@ Page({
     wx.showLoading({ title: '删除中...' });
     
     try {
-      const db = wx.cloud.database();
-      await db.collection('attendance_categories').doc(category._id).remove();
-      
+      const res = await wx.cloud.callFunction({
+        name: 'attendanceWarning',
+        data: {
+          action: 'deleteCategory',
+          data: { category_id: category._id }
+        }
+      });
+
+      if (!res.result || !res.result.success) {
+        throw new Error(res.result?.message || '删除失败');
+      }
+
       wx.hideLoading();
       util.showSuccess('删除成功');
       
@@ -252,16 +261,18 @@ Page({
     const category = e.currentTarget.dataset.category;
     
     try {
-      const db = wx.cloud.database();
-      await db.collection('attendance_categories')
-        .doc(category._id)
-        .update({
-          data: {
-            is_active: !category.is_active,
-            updated_at: db.serverDate()
-          }
-        });
-      
+      const res = await wx.cloud.callFunction({
+        name: 'attendanceWarning',
+        data: {
+          action: 'toggleCategoryStatus',
+          data: { category_id: category._id, is_active: !category.is_active }
+        }
+      });
+
+      if (!res.result || !res.result.success) {
+        throw new Error(res.result?.message || '更新失败');
+      }
+
       util.showSuccess('更新成功');
       this.loadCategories();
     } catch (err) {
@@ -330,14 +341,16 @@ Page({
       
       if (editingCategory) {
         // 更新
-        await db.collection('attendance_categories')
-          .doc(editingCategory._id)
-          .update({
-            data: {
-              ...categoryData,
-              updated_at: db.serverDate()
-            }
-          });
+        const res = await wx.cloud.callFunction({
+          name: 'attendanceWarning',
+          data: {
+            action: 'updateCategory',
+            data: { _id: editingCategory._id, ...categoryData }
+          }
+        });
+        if (!res.result || !res.result.success) {
+          throw new Error(res.result?.message || '更新失败');
+        }
       } else {
         // 新增
         const categoryId = `CAT${Date.now()}${Math.random().toString(36).substr(2, 9)}`;
@@ -347,9 +360,7 @@ Page({
           category_id: categoryId,
           category_code: categoryCode,
           class_id: this.data.classId,
-          is_system: false,
-          created_at: db.serverDate(),
-          updated_at: db.serverDate()
+          is_system: false
         });
       }
       
@@ -371,8 +382,16 @@ Page({
   // 保存类别到数据库
   saveCategoryToDB: async function (category) {
     try {
-      const db = wx.cloud.database();
-      await db.collection('attendance_categories').add({ data: category });
+      const res = await wx.cloud.callFunction({
+        name: 'attendanceWarning',
+        data: {
+          action: 'addCategory',
+          data: category
+        }
+      });
+      if (!res.result || !res.result.success) {
+        throw new Error(res.result?.message || '保存类别失败');
+      }
     } catch (err) {
       console.error('保存类别失败:', err);
       throw err;

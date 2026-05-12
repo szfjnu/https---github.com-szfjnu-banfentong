@@ -157,17 +157,28 @@ Page({
 
       if (existingRes.data && existingRes.data.length > 0) {
         // 更新现有记录
-        await db.collection('class_settings').doc(existingRes.data[0]._id).update({
-          data: classSettingsData
-        });
-      } else {
-        // 创建新记录
-        await db.collection('class_settings').add({
+        const res = await wx.cloud.callFunction({
+          name: 'manageSemester',
           data: {
-            ...classSettingsData,
-            created_at: db.serverDate()
+            action: 'updateClassSettings',
+            data: { _id: existingRes.data[0]._id, ...classSettingsData }
           }
         });
+        if (!res.result || !res.result.success) {
+          throw new Error(res.result?.message || '保存设置失败');
+        }
+      } else {
+        // 创建新记录
+        const res = await wx.cloud.callFunction({
+          name: 'manageSemester',
+          data: {
+            action: 'addClassSettings',
+            data: { ...classSettingsData, created_at: db.serverDate() }
+          }
+        });
+        if (!res.result || !res.result.success) {
+          throw new Error(res.result?.message || '保存设置失败');
+        }
       }
 
       util.showSuccess('设置已保存');
@@ -191,14 +202,17 @@ Page({
           try {
             wx.showLoading({ title: '处理中...', mask: true });
 
-            const db = wx.cloud.database();
-            await db.collection('classes').doc(this.data.classId).update({
+            const res = await wx.cloud.callFunction({
+              name: 'joinClass',
               data: {
-                status: 'graduated',
-                graduated_at: db.serverDate(),
-                updated_at: db.serverDate()
+                action: 'markClassGraduated',
+                data: { class_id: this.data.classId }
               }
             });
+
+            if (!res.result || !res.result.success) {
+              throw new Error(res.result?.message || '操作失败');
+            }
 
             wx.hideLoading();
             util.showSuccess('已标记为毕业班级');
@@ -232,15 +246,17 @@ Page({
           try {
             wx.showLoading({ title: '转让中...', mask: true });
 
-            // 这里需要实现查找用户并转让的逻辑
-            // 简化处理：直接更新creator_phone
-            const db = wx.cloud.database();
-            await db.collection('classes').doc(this.data.classId).update({
+            const res = await wx.cloud.callFunction({
+              name: 'joinClass',
               data: {
-                creator_phone: phone,
-                updated_at: db.serverDate()
+                action: 'transferClass',
+                data: { class_id: this.data.classId, new_creator_phone: phone }
               }
             });
+
+            if (!res.result || !res.result.success) {
+              throw new Error(res.result?.message || '转让失败');
+            }
 
             wx.hideLoading();
             util.showSuccess('转让成功');
@@ -272,19 +288,17 @@ Page({
                 try {
                   wx.showLoading({ title: '解散中...', mask: true });
 
-                  const db = wx.cloud.database();
+                  const res = await wx.cloud.callFunction({
+                    name: 'joinClass',
+                    data: {
+                      action: 'dissolveClass',
+                      data: { class_id: this.data.classId }
+                    }
+                  });
 
-                  // 删除班级下的所有学生
-                  const studentsRes = await db.collection('students')
-                    .where({ class_id: this.data.classId })
-                    .get();
-
-                  for (const student of studentsRes.data) {
-                    await db.collection('students').doc(student._id).remove();
+                  if (!res.result || !res.result.success) {
+                    throw new Error(res.result?.message || '解散失败');
                   }
-
-                  // 删除班级
-                  await db.collection('classes').doc(this.data.classId).remove();
 
                   wx.hideLoading();
                   util.showSuccess('班级已解散');

@@ -224,7 +224,6 @@ Page({
     try {
       wx.showLoading({ title: '删除中...' });
 
-      // 检查是否有学生住在该楼栋
       const studentsRes = await db.collection('students')
         .where({
           dorm_info: db.RegExp({
@@ -244,26 +243,17 @@ Page({
         return;
       }
 
-      // 删除该楼栋的所有床位
-      const bedsRes = await db.collection('dorm_beds')
-        .where({ building_id: buildingId })
-        .get();
+      const res = await wx.cloud.callFunction({
+        name: 'dormSyncManager',
+        data: {
+          action: 'deleteBuilding',
+          data: { building_id: buildingId }
+        }
+      });
 
-      for (const bed of bedsRes.data) {
-        await db.collection('dorm_beds').doc(bed._id).remove();
+      if (!res.result || !res.result.success) {
+        throw new Error(res.result?.message || '删除楼栋失败');
       }
-
-      // 删除该楼栋的所有房间
-      const roomsRes = await db.collection('dorm_rooms')
-        .where({ building_id: buildingId })
-        .get();
-
-      for (const room of roomsRes.data) {
-        await db.collection('dorm_rooms').doc(room._id).remove();
-      }
-
-      // 删除楼栋
-      await db.collection('dorm_buildings').doc(buildingId).remove();
 
       wx.hideLoading();
       wx.showToast({
@@ -271,7 +261,6 @@ Page({
         icon: 'success'
       });
 
-      // 重新加载
       this.loadBuildings(true);
       this.loadStats();
 

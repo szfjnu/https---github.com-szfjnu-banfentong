@@ -338,29 +338,34 @@ Page({
       const durationDays = this.calculateDuration(start_date, end_date);
       
       // 保存请假审批记录
-      await db.collection('leave_approval_records').add({
+      const res = await wx.cloud.callFunction({
+        name: 'scoreManager',
         data: {
-          approval_id: approvalId,
-          student_id: student_id,
-          student_name: student_name,
-          class_id: this.data.classId,
-          leave_type: leave_type,
-          start_date: start_date,
-          end_date: end_date,
-          duration_days: durationDays,
-          reason: reason,
-          approval_status: 'approved', // 默认已通过（学校已有审批）
-          approval_number: this.data.leaveForm.approval_number,
-          proof_images: proof_images,
-          proof_files: [],
-          creator_openid: app.globalData.openid,
-          creator_name: app.globalData.userInfo.nickName,
-          creator_role: this.data.userRole,
-          semester_id: app.globalData.currentSemesterId || '',
-          created_at: db.serverDate(),
-          updated_at: db.serverDate()
+          action: 'addLeaveRecord',
+          data: {
+            approval_id: approvalId,
+            student_id: student_id,
+            student_name: student_name,
+            class_id: this.data.classId,
+            leave_type: leave_type,
+            start_date: start_date,
+            end_date: end_date,
+            duration_days: durationDays,
+            reason: reason,
+            approval_status: 'approved',
+            approval_number: this.data.leaveForm.approval_number,
+            proof_images: proof_images,
+            creator_openid: app.globalData.openid,
+            creator_name: app.globalData.userInfo.nickName,
+            creator_role: this.data.userRole,
+            semester_id: app.globalData.currentSemesterId || ''
+          }
         }
       });
+
+      if (!res.result || !res.result.success) {
+        throw new Error(res.result?.message || '保存请假记录失败');
+      }
       
       // 自动生成考勤记录
       await this.generateAttendanceRecords(student_id, student_name, start_date, end_date, leave_type);
@@ -383,52 +388,30 @@ Page({
   // 生成考勤记录
   generateAttendanceRecords: async function (studentId, studentName, startDate, endDate, leaveType) {
     try {
-      const db = wx.cloud.database();
-      const _ = db.command;
-      
-      const start = new Date(startDate);
-      const end = new Date(endDate);
       const categoryId = leaveType === '病假' ? 'sick_leave' : 'personal_leave';
-      const categoryName = leaveType;
-      
-      // 遍历每一天
-      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        const dateStr = this.formatDate(d);
-        
-        // 检查是否已有考勤记录
-        const existRes = await db.collection('attendance_records')
-          .where({
-            student_id: studentId,
-            class_id: this.data.classId,
-            date: dateStr
-          })
-          .get();
-        
-        if (existRes.data && existRes.data.length > 0) {
-          continue; // 已有记录，跳过
-        }
-        
-        // 创建考勤记录
-        const recordId = `AR${Date.now()}${Math.random().toString(36).substr(2, 9)}`;
-        await db.collection('attendance_records').add({
+
+      const res = await wx.cloud.callFunction({
+        name: 'scoreManager',
+        data: {
+          action: 'generateLeaveAttendanceRecords',
           data: {
-            record_id: recordId,
             student_id: studentId,
             student_name: studentName,
-            class_id: this.data.classId,
-            date: dateStr,
+            start_date: startDate,
+            end_date: endDate,
+            leave_type: leaveType,
             category_id: categoryId,
-            category_name: categoryName,
-            score_change: 0,
-            reason: `${leaveType}（请假审批）`,
+            class_id: this.data.classId,
             recorder_openid: app.globalData.openid,
             recorder_name: app.globalData.userInfo.nickName,
             recorder_role: this.data.userRole,
-            semester_id: app.globalData.currentSemesterId || '',
-            created_at: db.serverDate(),
-            updated_at: db.serverDate()
+            semester_id: app.globalData.currentSemesterId || ''
           }
-        });
+        }
+      });
+
+      if (!res.result || !res.result.success) {
+        console.error('生成考勤记录失败:', res.result?.message);
       }
     } catch (err) {
       console.error('生成考勤记录失败:', err);
@@ -465,13 +448,18 @@ Page({
     wx.showLoading({ title: '删除中...' });
     
     try {
-      const db = wx.cloud.database();
-      
-      // 删除请假记录
-      await db.collection('leave_approval_records').doc(record._id).remove();
-      
-      // TODO: 删除关联的考勤记录
-      
+      const res = await wx.cloud.callFunction({
+        name: 'scoreManager',
+        data: {
+          action: 'deleteLeaveRecord',
+          data: { record_id: record._id }
+        }
+      });
+
+      if (!res.result || !res.result.success) {
+        throw new Error(res.result?.message || '删除失败');
+      }
+
       wx.hideLoading();
       util.showSuccess('删除成功');
       this.refreshData();

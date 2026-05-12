@@ -290,9 +290,16 @@ Page({
 
       if (isEdit) {
         // 更新
-        await db.collection('classes').doc(classId).update({
-          data: saveData
+        const res = await wx.cloud.callFunction({
+          name: 'joinClass',
+          data: {
+            action: 'updateClass',
+            data: { _id: classId, ...saveData }
+          }
         });
+        if (!res.result || !res.result.success) {
+          throw new Error(res.result?.message || '修改失败');
+        }
         util.showSuccess('修改成功');
 
         wx.hideLoading();
@@ -304,38 +311,44 @@ Page({
       } else {
         // 添加
         saveData.created_at = db.serverDate();
-        // 生成班级码
         saveData.class_code = this.generateClassCode();
-        const result = await db.collection('classes').add({ data: saveData });
 
-        // 创建 user_class_relation 记录
-        const relationData = {
-          user_openid: app.globalData.openid,
-          class_id: result._id,
-          role: 'head_teacher',
-          is_owner: true,
-          status: 'joined',
-          join_time: db.serverDate(),
-          apply_info: {
-            name: formData.creator_name.trim(),
-            phone: formData.creator_phone.trim(),
-            subject: formData.subject
-          },
-          created_at: db.serverDate(),
-          updated_at: db.serverDate()
-        };
-        
-        await db.collection('user_class_relation').add({ data: relationData });
+        const res = await wx.cloud.callFunction({
+          name: 'joinClass',
+          data: {
+            action: 'createClass',
+            data: {
+              class_data: saveData,
+              relation_data: {
+                user_openid: app.globalData.openid,
+                role: 'head_teacher',
+                is_owner: true,
+                status: 'joined',
+                apply_info: {
+                  name: formData.creator_name.trim(),
+                  phone: formData.creator_phone.trim(),
+                  subject: formData.subject
+                }
+              }
+            }
+          }
+        });
 
-        // 将班级ID保存到全局变量
-        app.globalData.class_id = result._id;
-        wx.setStorageSync('class_id', result._id);
+        if (!res.result || !res.result.success) {
+          throw new Error(res.result?.message || '创建失败');
+        }
+
+        const result = res.result.data || {};
+        const classIdResult = result.class_id || result._id || '';
+
+        app.globalData.class_id = classIdResult;
+        wx.setStorageSync('class_id', classIdResult);
 
         wx.hideLoading();
         this.setData({ submitting: false });
 
         // 显示创建成功弹窗
-        this.showCreateSuccessModal(saveData, result._id);
+        this.showCreateSuccessModal(saveData, classIdResult);
       }
 
     } catch (err) {
@@ -359,8 +372,17 @@ Page({
           wx.showLoading({ title: '删除中...', mask: true });
 
           try {
-            const db = wx.cloud.database();
-            await db.collection('classes').doc(classId).remove();
+            const cfRes = await wx.cloud.callFunction({
+              name: 'joinClass',
+              data: {
+                action: 'deleteClass',
+                data: { class_id: classId }
+              }
+            });
+
+            if (!cfRes.result || !cfRes.result.success) {
+              throw new Error(cfRes.result?.message || '删除失败');
+            }
 
             wx.hideLoading();
             util.showSuccess('删除成功');

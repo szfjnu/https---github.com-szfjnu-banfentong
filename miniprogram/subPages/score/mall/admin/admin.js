@@ -186,40 +186,24 @@ Page({
     
     try {
       wx.showLoading({ title: '处理中...', mask: true });
-      const db = wx.cloud.database();
       
-      // 更新兑换请求状态
-      await db.collection('redemption_requests').doc(request._id).update({
+      const res = await wx.cloud.callFunction({
+        name: 'processRedemption',
         data: {
-          status: '已通过',
-          approver: app.globalData.userInfo?.nickName || '管理员',
-          approval_time: db.serverDate(),
-          updated_at: db.serverDate()
+          action: 'approveRedemption',
+          data: {
+            requestId: request._id,
+            studentId: request.student_id,
+            classId: request.class_id,
+            itemId: request.item_id,
+            score: request.bid_score || request.required_score || 0,
+            approver: app.globalData.userInfo?.nickName || '管理员'
+          }
         }
       });
       
-      // 扣除学生积分
-      const score = request.bid_score || request.required_score || 0;
-      await db.collection('students')
-        .where({
-          student_id: request.student_id,
-          class_id: request.class_id
-        })
-        .update({
-          data: {
-            current_score: db.command.inc(-score),
-            updated_at: db.serverDate()
-          }
-        });
-      
-      // 更新商品库存
-      if (request.item_id) {
-        await db.collection('redemption_items').doc(request.item_id).update({
-          data: {
-            quantity: db.command.inc(-1),
-            updated_at: db.serverDate()
-          }
-        });
+      if (!res.result || !res.result.success) {
+        throw new Error(res.result?.message || '批准失败');
       }
       
       wx.hideLoading();
@@ -230,7 +214,7 @@ Page({
     } catch (err) {
       console.error('批准失败:', err);
       wx.hideLoading();
-      util.showError('操作失败');
+      util.showError(err.message || '操作失败');
     }
   },
 
@@ -245,16 +229,21 @@ Page({
         if (res.confirm) {
           try {
             wx.showLoading({ title: '处理中...', mask: true });
-            const db = wx.cloud.database();
             
-            await db.collection('redemption_requests').doc(request._id).update({
+            const cfRes = await wx.cloud.callFunction({
+              name: 'processRedemption',
               data: {
-                status: '已拒绝',
-                approver: app.globalData.userInfo?.nickName || '管理员',
-                approval_time: db.serverDate(),
-                updated_at: db.serverDate()
+                action: 'rejectRedemption',
+                data: {
+                  requestId: request._id,
+                  approver: app.globalData.userInfo?.nickName || '管理员'
+                }
               }
             });
+            
+            if (!cfRes.result || !cfRes.result.success) {
+              throw new Error(cfRes.result?.message || '拒绝失败');
+            }
             
             wx.hideLoading();
             util.showSuccess('已拒绝');
@@ -264,7 +253,7 @@ Page({
           } catch (err) {
             console.error('拒绝失败:', err);
             wx.hideLoading();
-            util.showError('操作失败');
+            util.showError(err.message || '操作失败');
           }
         }
       }
@@ -300,29 +289,24 @@ Page({
 
   // 处理批准逻辑
   processApprove: async function (request) {
-    const db = wx.cloud.database();
-    
-    await db.collection('redemption_requests').doc(request._id).update({
+    const res = await wx.cloud.callFunction({
+      name: 'processRedemption',
       data: {
-        status: '已通过',
-        approver: app.globalData.userInfo?.nickName || '管理员',
-        approval_time: db.serverDate(),
-        updated_at: db.serverDate()
+        action: 'approveRedemption',
+        data: {
+          requestId: request._id,
+          studentId: request.student_id,
+          classId: request.class_id,
+          itemId: request.item_id,
+          score: request.bid_score || request.required_score || 0,
+          approver: app.globalData.userInfo?.nickName || '管理员'
+        }
       }
     });
     
-    const score = request.bid_score || request.required_score || 0;
-    await db.collection('students')
-      .where({
-        student_id: request.student_id,
-        class_id: request.class_id
-      })
-      .update({
-        data: {
-          current_score: db.command.inc(-score),
-          updated_at: db.serverDate()
-        }
-      });
+    if (!res.result || !res.result.success) {
+      throw new Error(res.result?.message || '批准失败');
+    }
   },
 
   // ====== 商品管理功能 ======
@@ -453,7 +437,6 @@ Page({
     
     try {
       wx.showLoading({ title: '保存中...', mask: true });
-      const db = wx.cloud.database();
       const classId = app.globalData.class_id;
       
       const data = {
@@ -464,25 +447,38 @@ Page({
         description: itemForm.description.trim(),
         image_url: itemForm.image_url,
         status: itemForm.status,
-        class_id: classId,
-        updated_at: db.serverDate()
+        class_id: classId
       };
       
-      // 投标模式设置截止时间
       if (itemForm.redemption_mode === '投标模式' && itemForm.bid_end_time) {
-        data.bid_end_time = new Date(itemForm.bid_end_time);
-        data.bid_start_time = new Date();
+        data.bid_end_time = itemForm.bid_end_time;
+        data.bid_start_time = new Date().toISOString();
       }
       
       if (editingItem) {
-        // 更新
-        await db.collection('redemption_items').doc(editingItem._id).update({ data });
+        const res = await wx.cloud.callFunction({
+          name: 'processRedemption',
+          data: {
+            action: 'updateItem',
+            data: { itemId: editingItem._id, updateData: data }
+          }
+        });
+        if (!res.result || !res.result.success) {
+          throw new Error(res.result?.message || '更新失败');
+        }
         util.showSuccess('更新成功');
       } else {
-        // 新增
         data.item_id = `ITEM-${Date.now()}`;
-        data.created_at = db.serverDate();
-        await db.collection('redemption_items').add({ data });
+        const res = await wx.cloud.callFunction({
+          name: 'processRedemption',
+          data: {
+            action: 'addItem',
+            data: { itemData: data }
+          }
+        });
+        if (!res.result || !res.result.success) {
+          throw new Error(res.result?.message || '添加失败');
+        }
         util.showSuccess('添加成功');
       }
       
@@ -508,8 +504,18 @@ Page({
         if (res.confirm) {
           try {
             wx.showLoading({ title: '删除中...', mask: true });
-            const db = wx.cloud.database();
-            await db.collection('redemption_items').doc(item._id).remove();
+            
+            const res = await wx.cloud.callFunction({
+              name: 'processRedemption',
+              data: {
+                action: 'deleteItem',
+                data: { itemId: item._id }
+              }
+            });
+            
+            if (!res.result || !res.result.success) {
+              throw new Error(res.result?.message || '删除失败');
+            }
             
             wx.hideLoading();
             util.showSuccess('删除成功');

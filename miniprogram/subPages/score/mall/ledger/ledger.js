@@ -143,15 +143,21 @@ Page({
         success: async (res) => {
           if (res.confirm) {
             try {
-              const db = wx.cloud.database();
-              await db.collection('redemption_requests').doc(request._id).update({
+              const cfRes = await wx.cloud.callFunction({
+                name: 'processRedemption',
                 data: {
-                  status: '待班主任审批',
-                  cadre_approver: app.globalData.userInfo?.nickName || '班委',
-                  cadre_approval_time: db.serverDate(),
-                  updated_at: db.serverDate()
+                  action: 'cadreApprove',
+                  data: {
+                    requestId: request._id,
+                    cadreApprover: app.globalData.userInfo?.nickName || '班委'
+                  }
                 }
               });
+              
+              if (!cfRes.result || !cfRes.result.success) {
+                throw new Error(cfRes.result?.message || '初审失败');
+              }
+              
               wx.showToast({ title: '初审通过', icon: 'success' });
               this.loadData();
             } catch (err) {
@@ -179,50 +185,24 @@ Page({
   processApprove: async function (request) {
     try {
       wx.showLoading({ title: '处理中...', mask: true });
-      const db = wx.cloud.database();
 
-      // 更新兑换请求状态
-      await db.collection('redemption_requests').doc(request._id).update({
+      const res = await wx.cloud.callFunction({
+        name: 'processRedemption',
         data: {
-          status: '已通过',
-          approver: app.globalData.userInfo?.nickName || '管理员',
-          approval_time: db.serverDate(),
-          shipping_status: 'pending',
-          updated_at: db.serverDate()
+          action: 'approveRedemption',
+          data: {
+            requestId: request._id,
+            studentId: request.student_id,
+            classId: request.class_id,
+            itemId: request.item_id,
+            score: request.bid_score || request.required_score || 0,
+            approver: app.globalData.userInfo?.nickName || '管理员'
+          }
         }
       });
 
-      // 扣除学生积分
-      const score = request.bid_score || request.required_score || 0;
-      if (score > 0) {
-        await db.collection('students')
-          .where({
-            student_id: request.student_id,
-            class_id: request.class_id
-          })
-          .update({
-            data: {
-              current_score: db.command.inc(-score),
-              updated_at: db.serverDate()
-            }
-          });
-      }
-
-      // 更新商品库存
-      if (request.item_id) {
-        const itemRes = await db.collection('redemption_items')
-          .where({ item_id: request.item_id })
-          .limit(1)
-          .get();
-
-        if (itemRes.data && itemRes.data.length > 0) {
-          await db.collection('redemption_items').doc(itemRes.data[0]._id).update({
-            data: {
-              quantity: db.command.inc(-1),
-              updated_at: db.serverDate()
-            }
-          });
-        }
+      if (!res.result || !res.result.success) {
+        throw new Error(res.result?.message || '批准失败');
       }
 
       wx.hideLoading();
@@ -232,7 +212,7 @@ Page({
     } catch (err) {
       console.error('批准失败:', err);
       wx.hideLoading();
-      wx.showToast({ title: '操作失败', icon: 'none' });
+      wx.showToast({ title: err.message || '操作失败', icon: 'none' });
     }
   },
 
@@ -248,16 +228,22 @@ Page({
       success: async (res) => {
         if (res.confirm) {
           try {
-            const db = wx.cloud.database();
-            await db.collection('redemption_requests').doc(request._id).update({
+            const cfRes = await wx.cloud.callFunction({
+              name: 'processRedemption',
               data: {
-                status: '已拒绝',
-                reject_reason: res.content || '',
-                approver: app.globalData.userInfo?.nickName || '管理员',
-                approval_time: db.serverDate(),
-                updated_at: db.serverDate()
+                action: 'rejectRedemption',
+                data: {
+                  requestId: request._id,
+                  approver: app.globalData.userInfo?.nickName || '管理员',
+                  rejectReason: res.content || ''
+                }
               }
             });
+            
+            if (!cfRes.result || !cfRes.result.success) {
+              throw new Error(cfRes.result?.message || '拒绝失败');
+            }
+            
             wx.showToast({ title: '已拒绝', icon: 'success' });
             this.loadData();
           } catch (err) {
@@ -279,15 +265,18 @@ Page({
       success: async (res) => {
         if (res.confirm) {
           try {
-            const db = wx.cloud.database();
-            await db.collection('redemption_requests').doc(request._id).update({
+            const cfRes = await wx.cloud.callFunction({
+              name: 'processRedemption',
               data: {
-                status: '已发货',
-                shipping_status: 'shipped',
-                shipped_at: db.serverDate(),
-                updated_at: db.serverDate()
+                action: 'shipRedemption',
+                data: { requestId: request._id }
               }
             });
+            
+            if (!cfRes.result || !cfRes.result.success) {
+              throw new Error(cfRes.result?.message || '发货确认失败');
+            }
+            
             wx.showToast({ title: '已确认发货', icon: 'success' });
             this.loadData();
           } catch (err) {

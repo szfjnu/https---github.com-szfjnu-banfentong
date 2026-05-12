@@ -3,7 +3,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
-const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('../utils/auth');
+const { getCallerInfo, requireTeacher, requireAdmin, AUTH_ERRORS } = require('../utils/auth');
 
 function validateParams(data, requiredFields) {
   for (const field of requiredFields) {
@@ -301,43 +301,199 @@ async function releaseBed(data, openid) {
   }
 }
 
+async function addBuilding(data, caller) {
+  try {
+    const now = db.serverDate()
+    const res = await db.collection('dorm_buildings').add({
+      data: { ...data, created_at: now, updated_at: now }
+    })
+    return { success: true, data: { _id: res._id } }
+  } catch (err) {
+    console.error('addBuilding error:', err)
+    return { success: false, message: err.message }
+  }
+}
+
+async function updateBuilding(data, caller) {
+  const { _id, ...updateFields } = data || {}
+  if (!_id) return { success: false, message: '缺少必要参数: _id' }
+  try {
+    const now = db.serverDate()
+    await db.collection('dorm_buildings').doc(_id).update({
+      data: { ...updateFields, updated_at: now }
+    })
+    return { success: true }
+  } catch (err) {
+    console.error('updateBuilding error:', err)
+    return { success: false, message: err.message }
+  }
+}
+
+async function deleteBuilding(data, caller) {
+  const { _id } = data || {}
+  if (!_id) return { success: false, message: '缺少必要参数: _id' }
+  try {
+    await db.collection('dorm_buildings').doc(_id).remove()
+    const roomsRes = await db.collection('dorm_rooms').where({ building_id: _id }).get()
+    for (const room of (roomsRes.data || [])) {
+      await db.collection('dorm_beds').where({ room_id: room._id }).remove()
+      await db.collection('dorm_rooms').doc(room._id).remove()
+    }
+    return { success: true }
+  } catch (err) {
+    console.error('deleteBuilding error:', err)
+    return { success: false, message: err.message }
+  }
+}
+
+async function addRoomWithBeds(data, caller) {
+  const { building_id, room_number, floor, bed_count, ...rest } = data || {}
+  if (!building_id || !room_number || !bed_count) {
+    return { success: false, message: '缺少必要参数: building_id, room_number, bed_count' }
+  }
+  try {
+    const now = db.serverDate()
+    const roomRes = await db.collection('dorm_rooms').add({
+      data: {
+        building_id,
+        room_number,
+        floor: floor || 1,
+        ...rest,
+        created_at: now,
+        updated_at: now
+      }
+    })
+    const roomId = roomRes._id
+    const bedResults = []
+    for (let i = 1; i <= bed_count; i++) {
+      const bedRes = await db.collection('dorm_beds').add({
+        data: {
+          room_id: roomId,
+          building_id,
+          bed_number: `${room_number}-${i}`,
+          bed_index: i,
+          occupied: false,
+          student_id: '',
+          created_at: now,
+          updated_at: now
+        }
+      })
+      bedResults.push(bedRes._id)
+    }
+    return { success: true, data: { room_id: roomId, bed_ids: bedResults } }
+  } catch (err) {
+    console.error('addRoomWithBeds error:', err)
+    return { success: false, message: err.message }
+  }
+}
+
+async function updateRoom(data, caller) {
+  const { _id, ...updateFields } = data || {}
+  if (!_id) return { success: false, message: '缺少必要参数: _id' }
+  try {
+    const now = db.serverDate()
+    await db.collection('dorm_rooms').doc(_id).update({
+      data: { ...updateFields, updated_at: now }
+    })
+    return { success: true }
+  } catch (err) {
+    console.error('updateRoom error:', err)
+    return { success: false, message: err.message }
+  }
+}
+
+async function deleteRoom(data, caller) {
+  const { _id } = data || {}
+  if (!_id) return { success: false, message: '缺少必要参数: _id' }
+  try {
+    await db.collection('dorm_beds').where({ room_id: _id }).remove()
+    await db.collection('dorm_rooms').doc(_id).remove()
+    return { success: true }
+  } catch (err) {
+    console.error('deleteRoom error:', err)
+    return { success: false, message: err.message }
+  }
+}
+
+async function addInspectionRecord(data, caller) {
+  try {
+    const now = db.serverDate()
+    const res = await db.collection('dorm_inspection_records').add({
+      data: {
+        ...data,
+        inspector_openid: caller.openid,
+        created_at: now,
+        updated_at: now
+      }
+    })
+    return { success: true, data: { _id: res._id } }
+  } catch (err) {
+    console.error('addInspectionRecord error:', err)
+    return { success: false, message: err.message }
+  }
+}
+
 exports.main = async (event, context) => {
   const { action, data } = event;
 
-  if (!action) {
-    return { success: false, message: '缺少action参数' };
-  }
+  try {
+    const caller = await getCallerInfo(event, data?.building_id || data?.room_id);
 
-  if (action === 'getDormCandidates') {
-    return await getDormCandidates(data || {});
-  }
+    switch (action) {
+      case 'getDormCandidates':
+        return await getDormCandidates(data || {});
 
-  if (action === 'syncDormInfo' || action === 'releaseBed') {
-    try {
-      const caller = await getCallerInfo(event);
-      requireTeacher(caller);
-
-      if (action === 'syncDormInfo') {
+      case 'syncDormInfo':
+        requireTeacher(caller);
         return await syncDormInfo(data || {}, caller.openid);
-      }
-      if (action === 'releaseBed') {
-        return await releaseBed(data || {}, caller.openid);
-      }
-    } catch (err) {
-      if (Object.values(AUTH_ERRORS).includes(err.code)) {
-        const msgMap = {
-          [AUTH_ERRORS.NO_OPENID]: '未获取到用户身份',
-          [AUTH_ERRORS.NO_CLASS]: '用户未加入任何班级',
-          [AUTH_ERRORS.NO_ACCESS]: '无权操作此班级',
-          [AUTH_ERRORS.ROLE_DENIED]: err.message,
-          [AUTH_ERRORS.CLASS_DENIED]: '无权访问该班级数据'
-        }
-        return { success: false, message: msgMap[err.code] || err.message, code: 'PERMISSION_DENIED' };
-      }
-      console.error('dormSyncManager error:', err);
-      return { success: false, message: '服务器错误', code: 'INTERNAL_ERROR' };
-    }
-  }
 
-  return { success: false, message: '未知操作' };
+      case 'releaseBed':
+        requireTeacher(caller);
+        return await releaseBed(data || {}, caller.openid);
+
+      case 'addBuilding':
+        requireTeacher(caller);
+        return await addBuilding(data || {}, caller);
+
+      case 'updateBuilding':
+        requireTeacher(caller);
+        return await updateBuilding(data || {}, caller);
+
+      case 'deleteBuilding':
+        requireAdmin(caller);
+        return await deleteBuilding(data || {}, caller);
+
+      case 'addRoomWithBeds':
+        requireTeacher(caller);
+        return await addRoomWithBeds(data || {}, caller);
+
+      case 'updateRoom':
+        requireTeacher(caller);
+        return await updateRoom(data || {}, caller);
+
+      case 'deleteRoom':
+        requireTeacher(caller);
+        return await deleteRoom(data || {}, caller);
+
+      case 'addInspectionRecord':
+        requireTeacher(caller);
+        return await addInspectionRecord(data || {}, caller);
+
+      default:
+        return { success: false, message: '未知操作' };
+    }
+  } catch (err) {
+    if (Object.values(AUTH_ERRORS).includes(err.code)) {
+      const msgMap = {
+        [AUTH_ERRORS.NO_OPENID]: '未获取到用户身份',
+        [AUTH_ERRORS.NO_CLASS]: '用户未加入任何班级',
+        [AUTH_ERRORS.NO_ACCESS]: '无权操作此班级',
+        [AUTH_ERRORS.ROLE_DENIED]: err.message,
+        [AUTH_ERRORS.CLASS_DENIED]: '无权访问该班级数据'
+      }
+      return { success: false, message: msgMap[err.code] || err.message, code: 'PERMISSION_DENIED' };
+    }
+    console.error('dormSyncManager error:', err);
+    return { success: false, message: err.message || '服务器错误', code: 'INTERNAL_ERROR' };
+  }
 };

@@ -199,12 +199,10 @@ Page({
     this.setData({ submitting: true });
     
     try {
-      const db = wx.cloud.database();
       const now = new Date();
-      const deadline = new Date(now.getTime() + 48 * 60 * 60 * 1000); // 48小时后
+      const deadline = new Date(now.getTime() + 48 * 60 * 60 * 1000);
       
       const appealData = {
-        appeal_id: `APL-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
         record_id: recordId,
         student_id: studentId,
         student_name: studentName,
@@ -214,14 +212,20 @@ Page({
         original_score: originalScore,
         requested_score: formData.requested_score,
         evidence_urls: formData.evidence_urls,
-        status: 'pending',
-        notify_parent: false,
-        created_at: now,
-        updated_at: now,
-        deadline: deadline
+        deadline: deadline.toISOString()
       };
       
-      await db.collection('score_appeals').add({ data: appealData });
+      const res = await wx.cloud.callFunction({
+        name: 'scoreManager',
+        data: {
+          action: 'submitAppeal',
+          data: appealData
+        }
+      });
+      
+      if (!res.result || !res.result.success) {
+        throw new Error(res.result?.message || '提交失败');
+      }
       
       // 通知相关审核人
       this.notifyReviewers(appealData);
@@ -237,7 +241,7 @@ Page({
       
     } catch (err) {
       console.error('提交申诉失败:', err);
-      util.showError('提交失败，请重试');
+      util.showError(err.message || '提交失败，请重试');
     } finally {
       this.setData({ submitting: false });
     }

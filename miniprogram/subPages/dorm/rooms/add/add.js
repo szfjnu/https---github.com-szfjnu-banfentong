@@ -155,40 +155,36 @@ Page({
 
       if (editingRoom) {
         // 更新房间
-        await db.collection('dorm_rooms').doc(editingRoom._id).update({
-          data: roomData
+        const res = await wx.cloud.callFunction({
+          name: 'dormSyncManager',
+          data: {
+            action: 'updateRoom',
+            data: { _id: editingRoom._id, ...roomData }
+          }
         });
+        if (!res.result || !res.result.success) {
+          throw new Error(res.result?.message || '更新房间失败');
+        }
       } else {
-        // 新增房间
-        roomData.building_id = buildingId;
-        roomData.created_at = db.serverDate();
-        roomData.created_by = app.globalData.openid;
-
-        const roomRes = await db.collection('dorm_rooms').add({
-          data: roomData
-        });
-
-        // 自动创建床位
-        const bedCount = parseInt(formData.bed_count);
+        // 新增房间和床位
         const buildingInfo = this.data.buildingInfo;
-        const bedPrefix = `${buildingInfo.campus}-${buildingInfo.building_name}-${formData.room_number}`;
 
-        for (let i = 1; i <= bedCount; i++) {
-          const bedData = {
-            building_id: buildingId,
-            room_id: roomRes._id,
-            bed_number: `${bedPrefix}-${i}`,
-            bed_index: i,
-            occupied: false,
-            student_id: '',
-            class_id: app.globalData.classId || '',
-            created_at: db.serverDate(),
-            updated_at: db.serverDate()
-          };
-
-          await db.collection('dorm_beds').add({
-            data: bedData
-          });
+        const res = await wx.cloud.callFunction({
+          name: 'dormSyncManager',
+          data: {
+            action: 'addRoomWithBeds',
+            data: {
+              room_data: {
+                ...roomData,
+                building_id: buildingId,
+                created_by: app.globalData.openid
+              },
+              building_info: buildingInfo
+            }
+          }
+        });
+        if (!res.result || !res.result.success) {
+          throw new Error(res.result?.message || '新增房间失败');
         }
       }
 

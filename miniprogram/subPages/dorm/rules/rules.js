@@ -261,14 +261,18 @@ Page({
     try {
       const newStatus = !rule.is_enabled;
       
-      await db.collection('dorm_rules').doc(id).update({
+      const res = await wx.cloud.callFunction({
+        name: 'importDormRules',
         data: {
-          is_enabled: newStatus,
-          updated_at: db.serverDate()
+          action: 'toggleRuleStatus',
+          data: { rule_id: id, is_enabled: newStatus }
         }
       });
 
-      // 更新本地数据
+      if (!res.result || !res.result.success) {
+        throw new Error(res.result?.message || '操作失败');
+      }
+
       const index = this.data.rules.findIndex(r => r._id === id);
       if (index !== -1) {
         this.data.rules[index].is_enabled = newStatus;
@@ -384,18 +388,31 @@ Page({
 
       if (editingRule) {
         // 更新
-        await db.collection('dorm_rules').doc(editingRule._id).update({
-          data: ruleData
+        const res = await wx.cloud.callFunction({
+          name: 'importDormRules',
+          data: {
+            action: 'updateRule',
+            data: { _id: editingRule._id, ...ruleData }
+          }
         });
+        if (!res.result || !res.result.success) {
+          throw new Error(res.result?.message || '更新规则失败');
+        }
       } else {
         // 新增
         ruleData.is_enabled = true;
-        ruleData.created_at = db.serverDate();
         ruleData.created_by = app.globalData.openid;
 
-        await db.collection('dorm_rules').add({
-          data: ruleData
+        const res = await wx.cloud.callFunction({
+          name: 'importDormRules',
+          data: {
+            action: 'addRule',
+            data: ruleData
+          }
         });
+        if (!res.result || !res.result.success) {
+          throw new Error(res.result?.message || '新增规则失败');
+        }
       }
 
       wx.hideLoading();

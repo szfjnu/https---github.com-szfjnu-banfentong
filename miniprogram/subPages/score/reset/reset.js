@@ -204,34 +204,25 @@ Page({
   // 保存设置
   saveSettings: async function () {
     try {
-      const db = wx.cloud.database();
-      
-      const checkRes = await db.collection('class_settings')
-        .where({ class_id: this.data.classId })
-        .get();
-      
-      if (checkRes.data && checkRes.data.length > 0) {
-        await db.collection('class_settings').doc(checkRes.data[0]._id).update({
+      const res = await wx.cloud.callFunction({
+        name: 'manageSemester',
+        data: {
+          action: 'saveResetSettings',
           data: {
-            score_reset_settings: this.data.resetSettings,
-            updated_at: db.serverDate()
+            classId: this.data.classId,
+            resetSettings: this.data.resetSettings
           }
-        });
-      } else {
-        await db.collection('class_settings').add({
-          data: {
-            class_id: this.data.classId,
-            score_reset_settings: this.data.resetSettings,
-            created_at: db.serverDate(),
-            updated_at: db.serverDate()
-          }
-        });
+        }
+      });
+      
+      if (!res.result || !res.result.success) {
+        throw new Error(res.result?.message || '保存失败');
       }
       
       util.showSuccess('设置已保存');
     } catch (err) {
       console.error('保存设置失败:', err);
-      util.showError('保存失败');
+      util.showError(err.message || '保存失败');
     }
   },
 
@@ -297,60 +288,59 @@ Page({
 
   // 执行清零
   executeReset: async function () {
-    const db = wx.cloud.database();
-    const _ = db.command;
-    const { resetSettings, students } = this.data;
+    const { resetSettings, students, classId, semesterId } = this.data;
     
-    // 批量更新学生积分
-    const updatePromises = students.map(student => {
-      let newScore = 0;
-      
-      // 计算新积分
-      if (resetSettings.carry_over_ratio > 0) {
-        newScore = Math.floor((student.current_score || 0) * resetSettings.carry_over_ratio);
-      }
-      if (newScore < resetSettings.keep_min_score) {
-        newScore = resetSettings.keep_min_score;
-      }
-      
-      return db.collection('students').doc(student._id).update({
+    const res = await wx.cloud.callFunction({
+      name: 'resetStudentScore',
+      data: {
+        action: 'batchReset',
         data: {
-          current_score: newScore,
-          score_before_reset: student.current_score || 0,
-          reset_at: db.serverDate()
+          classId: classId,
+          semesterId: semesterId,
+          resetSettings: resetSettings,
+          students: students.map(s => ({
+            _id: s._id,
+            student_id: s.student_id,
+            current_score: s.current_score || 0
+          }))
         }
-      });
+      }
     });
     
-    await Promise.all(updatePromises);
+    if (!res.result || !res.result.success) {
+      throw new Error(res.result?.message || '清零执行失败');
+    }
   },
 
   // 记录日志
   logReset: async function () {
-    const db = wx.cloud.database();
+    const { classId, semesterId, resetSettings, affectedCount, totalScore } = this.data;
     
-    await db.collection('score_reset_logs').add({
+    const res = await wx.cloud.callFunction({
+      name: 'resetStudentScore',
       data: {
-        reset_id: `RST-${Date.now()}`,
-        class_id: this.data.classId,
-        semester_id: this.data.semesterId,
-        reset_type: 'manual',
-        reset_scope: this.data.resetSettings.reset_scope,
-        reset_rules: {
-          keep_min_score: this.data.resetSettings.keep_min_score,
-          reset_base_only: this.data.resetSettings.reset_base_only,
-          carry_over_ratio: this.data.resetSettings.carry_over_ratio
-        },
-        affected_count: this.data.affectedCount,
-        total_score_reset: this.data.totalScore,
-        operator_id: app.globalData.openid,
-        operator_name: app.globalData.userName || '管理员',
-        operator_role: app.globalData.role,
-        executed_at: db.serverDate(),
-        status: 'success',
-        created_at: db.serverDate()
+        action: 'logReset',
+        data: {
+          classId: classId,
+          semesterId: semesterId,
+          resetScope: resetSettings.reset_scope,
+          resetRules: {
+            keep_min_score: resetSettings.keep_min_score,
+            reset_base_only: resetSettings.reset_base_only,
+            carry_over_ratio: resetSettings.carry_over_ratio
+          },
+          affectedCount: affectedCount,
+          totalScoreReset: totalScore,
+          operatorId: app.globalData.openid,
+          operatorName: app.globalData.userName || '管理员',
+          operatorRole: app.globalData.role
+        }
       }
     });
+    
+    if (!res.result || !res.result.success) {
+      console.error('记录日志失败:', res.result?.message);
+    }
   },
 
   // 查看历史详情

@@ -234,7 +234,17 @@ Page({
       };
 
       // 保存到数据库
-      await db.collection('dorm_inspection_records').add({ data });
+      const res = await wx.cloud.callFunction({
+        name: 'dormSyncManager',
+        data: {
+          action: 'addInspectionRecord',
+          data: data
+        }
+      });
+
+      if (!res.result || !res.result.success) {
+        throw new Error(res.result?.message || '提交检查记录失败');
+      }
 
       wx.hideLoading();
       wx.showToast({

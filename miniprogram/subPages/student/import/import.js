@@ -415,86 +415,60 @@ Page({
   // 执行导入
   doImport: async function () {
     const { previewData, classId } = this.data;
-    const db = wx.cloud.database();
     
     this.setData({ importing: true, importProgress: 0 });
     wx.showLoading({ title: '导入中...', mask: true });
     
-    let successCount = 0;
-    let failCount = 0;
-    let skipCount = 0;
-    const errors = [];
-    
-    // 只导入有效数据
-    const validData = previewData.filter(s => s.valid);
-    
-    for (let i = 0; i < validData.length; i++) {
-      const student = validData[i];
-      
-      try {
-        // 检查学号是否已存在
-        const existRes = await db.collection('students')
-          .where({
-            student_id: student.student_id,
+    try {
+      const validData = previewData.filter(s => s.valid).map(s => ({
+        student_id: s.student_id,
+        name: s.name,
+        gender: s.gender || '男',
+        is_boarding: s.is_boarding || false,
+        position: s.position || '',
+        phone: s.phone || '',
+        parent_name: s.parent_name || '',
+        parent_phone: s.parent_phone || '',
+        address: s.address || '',
+        initial_score: s.initial_score || 100,
+        current_score: s.initial_score || 100
+      }));
+
+      const res = await wx.cloud.callFunction({
+        name: 'dataTransfer',
+        data: {
+          action: 'importStudents',
+          data: {
+            students: validData,
             class_id: classId
-          })
-          .count();
-        
-        if (existRes.total > 0) {
-          skipCount++;
-          continue;
+          }
         }
-        
-        // 创建学生记录
-        const studentData = {
-          student_id: student.student_id,
-          name: student.name,
-          gender: student.gender || '男',
-          is_boarding: student.is_boarding || false,
-          position: student.position || '',
-          phone: student.phone || '',
-          parent_name: student.parent_name || '',
-          parent_phone: student.parent_phone || '',
-          address: student.address || '',
-          initial_score: student.initial_score || 100,
-          current_score: student.initial_score || 100,
-          class_id: classId,
-          status: 'active',
-          created_at: db.serverDate(),
-          updated_at: db.serverDate()
-        };
-        
-        await db.collection('students').add({ data: studentData });
-        successCount++;
-        
-        // 更新进度
-        const progress = Math.round(((i + 1) / validData.length) * 100);
-        this.setData({ importProgress: progress });
-        
-      } catch (err) {
-        console.error(`导入学生 ${student.student_id} 失败:`, err);
-        failCount++;
-        errors.push(`${student.name}(${student.student_id}): ${err.message || '未知错误'}`);
+      });
+
+      wx.hideLoading();
+
+      const result = (res.result && res.result.success) ? res.result.data : {};
+      const importResult = {
+        successCount: result.successCount || 0,
+        failCount: result.failCount || 0,
+        skipCount: result.skipCount || 0,
+        errors: (result.errors || []).slice(0, 10)
+      };
+      
+      this.setData({ 
+        importing: false, 
+        importProgress: 100,
+        importResult 
+      });
+      
+      if (importResult.successCount > 0) {
+        util.showSuccess(`成功导入 ${importResult.successCount} 名学生`);
       }
-    }
-    
-    wx.hideLoading();
-    
-    const importResult = {
-      successCount,
-      failCount,
-      skipCount,
-      errors: errors.slice(0, 10) // 最多显示10条错误
-    };
-    
-    this.setData({ 
-      importing: false, 
-      importProgress: 100,
-      importResult 
-    });
-    
-    if (successCount > 0) {
-      util.showSuccess(`成功导入 ${successCount} 名学生`);
+    } catch (err) {
+      console.error('导入失败:', err);
+      wx.hideLoading();
+      this.setData({ importing: false });
+      util.showError('导入失败');
     }
   },
 

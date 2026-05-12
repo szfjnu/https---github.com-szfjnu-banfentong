@@ -136,15 +136,18 @@ Page({
       success: async (res) => {
         if (res.confirm) {
           try {
-            const db = wx.cloud.database();
-            await db.collection('redemption_requests').doc(record._id).update({
+            const cfRes = await wx.cloud.callFunction({
+              name: 'processRedemption',
               data: {
-                shipping_status: 'received',
-                received_at: db.serverDate(),
-                status: '已收货',
-                updated_at: db.serverDate()
+                action: 'confirmReceive',
+                data: { requestId: record._id }
               }
             });
+            
+            if (!cfRes.result || !cfRes.result.success) {
+              throw new Error(cfRes.result?.message || '确认收货失败');
+            }
+            
             wx.showToast({ title: '已确认收货', icon: 'success' });
             this.onRefresh();
           } catch (err) {

@@ -692,12 +692,18 @@ Page({
       const newScore = initialScore + totalChange;
       
       // 更新学生积分
-      await db.collection('students').doc(student._id).update({
+      const scoreRes = await wx.cloud.callFunction({
+        name: 'updateStudentScore',
         data: {
-          current_score: newScore,
-          updated_at: db.serverDate()
+          studentId: student._id,
+          studentIdNumber: student.student_id,
+          scoreAfter: newScore,
+          classId: this.data.classId
         }
       });
+      if (!scoreRes.result || !scoreRes.result.success) {
+        console.error('重新计算积分-更新失败:', scoreRes.result?.message || '未知错误');
+      }
       
     } catch (err) {
       console.error('重新计算积分失败:', err);
@@ -945,18 +951,28 @@ Page({
           const newScoreChange = category.score_deduction || 0;
           const scoreDiff = newScoreChange - oldScoreChange;
 
-          await db.collection('attendance_records')
-            .doc(existingRecord._id)
-            .update({
-              data: {
+          const updateFields = {
                 category_id: selectedCategoryId,
                 category_code: categoryCode,
                 category_name: category.category_name,
                 score_change: newScoreChange,
                 semester_id: app.globalData.currentSemesterId || '',
                 updated_at: db.serverDate()
+              };
+          const updateRes = await wx.cloud.callFunction({
+            name: 'scoreManager',
+            data: {
+              action: 'updateAttendanceRecord',
+              data: {
+                recordId: existingRecord._id,
+                ...updateFields,
+                classId: this.data.classId
               }
-            });
+            }
+          });
+          if (!updateRes.result || !updateRes.result.success) {
+            console.error('更新考勤记录失败:', updateRes.result?.message || '未知错误');
+          }
 
           // 如果积分有变化，同步更新积分记录和学生总积分
           if (scoreDiff !== 0) {
@@ -984,8 +1000,7 @@ Page({
               if (existSectionRes.data && existSectionRes.data.length > 0) continue;
 
               const recordId = `AR${Date.now()}${Math.random().toString(36).substr(2, 9)}`;
-              await db.collection('attendance_records').add({
-                data: {
+              const recordData = {
                   record_id: recordId,
                   student_id: student.student_id,
                   student_name: student.name,
@@ -1006,8 +1021,20 @@ Page({
                   semester_id: app.globalData.currentSemesterId || '',
                   created_at: db.serverDate(),
                   updated_at: db.serverDate()
+                };
+              const addRes = await wx.cloud.callFunction({
+                name: 'scoreManager',
+                data: {
+                  action: 'addAttendanceRecord',
+                  data: {
+                    ...recordData,
+                    classId: this.data.classId
+                  }
                 }
               });
+              if (!addRes.result || !addRes.result.success) {
+                console.error('添加考勤记录(分节)失败:', addRes.result?.message || '未知错误');
+              }
             }
             if (category.score_deduction && category.score_deduction !== 0) {
               const totalDeduction = (category.score_deduction || 0) * selectedSections.length;
@@ -1019,8 +1046,7 @@ Page({
             }
           } else {
           const recordId = `AR${Date.now()}${Math.random().toString(36).substr(2, 9)}`;
-          await db.collection('attendance_records').add({
-            data: {
+          const recordData = {
               record_id: recordId,
               student_id: student.student_id,
               student_name: student.name,
@@ -1037,8 +1063,20 @@ Page({
               semester_id: app.globalData.currentSemesterId || '',
               created_at: db.serverDate(),
               updated_at: db.serverDate()
+            };
+          const addRes = await wx.cloud.callFunction({
+            name: 'scoreManager',
+            data: {
+              action: 'addAttendanceRecord',
+              data: {
+                ...recordData,
+                classId: this.data.classId
+              }
             }
           });
+          if (!addRes.result || !addRes.result.success) {
+            console.error('添加考勤记录(无节次)失败:', addRes.result?.message || '未知错误');
+          }
           
           // 如果有积分扣减，创建积分记录
           if (category.score_deduction && category.score_deduction !== 0) {
