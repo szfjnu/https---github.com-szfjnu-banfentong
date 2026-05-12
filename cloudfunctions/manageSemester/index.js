@@ -309,11 +309,29 @@ async function deleteSemester(data, caller) {
 }
 
 async function updateClassSettings(data, caller) {
-  const { settingsId, ...updateFields } = data || {}
-  if (!settingsId) return { success: false, message: '缺少必要参数: settingsId' }
+  const { settingsId, _id, class_id, ...updateFields } = data || {}
+  const effectiveId = settingsId || _id
+
+  if (!effectiveId && !class_id) {
+    return { success: false, message: '缺少必要参数: settingsId 或 class_id' }
+  }
+
   try {
     const now = db.serverDate()
-    await db.collection('class_settings').doc(settingsId).update({
+    let docId = effectiveId
+
+    if (!docId && class_id) {
+      const res = await db.collection('class_settings')
+        .where({ class_id: class_id })
+        .limit(1)
+        .get()
+      if (!res.data || res.data.length === 0) {
+        return { success: false, message: '未找到该班级的设置记录' }
+      }
+      docId = res.data[0]._id
+    }
+
+    await db.collection('class_settings').doc(docId).update({
       data: { ...updateFields, updated_at: now }
     })
     return { success: true }

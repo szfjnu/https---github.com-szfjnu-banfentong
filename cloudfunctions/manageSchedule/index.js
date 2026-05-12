@@ -2,13 +2,12 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
-const { getCallerInfo } = require('./utils/auth')
+const { getCallerInfo, requireTeacher, requireClassAccess } = require('./utils/auth')
 
 const SECTION_NAMES = ['', '第一节课', '第二节课', '第三节课', '第四节课', '第五节课', '第六节课', '第七节课']
 const WEEK_DAY_NAMES = ['', '星期一', '星期二', '星期三', '星期四', '星期五']
 const MAX_LIMIT = 100
 const BATCH_SIZE = 50
-const WRITE_ROLES = ['admin', 'head_teacher']
 
 exports.main = async (event, context) => {
   const { action, data } = event
@@ -18,11 +17,11 @@ exports.main = async (event, context) => {
 
   switch (action) {
     case 'getSchedule': return await getSchedule(data, caller.openid)
-    case 'importSchedule': return await importSchedule(data, caller.openid)
-    case 'updateSchedule': return await updateSchedule(data, caller.openid)
-    case 'deleteSchedule': return await deleteSchedule(data, caller.openid)
+    case 'importSchedule': requireTeacher(caller); requireClassAccess(caller, data?.class_id, ['head_teacher', 'admin']); return await importSchedule(data, caller.openid)
+    case 'updateSchedule': requireTeacher(caller); requireClassAccess(caller, data?.class_id, ['head_teacher', 'admin']); return await updateSchedule(data, caller.openid)
+    case 'deleteSchedule': requireTeacher(caller); requireClassAccess(caller, data?.class_id, ['head_teacher', 'admin']); return await deleteSchedule(data, caller.openid)
     case 'ensureCollection': return await ensureCollection()
-    case 'fixMissingIsBase': return await fixMissingIsBase(data, caller.openid)
+    case 'fixMissingIsBase': requireTeacher(caller); return await fixMissingIsBase(data, caller.openid)
     default: return { success: false, message: '未知操作' }
   }
   } catch (err) {
@@ -159,19 +158,8 @@ async function getSchedule(data, openid) {
   return { success: true, data: result }
 }
 
-async function checkWritePermission(openid) {
-  const userRes = await db.collection('users').where({ _openid: openid }).limit(1).get()
-  if (!userRes.data || userRes.data.length === 0) return false
-  const userRole = userRes.data[0].role
-  return WRITE_ROLES.includes(userRole)
-}
-
 async function importSchedule(data, openid) {
   const { records, semester_name, is_base, class_id } = data || {}
-
-  if (!await checkWritePermission(openid)) {
-    return { success: false, message: '无操作权限，仅管理员和班主任可导入' }
-  }
 
   await ensureCollectionFn()
 
@@ -284,10 +272,6 @@ async function importSchedule(data, openid) {
 async function updateSchedule(data, openid) {
   const { class_name, class_id, semester_name, override_week, overrides } = data || {}
 
-  if (!await checkWritePermission(openid)) {
-    return { success: false, message: '无操作权限，仅管理员和班主任可微调' }
-  }
-
   await ensureCollectionFn()
 
   if (!override_week || !overrides || !Array.isArray(overrides) || overrides.length === 0) {
@@ -371,10 +355,6 @@ async function updateSchedule(data, openid) {
 async function deleteSchedule(data, openid) {
   const { type, schedule_id, override_id, class_name, class_id, semester_name } = data || {}
 
-  if (!await checkWritePermission(openid)) {
-    return { success: false, message: '无操作权限' }
-  }
-
   await ensureCollectionFn()
 
   try {
@@ -420,10 +400,6 @@ async function deleteSchedule(data, openid) {
 }
 
 async function fixMissingIsBase(data, openid) {
-  if (!await checkWritePermission(openid)) {
-    return { success: false, message: '无操作权限' }
-  }
-
   const { class_id } = data || {}
   const query = {}
   if (class_id) query.class_id = class_id

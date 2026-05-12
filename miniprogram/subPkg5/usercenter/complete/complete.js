@@ -72,7 +72,7 @@ Page({
         dorm_room: dormInfo.room || '',
         dorm_bed: dormInfo.bed || '',
         ethnicity: student.ethnicity || '',
-        phone_number: student.phone_number || '',
+        phone_number: student.phone_number || app.globalData.phone || (app.globalData.userInfo && app.globalData.userInfo.phone) || '',
         parent_phone_number: student.parent_phone_number || '',
         home_address: student.home_address || '',
         previousIsBoarding: student.is_boarding || false,

@@ -18,7 +18,10 @@ const ALLOWED_MODULES = {
   volunteer: { label: '志愿服务', actions: ['read', 'write', 'approve'] },
   discipline: { label: '处分管理', actions: ['read', 'approve'] },
   notification: { label: '通知管理', actions: ['read', 'write'] },
-  skill_cert: { label: '技能证书', actions: ['read', 'write', 'approve'] }
+  skill_cert: { label: '技能证书', actions: ['read', 'write', 'approve'] },
+  competition: { label: '竞赛管理', actions: ['read', 'write', 'approve'] },
+  flea_market: { label: '校园咸鱼管理', actions: ['read', 'approve'] },
+  campus_activity: { label: '聚光点管理', actions: ['read', 'approve'] }
 };
 
 const MODULE_PERMISSIONS = {
@@ -28,7 +31,10 @@ const MODULE_PERMISSIONS = {
   DUTY_CHECK: 'duty_check',
   DUTY_ARRANGE: 'duty_arrange',
   ATTENDANCE_REGISTER: 'attendance_register',
-  SKILL_CERT_APPROVE: 'skill_cert_approve'
+  SKILL_CERT_APPROVE: 'skill_cert_approve',
+  COMPETITION_MANAGE: 'competition_manage',
+  FLEA_MARKET_AUDIT: 'flea_market_audit',
+  CAMPUS_ACTIVITY_AUDIT: 'campus_activity_audit'
 };
 
 const VALID_MODULE_CODES = Object.values(MODULE_PERMISSIONS);
@@ -232,13 +238,16 @@ async function removeAuthorization(data) {
 
 // 检查权限
 async function checkPermission(data) {
-  const { student_id, module, action } = data;
+  const { student_id, class_id, module, action } = data;
   if (!student_id || !module || !action) {
     return { success: false, message: '缺少必要参数' };
   }
 
+  const whereCondition = { student_id };
+  if (class_id) whereCondition.class_id = class_id;
+
   const res = await db.collection('student_authorizations')
-    .where({ student_id })
+    .where(whereCondition)
     .limit(1)
     .get();
 

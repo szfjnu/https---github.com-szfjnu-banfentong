@@ -32,7 +32,7 @@ exports.main = async (event, context) => {
   }
 
   try {
-    const caller = await getCallerInfo(event)
+    const caller = await getCallerInfo(event, event.classId || event.class_id)
 
     switch (action) {
       case 'getHistory':

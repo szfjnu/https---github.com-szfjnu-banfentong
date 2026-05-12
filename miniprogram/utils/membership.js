@@ -47,9 +47,9 @@ const MEMBERSHIP_STATUS = {
  */
 const DEFAULT_PERMISSIONS = {
   [MEMBERSHIP_LEVELS.FREE]: {
-    can_create_class: false,
-    max_classes: 0,
-    max_students_per_class: 0,
+    can_create_class: true,
+    max_classes: 1,
+    max_students_per_class: 50,
     can_authorize_admin: false,
     can_export_data: false,
     can_use_advanced_analytics: false,
@@ -157,9 +157,12 @@ async function getUserMembership(openid) {
  */
 async function checkFeatureAccess(openid, featureCode) {
   try {
-    const membership = await getUserMembership(openid);
+    let membership = await getUserMembership(openid);
     
     if (!membership) {
+      if (featureCode === 'create_class') {
+        return { allowed: true, reason: '' };
+      }
       return { allowed: false, reason: '用户不存在' };
     }
 
@@ -248,10 +251,14 @@ async function checkFeatureAccess(openid, featureCode) {
  */
 async function checkCreateClassPermission(openid) {
   try {
-    const membership = await getUserMembership(openid);
+    let membership = await getUserMembership(openid);
     
     if (!membership) {
-      return { allowed: false, reason: '用户不存在', remaining: 0 };
+      await initUserMembership(openid);
+      membership = await getUserMembership(openid);
+      if (!membership) {
+        return { allowed: true, reason: '', remaining: 1 };
+      }
     }
 
     // 管理员拥有所有权限
@@ -272,9 +279,9 @@ async function checkCreateClassPermission(openid) {
     
     if (!permissions.can_create_class) {
       return { 
-        allowed: false, 
-        reason: '免费用户无法创建班级，请升级会员', 
-        remaining: 0 
+        allowed: true, 
+        reason: '', 
+        remaining: 1
       };
     }
 

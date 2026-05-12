@@ -2,6 +2,7 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
+const { getCallerInfo, requireTeacher, requireTeacherOrDelegated, requireClassAccess, hasDelegatedPermission } = require('./utils/auth')
 
 const MAX_LIMIT = 100
 
@@ -39,29 +40,31 @@ function getAI() {
 
 exports.main = async (event, context) => {
   const { action, data } = event
-  const OPENID = cloud.getWXContext().OPENID
 
   try {
+    const caller = await getCallerInfo(event, data?.class_id || data?.classId)
+    const OPENID = caller.openid
+
     switch (action) {
       case 'getProfile': return await getProfile(data, OPENID)
       case 'generateReport': return await generateReport(data, OPENID)
       case 'generateComment': return await generateComment(data, OPENID)
-      case 'saveComment': return await saveComment(data, OPENID)
+      case 'saveComment': await requireTeacherOrDelegated(caller, 'skill_cert', 'write'); return await saveComment(data, OPENID)
       case 'getWarnings': return await getWarnings(data, OPENID)
-      case 'saveWarningRules': return await saveWarningRules(data, OPENID)
-      case 'updateWarningStatus': return await updateWarningStatus(data, OPENID)
+      case 'saveWarningRules': await requireTeacher(caller); return await saveWarningRules(data, OPENID)
+      case 'updateWarningStatus': await requireTeacher(caller); return await updateWarningStatus(data, OPENID)
       case 'detectWarnings': return await detectWarnings(data, OPENID)
       case 'getRecommendations': return await getRecommendations(data, OPENID)
       case 'submitFeedback': return await submitFeedback(data, OPENID)
       case 'getClassSummary': return await getClassSummary(data, OPENID)
       case 'ensureCollection': return await ensureCollection()
-      case 'addSkillCertRecord': return await addSkillCertRecord(data, OPENID)
+      case 'addSkillCertRecord': return await addSkillCertRecord(data, OPENID, caller)
       case 'getSkillCertRecords': return await getSkillCertRecords(data, OPENID)
       case 'getSkillCertRecordDetail': return await getSkillCertRecordDetail(data, OPENID)
-      case 'approveSkillCertRecord': return await approveSkillCertRecord(data, OPENID)
-      case 'deleteSkillCertRecord': return await deleteSkillCertRecord(data, OPENID)
+      case 'approveSkillCertRecord': await requireTeacherOrDelegated(caller, 'skill_cert', 'approve'); return await approveSkillCertRecord(data, OPENID)
+      case 'deleteSkillCertRecord': await requireTeacherOrDelegated(caller, 'skill_cert', 'write'); return await deleteSkillCertRecord(data, OPENID)
       case 'getSkillCertScoreRules': return await getSkillCertScoreRules(data, OPENID)
-      case 'saveSkillCertScoreRules': return await saveSkillCertScoreRules(data, OPENID)
+      case 'saveSkillCertScoreRules': await requireTeacherOrDelegated(caller, 'skill_cert', 'write'); return await saveSkillCertScoreRules(data, OPENID)
       default: return { success: false, message: '未知操作' }
     }
   } catch (err) {
@@ -1506,14 +1509,13 @@ async function callScoreManager(params) {
   }
 }
 
-async function addSkillCertRecord(data, OPENID) {
-  const identity = await verifyIdentity(OPENID)
-  if (!identity.role) {
-    return { success: false, message: '未登录或身份未确认' }
-  }
-
-  const allowedRoles = ['admin', 'head_teacher', 'class_cadre', 'student']
-  if (!allowedRoles.includes(identity.role)) {
+async function addSkillCertRecord(data, OPENID, caller) {
+  if (caller.role === 'student' || caller.role === 'class_cadre') {
+    const delegated = await hasDelegatedPermission(caller, 'skill_cert', 'write')
+    if (!delegated) {
+      return { success: false, message: '您没有权限新增记录，需要委派权限' }
+    }
+  } else if (!['admin', 'head_teacher', 'subject_teacher'].includes(caller.role)) {
     return { success: false, message: '您没有权限新增记录' }
   }
 

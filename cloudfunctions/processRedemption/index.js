@@ -36,6 +36,10 @@ exports.main = async (event, context) => {
       case 'deleteItem':
         requireClassAccess(caller, data.class_id, ['head_teacher', 'admin']);
         return await deleteItem(data, caller);
+      case 'addProductWish':
+        return await addProductWish(data, caller);
+      case 'voteProductWish':
+        return await voteProductWish(data, caller);
       default:
         return { success: false, message: '未知操作' };
     }
@@ -498,4 +502,59 @@ async function deleteItem(data, caller) {
   await db.collection('redemption_items').doc(itemRes.data[0]._id).remove();
 
   return { success: true, message: '商品已删除' };
+}
+
+async function addProductWish(data, caller) {
+  const { name, description, expected_score, student_id, student_name, class_id } = data;
+
+  if (!name || !expected_score || !class_id) {
+    return { success: false, message: '参数不完整' };
+  }
+
+  const now = db.serverDate();
+  await db.collection('product_wishes').add({
+    data: {
+      wish_id: `PW${Date.now()}`,
+      name,
+      description: description || '',
+      expected_score: parseInt(expected_score),
+      student_id: student_id || caller.studentId || '',
+      student_name: student_name || '',
+      class_id,
+      status: 'pending',
+      vote_count: 0,
+      voters: [],
+      created_at: now
+    }
+  });
+
+  return { success: true, message: '提交成功' };
+}
+
+async function voteProductWish(data, caller) {
+  const { wishId, student_id } = data;
+
+  if (!wishId || !student_id) {
+    return { success: false, message: '参数不完整' };
+  }
+
+  const wishRes = await db.collection('product_wishes').doc(wishId).get();
+  const wish = wishRes.data;
+
+  if (!wish) {
+    return { success: false, message: '心愿不存在' };
+  }
+
+  if ((wish.voters || []).includes(student_id)) {
+    return { success: false, message: '您已投过票' };
+  }
+
+  await db.collection('product_wishes').doc(wishId).update({
+    data: {
+      vote_count: _.inc(1),
+      voters: _.push(student_id)
+    }
+  });
+
+  return { success: true, message: '投票成功' };
 }

@@ -156,12 +156,11 @@ Page({
       };
 
       if (existingRes.data && existingRes.data.length > 0) {
-        // 更新现有记录
         const res = await wx.cloud.callFunction({
           name: 'manageSemester',
           data: {
             action: 'updateClassSettings',
-            data: { _id: existingRes.data[0]._id, ...classSettingsData }
+            data: { settingsId: existingRes.data[0]._id, class_id: this.data.classId, ...classSettingsData }
           }
         });
         if (!res.result || !res.result.success) {

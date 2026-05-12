@@ -139,9 +139,8 @@ Page({
       },
       fail: (err) => {
         console.error('跳转首页失败:', err);
-        // 如果switchTab失败，尝试navigateTo到班级详情页
-        wx.navigateTo({
-          url: `/subPkg1/class/detail/detail?id=${classId}`
+        wx.reLaunch({
+          url: '/pages/index/index'
         });
       }
     });

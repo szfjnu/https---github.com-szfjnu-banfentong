@@ -6,7 +6,7 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
-const { getCallerInfo } = require('./utils/auth');
+const { getCallerInfo, requireTeacher } = require('./utils/auth');
 
 exports.main = async (event, context) => {
   const { action, data } = event;
@@ -16,7 +16,7 @@ exports.main = async (event, context) => {
 
     switch (action) {
       case 'awardHonor':
-        return await awardHonor(data, caller.openid);
+        return await awardHonor(data, caller);
       case 'getHonorWall':
         return await getHonorWall(data, caller.openid);
       case 'getMyHonors':
@@ -24,13 +24,13 @@ exports.main = async (event, context) => {
       case 'toggleCheer':
         return await toggleCheer(data, caller.openid);
       case 'revokeHonor':
-        return await revokeHonor(data, caller.openid);
+        return await revokeHonor(data, caller);
       case 'pinHonor':
-        return await pinHonor(data, caller.openid);
+        return await pinHonor(data, caller);
       case 'getTemplates':
         return await getTemplates(data, caller.openid);
       case 'saveTemplate':
-        return await saveTemplate(data, caller.openid);
+        return await saveTemplate(data, caller);
       case 'getHonorStats':
         return await getHonorStats(data, caller.openid);
       default:
@@ -49,7 +49,7 @@ exports.main = async (event, context) => {
  * 3. 写入 hero_honors 集合
  * 4. 支持批量颁发（多学生同一荣誉）
  */
-async function awardHonor(data, openId) {
+async function awardHonor(data, caller) {
   const { class_id, student_id, student_name, honor_type, title, description, icon, period, awarded_by_name } = data;
 
   if (!class_id) {
@@ -70,20 +70,11 @@ async function awardHonor(data, openId) {
     return { success: false, message: '荣誉类型无效' };
   }
 
-  // 验证身份
-  const userRes = await db.collection('users')
-    .where({ _openid: openId })
-    .limit(1)
-    .get();
-
-  if (!userRes.data || userRes.data.length === 0) {
-    return { success: false, message: '用户信息不存在' };
-  }
-
-  const userRole = userRes.data[0].role;
-  if (userRole !== 'head_teacher' && userRole !== 'admin') {
+  if (caller.role !== 'head_teacher' && caller.role !== 'admin') {
     return { success: false, message: '仅班主任和管理员可颁发荣誉', code: 403 };
   }
+
+  const openId = caller.openid;
 
   // 支持批量颁发：student_id 可以是逗号分隔的字符串或数组
   let studentIds = [];
@@ -367,25 +358,14 @@ async function toggleCheer(data, openId) {
 /**
  * 撤销荣誉（仅班主任/管理员）
  */
-async function revokeHonor(data, openId) {
+async function revokeHonor(data, caller) {
   const { honor_id, class_id } = data;
 
   if (!honor_id || !class_id) {
     return { success: false, message: '缺少参数' };
   }
 
-  // 验证身份
-  const userRes = await db.collection('users')
-    .where({ _openid: openId })
-    .limit(1)
-    .get();
-
-  if (!userRes.data || userRes.data.length === 0) {
-    return { success: false, message: '用户信息不存在' };
-  }
-
-  const userRole = userRes.data[0].role;
-  if (userRole !== 'head_teacher' && userRole !== 'admin') {
+  if (caller.role !== 'head_teacher' && caller.role !== 'admin') {
     return { success: false, message: '仅班主任和管理员可撤销荣誉', code: 403 };
   }
 
@@ -404,25 +384,14 @@ async function revokeHonor(data, openId) {
 /**
  * 置顶/取消置顶荣誉（仅班主任/管理员）
  */
-async function pinHonor(data, openId) {
+async function pinHonor(data, caller) {
   const { honor_id, class_id, pin } = data;
 
   if (!honor_id || !class_id) {
     return { success: false, message: '缺少参数' };
   }
 
-  // 验证身份
-  const userRes = await db.collection('users')
-    .where({ _openid: openId })
-    .limit(1)
-    .get();
-
-  if (!userRes.data || userRes.data.length === 0) {
-    return { success: false, message: '用户信息不存在' };
-  }
-
-  const userRole = userRes.data[0].role;
-  if (userRole !== 'head_teacher' && userRole !== 'admin') {
+  if (caller.role !== 'head_teacher' && caller.role !== 'admin') {
     return { success: false, message: '仅班主任和管理员可置顶', code: 403 };
   }
 
@@ -487,27 +456,18 @@ async function getTemplates(data, openId) {
 /**
  * 保存自定义模板（仅班主任/管理员）
  */
-async function saveTemplate(data, openId) {
+async function saveTemplate(data, caller) {
   const { class_id, honor_type, title, description, icon } = data;
 
   if (!class_id || !honor_type || !title) {
     return { success: false, message: '缺少必要参数' };
   }
 
-  // 验证身份
-  const userRes = await db.collection('users')
-    .where({ _openid: openId })
-    .limit(1)
-    .get();
-
-  if (!userRes.data || userRes.data.length === 0) {
-    return { success: false, message: '用户信息不存在' };
-  }
-
-  const userRole = userRes.data[0].role;
-  if (userRole !== 'head_teacher' && userRole !== 'admin') {
+  if (caller.role !== 'head_teacher' && caller.role !== 'admin') {
     return { success: false, message: '仅班主任和管理员可创建模板', code: 403 };
   }
+
+  const openId = caller.openid;
 
   await db.collection('hero_templates').add({
     data: {

@@ -119,3 +119,34 @@
 .tip-item:last-child {
   margin-bottom: 0;
 }
+
+/* 手机号授权按钮 */
+.phone-btn {
+  margin-top: 20rpx;
+  margin-bottom: 20rpx;
+  border: 2rpx solid #667eea;
+  background: transparent;
+  color: #667eea;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 2rpx solid #667eea;
+  color: #667eea;
+}
+
+.phone-verified {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20rpx;
+  margin-bottom: 20rpx;
+  padding: 16rpx 0;
+  font-size: 28rpx;
+  color: #52c41a;
+}
+
+.verified-icon {
+  margin-right: 10rpx;
+  font-weight: bold;
+}

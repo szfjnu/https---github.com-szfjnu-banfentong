@@ -550,22 +550,20 @@ Page({
     try {
       wx.showLoading({ title: '提交中...', mask: true });
 
-      const db = wx.cloud.database();
       const studentInfo = this.data.studentInfo || {};
       
-      await db.collection('product_wishes').add({
+      await wx.cloud.callFunction({
+        name: 'processRedemption',
         data: {
-          wish_id: `PW${Date.now()}`,
-          name: name.trim(),
-          description: description.trim(),
-          expected_score: parseInt(expected_score),
-          student_id: this.data.studentId,
-          student_name: studentInfo.name || '',
-          class_id: app.globalData.class_id || '',
-          status: 'pending', // pending待处理 / added已上架 / rejected已拒绝
-          vote_count: 0, // 投票数
-          voters: [], // 投票人列表
-          created_at: db.serverDate()
+          action: 'addProductWish',
+          data: {
+            name: name.trim(),
+            description: description.trim(),
+            expected_score: parseInt(expected_score),
+            student_id: this.data.studentId,
+            student_name: studentInfo.name || '',
+            class_id: app.globalData.class_id || ''
+          }
         }
       });
 
@@ -630,13 +628,14 @@ Page({
     }
 
     try {
-      const db = wx.cloud.database();
-      const _ = db.command;
-      
-      await db.collection('product_wishes').doc(wish._id).update({
+      await wx.cloud.callFunction({
+        name: 'processRedemption',
         data: {
-          vote_count: _.inc(1),
-          voters: _.push(this.data.studentId)
+          action: 'voteProductWish',
+          data: {
+            wishId: wish._id,
+            student_id: this.data.studentId
+          }
         }
       });
 

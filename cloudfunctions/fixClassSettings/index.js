@@ -11,7 +11,7 @@ exports.main = async (event, context) => {
   console.log('开始修复班级设置数据...')
 
   try {
-    const caller = await getCallerInfo(event)
+    const caller = await getCallerInfo(event, event.classId || event.class_id)
     requireAdmin(caller)
     // 1. 删除 class_id 为空的无效数据
     const deleteRes = await db.collection('class_settings')

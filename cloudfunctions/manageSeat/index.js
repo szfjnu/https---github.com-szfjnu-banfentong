@@ -2,10 +2,9 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
-const { getCallerInfo } = require('./utils/auth')
+const { getCallerInfo, requireTeacher, requireClassAccess } = require('./utils/auth')
 
 const MAX_LIMIT = 100
-const WRITE_ROLES = ['admin', 'head_teacher']
 const LOCK_TIMEOUT = 5 * 60 * 1000
 
 exports.main = async (event, context) => {
@@ -16,23 +15,23 @@ exports.main = async (event, context) => {
     switch (action) {
       case 'ensureCollection': return await ensureCollection()
       case 'getLayout': return await getLayout(data)
-      case 'saveLayout': return await saveLayout(data, caller.openid)
+      case 'saveLayout': requireTeacher(caller); return await saveLayout(data, caller)
       case 'getArrangement': return await getArrangement(data)
       case 'getStudentsForArrange': return await getStudentsForArrange(data)
-      case 'randomArrange': return await randomArrange(data, caller.openid)
-      case 'groupArrange': return await groupArrange(data, caller.openid)
-      case 'manualArrange': return await manualArrange(data, caller.openid)
+      case 'randomArrange': requireTeacher(caller); return await randomArrange(data, caller)
+      case 'groupArrange': requireTeacher(caller); return await groupArrange(data, caller)
+      case 'manualArrange': requireTeacher(caller); return await manualArrange(data, caller)
       case 'getRotateConfig': return await getRotateConfig(data)
-      case 'saveRotateConfig': return await saveRotateConfig(data, caller.openid)
-      case 'executeRotate': return await executeRotate(data, caller.openid)
-      case 'lockSeat': return await lockSeat(data, caller.openid)
-      case 'unlockSeat': return await unlockSeat(data, caller.openid)
-      case 'acquireLock': return await acquireLock(data, caller.openid)
-      case 'releaseLock': return await releaseLock(data, caller.openid)
+      case 'saveRotateConfig': requireTeacher(caller); return await saveRotateConfig(data, caller)
+      case 'executeRotate': requireTeacher(caller); return await executeRotate(data, caller)
+      case 'lockSeat': requireTeacher(caller); return await lockSeat(data, caller)
+      case 'unlockSeat': requireTeacher(caller); return await unlockSeat(data, caller)
+      case 'acquireLock': requireTeacher(caller); return await acquireLock(data, caller)
+      case 'releaseLock': requireTeacher(caller); return await releaseLock(data, caller)
       case 'getHistoryList': return await getHistoryList(data)
       case 'getHistoryDetail': return await getHistoryDetail(data)
-      case 'swapSeats': return await swapSeats(data, caller.openid)
-      case 'clearLayout': return await clearLayout(data, caller.openid)
+      case 'swapSeats': requireTeacher(caller); return await swapSeats(data, caller)
+      case 'clearLayout': requireTeacher(caller); return await clearLayout(data, caller)
       default: return { success: false, message: '未知操作' }
     }
   } catch (err) {
@@ -55,18 +54,6 @@ async function getAllRecords(collection, query, orderBy) {
     skip += MAX_LIMIT
   }
   return allData
-}
-
-async function verifyRole(openid) {
-  const userRes = await db.collection('users').where({ _openid: openid }).limit(1).get()
-  if (!userRes.data || userRes.data.length === 0) return { role: '', canWrite: false, userName: '' }
-  const user = userRes.data[0]
-  const role = user.role || ''
-  return {
-    role,
-    canWrite: WRITE_ROLES.includes(role),
-    userName: user.realName || user.name || user.nickName || ''
-  }
 }
 
 async function recordHistory(classId, operationType, operatorOpenid, operatorName, snapshotBefore, snapshotAfter, remark) {
@@ -129,12 +116,12 @@ async function getLayout(data) {
   }
 }
 
-async function saveLayout(data, openid) {
+async function saveLayout(data, caller) {
   const { class_id, rows, cols, special_positions, force } = data || {}
   if (!class_id) return { success: false, message: '缺少class_id' }
 
-  const { canWrite, userName } = await verifyRole(openid)
-  if (!canWrite) return { success: false, message: '无操作权限' }
+  const openid = caller.openid
+  const userName = caller.realName || ''
 
   if (!rows || rows < 2 || rows > 12) return { success: false, message: '行数需在2-12之间' }
   if (!cols || cols < 2 || cols > 12) return { success: false, message: '列数需在2-12之间' }
@@ -261,12 +248,12 @@ function fisherYatesShuffle(arr) {
   return a
 }
 
-async function randomArrange(data, openid) {
+async function randomArrange(data, caller) {
   const { class_id } = data || {}
   if (!class_id) return { success: false, message: '缺少class_id' }
 
-  const { canWrite, userName } = await verifyRole(openid)
-  if (!canWrite) return { success: false, message: '无操作权限' }
+  const openid = caller.openid
+  const userName = caller.realName || ''
 
   const lockResult = await doAcquireLock(class_id, openid)
   if (!lockResult.acquired) {
@@ -328,12 +315,12 @@ async function randomArrange(data, openid) {
   }
 }
 
-async function groupArrange(data, openid) {
+async function groupArrange(data, caller) {
   const { class_id } = data || {}
   if (!class_id) return { success: false, message: '缺少class_id' }
 
-  const { canWrite, userName } = await verifyRole(openid)
-  if (!canWrite) return { success: false, message: '无操作权限' }
+  const openid = caller.openid
+  const userName = caller.realName || ''
 
   const lockResult = await doAcquireLock(class_id, openid)
   if (!lockResult.acquired) {
@@ -434,15 +421,15 @@ async function groupArrange(data, openid) {
   }
 }
 
-async function manualArrange(data, openid) {
+async function manualArrange(data, caller) {
   const { class_id, assignments } = data || {}
   if (!class_id) return { success: false, message: '缺少class_id' }
   if (!assignments || !Array.isArray(assignments) || assignments.length === 0) {
     return { success: false, message: '缺少座位安排数据' }
   }
 
-  const { canWrite, userName } = await verifyRole(openid)
-  if (!canWrite) return { success: false, message: '无操作权限' }
+  const openid = caller.openid
+  const userName = caller.realName || ''
 
   const lockResult = await doAcquireLock(class_id, openid)
   if (!lockResult.acquired) {
@@ -509,12 +496,11 @@ async function getRotateConfig(data) {
   return { success: true, data: res.data[0].rotate_config || null }
 }
 
-async function saveRotateConfig(data, openid) {
+async function saveRotateConfig(data, caller) {
   const { class_id, direction, period, step } = data || {}
   if (!class_id) return { success: false, message: '缺少class_id' }
 
-  const { canWrite } = await verifyRole(openid)
-  if (!canWrite) return { success: false, message: '无操作权限' }
+  const openid = caller.openid
 
   const validDirections = ['left_right', 'front_back', 'clockwise']
   const validPeriods = ['weekly', 'biweekly', 'monthly']
@@ -637,12 +623,12 @@ function rotateClockwise(seatMap, rows, cols, lockedKeys, step) {
   return newMap
 }
 
-async function executeRotate(data, openid) {
+async function executeRotate(data, caller) {
   const { class_id, direction, step } = data || {}
   if (!class_id) return { success: false, message: '缺少class_id' }
 
-  const { canWrite, userName } = await verifyRole(openid)
-  if (!canWrite) return { success: false, message: '无操作权限' }
+  const openid = caller.openid
+  const userName = caller.realName || ''
 
   const lockResult = await doAcquireLock(class_id, openid)
   if (!lockResult.acquired) {
@@ -715,13 +701,12 @@ async function executeRotate(data, openid) {
   }
 }
 
-async function lockSeat(data, openid) {
+async function lockSeat(data, caller) {
   const { class_id, row, col, student_id, student_name } = data || {}
   if (!class_id) return { success: false, message: '缺少class_id' }
   if (!row || !col) return { success: false, message: '缺少座位坐标' }
 
-  const { canWrite } = await verifyRole(openid)
-  if (!canWrite) return { success: false, message: '无操作权限' }
+  const openid = caller.openid
 
   await ensureCollections()
   const res = await db.collection('seats').where({ class_id }).limit(1).get()
@@ -741,13 +726,12 @@ async function lockSeat(data, openid) {
   return { success: true, data: { locked_seats: lockedSeats } }
 }
 
-async function unlockSeat(data, openid) {
+async function unlockSeat(data, caller) {
   const { class_id, row, col } = data || {}
   if (!class_id) return { success: false, message: '缺少class_id' }
   if (!row || !col) return { success: false, message: '缺少座位坐标' }
 
-  const { canWrite } = await verifyRole(openid)
-  if (!canWrite) return { success: false, message: '无操作权限' }
+  const openid = caller.openid
 
   await ensureCollections()
   const res = await db.collection('seats').where({ class_id }).limit(1).get()
@@ -812,18 +796,18 @@ async function doReleaseLock(classId, openid) {
   }
 }
 
-async function acquireLock(data, openid) {
+async function acquireLock(data, caller) {
   const { class_id } = data || {}
   if (!class_id) return { success: false, message: '缺少class_id' }
   await ensureCollections()
-  const result = await doAcquireLock(class_id, openid)
+  const result = await doAcquireLock(class_id, caller.openid)
   return { success: true, data: result }
 }
 
-async function releaseLock(data, openid) {
+async function releaseLock(data, caller) {
   const { class_id } = data || {}
   if (!class_id) return { success: false, message: '缺少class_id' }
-  await doReleaseLock(class_id, openid)
+  await doReleaseLock(class_id, caller.openid)
   return { success: true }
 }
 
@@ -886,7 +870,7 @@ async function getHistoryDetail(data) {
   }
 }
 
-async function swapSeats(data, openid) {
+async function swapSeats(data, caller) {
   const { class_id, source_key, target_key } = data || {}
   if (!class_id || !source_key || !target_key) {
     return { success: false, message: '缺少必要参数' }
@@ -895,8 +879,8 @@ async function swapSeats(data, openid) {
     return { success: false, message: '源座位和目标座位不能相同' }
   }
 
-  const { canWrite, userName } = await verifyRole(openid)
-  if (!canWrite) return { success: false, message: '无操作权限' }
+  const openid = caller.openid
+  const userName = caller.realName || ''
 
   const lockResult = await doAcquireLock(class_id, openid)
   if (!lockResult.acquired) {
@@ -963,12 +947,12 @@ async function swapSeats(data, openid) {
   }
 }
 
-async function clearLayout(data, openid) {
+async function clearLayout(data, caller) {
   const { class_id } = data || {}
   if (!class_id) return { success: false, message: '缺少class_id' }
 
-  const { canWrite, userName } = await verifyRole(openid)
-  if (!canWrite) return { success: false, message: '无操作权限' }
+  const openid = caller.openid
+  const userName = caller.realName || ''
 
   const lockResult = await doAcquireLock(class_id, openid)
   if (!lockResult.acquired) {

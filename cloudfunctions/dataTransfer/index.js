@@ -9,6 +9,7 @@ const { importScheduleHandler } = require('./handlers/importSchedule')
 const { importGradeHandler } = require('./handlers/importGrade')
 
 const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('./utils/auth')
+const { checkPermission } = require('./utils/permission')
 
 const IMPORT_ACTIONS = ['importStudent', 'importSchedule', 'importGrade']
 
@@ -28,6 +29,16 @@ exports.main = async (event, context) => {
 
     if (IMPORT_ACTIONS.includes(action)) {
       requireTeacher(caller)
+      const wxContext = cloud.getWXContext()
+      const permResult = await checkPermission(wxContext.OPENID, classId)
+      if (!permResult.hasPermission) {
+        const reasonMessages = {
+          not_in_class: '用户不在该班级中',
+          insufficient_role: '角色权限不足，需要教师或管理员角色',
+          not_advanced_member: '需要高级会员权限才能执行导入操作'
+        }
+        throw { code: AUTH_ERRORS.ROLE_DENIED, message: reasonMessages[permResult.reason] || '权限不足' }
+      }
     }
 
     let result

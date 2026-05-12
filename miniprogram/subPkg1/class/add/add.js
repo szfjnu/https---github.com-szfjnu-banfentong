@@ -62,6 +62,16 @@ Page({
     } else {
       // 新建班级时检查会员权限
       this.checkCreateClassPermission();
+      // 自动填充手机号
+      this.autoFillPhone();
+    }
+  },
+
+  // 自动填充手机号
+  autoFillPhone: function () {
+    const phone = app.globalData.phone || (app.globalData.userInfo && app.globalData.userInfo.phone);
+    if (phone && !this.data.formData.creator_phone) {
+      this.setData({ 'formData.creator_phone': phone });
     }
   },
 
@@ -115,7 +125,6 @@ Page({
   // 关闭升级提示弹窗
   onCloseUpgradeModal: function () {
     this.setData({ showUpgradeModal: false });
-    wx.navigateBack();
   },
 
   // 跳转到会员页面
@@ -335,7 +344,9 @@ Page({
         });
 
         if (!res.result || !res.result.success) {
-          throw new Error(res.result?.message || '创建失败');
+          const errMsg = res.result?.message || res.result?.error || res.errMsg || '创建失败'
+          console.error('createClass云函数返回:', JSON.stringify(res))
+          throw new Error(errMsg);
         }
 
         const result = res.result.data || {};
@@ -344,10 +355,19 @@ Page({
         app.globalData.class_id = classIdResult;
         wx.setStorageSync('class_id', classIdResult);
 
+        app.globalData.role = 'head_teacher';
+        wx.setStorageSync('role', 'head_teacher');
+
+        app.globalData.currentClassName = saveData.class_name;
+        wx.setStorageSync('currentClassName', saveData.class_name);
+
+        if (!app.globalData.student_id) {
+          app.loadUserAuthorizations();
+        }
+
         wx.hideLoading();
         this.setData({ submitting: false });
 
-        // 显示创建成功弹窗
         this.showCreateSuccessModal(saveData, classIdResult);
       }
 
@@ -440,15 +460,15 @@ Page({
   // 关闭成功弹窗
   onCloseSuccessModal: function () {
     this.setData({ showSuccessModal: false });
-    wx.navigateBack();
+    wx.switchTab({
+      url: '/pages/index/index'
+    });
   },
 
-  // 进入班级
   onEnterClass: function () {
-    const classId = this.data.createdClass._id;
     this.setData({ showSuccessModal: false });
-    wx.redirectTo({
-      url: `/subPkg1/class/detail/detail?id=${classId}`
+    wx.switchTab({
+      url: '/pages/index/index'
     });
   }
 });

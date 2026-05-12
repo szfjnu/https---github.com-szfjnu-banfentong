@@ -10,7 +10,7 @@ const AUTH_ERRORS = {
   CLASS_DENIED: 'AUTH_CLASS_DENIED'
 }
 
-async function getCallerInfo(event, classId) {
+async function getCallerInfo(event, classId, options = {}) {
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
 
@@ -25,6 +25,17 @@ async function getCallerInfo(event, classId) {
     .get()
 
   if (!userRes.data || userRes.data.length === 0) {
+    if (options.allowNoClass) {
+      return {
+        openid,
+        role: 'new_user',
+        classId: null,
+        studentId: null,
+        isOwner: false,
+        realName: '匿名',
+        allClasses: []
+      }
+    }
     const err = new Error('用户未加入任何班级')
     err.code = AUTH_ERRORS.NO_CLASS
     throw err
@@ -46,6 +57,9 @@ async function getCallerInfo(event, classId) {
       throw err
     }
   } else {
+    if (allClasses.length > 1) {
+      throw { code: AUTH_ERRORS.NO_ACCESS, message: '多班级用户必须指定classId' }
+    }
     targetRelation = userRes.data[0]
   }
 
@@ -93,6 +107,39 @@ function requireClassCadre(caller) {
   return requireRole(caller, ['class_cadre', 'head_teacher', 'admin'])
 }
 
+async function hasDelegatedPermission(caller, module, action) {
+  if (caller.role === 'admin' || caller.role === 'head_teacher' || caller.role === 'subject_teacher') {
+    return true
+  }
+
+  const db = cloud.database()
+  const res = await db.collection('student_authorizations')
+    .where({
+      student_id: caller.studentId,
+      class_id: caller.classId
+    })
+    .limit(1)
+    .get()
+
+  if (res.data.length === 0) return false
+
+  const auth = res.data[0]
+  const perms = auth.permissions || {}
+  const modulePerms = perms[module] || []
+  return modulePerms.includes(action)
+}
+
+async function requireTeacherOrDelegated(caller, module, action) {
+  if (['admin', 'head_teacher', 'subject_teacher'].includes(caller.role)) {
+    return
+  }
+
+  const delegated = await hasDelegatedPermission(caller, module, action)
+  if (!delegated) {
+    throw { code: AUTH_ERRORS.ROLE_DENIED, message: '需要教师权限或相应委派权限' }
+  }
+}
+
 module.exports = {
   getCallerInfo,
   requireRole,
@@ -100,5 +147,7 @@ module.exports = {
   requireAdmin,
   requireTeacher,
   requireClassCadre,
+  hasDelegatedPermission,
+  requireTeacherOrDelegated,
   AUTH_ERRORS
 }

@@ -21,6 +21,8 @@ App({
     authorizations: {},
     isLeader: false,
     leaderPermissions: [],
+    location: null,
+    phone: null,
   },
 
   // 小程序初始化
@@ -96,6 +98,19 @@ App({
       // 异步获取最新学期信息（仅当缓存中没有时才调用）
       if (!semesterId) {
         this.getCurrentSemester();
+      }
+      // 恢复位置信息
+      const location = wx.getStorageSync('location');
+      if (location) {
+        this.globalData.location = location;
+      }
+      // 恢复手机号
+      const phone = wx.getStorageSync('phone');
+      if (phone) {
+        this.globalData.phone = phone;
+        if (this.globalData.userInfo) {
+          this.globalData.userInfo.phone = phone;
+        }
       }
       // 异步加载用户授权权限（仅当未加载时才调用）
       if (!this.globalData.authorizations || Object.keys(this.globalData.authorizations).length === 0) {
@@ -379,6 +394,46 @@ App({
           reject(err);
         }
       });
+    });
+  },
+
+  // 获取用户位置信息（不阻塞登录流程）
+  getUserLocation: function () {
+    wx.getLocation({
+      type: 'gcj02',
+      success: (res) => {
+        const locationData = {
+          latitude: res.latitude,
+          longitude: res.longitude,
+          updated_at: new Date().toISOString()
+        };
+        this.globalData.location = locationData;
+        wx.setStorageSync('location', locationData);
+        console.log('获取位置成功:', locationData);
+
+        // 异步更新数据库
+        const openid = this.globalData.openid;
+        if (openid) {
+          const db = wx.cloud.database();
+          db.collection('users').where({ user_id: openid }).limit(1).get().then(userRes => {
+            if (userRes.data && userRes.data.length > 0) {
+              db.collection('users').doc(userRes.data[0]._id).update({
+                data: {
+                  location: {
+                    latitude: res.latitude,
+                    longitude: res.longitude,
+                    updated_at: db.serverDate()
+                  }
+                }
+              }).catch(err => console.error('更新位置失败:', err));
+            }
+          }).catch(err => console.error('查询用户失败:', err));
+        }
+      },
+      fail: (err) => {
+        console.warn('获取位置失败(不影响使用):', err);
+        this.globalData.location = null;
+      }
     });
   },
 

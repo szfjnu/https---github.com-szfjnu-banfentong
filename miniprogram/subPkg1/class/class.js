@@ -129,9 +129,22 @@ Page({
 
   // 查看详情
   onViewDetail: function (e) {
-    const classId = e.currentTarget.dataset.id;
-    wx.navigateTo({
-      url: `/subPkg1/class/detail/detail?id=${classId}`
+    const classItem = e.currentTarget.dataset.item;
+    if (classItem) {
+      const classId = classItem._id;
+      app.globalData.class_id = classId;
+      wx.setStorageSync('class_id', classId);
+      if (classItem.role) {
+        app.globalData.role = classItem.role;
+        wx.setStorageSync('role', classItem.role);
+      }
+      if (classItem.student_id) {
+        app.globalData.student_id = classItem.student_id;
+        wx.setStorageSync('student_id', classItem.student_id);
+      }
+    }
+    wx.switchTab({
+      url: '/pages/index/index'
     });
   },
 
@@ -186,9 +199,8 @@ Page({
       itemList: menuItems,
       success: (res) => {
         if (res.tapIndex === 0) {
-          // 查看详情
-          wx.navigateTo({
-            url: `/subPkg1/class/detail/detail?id=${classId}`
+          wx.switchTab({
+            url: '/pages/index/index'
           });
         } else if (res.tapIndex === 1) {
           // 班级设置

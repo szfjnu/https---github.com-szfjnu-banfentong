@@ -25,30 +25,40 @@ exports.main = async (event, context) => {
         requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin'])
         return await applyScoreChange(data, caller)
       case 'addLeaveRecord':
+        requireTeacher(caller)
+        requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin'])
         return await addLeaveRecord(data, caller)
       case 'generateLeaveAttendanceRecords':
         requireTeacher(caller)
+        requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin'])
         return await generateLeaveAttendanceRecords(data, caller)
       case 'deleteLeaveRecord':
         requireTeacher(caller)
+        requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin'])
         return await deleteLeaveRecord(data, caller)
       case 'addStudentGroup':
         requireTeacher(caller)
+        requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin'])
         return await addStudentGroup(data, caller)
       case 'updateStudentGroup':
         requireTeacher(caller)
+        requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin'])
         return await updateStudentGroup(data, caller)
       case 'deleteStudentGroup':
         requireTeacher(caller)
+        requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin'])
         return await deleteStudentGroup(data, caller)
       case 'batchAddStudentGroups':
         requireTeacher(caller)
+        requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin'])
         return await batchAddStudentGroups(data, caller)
       case 'updateAttendanceRecord':
         requireTeacher(caller)
+        requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin'])
         return await updateAttendanceRecord(data, caller)
       case 'addAttendanceRecord':
         requireTeacher(caller)
+        requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin'])
         return await addAttendanceRecord(data, caller)
       default:
         return { success: false, message: '未知操作' }

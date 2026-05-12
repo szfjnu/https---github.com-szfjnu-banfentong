@@ -437,7 +437,7 @@ exports.main = async (event, context) => {
   const { action, data } = event;
 
   try {
-    const caller = await getCallerInfo(event, data?.building_id || data?.room_id);
+    const caller = await getCallerInfo(event, data?.class_id || data?.classId);
 
     switch (action) {
       case 'getDormCandidates':

@@ -2,64 +2,97 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 
-async function checkPermission(openid, allowedRoles) {
-  console.log('[permission] checkPermission called, openid:', openid)
+async function checkPermission(openid, classId) {
+  console.log('[permission] checkPermission called, openid:', openid, 'classId:', classId)
 
   if (!openid) {
     throw new Error('未获取到用户身份，请重新进入小程序')
   }
 
-  let user = null
+  if (!classId) {
+    throw new Error('缺少班级ID，请指定classId')
+  }
 
-  let userRes = await db.collection('users').where({ _openid: openid }).limit(1).get()
-  console.log('[permission] query by _openid, found:', userRes.data ? userRes.data.length : 0)
+  const relRes = await db.collection('user_class_relation')
+    .where({ user_openid: openid, class_id: classId, status: 'joined' })
+    .limit(1)
+    .get()
+
+  if (!relRes.data || relRes.data.length === 0) {
+    const relRes2 = await db.collection('user_class_relation')
+      .where({ _openid: openid, class_id: classId, status: 'joined' })
+      .limit(1)
+      .get()
+
+    if (!relRes2.data || relRes2.data.length === 0) {
+      return { hasPermission: false, role: null, reason: 'not_in_class' }
+    }
+
+    return await evaluateRole(relRes2.data[0], openid)
+  }
+
+  return await evaluateRole(relRes.data[0], openid)
+}
+
+async function evaluateRole(relation, openid) {
+  const role = relation.role
+
+  if (!role) {
+    return { hasPermission: false, role: null, reason: 'insufficient_role' }
+  }
+
+  const teacherRoles = ['admin', 'head_teacher', 'subject_teacher']
+
+  if (!teacherRoles.includes(role)) {
+    return { hasPermission: false, role, reason: 'insufficient_role' }
+  }
+
+  const userRes = await db.collection('users')
+    .where({ _openid: openid })
+    .limit(1)
+    .get()
+
+  let user = null
   if (userRes.data && userRes.data.length > 0) {
     user = userRes.data[0]
   }
 
   if (!user) {
-    userRes = await db.collection('users').where({ user_openid: openid }).limit(1).get()
-    console.log('[permission] query by user_openid, found:', userRes.data ? userRes.data.length : 0)
-    if (userRes.data && userRes.data.length > 0) {
-      user = userRes.data[0]
+    const userRes2 = await db.collection('users')
+      .where({ user_openid: openid })
+      .limit(1)
+      .get()
+    if (userRes2.data && userRes2.data.length > 0) {
+      user = userRes2.data[0]
     }
   }
 
   if (!user) {
-    userRes = await db.collection('users').where({ openid: openid }).limit(1).get()
-    console.log('[permission] query by openid, found:', userRes.data ? userRes.data.length : 0)
-    if (userRes.data && userRes.data.length > 0) {
-      user = userRes.data[0]
+    const userRes3 = await db.collection('users')
+      .where({ openid: openid })
+      .limit(1)
+      .get()
+    if (userRes3.data && userRes3.data.length > 0) {
+      user = userRes3.data[0]
     }
   }
 
-  if (!user) {
-    const relRes = await db.collection('user_class_relation').where({ user_openid: openid, status: 'joined' }).limit(1).get()
-    console.log('[permission] query user_class_relation, found:', relRes.data ? relRes.data.length : 0)
-    if (relRes.data && relRes.data.length > 0 && relRes.data[0].role) {
-      user = { role: relRes.data[0].role, _openid: openid, class_id: relRes.data[0].class_id || '', student_id: relRes.data[0].student_id || '' }
-    }
+  const membership = (user && user.membership) || {}
+  const isAdvancedMember = membership.is_advanced === true ||
+    (typeof membership.level === 'number' && membership.level >= 2)
+
+  if (!isAdvancedMember) {
+    return { hasPermission: false, role, reason: 'not_advanced_member' }
   }
 
-  if (!user) {
-    const relRes2 = await db.collection('user_class_relation').where({ _openid: openid, status: 'joined' }).limit(1).get()
-    console.log('[permission] query user_class_relation by _openid, found:', relRes2.data ? relRes2.data.length : 0)
-    if (relRes2.data && relRes2.data.length > 0 && relRes2.data[0].role) {
-      user = { role: relRes2.data[0].role, _openid: openid, class_id: relRes2.data[0].class_id || '', student_id: relRes2.data[0].student_id || '' }
-    }
+  return {
+    hasPermission: true,
+    role,
+    isAdvancedMember: true,
+    _openid: openid,
+    class_id: relation.class_id || '',
+    student_id: relation.student_id || ''
   }
-
-  if (!user) {
-    throw new Error('用户不存在，请确认已登录并加入班级')
-  }
-
-  console.log('[permission] user found, role:', user.role)
-
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
-    throw new Error('无操作权限')
-  }
-
-  return user
 }
 
 module.exports = { checkPermission }

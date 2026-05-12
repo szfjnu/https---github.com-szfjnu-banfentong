@@ -11,7 +11,7 @@ const { getCallerInfo, requireAdmin, AUTH_ERRORS } = require('./utils/auth')
 
 exports.main = async (event, context) => {
   try {
-    const caller = await getCallerInfo(event)
+    const caller = await getCallerInfo(event, event.classId || event.class_id)
     requireAdmin(caller)
 
     const openid = caller.openid

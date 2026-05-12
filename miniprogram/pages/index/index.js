@@ -53,8 +53,19 @@ Page({
   },
 
   onShow: function () {
+    this._refreshRoleFromGlobal();
     this.loadData();
     this._startCourseRefreshTimer();
+  },
+
+  _refreshRoleFromGlobal: function () {
+    const role = app.globalData.role;
+    if (role && role !== this.data.role) {
+      this.setData({
+        role: role,
+        roleLabel: this.getRoleLabel(role)
+      });
+    }
   },
 
   onHide: function () {

@@ -92,13 +92,17 @@ Page({
       });
       if (profileRes.result && profileRes.result.success) {
         const profile = profileRes.result.data;
+        const autoPhone = profile.phone || app.globalData.phone || '';
         this.setData({
           userInfo: profile,
           nickname: profile.nickname || profile.nickName || '',
-          phone: profile.phone || '',
+          phone: autoPhone,
           email: profile.email || '',
           membershipLevel: (profile.membership && profile.membership.level) || 'free'
         });
+        if (autoPhone && !profile.phone) {
+          app.globalData.phone = autoPhone;
+        }
       }
 
       this.setData({ loading: false });

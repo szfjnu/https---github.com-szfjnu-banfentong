@@ -5,7 +5,8 @@ const api = require('../../utils/api.js');
 
 Page({
   data: {
-    loading: false
+    loading: false,
+    phoneVerified: false
   },
 
   onLoad: function () {
@@ -52,6 +53,13 @@ Page({
           dbUser = dbUserRes.data[0];
           // 合并数据库中的额外信息
           userInfo.name = dbUser.name || userInfo.nickName;
+          // 恢复数据库中的手机号
+          if (dbUser.phone) {
+            userInfo.phone = dbUser.phone;
+            app.globalData.phone = dbUser.phone;
+            wx.setStorageSync('phone', dbUser.phone);
+            this.setData({ phoneVerified: true });
+          }
         }
       } catch (dbErr) {
         console.log('获取用户数据库信息失败，使用默认信息:', dbErr);
@@ -71,10 +79,13 @@ Page({
       wx.setStorageSync('userInfo', userInfo);
       wx.setStorageSync('openid', openid);
 
+      // 7. 异步获取位置信息（不阻塞登录流程）
+      app.getUserLocation();
+
       util.hideLoading();
       util.showSuccess('登录成功');
 
-      // 7. 跳转到欢迎页
+      // 8. 跳转到欢迎页
       this.setData({ loading: false });
       wx.redirectTo({
         url: '/subPkg5/welcome/welcome',
@@ -92,6 +103,63 @@ Page({
       util.hideLoading();
       util.showError('登录失败: ' + (err.message || '未知错误'));
       this.setData({ loading: false });
+    }
+  },
+
+  // 获取手机号回调
+  onGetPhoneNumber: async function (e) {
+    if (e.detail.errMsg !== 'getPhoneNumber:ok') {
+      console.warn('用户拒绝手机号授权');
+      return;
+    }
+
+    try {
+      util.showLoading('验证手机号...');
+
+      const res = await wx.cloud.callFunction({
+        name: 'login',
+        data: {
+          action: 'getPhoneNumber',
+          cloudID_phone: e.detail.cloudID
+        }
+      });
+
+      util.hideLoading();
+
+      if (res.result && res.result.success && res.result.phoneNumber) {
+        const phone = res.result.phoneNumber;
+        app.globalData.phone = phone;
+        app.globalData.userInfo.phone = phone;
+        wx.setStorageSync('phone', phone);
+        wx.setStorageSync('userInfo', app.globalData.userInfo);
+
+        this.setData({ phoneVerified: true });
+
+        // 异步更新数据库
+        const openid = app.globalData.openid;
+        if (openid) {
+          const db = wx.cloud.database();
+          db.collection('users').where({ user_id: openid }).limit(1).get().then(userRes => {
+            if (userRes.data && userRes.data.length > 0) {
+              db.collection('users').doc(userRes.data[0]._id).update({
+                data: {
+                  phone: phone,
+                  phone_verified: true,
+                  updated_at: db.serverDate()
+                }
+              }).catch(err => console.error('更新手机号失败:', err));
+            }
+          }).catch(err => console.error('查询用户失败:', err));
+        }
+
+        util.showSuccess('手机号验证成功');
+      } else {
+        util.showError('手机号获取失败');
+      }
+    } catch (err) {
+      util.hideLoading();
+      console.error('获取手机号失败:', err);
+      util.showError('手机号验证失败');
     }
   },
 

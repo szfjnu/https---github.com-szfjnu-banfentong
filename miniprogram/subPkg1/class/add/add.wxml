@@ -30,7 +30,7 @@
         <input
           class="form-input"
           name="class_name"
-          placeholder="如：23级电商1班"
+          placeholder="如：高2025级1班"
           value="{{formData.class_name}}"
           bindinput="onInputChange"
           data-field="class_name"

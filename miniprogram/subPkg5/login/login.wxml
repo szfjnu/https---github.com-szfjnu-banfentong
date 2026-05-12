@@ -20,11 +20,26 @@
       微信授权登录
     </button>
 
+    <!-- 手机号授权按钮（登录后显示） -->
+    <button
+      wx:if="{{!phoneVerified}}"
+      class="btn btn-outline btn-block btn-large phone-btn"
+      open-type="getPhoneNumber"
+      bindgetphonenumber="onGetPhoneNumber"
+    >
+      授权手机号（可选）
+    </button>
+    <view wx:else class="phone-verified">
+      <text class="verified-icon">✓</text>
+      <text>手机号已验证</text>
+    </view>
+
     <!-- 提示信息 -->
     <view class="login-tips">
       <view class="tip-item">• 点击按钮使用微信账号快速登录</view>
       <view class="tip-item">• 登录后可以创建班级或加入已有班级</view>
       <view class="tip-item">• 首次使用需要授权微信用户信息</view>
+      <view class="tip-item">• 授权手机号可自动填充联系方式</view>
     </view>
   </view>
 </view>
