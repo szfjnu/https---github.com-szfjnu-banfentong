@@ -119,7 +119,8 @@
         "seat/rotate/rotate",
         "seat/history/history",
         "group/group",
-        "group/add/add"
+        "group/add/add",
+        "admin/users/users"
       ]
     },
     {

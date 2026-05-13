@@ -302,6 +302,41 @@ async function joinClass(caller, data) {
 
   await db.collection('user_class_relation').add({ data: relationData })
 
+  const existUserRes = await db.collection('users')
+    .where({ _openid: caller.openid })
+    .limit(1)
+    .get()
+
+  if (!existUserRes.data || existUserRes.data.length === 0) {
+    await db.collection('users').add({
+      data: {
+        _openid: caller.openid,
+        user_openid: caller.openid,
+        openid: caller.openid,
+        role: role,
+        nickname: formData?.student_name || formData?.teacher_name || '用户',
+        phone: formData?.phone || '',
+        is_active: true,
+        membership: { level: 1, is_advanced: false, type: 'free' },
+        membership_usage: {},
+        membership_permissions: {},
+        last_login: db.serverDate(),
+        created_at: db.serverDate(),
+        updated_at: db.serverDate()
+      }
+    })
+  } else {
+    const existingUser = existUserRes.data[0]
+    if (!existingUser.membership || !existingUser.membership.level) {
+      await db.collection('users').doc(existingUser._id).update({
+        data: {
+          membership: { level: 1, is_advanced: false, type: 'free' },
+          updated_at: db.serverDate()
+        }
+      })
+    }
+  }
+
   if (role === 'head_teacher' || role === 'teacher') {
     try {
       const existSemesterRes = await db.collection('semesters')
@@ -524,6 +559,41 @@ async function createClass(data, caller) {
       updated_at: db.serverDate()
     }
   })
+
+  const existUserRes = await db.collection('users')
+    .where({ _openid: caller.openid })
+    .limit(1)
+    .get()
+
+  if (!existUserRes.data || existUserRes.data.length === 0) {
+    await db.collection('users').add({
+      data: {
+        _openid: caller.openid,
+        user_openid: caller.openid,
+        openid: caller.openid,
+        role: 'head_teacher',
+        nickname: relationInput.apply_info?.name || '用户',
+        phone: relationInput.apply_info?.phone || '',
+        is_active: true,
+        membership: { level: 1, is_advanced: false, type: 'free' },
+        membership_usage: {},
+        membership_permissions: {},
+        last_login: db.serverDate(),
+        created_at: db.serverDate(),
+        updated_at: db.serverDate()
+      }
+    })
+  } else {
+    const existingUser = existUserRes.data[0]
+    if (!existingUser.membership || !existingUser.membership.level) {
+      await db.collection('users').doc(existingUser._id).update({
+        data: {
+          membership: { level: 1, is_advanced: false, type: 'free' },
+          updated_at: db.serverDate()
+        }
+      })
+    }
+  }
 
   try {
     const existSettingsRes = await db.collection('class_settings')

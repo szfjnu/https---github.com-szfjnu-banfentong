@@ -24,8 +24,9 @@ exports.main = async (event, context) => {
       }
     }
 
-    const classId = data && data.class_id
-    const caller = await getCallerInfo(event, classId)
+    const classIdFromData = data && data.class_id
+    const caller = await getCallerInfo(event, classIdFromData)
+    const classId = classIdFromData || caller.classId
 
     if (IMPORT_ACTIONS.includes(action)) {
       requireTeacher(caller)

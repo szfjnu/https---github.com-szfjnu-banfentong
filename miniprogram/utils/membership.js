@@ -379,24 +379,9 @@ async function initUserMembership(openid) {
     }
 
     await wx.cloud.callFunction({
-      name: 'manageUserCenter',
+      name: 'login',
       data: {
-        action: 'initUserMembership',
-        data: {
-          openid,
-          membership: {
-            level: MEMBERSHIP_LEVELS.FREE,
-            status: MEMBERSHIP_STATUS.ACTIVE,
-            auto_renew: false,
-            days_remaining: -1
-          },
-          permissions: DEFAULT_PERMISSIONS[MEMBERSHIP_LEVELS.FREE],
-          usage: {
-            classes_created: 0,
-            storage_used_mb: 0
-          },
-          invite_code: generateInviteCode()
-        }
+        action: 'initUserMembership'
       }
     });
   } catch (err) {

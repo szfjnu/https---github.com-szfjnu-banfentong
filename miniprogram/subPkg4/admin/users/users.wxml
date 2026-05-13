@@ -1,0 +1,136 @@
+<view class="container">
+  <view class="search-bar">
+    <input class="search-input" placeholder="搜索姓名 / openid" value="{{searchKeyword}}" bindinput="onSearchInput" confirm-type="search" bindconfirm="onSearchConfirm" />
+  </view>
+
+  <scroll-view scroll-x class="filter-tabs">
+    <view class="tab {{activeTab === item.key ? 'active' : ''}}" wx:for="{{roleTabs}}" wx:key="key" bindtap="onTabChange" data-key="{{item.key}}">
+      {{item.label}}
+    </view>
+  </scroll-view>
+
+  <view class="user-list" wx:if="{{!loading}}">
+    <view class="user-card" wx:for="{{users}}" wx:key="openid">
+      <view class="card-top">
+        <image class="avatar" src="{{item.avatarUrl || '/images/icons/default-avatar.png'}}" mode="aspectFill" />
+        <view class="card-info min-w-0">
+          <view class="name-row">
+            <text class="user-name ellipsis">{{item.name || '未设置'}}</text>
+            <view class="role-badge role-{{item.primaryRole}}">{{item.primaryRoleLabel}}</view>
+          </view>
+          <text class="openid-text">ID: {{item.openidTruncated}}</text>
+          <view class="meta-row">
+            <view class="member-badge member-{{item.membershipLevel}}" wx:if="{{item.membershipLevel !== 'free'}}">
+              {{item.membershipLevel === 'advanced' ? '高级' : '基础'}} L{{item.membershipLevelNum || 1}}
+            </view>
+            <text class="class-text" wx:if="{{item.className}}">{{item.className}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="card-actions">
+        <view class="action-btn" catchtap="onEditRole" data-index="{{index}}">
+          <text>编辑角色</text>
+        </view>
+        <view class="action-btn" catchtap="onEditMembership" data-index="{{index}}">
+          <text>编辑会员</text>
+        </view>
+        <view class="action-btn" catchtap="onViewAuditLog" data-index="{{index}}">
+          <text>审计日志</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty-state" wx:if="{{!loading && users.length === 0}}">
+    <text class="empty-text">暂无用户数据</text>
+  </view>
+
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <view class="load-more" wx:if="{{!loading && hasMore}}" bindtap="onLoadMore">
+    <text>加载更多</text>
+  </view>
+  <view class="no-more" wx:if="{{!loading && !hasMore && users.length > 0}}">
+    <text>已加载全部</text>
+  </view>
+
+  <view class="modal-mask" wx:if="{{showRoleDialog}}" bindtap="onCloseRoleDialog">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">编辑角色 - {{currentUser.name}}</text>
+        <text class="modal-close" catchtap="onCloseRoleDialog">X</text>
+      </view>
+      <scroll-view scroll-y class="modal-body">
+        <view class="role-class-item" wx:for="{{currentUser.classes}}" wx:key="classId">
+          <text class="class-label">{{item.className || item.classId}}</text>
+          <picker mode="selector" range="{{roleOptions}}" range-key="label" value="{{item.roleIndex}}" bindchange="onRolePickerChange" data-class-index="{{index}}">
+            <view class="role-picker-value">
+              {{item.roleLabel || '请选择角色'}}
+            </view>
+          </picker>
+        </view>
+        <view class="no-class-hint" wx:if="{{currentUser.classes.length === 0}}">该用户未加入任何班级</view>
+      </scroll-view>
+      <view class="modal-footer">
+        <button class="modal-cancel" catchtap="onCloseRoleDialog">取消</button>
+        <button class="modal-confirm" catchtap="onSaveRole">保存</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="modal-mask" wx:if="{{showMemberDialog}}" bindtap="onCloseMemberDialog">
+    <view class="modal-content" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">编辑会员 - {{currentUser.name}}</text>
+        <text class="modal-close" catchtap="onCloseMemberDialog">X</text>
+      </view>
+      <view class="modal-body">
+        <view class="member-field">
+          <text class="field-label">高级会员</text>
+          <switch checked="{{editMembership.isAdvanced}}" bindchange="onToggleAdvanced" color="#faad14" />
+        </view>
+        <view class="member-field" wx:if="{{editMembership.isAdvanced}}">
+          <text class="field-label">会员等级</text>
+          <view class="level-options">
+            <view class="level-btn {{editMembership.level === item ? 'active' : ''}}" wx:for="{{[1, 2, 3]}}" wx:key="*this" bindtap="onSelectLevel" data-level="{{item}}">
+              L{{item}}
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="modal-cancel" catchtap="onCloseMemberDialog">取消</button>
+        <button class="modal-confirm" catchtap="onSaveMembership">保存</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="modal-mask" wx:if="{{showAuditPanel}}" bindtap="onCloseAuditPanel">
+    <view class="modal-content audit-modal" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">审计日志 - {{currentUser.name}}</text>
+        <text class="modal-close" catchtap="onCloseAuditPanel">X</text>
+      </view>
+      <scroll-view scroll-y class="modal-body">
+        <view class="audit-item" wx:for="{{auditLogs}}" wx:key="_id">
+          <view class="audit-action">{{item.actionLabel}}</view>
+          <view class="audit-detail">
+            <text class="audit-old">{{item.oldValueText}}</text>
+            <text class="audit-arrow">-></text>
+            <text class="audit-new">{{item.newValueText}}</text>
+          </view>
+          <view class="audit-meta">
+            <text class="audit-operator">{{item.operatorName}}</text>
+            <text class="audit-time">{{item.timeText}}</text>
+          </view>
+        </view>
+        <view class="no-audit" wx:if="{{auditLogs.length === 0}}">暂无变更记录</view>
+      </scroll-view>
+      <view class="modal-footer">
+        <button class="modal-cancel" catchtap="onCloseAuditPanel">关闭</button>
+      </view>
+    </view>
+  </view>
+</view>

@@ -5,7 +5,7 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
-const { getCallerInfo, requireClassAccess, requireTeacher } = require('./utils/auth');
+const { getCallerInfo, requireClassAccess, requireTeacher, requireAdmin } = require('./utils/auth');
 
 // 生成唯一ID
 function generateId(prefix) {
@@ -49,9 +49,16 @@ exports.main = async (event, context) => {
   const { action, data } = event;
 
   try {
+    if (action === 'initUserMembership') {
+      const openid = cloud.getWXContext().OPENID
+      return await initUserMembershipDirect(openid)
+    }
+
     const caller = await getCallerInfo(event, data?.class_id || data?.classId);
 
     switch (action) {
+      case 'updateUser': return await updateUser(data, caller);
+      case 'initUserMembership': return await initUserMembershipDirect(caller.openid);
       case 'getUserProfile': return await getUserProfile(data, caller);
       case 'updateUserProfile': return await updateUserProfile(data, caller);
 
@@ -80,6 +87,11 @@ exports.main = async (event, context) => {
       case 'getAccessibleStudents': return await getAccessibleStudents(data, caller);
 
       case 'getClassInfo': return await getClassInfo(data, caller);
+
+      case 'listUsers': requireAdmin(caller); return await listUsers(data);
+      case 'updateUserRole': requireAdmin(caller); return await updateUserRole(data, caller);
+      case 'updateUserMembership': requireAdmin(caller); return await updateUserMembership(data, caller);
+      case 'getPermissionAuditLog': requireAdmin(caller); return await getPermissionAuditLog(data);
 
       default:
         return { success: false, message: `未知操作: ${action}` };
@@ -1376,5 +1388,280 @@ async function getClassInfo(data, caller) {
   } catch (err) {
     console.error('getClassInfo error:', err)
     return { success: false, message: err.message || '获取班级信息失败' }
+  }
+}
+
+// ==================== 用户权限管理（Admin） ====================
+
+async function listUsers(data) {
+  const { page = 1, pageSize = 20, role = '', search = '' } = data;
+  const skip = (page - 1) * pageSize;
+
+  try {
+    let userQuery = db.collection('users');
+    let whereCond = {};
+    if (search) {
+      whereCond = _.or([
+        { name: db.RegExp({ regexp: search, options: 'i' }) },
+        { _openid: db.RegExp({ regexp: search, options: 'i' }) }
+      ]);
+    }
+
+    const countRes = await userQuery.where(whereCond).count();
+    const total = countRes.total || 0;
+
+    const userRes = await userQuery.where(whereCond).skip(skip).limit(pageSize).get();
+    const users = userRes.data || [];
+
+    const openids = users.map(u => u._openid);
+    if (openids.length === 0) {
+      return { success: true, data: { users: [], total } };
+    }
+
+    const relationRes = await db.collection('user_class_relation')
+      .where({ user_openid: _.in(openids), status: 'joined' })
+      .get();
+
+    const classIds = [...new Set(relationRes.data.map(r => r.class_id))];
+    let classMap = {};
+    if (classIds.length > 0) {
+      const classRes = await db.collection('classes')
+        .where({ _id: _.in(classIds) })
+        .get();
+      (classRes.data || []).forEach(c => { classMap[c._id] = c.name || c.class_name || ''; });
+    }
+
+    const result = users.map(u => {
+      const relations = relationRes.data.filter(r => r.user_openid === u._openid);
+      const classes = relations.map(r => ({
+        classId: r.class_id,
+        className: classMap[r.class_id] || '',
+        role: r.role,
+        studentId: r.student_id || ''
+      }));
+      const primaryRole = relations.length > 0 ? relations[0].role : 'student';
+      return {
+        openid: u._openid,
+        name: u.name || u.nick_name || '',
+        avatarUrl: u.avatar_url || u.avatarUrl || '',
+        primaryRole,
+        membership: u.membership || {},
+        classes
+      };
+    });
+
+    const filtered = role ? result.filter(u => u.primaryRole === role) : result;
+
+    return { success: true, data: { users: filtered, total } };
+  } catch (err) {
+    console.error('listUsers error:', err);
+    return { success: false, message: err.message || '获取用户列表失败' };
+  }
+}
+
+async function updateUserRole(data, caller) {
+  const { targetOpenid, classId, newRole } = data;
+  if (!targetOpenid || !classId || !newRole) {
+    return { success: false, message: '缺少必要参数' };
+  }
+
+  try {
+    const relRes = await db.collection('user_class_relation')
+      .where({ user_openid: targetOpenid, class_id: classId })
+      .limit(1)
+      .get();
+
+    if (!relRes.data || relRes.data.length === 0) {
+      return { success: false, message: '未找到该用户的班级关系' };
+    }
+
+    const oldRelation = relRes.data[0];
+    const oldRole = oldRelation.role;
+
+    if (oldRole === newRole) {
+      return { success: true, message: '角色未变化' };
+    }
+
+    await db.collection('user_class_relation').doc(oldRelation._id).update({
+      data: { role: newRole }
+    });
+
+    const targetUserRes = await db.collection('users')
+      .where({ _openid: targetOpenid })
+      .limit(1)
+      .get();
+    const targetName = (targetUserRes.data && targetUserRes.data[0]) ? (targetUserRes.data[0].name || '') : '';
+
+    await db.collection('permission_audit_logs').add({
+      data: {
+        operator_openid: caller.openid,
+        operator_name: caller.realName || '',
+        target_openid: targetOpenid,
+        target_name: targetName,
+        action: 'updateRole',
+        old_value: { role: oldRole },
+        new_value: { role: newRole },
+        class_id: classId,
+        created_at: db.serverDate()
+      }
+    });
+
+    return { success: true, message: '角色更新成功' };
+  } catch (err) {
+    console.error('updateUserRole error:', err);
+    return { success: false, message: err.message || '更新角色失败' };
+  }
+}
+
+async function updateUserMembership(data, caller) {
+  const { targetOpenid, isAdvanced, level } = data;
+  if (!targetOpenid) {
+    return { success: false, message: '缺少必要参数' };
+  }
+
+  try {
+    const userRes = await db.collection('users')
+      .where({ _openid: targetOpenid })
+      .limit(1)
+      .get();
+
+    if (!userRes.data || userRes.data.length === 0) {
+      return { success: false, message: '未找到该用户' };
+    }
+
+    const oldUser = userRes.data[0];
+    const oldMembership = oldUser.membership || {};
+    const newMembership = {
+      is_advanced: !!isAdvanced,
+      level: level || 1
+    };
+
+    await db.collection('users').doc(oldUser._id).update({
+      data: { membership: newMembership }
+    });
+
+    await db.collection('permission_audit_logs').add({
+      data: {
+        operator_openid: caller.openid,
+        operator_name: caller.realName || '',
+        target_openid: targetOpenid,
+        target_name: oldUser.name || '',
+        action: 'updateMembership',
+        old_value: { membership: oldMembership },
+        new_value: { membership: newMembership },
+        class_id: '',
+        created_at: db.serverDate()
+      }
+    });
+
+    return { success: true, message: '会员更新成功' };
+  } catch (err) {
+    console.error('updateUserMembership error:', err);
+    return { success: false, message: err.message || '更新会员失败' };
+  }
+}
+
+async function getPermissionAuditLog(data) {
+  const { targetOpenid, page = 1, pageSize = 50 } = data;
+  const skip = (page - 1) * pageSize;
+
+  try {
+    let whereCond = {};
+    if (targetOpenid) {
+      whereCond = { target_openid: targetOpenid };
+    }
+
+    const res = await db.collection('permission_audit_logs')
+      .where(whereCond)
+      .orderBy('created_at', 'desc')
+      .skip(skip)
+      .limit(pageSize)
+      .get();
+
+    return { success: true, data: res.data || [] };
+  } catch (err) {
+    console.error('getPermissionAuditLog error:', err);
+    if (err.errCode === -502005) {
+      return { success: true, data: [] };
+    }
+    return { success: false, message: err.message || '获取审计日志失败' };
+  }
+}
+
+async function updateUser(data, caller) {
+  const { userId, ...fields } = data;
+  if (!userId) {
+    return { success: false, message: '缺少用户ID' };
+  }
+
+  try {
+    const userRes = await db.collection('users').doc(userId).get();
+    const targetUser = userRes.data;
+
+    if (!targetUser) {
+      return { success: false, message: '用户不存在' };
+    }
+
+    if (caller.openid !== targetUser._openid && caller.role !== 'admin') {
+      return { success: false, message: '无权修改该用户信息' };
+    }
+
+    const allowedFields = ['nickname', 'avatarUrl', 'phone', 'email', 'real_name'];
+    const updateData = { updated_at: db.serverDate() };
+    for (const field of allowedFields) {
+      if (fields[field] !== undefined) {
+        updateData[field] = fields[field];
+      }
+    }
+
+    await db.collection('users').doc(userId).update({ data: updateData });
+    return { success: true, message: '用户信息更新成功' };
+  } catch (err) {
+    console.error('updateUser error:', err);
+    return { success: false, message: err.message || '更新用户失败' };
+  }
+}
+
+async function initUserMembershipDirect(openid) {
+  try {
+    const existRes = await db.collection('users')
+      .where({ _openid: openid })
+      .limit(1)
+      .get();
+
+    if (existRes.data && existRes.data.length > 0) {
+      const user = existRes.data[0];
+      if (user.membership && user.membership.level) {
+        return { success: true, isNew: false, message: '会员已存在' };
+      }
+      await db.collection('users').doc(user._id).update({
+        data: {
+          membership: { level: 1, is_advanced: false, type: 'free' },
+          updated_at: db.serverDate()
+        }
+      });
+      return { success: true, isNew: false, message: '会员初始化成功' };
+    }
+
+    await db.collection('users').add({
+      data: {
+        _openid: openid,
+        user_openid: openid,
+        openid: openid,
+        role: 'user',
+        nickname: '微信用户',
+        is_active: true,
+        membership: { level: 1, is_advanced: false, type: 'free' },
+        membership_usage: {},
+        membership_permissions: {},
+        last_login: db.serverDate(),
+        created_at: db.serverDate(),
+        updated_at: db.serverDate()
+      }
+    });
+    return { success: true, isNew: true, message: '用户及会员初始化成功' };
+  } catch (err) {
+    console.error('initUserMembershipDirect error:', err);
+    return { success: false, message: err.message || '初始化会员失败' };
   }
 }

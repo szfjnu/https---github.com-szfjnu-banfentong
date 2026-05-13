@@ -642,8 +642,8 @@ const userApi = {
     data.updated_at = db.serverDate();
     try {
       const res = await wx.cloud.callFunction({
-        name: 'initDatabase',
-        data
+        name: 'login',
+        data: { action: 'ensureUser', data }
       });
       return res.result;
     } catch (err) {

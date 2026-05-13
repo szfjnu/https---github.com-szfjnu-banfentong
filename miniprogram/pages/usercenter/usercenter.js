@@ -300,6 +300,19 @@ Page({
       });
     }
 
+    if (role === 'admin') {
+      const sysGroup = menuGroups.find(g => g.title === '系统管理');
+      if (sysGroup) {
+        sysGroup.items.push({
+          id: 'user_permission',
+          title: '用户权限管理',
+          icon: '👥',
+          color: '#ff4d4f',
+          url: '/subPkg4/admin/users/users'
+        });
+      }
+    }
+
     // 即将上线功能预告
     const upcomingItems = [];
     if (role === 'admin' || role === 'head_teacher') {

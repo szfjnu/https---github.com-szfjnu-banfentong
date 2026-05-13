@@ -67,9 +67,27 @@ async function doImport(previewData, classId, className) {
 }
 
 async function importStudentHandler(data, OPENID) {
-  const { fileID, classId, className, confirm, previewData } = data
+  let { fileID, classId, className, confirm, previewData } = data
 
-  await checkPermission(OPENID, ALLOWED_IMPORT_ROLES)
+  if (!classId) {
+    const relRes = await db.collection('user_class_relation')
+      .where({ user_openid: OPENID, status: 'joined' })
+      .limit(1)
+      .get()
+    if (relRes.data && relRes.data.length > 0) {
+      classId = relRes.data[0].class_id
+      if (!className) {
+        try {
+          const classRes = await db.collection('classes').doc(classId).get()
+          className = classRes.data.class_name || ''
+        } catch (e) { className = '' }
+      }
+    }
+  }
+
+  if (!classId) {
+    return { success: false, message: '缺少班级ID，且无法自动获取当前用户班级' }
+  }
 
   if (!confirm) {
     const previewResult = await doPreview(fileID, classId, className)
