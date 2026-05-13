@@ -78,7 +78,7 @@ exports.main = async (event, context) => {
       case 'fulfillRedemption': return fulfillRedemption(event, caller)
       case 'settleAuction': return settleAuction(event, caller)
       case 'determineWinner': return determineWinner(event, caller)
-      case 'getBidHistory': return getBidHistory(event)
+      case 'getBidHistory': return getBidHistory(event, openid)
       case 'getUserBalance': return getUserBalance(event, openid, classId)
       default: return { code: 400, msg: '未知 action' }
     }
@@ -562,7 +562,7 @@ async function determineWinner(event, caller) {
   return { code: 0, msg: '已确定中标者', data: { winner_id: winner.user_id, winner_name: winner.user_name } }
 }
 
-async function getBidHistory(event) {
+async function getBidHistory(event, openid) {
   const { itemId, page = 1, pageSize = 20 } = event
   if (!itemId) return { code: 400, msg: '缺少 itemId' }
 
@@ -575,7 +575,7 @@ async function getBidHistory(event) {
 
   const bids = res.data.map(b => ({
     ...b,
-    user_id: b.user_id === event.openid ? b.user_id : undefined
+    user_id: b.user_id === openid ? b.user_id : undefined
   }))
 
   return { code: 0, data: bids }

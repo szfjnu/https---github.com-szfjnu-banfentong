@@ -382,8 +382,7 @@ Page({
         description: formData.description.trim(),
         requires_proof: formData.requires_proof,
         class_id: classId,
-        semester_id: semesterId,
-        updated_at: db.serverDate()
+        semester_id: semesterId
       };
 
       if (editingRule) {

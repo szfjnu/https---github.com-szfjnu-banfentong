@@ -12,6 +12,7 @@ Page({
     stats: { total: 0, active: 0, revoked: 0 },
     levelConfigs: [],
     page: 1,
+    pageSize: 20,
     hasMore: true
   },
 
@@ -44,16 +45,19 @@ Page({
   loadRecords: async function () {
     this.setData({ loading: true });
     try {
+      const { page, pageSize } = this.data;
       const res = await wx.cloud.callFunction({
         name: 'manageDiscipline',
         data: {
           action: 'getDisciplineRecords',
-          data: { class_id: this.data.classId, status: this.data.filterStatus === 'all' ? '' : this.data.filterStatus }
+          data: { class_id: this.data.classId, status: this.data.filterStatus === 'all' ? '' : this.data.filterStatus, page, pageSize }
         }
       });
       if (res.result && res.result.success) {
-        const records = res.result.data.map(r => dh.processRecordItem(r));
-        this.setData({ records }, () => { this.updateDisplayList(); });
+        const newRecords = res.result.data.map(r => dh.processRecordItem(r));
+        const records = page === 1 ? newRecords : [...this.data.records, ...newRecords];
+        const hasMore = newRecords.length === pageSize;
+        this.setData({ records, hasMore }, () => { this.updateDisplayList(); });
       }
     } catch (err) {
       console.error('加载处分记录失败:', err);
@@ -85,8 +89,15 @@ Page({
   },
 
   onFilterChange: function (e) {
-    this.setData({ filterStatus: e.currentTarget.dataset.status });
-    this.updateDisplayList();
+    this.setData({ filterStatus: e.currentTarget.dataset.status, page: 1 });
+    this.loadRecords();
+  },
+
+  onReachBottom: function () {
+    if (this.data.hasMore && !this.data.loading) {
+      this.setData({ page: this.data.page + 1 });
+      this.loadRecords();
+    }
   },
 
   onAddRecord: function () {

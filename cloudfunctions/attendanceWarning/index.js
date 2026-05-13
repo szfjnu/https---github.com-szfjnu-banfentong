@@ -41,7 +41,8 @@ exports.main = async (event, context) => {
     const WRITE_ACTIONS = ['saveTimetableConfig', 'resetTimetableConfig', 'saveHolidayAdjustment',
       'deleteHolidayAdjustment', 'saveAbsentWarningConfig', 'resetAbsentWarningConfig',
       'saveLeaveWarningConfig', 'resetLeaveWarningConfig', 'detectWarnings',
-      'updateAttendanceStatistics', 'addAttendanceStatistics']
+      'updateAttendanceStatistics', 'addAttendanceStatistics',
+      'addCategory', 'updateCategory', 'deleteCategory', 'toggleCategoryStatus']
 
     if (WRITE_ACTIONS.includes(action)) {
       requireTeacher(caller)
@@ -84,6 +85,14 @@ exports.main = async (event, context) => {
         return await updateAttendanceStatistics(data, caller.openid);
       case 'addAttendanceStatistics':
         return await addAttendanceStatistics(data, caller.openid);
+      case 'addCategory':
+        return await addCategory(data, caller.openid);
+      case 'updateCategory':
+        return await updateCategory(data, caller.openid);
+      case 'deleteCategory':
+        return await deleteCategory(data, caller.openid);
+      case 'toggleCategoryStatus':
+        return await toggleCategoryStatus(data, caller.openid);
       default:
         return { success: false, message: '未知操作' };
     }
@@ -638,6 +647,62 @@ async function addAttendanceStatistics(data, openId) {
     return { success: true, data: { _id: res._id } };
   } catch (err) {
     console.error('addAttendanceStatistics失败:', err);
+    return { success: false, message: err.message };
+  }
+}
+
+async function addCategory(data, openId) {
+  try {
+    const now = db.serverDate();
+    const res = await db.collection('attendance_categories').add({
+      data: { ...data, created_at: now, updated_at: now }
+    });
+    return { success: true, data: { _id: res._id } };
+  } catch (err) {
+    console.error('addCategory失败:', err);
+    return { success: false, message: err.message };
+  }
+}
+
+async function updateCategory(data, openId) {
+  try {
+    const { _id, ...updateData } = data;
+    if (!_id) return { success: false, message: '缺少类别ID' };
+    const now = db.serverDate();
+    delete updateData.created_at;
+    await db.collection('attendance_categories').doc(_id).update({
+      data: { ...updateData, updated_at: now }
+    });
+    return { success: true };
+  } catch (err) {
+    console.error('updateCategory失败:', err);
+    return { success: false, message: err.message };
+  }
+}
+
+async function deleteCategory(data, openId) {
+  try {
+    const { category_id } = data;
+    if (!category_id) return { success: false, message: '缺少类别ID' };
+    await db.collection('attendance_categories').doc(category_id).remove();
+    return { success: true };
+  } catch (err) {
+    console.error('deleteCategory失败:', err);
+    return { success: false, message: err.message };
+  }
+}
+
+async function toggleCategoryStatus(data, openId) {
+  try {
+    const { category_id, is_active } = data;
+    if (!category_id) return { success: false, message: '缺少类别ID' };
+    const now = db.serverDate();
+    await db.collection('attendance_categories').doc(category_id).update({
+      data: { is_active: !!is_active, updated_at: now }
+    });
+    return { success: true };
+  } catch (err) {
+    console.error('toggleCategoryStatus失败:', err);
     return { success: false, message: err.message };
   }
 }

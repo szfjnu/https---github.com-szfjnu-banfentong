@@ -40,6 +40,17 @@ exports.main = async (event, context) => {
         return await addProductWish(data, caller);
       case 'voteProductWish':
         return await voteProductWish(data, caller);
+      case 'addItem':
+        requireClassAccess(caller, data.itemData?.class_id || data.class_id, ['head_teacher', 'admin']);
+        return await addItem(data, caller);
+      case 'updateItem':
+        requireClassAccess(caller, data.updateData?.class_id || data.class_id, ['head_teacher', 'admin']);
+        return await updateItem(data, caller);
+      case 'updateRequest':
+        requireClassAccess(caller, data.classId, ['head_teacher', 'admin']);
+        return await updateRequest(data, caller);
+      case 'shipRedemption':
+        return await confirmShip(data, caller);
       default:
         return { success: false, message: '未知操作' };
     }
@@ -557,4 +568,97 @@ async function voteProductWish(data, caller) {
   });
 
   return { success: true, message: '投票成功' };
+}
+
+async function addItem(data, caller) {
+  const itemData = data.itemData || data;
+  if (!itemData.name || !itemData.class_id) {
+    return { success: false, message: '参数不完整' };
+  }
+
+  const now = db.serverDate();
+  const itemId = itemData.item_id || `ITEM${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+  const record = {
+    item_id: itemId,
+    name: itemData.name,
+    class_id: itemData.class_id,
+    description: itemData.description || '',
+    required_score: itemData.required_score || 0,
+    quantity: itemData.quantity || 0,
+    image_url: itemData.image_url || '',
+    category: itemData.category || '',
+    redemption_mode: itemData.redemption_mode || '直接兑换',
+    status: itemData.status || '可兑换',
+    bid_end_time: itemData.bid_end_time || null,
+    bid_start_time: itemData.bid_start_time || null,
+    created_by: caller.openid,
+    created_at: now,
+    updated_at: now
+  };
+
+  const res = await db.collection('redemption_items').add({ data: record });
+  return { success: true, data: { _id: res._id, item_id: itemId }, message: '添加成功' };
+}
+
+async function updateItem(data, caller) {
+  const { itemId, updateData } = data;
+  if (!itemId) {
+    return { success: false, message: '缺少物品ID' };
+  }
+
+  const itemRes = await db.collection('redemption_items')
+    .where({ item_id: itemId, class_id: updateData?.class_id || data.class_id })
+    .limit(1)
+    .get();
+
+  if (!itemRes.data || itemRes.data.length === 0) {
+    const byIdRes = await db.collection('redemption_items').doc(itemId).get();
+    if (!byIdRes.data) {
+      return { success: false, message: '商品不存在' };
+    }
+  }
+
+  const allowedFields = [
+    'name', 'description', 'required_score', 'quantity', 'image_url',
+    'category', 'redemption_mode', 'status', 'bid_end_time', 'bid_start_time', 'class_id'
+  ];
+  const filtered = {};
+  const source = updateData || data;
+  for (const key of allowedFields) {
+    if (source[key] !== undefined) {
+      filtered[key] = source[key];
+    }
+  }
+  filtered.updated_at = db.serverDate();
+
+  const docId = (itemRes.data && itemRes.data[0]?._id) || itemId;
+  await db.collection('redemption_items').doc(docId).update({ data: filtered });
+  return { success: true, message: '更新成功' };
+}
+
+async function updateRequest(data, caller) {
+  const { requestId, ...updateFields } = data;
+  if (!requestId) {
+    return { success: false, message: '缺少请求ID' };
+  }
+
+  const requestRes = await db.collection('redemption_requests').doc(requestId).get();
+  if (!requestRes.data) {
+    return { success: false, message: '兑换请求不存在' };
+  }
+
+  const allowedFields = [
+    'status', 'shipping_status', 'reject_reason', 'approver', 'approver_openid',
+    'cadre_approver', 'note', 'tracking_number'
+  ];
+  const filtered = {};
+  for (const key of allowedFields) {
+    if (updateFields[key] !== undefined) {
+      filtered[key] = updateFields[key];
+    }
+  }
+  filtered.updated_at = db.serverDate();
+
+  await db.collection('redemption_requests').doc(requestId).update({ data: filtered });
+  return { success: true, message: '更新成功' };
 }

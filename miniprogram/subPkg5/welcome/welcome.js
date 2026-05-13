@@ -156,7 +156,7 @@ Page({
   // 加入班级
   onJoinClass: function () {
     wx.navigateTo({
-      url: '/subPkg5/join/join'
+      url: '/subPkg5/join/join/join'
     });
   }
 });

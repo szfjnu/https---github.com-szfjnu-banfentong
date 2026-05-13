@@ -347,7 +347,8 @@ async function deleteBuilding(data, caller) {
 }
 
 async function addRoomWithBeds(data, caller) {
-  const { building_id, room_number, floor, bed_count, ...rest } = data || {}
+  const roomData = data.room_data || data || {}
+  const { building_id, room_number, floor, bed_count, ...rest } = roomData
   if (!building_id || !room_number || !bed_count) {
     return { success: false, message: '缺少必要参数: building_id, room_number, bed_count' }
   }

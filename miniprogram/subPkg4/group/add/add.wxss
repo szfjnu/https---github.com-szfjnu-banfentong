@@ -323,6 +323,7 @@
   border-radius: 24rpx 24rpx 0 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .modal-header {
@@ -369,6 +370,7 @@
   flex: 1;
   max-height: 50vh;
   padding: 0 32rpx;
+  overflow-y: auto;
 }
 
 .student-item {

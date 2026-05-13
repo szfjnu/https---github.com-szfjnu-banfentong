@@ -2,7 +2,7 @@
 const app = getApp();
 const api = require('../../../utils/api.js');
 const util = require('../../../utils/util.js');
-const batchQuery = require('../../../utils/batchQuery.js');
+const batchQuery = require('../../utils/batchQuery.js');
 
 Page({
   data: {
@@ -15,6 +15,8 @@ Page({
     activeTab: 'info',
     canEdit: false,
     permissionLevel: 'no_access',
+    _dataLoaded: false,
+    _isLoading: false,
     // 考勤统计
     attendanceStats: {
       sick_leave: 0,
@@ -41,11 +43,6 @@ Page({
 
   onLoad: function (options) {
     const studentId = options.id;
-    console.log('学生详情页面加载, studentId:', studentId);
-    console.log('完整的options:', options);
-
-    // 检查权限
-    this.checkPermission();
 
     if (!studentId) {
       wx.showToast({
@@ -60,20 +57,39 @@ Page({
     }
 
     this.setData({ studentId });
-    this.loadData();
+    this.checkPermissionAndLoad();
+  },
+
+  checkPermissionAndLoad: async function () {
+    this.setData({ _isLoading: true });
+    await this.checkPermission();
+    await this.loadData();
+    this.setData({ _dataLoaded: true, _isLoading: false });
   },
 
   // 检查权限
-  checkPermission: function () {
+  checkPermission: async function () {
+    if (!app.globalData.role) {
+      try {
+        const db = wx.cloud.database();
+        const userRes = await db.collection('users')
+          .where({ _openid: '{openid}' })
+          .limit(1)
+          .get();
+        if (userRes.data && userRes.data.length > 0) {
+          app.globalData.role = userRes.data[0].role || '';
+        }
+      } catch (e) {
+        console.warn('预加载用户角色失败:', e);
+      }
+    }
     const role = app.globalData.role;
     const canEdit = role === 'admin' || role === 'head_teacher';
     this.setData({ canEdit });
   },
 
   onShow: function () {
-    // 如果有studentId,刷新数据
-    if (this.data.studentId) {
-      console.log('onShow 触发, 刷新学生数据');
+    if (this.data.studentId && this.data._dataLoaded && !this.data._isLoading) {
       this.loadData();
     }
   },
@@ -119,7 +135,6 @@ Page({
   loadStudentInfo: async function () {
     try {
       const studentId = this.data.studentId;
-      console.log('开始加载学生信息, studentId:', studentId);
 
       const res = await wx.cloud.callFunction({
         name: 'manageUserCenter',
@@ -132,15 +147,9 @@ Page({
         }
       });
 
-      console.log('云函数返回结果:', res);
-
       if (res.result && res.result.success) {
         const student = res.result.data;
         const permissionLevel = res.result.permission_level;
-        
-        console.log('找到学生信息:', student);
-        console.log('权限级别:', permissionLevel);
-        console.log('学生当前积分 (current_score):', student.current_score);
 
         this.setData({
           permissionLevel: permissionLevel,
@@ -152,10 +161,8 @@ Page({
             formattedBirthDate: student.date_of_birth ? util.formatDate(new Date(student.date_of_birth)) : '未填写'
           }
         });
-        console.log('学生信息已设置到data, current_score:', this.data.student.current_score);
       } else {
         const errorMsg = (res.result && res.result.message) || '未找到学生信息';
-        console.log('加载失败:', errorMsg);
         wx.showToast({
           title: errorMsg,
           icon: 'none',

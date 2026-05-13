@@ -2,6 +2,7 @@
 const app = getApp();
 const db = wx.cloud.database();
 const _ = db.command;
+const batchQuery = require('../../../utils/batchQuery.js');
 
 Page({
   data: {
@@ -89,7 +90,7 @@ Page({
   // 加载学生列表
   loadStudents: async function () {
     try {
-      const userClassId = app.globalData.classId || '';
+      const userClassId = app.globalData.class_id || '';
 
       console.log('开始加载数据，班级ID:', userClassId);
 
@@ -110,14 +111,33 @@ Page({
       console.log('学生列表:', students);
 
       // 加载宿舍房间列表
-      const roomRes = await db.collection('dorm_rooms')
+      const buildingRes = await db.collection('dorm_buildings')
         .where({
           class_id: _.eq(userClassId)
         })
-        .orderBy('room_number', 'asc')
         .get();
 
-      const rooms = roomRes.data || [];
+      const buildingIds = (buildingRes.data || []).map(b => b._id);
+
+      let rooms = [];
+      if (buildingIds.length > 0) {
+        const roomRes = await db.collection('dorm_rooms')
+          .where({
+            building_id: _.in(buildingIds)
+          })
+          .orderBy('room_number', 'asc')
+          .get();
+        rooms = roomRes.data || [];
+      } else {
+        const roomRes = await db.collection('dorm_rooms')
+          .where({
+            class_id: _.eq(userClassId)
+          })
+          .orderBy('room_number', 'asc')
+          .get();
+        rooms = roomRes.data || [];
+      }
+
       console.log('房间列表:', rooms);
 
       if (rooms.length === 0) {
@@ -232,20 +252,14 @@ Page({
   // 加载规则
   loadRules: async function () {
     try {
-      const userClassId = app.globalData.classId || '';
+      const userClassId = app.globalData.class_id || '';
       const { currentSemesterId } = this.data;
 
-      const res = await db.collection('dorm_rules')
-        .where({
-          class_id: _.in([userClassId, '', null]),
-          semester_id: _.in([currentSemesterId, '', null]),
-          is_enabled: _.neq(false)
-        })
-        .orderBy('category', 'asc')
-        .orderBy('score_value', 'desc')
-        .get();
-
-      const rules = res.data || [];
+      const rules = await batchQuery.getAllRecords('dorm_rules', {
+        class_id: _.in([userClassId, '', null]),
+        semester_id: _.in([currentSemesterId, '', null]),
+        is_enabled: _.neq(false)
+      });
 
       // 根据记录类型过滤规则
       const filteredRules = rules.filter(rule => {
@@ -589,7 +603,7 @@ Page({
                   rule_code: 'DORM_SCORE',
                   reason_detail: `${dormInfoStr} ${selectedRule.rule_name}，${remark || ''}`,
                   recorder_openid: app.globalData.openid,
-                  recorder_name: dormRecordData.recorder_name,
+                  recorder_name: app.globalData.userInfo?.nickName || app.globalData.userInfo?.name || '未知',
                   date: new Date()
                 }
               }

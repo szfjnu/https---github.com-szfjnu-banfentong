@@ -23,6 +23,8 @@ exports.main = async (event, context) => {
         return await adjustDormScore(data || event, caller)
       case 'batchConvertDormScore':
         return await batchConvertDormScore(data || {}, caller)
+      case 'addDormScoreRecord':
+        return await addDormScoreRecord(data || {}, caller)
       default:
         return { success: false, message: '未知操作' }
     }
@@ -218,4 +220,50 @@ function calculateScoreLevel(score) {
   if (score >= 70) return '中等'
   if (score >= 60) return '及格'
   return '不及格'
+}
+
+async function addDormScoreRecord(data, caller) {
+  const { class_id, semester_id, student_id, item_name, score_change, building, room, date, link_to_personal } = data
+
+  if (!class_id || !student_id || score_change === undefined) {
+    return { success: false, message: '缺少必要参数: class_id, student_id, score_change' }
+  }
+
+  let semesterId = semester_id
+  if (!semesterId) {
+    const semesterRes = await db.collection('semesters').where({ class_id, status: 'active' }).get()
+    if (semesterRes.data.length === 0) {
+      const fallbackRes = await db.collection('semesters').where({ status: 'active' }).get()
+      if (fallbackRes.data.length === 0) return { success: false, message: '未找到当前学期' }
+      semesterId = fallbackRes.data[0]._id
+    } else {
+      semesterId = semesterRes.data[0]._id
+    }
+  }
+
+  const recordData = {
+    class_id,
+    semester_id: semesterId,
+    student_id,
+    item_name: item_name || '宿舍积分记录',
+    score_change,
+    building: building || '',
+    room: room || '',
+    date: date || new Date().toISOString().split('T')[0],
+    link_to_personal: link_to_personal !== false,
+    created_at: db.serverDate()
+  }
+
+  const addRes = await db.collection('dorm_score_records').add({ data: recordData })
+
+  if (link_to_personal !== false) {
+    await adjustDormScore({
+      student_id,
+      dorm_score_change: score_change,
+      semester_id: semesterId,
+      class_id
+    }, caller)
+  }
+
+  return { success: true, message: '宿舍积分记录已添加', data: { record_id: addRes._id } }
 }

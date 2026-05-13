@@ -32,6 +32,7 @@
           <view class="task-info">
             <text class="task-name">{{item.task_name || '未分配'}}</text>
             <text class="task-meta">{{item.student_name}} | {{item.group_name}}</text>
+            <text class="task-student-link" bindtap="onViewStudent" data-id="{{item.student_id}}" data-docid="{{item._id}}">查看详情</text>
           </view>
         </view>
         <view class="task-right">

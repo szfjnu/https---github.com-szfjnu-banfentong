@@ -172,10 +172,12 @@ async function toggleRuleStatus(data, caller) {
 }
 
 async function updateRule(data, caller) {
-  const { ruleId, ...updateFields } = data || {}
-  if (!ruleId) return { success: false, message: '缺少必要参数: ruleId' }
+  const { ruleId, _id, ...updateFields } = data || {}
+  const effectiveId = ruleId || _id
+  if (!effectiveId) return { success: false, message: '缺少必要参数: ruleId' }
   try {
-    await db.collection('dorm_rules').doc(ruleId).update({ data: updateFields })
+    const now = db.serverDate()
+    await db.collection('dorm_rules').doc(effectiveId).update({ data: { ...updateFields, updated_at: now } })
     return { success: true }
   } catch (err) {
     console.error('updateRule失败:', err)

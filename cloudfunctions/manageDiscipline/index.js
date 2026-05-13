@@ -278,6 +278,39 @@ async function addDisciplineRecord(data, caller) {
     .where({ student_id, status: 'active', is_deleted: _.neq(true) })
     .get();
 
+  // 检查是否存在同学生同级别的软删除记录，如有则恢复而非新建
+  const softDeletedRes = await db.collection('discipline_records')
+    .where({ student_id, discipline_level: level_name, is_deleted: true })
+    .limit(1)
+    .get();
+
+  if (softDeletedRes.data && softDeletedRes.data.length > 0) {
+    const existingDoc = softDeletedRes.data[0];
+    await db.collection('discipline_records').doc(existingDoc._id).update({
+      data: {
+        reason,
+        issue_date: issueDate,
+        issuer: issuer || '',
+        document_id: document_id || '',
+        score_deduction: score_deduction || 0,
+        status: 'active',
+        is_revoked: false,
+        is_deleted: false,
+        probation_months: probation_months || 0,
+        thought_reports_required: thought_reports_required || 0,
+        service_hours_required: service_hours_required || 0,
+        thought_completed: 0,
+        service_completed_hours: 0,
+        expiration_date,
+        affects_excellence_award: affects_excellence_award !== false,
+        semester_id: semester_id || '',
+        updated_at: now,
+        updated_by: caller.openid
+      }
+    });
+    return { success: true, data: { record_id: existingDoc.record_id, restored: true } };
+  }
+
   // 如果有旧处分未撤销，新处分的考察期从新处分生效日起重新统计
   // 这个逻辑在前端展示时处理
 

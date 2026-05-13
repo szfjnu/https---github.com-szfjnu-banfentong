@@ -12,11 +12,12 @@ const { importGradeHandler } = require('./handlers/importGrade')
 const { getCallerInfo, requireTeacher, requireAdmin, AUTH_ERRORS } = require('./utils/auth')
 const { checkPermission } = require('./utils/permission')
 
-const IMPORT_ACTIONS = ['importStudent', 'importSchedule', 'importGrade']
-const DATA_TRANSFER_ACTIONS = ['importStudent', 'importSchedule', 'importGrade', 'exportStudent', 'exportScoreRecords', 'exportAttendance']
+const IMPORT_ACTIONS = ['importStudent', 'importStudents', 'importSchedule', 'importGrade']
+const DATA_TRANSFER_ACTIONS = ['importStudent', 'importStudents', 'importSchedule', 'importGrade', 'exportStudent', 'exportScoreRecords', 'exportAttendance']
 
 const DEFAULT_TRANSFER_PERMISSIONS = {
   importStudent: false,
+  importStudents: false,
   importSchedule: true,
   importGrade: true,
   exportStudent: false,
@@ -91,6 +92,9 @@ exports.main = async (event, context) => {
     let result
     switch (action) {
       case 'importStudent':
+        result = await importStudentHandler(data || {}, caller.openid)
+        break
+      case 'importStudents':
         result = await importStudentHandler(data || {}, caller.openid)
         break
       case 'exportStudent':

@@ -782,11 +782,13 @@ const dormScoreApi = {
   },
 
   addDormScoreRecord: async (data) => {
-    data.created_at = db.serverDate();
     try {
       const res = await wx.cloud.callFunction({
         name: 'convertDormScore',
-        data
+        data: {
+          action: data.action || 'addDormScoreRecord',
+          data
+        }
       });
       return res.result;
     } catch (err) {

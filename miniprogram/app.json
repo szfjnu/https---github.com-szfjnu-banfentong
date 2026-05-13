@@ -130,7 +130,7 @@
       "pages": [
         "login/login",
         "welcome/welcome",
-        "join/join",
+        "join/join/join",
         "join/info/info",
         "join/bind/bind",
         "join/confirm/confirm",

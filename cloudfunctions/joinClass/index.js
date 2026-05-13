@@ -6,7 +6,7 @@ cloud.init({
 
 const db = cloud.database()
 const _ = db.command
-const { getCallerInfo, requireTeacher, requireAdmin } = require('./utils/auth')
+const { getCallerInfo, requireTeacher, requireAdmin, requireClassAccess } = require('./utils/auth')
 
 exports.main = async (event, context) => {
   const { action, data } = event
@@ -46,6 +46,18 @@ exports.main = async (event, context) => {
         return await transferClass(data, caller)
       case 'dissolveClass':
         return await dissolveClass(data, caller)
+      case 'addStudent':
+        return await addStudent(data, caller)
+      case 'updateStudent':
+        return await updateStudent(data, caller)
+      case 'deleteStudent':
+        return await deleteStudent(data, caller)
+      case 'addRelation':
+        return await addRelation(data, caller)
+      case 'updateRelation':
+        return await updateRelation(data, caller)
+      case 'deleteRelation':
+        return await deleteRelation(data, caller)
       default:
         return { success: false, message: '未知操作' }
     }
@@ -719,4 +731,273 @@ async function dissolveClass(data, caller) {
   }
 
   return { success: true, data: { classId, dissolvedStudents: allStudents.length } }
+}
+
+async function addStudent(data, caller) {
+  const { class_id, classId, student_id, name, student_name } = data
+  const effectiveClassId = class_id || classId
+  if (!effectiveClassId) {
+    return { success: false, error: '请提供班级ID' }
+  }
+
+  requireClassAccess(caller, effectiveClassId, ['head_teacher', 'subject_teacher', 'admin'])
+
+  const effectiveStudentId = student_id
+  const effectiveName = student_name || name
+  if (!effectiveStudentId) {
+    return { success: false, error: '请提供学号' }
+  }
+  if (!effectiveName) {
+    return { success: false, error: '请提供学生姓名' }
+  }
+
+  const existRes = await db.collection('students')
+    .where({
+      student_id: effectiveStudentId,
+      class_id: effectiveClassId
+    })
+    .limit(1)
+    .get()
+
+  if (existRes.data.length > 0) {
+    return { success: false, error: '该学号已存在于本班级' }
+  }
+
+  const studentData = {
+    name: effectiveName,
+    student_name: effectiveName,
+    student_id: effectiveStudentId,
+    class_id: effectiveClassId,
+    current_score: data.current_score || 100,
+    initial_score: data.initial_score || 100,
+    dorm_score: data.dorm_score || 100,
+    created_at: db.serverDate(),
+    updated_at: db.serverDate()
+  }
+
+  const allowedFields = ['phone', 'gender', 'dorm_number', 'parent_name', 'parent_phone', 'remark']
+  for (const field of allowedFields) {
+    if (data[field] !== undefined) studentData[field] = data[field]
+  }
+
+  await db.collection('students').add({ data: studentData })
+
+  const relationData = {
+    user_openid: data.user_openid || caller.openid,
+    class_id: effectiveClassId,
+    role: data.role || 'student',
+    is_owner: false,
+    student_id: effectiveStudentId,
+    status: 'joined',
+    apply_info: { name: effectiveName },
+    join_time: db.serverDate(),
+    created_at: db.serverDate(),
+    updated_at: db.serverDate()
+  }
+
+  if (data.user_openid) {
+    const existRelationRes = await db.collection('user_class_relation')
+      .where({
+        user_openid: data.user_openid,
+        class_id: effectiveClassId,
+        status: _.in(['joined', 'pending'])
+      })
+      .limit(1)
+      .get()
+
+    if (existRelationRes.data.length > 0) {
+      return { success: true, data: { student_id: effectiveStudentId, class_id: effectiveClassId, relationSkipped: true } }
+    }
+  }
+
+  await db.collection('user_class_relation').add({ data: relationData })
+
+  return { success: true, data: { student_id: effectiveStudentId, class_id: effectiveClassId } }
+}
+
+async function updateStudent(data, caller) {
+  const { studentId, student_id, class_id, classId } = data
+  const effectiveClassId = class_id || classId
+  if (!studentId && !student_id) {
+    return { success: false, error: '请提供学生ID或学号' }
+  }
+
+  if (effectiveClassId) {
+    requireClassAccess(caller, effectiveClassId, ['head_teacher', 'subject_teacher', 'admin'])
+  } else {
+    requireTeacher(caller)
+  }
+
+  let studentDocId
+  if (studentId) {
+    studentDocId = studentId
+  } else {
+    const res = await db.collection('students')
+      .where({ student_id: student_id })
+      .limit(1)
+      .get()
+    if (res.data.length === 0) {
+      return { success: false, error: '未找到该学生' }
+    }
+    studentDocId = res.data[0]._id
+  }
+
+  const updateData = { updated_at: db.serverDate() }
+  const allowedFields = ['name', 'student_name', 'student_id', 'class_id', 'current_score', 'initial_score', 'dorm_score', 'phone', 'gender', 'dorm_number', 'parent_name', 'parent_phone', 'remark', 'status']
+  for (const field of allowedFields) {
+    if (data[field] !== undefined) updateData[field] = data[field]
+  }
+
+  await db.collection('students').doc(studentDocId).update({ data: updateData })
+
+  return { success: true, data: { studentId: studentDocId } }
+}
+
+async function deleteStudent(data, caller) {
+  const { studentId, student_id, class_id, classId } = data
+  const effectiveClassId = class_id || classId
+
+  if (!studentId && !student_id) {
+    return { success: false, error: '请提供学生ID或学号' }
+  }
+
+  if (effectiveClassId) {
+    requireClassAccess(caller, effectiveClassId, ['head_teacher', 'subject_teacher', 'admin'])
+  } else {
+    requireTeacher(caller)
+  }
+
+  let student
+  if (studentId) {
+    const res = await db.collection('students').doc(studentId).get()
+    student = res.data
+  } else {
+    const res = await db.collection('students')
+      .where({ student_id: student_id })
+      .limit(1)
+      .get()
+    if (res.data.length === 0) {
+      return { success: false, error: '未找到该学生' }
+    }
+    student = res.data[0]
+  }
+
+  await db.collection('students').doc(student._id).update({
+    data: { status: 'removed', updated_at: db.serverDate() }
+  })
+
+  const effectiveClassIdForRelation = effectiveClassId || student.class_id
+  if (student.student_id && effectiveClassIdForRelation) {
+    const relationRes = await db.collection('user_class_relation')
+      .where({
+        student_id: student.student_id,
+        class_id: effectiveClassIdForRelation,
+        status: 'joined'
+      })
+      .limit(1)
+      .get()
+
+    if (relationRes.data.length > 0) {
+      await db.collection('user_class_relation').doc(relationRes.data[0]._id).update({
+        data: { status: 'removed', updated_at: db.serverDate() }
+      })
+    }
+  }
+
+  return { success: true, data: { studentId: student._id, student_id: student.student_id } }
+}
+
+async function addRelation(data, caller) {
+  const { user_openid, class_id, classId, role, student_id, is_owner, apply_info } = data
+  const effectiveClassId = class_id || classId
+
+  if (!user_openid || !effectiveClassId || !role) {
+    return { success: false, error: '请提供 user_openid、班级ID 和 role' }
+  }
+
+  requireClassAccess(caller, effectiveClassId, ['head_teacher', 'subject_teacher', 'admin'])
+
+  const existRes = await db.collection('user_class_relation')
+    .where({
+      user_openid: user_openid,
+      class_id: effectiveClassId,
+      status: _.in(['joined', 'pending'])
+    })
+    .limit(1)
+    .get()
+
+  if (existRes.data.length > 0) {
+    return { success: false, error: '该用户已在此班级中', alreadyExists: true }
+  }
+
+  const relationData = {
+    user_openid,
+    class_id: effectiveClassId,
+    role,
+    is_owner: is_owner || false,
+    status: data.status || 'joined',
+    join_time: db.serverDate(),
+    created_at: db.serverDate(),
+    updated_at: db.serverDate()
+  }
+
+  if (student_id) relationData.student_id = student_id
+  if (apply_info) relationData.apply_info = apply_info
+
+  const allowedFields = ['real_name', 'phone', 'remark']
+  for (const field of allowedFields) {
+    if (data[field] !== undefined) relationData[field] = data[field]
+  }
+
+  const addRes = await db.collection('user_class_relation').add({ data: relationData })
+
+  return { success: true, data: { _id: addRes._id, user_openid, class_id: effectiveClassId, role } }
+}
+
+async function updateRelation(data, caller) {
+  const { relationId, class_id, classId } = data
+  if (!relationId) {
+    return { success: false, error: '请提供关系记录ID' }
+  }
+
+  let relationRes
+  try {
+    relationRes = await db.collection('user_class_relation').doc(relationId).get()
+  } catch (err) {
+    return { success: false, error: '未找到该关系记录' }
+  }
+
+  const effectiveClassId = class_id || classId || relationRes.data.class_id
+  requireClassAccess(caller, effectiveClassId, ['head_teacher', 'subject_teacher', 'admin'])
+
+  const updateData = { updated_at: db.serverDate() }
+  const allowedFields = ['role', 'is_owner', 'student_id', 'status', 'apply_info', 'real_name', 'phone', 'remark']
+  for (const field of allowedFields) {
+    if (data[field] !== undefined) updateData[field] = data[field]
+  }
+
+  await db.collection('user_class_relation').doc(relationId).update({ data: updateData })
+
+  return { success: true, data: { relationId } }
+}
+
+async function deleteRelation(data, caller) {
+  const { relationId } = data
+  if (!relationId) {
+    return { success: false, error: '请提供关系记录ID' }
+  }
+
+  let relationRes
+  try {
+    relationRes = await db.collection('user_class_relation').doc(relationId).get()
+  } catch (err) {
+    return { success: false, error: '未找到该关系记录' }
+  }
+
+  const effectiveClassId = relationRes.data.class_id
+  requireClassAccess(caller, effectiveClassId, ['head_teacher', 'subject_teacher', 'admin'])
+
+  await db.collection('user_class_relation').doc(relationId).remove()
+
+  return { success: true, data: { relationId } }
 }

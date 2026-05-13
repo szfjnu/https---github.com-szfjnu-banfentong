@@ -2,6 +2,7 @@
 const app = getApp();
 const api = require('../../../utils/api.js');
 const util = require('../../../utils/util.js');
+const batchQuery = require('../../utils/batchQuery.js');
 
 Page({
   data: {
@@ -129,17 +130,13 @@ Page({
   // 加载学生列表
   loadStudents: async function () {
     try {
-      const db = wx.cloud.database();
-      const res = await db.collection('students')
-        .where({
-          class_id: this.data.currentClassId,
-          status: db.command.neq('graduated')
-        })
-        .orderBy('name', 'asc')
-        .get();
+      const _ = wx.cloud.database().command;
+      const studentsData = await batchQuery.getAllRecords('students', {
+        class_id: this.data.currentClassId,
+        status: _.neq('graduated')
+      }, 'name', 'asc');
 
-      // 为每个学生添加 student_name 字段（兼容显示）
-      const students = (res.data || []).map(s => ({
+      const students = (studentsData || []).map(s => ({
         ...s,
         student_name: s.name || ''
       }));
@@ -443,13 +440,10 @@ Page({
           semester_id: currentSemesterId,
           class_id: currentClassId,
           is_verified: isVerified,
-          approval_status: approvalStatus,
-          created_at: db.serverDate(),
-          updated_at: db.serverDate()
+          approval_status: approvalStatus
         };
         
         if (isVerified) {
-          volunteerData.verified_at = db.serverDate();
           volunteerData.verifier_openid = app.globalData.openid;
           volunteerData.verifier_name = volunteerData.recorder_name;
         }

@@ -2,7 +2,7 @@
 const app = getApp();
 const util = require('../../../utils/util.js');
 const excelTransfer = require('../../utils/excelTransfer.js');
-const batchQuery = require('../../../utils/batchQuery.js');
+const batchQuery = require('../../utils/batchQuery.js');
 
 Page({
   data: {

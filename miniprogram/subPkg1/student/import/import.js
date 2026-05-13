@@ -31,16 +31,22 @@ Page({
       { name: 'parent_name', label: '家长姓名', required: false, example: '张父' },
       { name: 'parent_phone', label: '家长电话', required: false, example: '13900139000' },
       { name: 'address', label: '家庭住址', required: false, example: 'XX市XX区XX街道' },
-      { name: 'initial_score', label: '初始积分', required: false, example: '100' }
+      { name: 'initial_score', label: '初始积分', required: false, example: '100' },
+      { name: 'date_of_birth', label: '出生日期', required: false, example: '2008-01-15' },
+      { name: 'ethnicity', label: '民族', required: false, example: '汉族' },
+      { name: 'political_status', label: '政治面貌', required: false, example: '共青团员' },
+      { name: 'enrollment_date', label: '入学日期', required: false, example: '2024-09-01' }
     ],
     
     // 示例模板
-    templateExample: '学号,姓名,性别,住宿,班干部,联系电话,家长姓名,家长电话,家庭住址,初始积分\n2024001,张三,男,是,班长,13800138000,张父,13900139000,XX市XX区,100\n2024002,李四,女,否,学习委员,13800138001,李母,13900139001,XX市XX区,100',
+    templateExample: '学号,姓名,性别,住宿,班干部,联系电话,家长姓名,家长电话,家庭住址,初始积分,出生日期,民族,政治面貌,入学日期\n2024001,张三,男,是,班长,13800138000,张父,13900139000,XX市XX区,100,2008-01-15,汉族,共青团员,2024-09-01\n2024002,李四,女,否,学习委员,13800138001,李母,13900139001,XX市XX区,100,2008-03-20,汉族,群众,2024-09-01',
     
     // 导入状态
     importing: false,
     importProgress: 0,
-    importResult: null
+    importResult: null,
+    duplicateCount: 0,
+    overwriteConfirmed: false
   },
 
   onLoad: function (options) {
@@ -165,7 +171,11 @@ Page({
         parent_name: this.findFieldIndex(headers, ['家长姓名', 'parent_name', '家长']),
         parent_phone: this.findFieldIndex(headers, ['家长电话', 'parent_phone']),
         address: this.findFieldIndex(headers, ['家庭住址', 'address', '住址', '地址']),
-        initial_score: this.findFieldIndex(headers, ['初始积分', 'initial_score', '积分'])
+        initial_score: this.findFieldIndex(headers, ['初始积分', 'initial_score', '积分']),
+        date_of_birth: this.findFieldIndex(headers, ['出生日期', 'date_of_birth', '生日', 'birth_date', 'birthday']),
+        ethnicity: this.findFieldIndex(headers, ['民族', 'ethnicity', 'nation']),
+        political_status: this.findFieldIndex(headers, ['政治面貌', 'political_status', 'political']),
+        enrollment_date: this.findFieldIndex(headers, ['入学日期', 'enrollment_date'])
       };
       
       // 检查必填字段
@@ -196,7 +206,11 @@ Page({
           parent_name: fieldIndex.parent_name >= 0 ? values[fieldIndex.parent_name]?.trim() : '',
           parent_phone: fieldIndex.parent_phone >= 0 ? values[fieldIndex.parent_phone]?.trim() : '',
           address: fieldIndex.address >= 0 ? values[fieldIndex.address]?.trim() : '',
-          initial_score: fieldIndex.initial_score >= 0 ? parseInt(values[fieldIndex.initial_score]) || 100 : 100
+          initial_score: fieldIndex.initial_score >= 0 ? parseInt(values[fieldIndex.initial_score]) || 100 : 100,
+          date_of_birth: fieldIndex.date_of_birth >= 0 ? values[fieldIndex.date_of_birth]?.trim() : '',
+          ethnicity: fieldIndex.ethnicity >= 0 ? values[fieldIndex.ethnicity]?.trim() : '',
+          political_status: fieldIndex.political_status >= 0 ? values[fieldIndex.political_status]?.trim() : '',
+          enrollment_date: fieldIndex.enrollment_date >= 0 ? values[fieldIndex.enrollment_date]?.trim() : ''
         };
         
         // 验证数据
@@ -345,8 +359,13 @@ Page({
         const rows = res.data.rows
         const validCount = res.data.validCount || 0
         const invalidCount = res.data.invalidCount || 0
-        this.setData({ previewData: rows, validCount, invalidCount })
-        util.showSuccess(`解析完成：${validCount}条有效，${invalidCount}条无效`)
+        const duplicateCount = res.data.duplicateCount || 0
+        this.setData({ previewData: rows, validCount, invalidCount, duplicateCount })
+        let msg = `解析完成：${validCount}条有效，${invalidCount}条无效`
+        if (duplicateCount > 0) {
+          msg += `，${duplicateCount}条重复学号`
+        }
+        util.showSuccess(msg)
       }
     } catch (err) {
       wx.hideLoading()
@@ -356,16 +375,34 @@ Page({
   },
 
   onConfirmImport: async function () {
-    const { previewData, classId, validCount, importMethod } = this.data;
+    const { previewData, classId, validCount, importMethod, duplicateCount, overwriteConfirmed } = this.data;
     
     if (validCount === 0) {
       util.showError('没有有效数据可导入');
       return;
     }
     
+    if (duplicateCount > 0 && !overwriteConfirmed) {
+      wx.showModal({
+        title: '发现重复数据',
+        content: `发现${duplicateCount}条重复学号数据，确认导入将跳过已有记录。如需覆盖已有信息，请勾选"覆盖已存在的学生数据"后重试。`,
+        confirmText: '继续导入',
+        success: async (res) => {
+          if (res.confirm) {
+            if (importMethod === 'excel') {
+              await this.doExcelImport();
+            } else {
+              await this.doImport();
+            }
+          }
+        }
+      });
+      return;
+    }
+    
     wx.showModal({
       title: '确认导入',
-      content: `即将导入 ${validCount} 条学生数据，是否继续？`,
+      content: `即将导入 ${validCount} 条学生数据${overwriteConfirmed ? '（覆盖已有记录）' : ''}，是否继续？`,
       success: async (res) => {
         if (res.confirm) {
           if (importMethod === 'excel') {
@@ -378,8 +415,12 @@ Page({
     });
   },
 
+  onOverwriteChange: function (e) {
+    this.setData({ overwriteConfirmed: e.detail.value });
+  },
+
   doExcelImport: async function () {
-    const { previewData, classId, className, excelFileID } = this.data
+    const { previewData, classId, className, excelFileID, overwriteConfirmed } = this.data
     this.setData({ importing: true, importProgress: 0 })
     wx.showLoading({ title: '导入中...', mask: true })
     try {
@@ -388,7 +429,8 @@ Page({
         classId,
         className,
         confirm: true,
-        previewData
+        previewData,
+        overwrite: overwriteConfirmed
       })
       wx.hideLoading()
       const result = res.data || {}
@@ -399,6 +441,7 @@ Page({
           successCount: result.successCount || 0,
           failCount: result.failCount || 0,
           skipCount: result.skipCount || 0,
+          overwriteCount: result.overwriteCount || 0,
           errors: result.errors || []
         }
       })
@@ -426,12 +469,16 @@ Page({
         gender: s.gender || '男',
         is_boarding: s.is_boarding || false,
         position: s.position || '',
-        phone: s.phone || '',
+        phone_number: s.phone || '',
         parent_name: s.parent_name || '',
-        parent_phone: s.parent_phone || '',
-        address: s.address || '',
+        parent_phone_number: s.parent_phone || '',
+        home_address: s.address || '',
         initial_score: s.initial_score || 100,
-        current_score: s.initial_score || 100
+        current_score: s.initial_score || 100,
+        date_of_birth: s.date_of_birth || '',
+        ethnicity: s.ethnicity || '',
+        political_status: s.political_status || '',
+        enrollment_date: s.enrollment_date || ''
       }));
 
       const res = await wx.cloud.callFunction({
@@ -452,6 +499,7 @@ Page({
         successCount: result.successCount || 0,
         failCount: result.failCount || 0,
         skipCount: result.skipCount || 0,
+        overwriteCount: result.overwriteCount || 0,
         errors: (result.errors || []).slice(0, 10)
       };
       
@@ -485,7 +533,9 @@ Page({
       validCount: 0,
       invalidCount: 0,
       importResult: null,
-      importMethod: 'paste'
+      importMethod: 'paste',
+      duplicateCount: 0,
+      overwriteConfirmed: false
     });
   }
 });

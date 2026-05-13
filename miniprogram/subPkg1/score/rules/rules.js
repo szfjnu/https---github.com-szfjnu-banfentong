@@ -496,8 +496,6 @@ Page({
       if (editingRule && editingRule._id) {
         // 更新 - 创建版本快照
         await this.createVersionSnapshot(editingRule, data);
-        // 更新 - 创建版本快照
-        await this.createVersionSnapshot(editingRule, data);
         
         // 更新规则
         const updateRes = await wx.cloud.callFunction({

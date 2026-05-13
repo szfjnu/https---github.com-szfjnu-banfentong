@@ -76,7 +76,7 @@ studentLoader.filterByStudentStatus = async function (students, currentSemesterI
 studentLoader.loadStudentsByGroup = async function (groupName, currentClassId, appGlobalClassId) {
   var db = wx.cloud.database();
   var _ = db.command;
-  var batchQuery = require('../../../../utils/batchQuery.js');
+  var batchQuery = require('../../../utils/batchQuery.js');
   var dataFormatter = require('./dataFormatter.js');
 
   var groupQuery = {

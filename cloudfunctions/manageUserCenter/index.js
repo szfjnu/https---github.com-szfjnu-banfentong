@@ -59,32 +59,32 @@ exports.main = async (event, context) => {
     switch (action) {
       case 'updateUser': return await updateUser(data, caller);
       case 'initUserMembership': return await initUserMembershipDirect(caller.openid);
-      case 'getUserProfile': return await getUserProfile(data, caller);
-      case 'updateUserProfile': return await updateUserProfile(data, caller);
+      case 'getUserProfile': return await getUserProfile(data, caller.openid);
+      case 'updateUserProfile': return await updateUserProfile(data, caller.openid);
 
-      case 'getUserSettings': return await getUserSettings(caller);
-      case 'updateUserSettings': return await updateUserSettings(data, caller);
-      case 'updateNotificationPreference': return await updateNotificationPreference(data, caller);
+      case 'getUserSettings': return await getUserSettings(caller.openid);
+      case 'updateUserSettings': return await updateUserSettings(data, caller.openid);
+      case 'updateNotificationPreference': return await updateNotificationPreference(data, caller.openid);
 
       case 'publishNotification': requireClassAccess(caller, data.class_id, ['head_teacher', 'admin']); return await publishNotification(data, caller);
       case 'recallNotification': requireTeacher(caller); return await recallNotification(data, caller);
-      case 'getPublishedNotifications': return await getPublishedNotifications(data, caller);
+      case 'getPublishedNotifications': return await getPublishedNotifications(data, caller.openid);
 
-      case 'getNotifications': return await getNotifications(data, caller);
-      case 'getNotificationDetail': return await getNotificationDetail(data, caller);
-      case 'markAsRead': return await markAsRead(data, caller);
-      case 'markAllAsRead': return await markAllAsRead(data, caller);
-      case 'getUnreadCount': return await getUnreadCount(data, caller);
-      case 'toggleStar': return await toggleStar(data, caller);
-      case 'deleteNotification': return await deleteNotification(data, caller);
+      case 'getNotifications': return await getNotifications(data, caller.openid);
+      case 'getNotificationDetail': return await getNotificationDetail(data, caller.openid);
+      case 'markAsRead': return await markAsRead(data, caller.openid);
+      case 'markAllAsRead': return await markAllAsRead(data, caller.openid);
+      case 'getUnreadCount': return await getUnreadCount(data, caller.openid);
+      case 'toggleStar': return await toggleStar(data, caller.openid);
+      case 'deleteNotification': return await deleteNotification(data, caller.openid);
 
       case 'sendSystemNotification': requireTeacher(caller); return await sendSystemNotification(data, caller);
 
       case 'getNotificationTypes': return { success: true, data: NOTIFICATION_TYPES };
 
-      case 'updateStudentInfo': return await updateStudentInfo(data, caller);
+      case 'updateStudentInfo': return await updateStudentInfo(data, caller.openid);
       case 'getStudentDetail': return await getStudentDetail(data, caller);
-      case 'getAccessibleStudents': return await getAccessibleStudents(data, caller);
+      case 'getAccessibleStudents': return await getAccessibleStudents(data, caller.openid);
 
       case 'getClassInfo': return await getClassInfo(data, caller);
 
@@ -1107,24 +1107,36 @@ async function updateStudentInfo(data, openid) {
   }
 }
 
-async function getStudentDetail(data, openid) {
+async function getStudentDetail(data, callerOrOpenid) {
   const { target_student_id, operation_type } = data;
+
+  let openid, callerRole;
+  if (typeof callerOrOpenid === 'object' && callerOrOpenid.openid) {
+    openid = callerOrOpenid.openid;
+    callerRole = callerOrOpenid.role;
+  } else {
+    openid = callerOrOpenid;
+  }
+
   console.log('[getStudentDetail] 操作场景:', operation_type || '未指定', '目标学生ID:', target_student_id);
   
   if (!target_student_id) {
     return { success: false, message: '缺少目标学生ID' };
   }
 
-  const userRes = await db.collection('users')
-    .where({ _openid: openid })
-    .limit(1)
-    .get();
-
-  let userRole = '';
+  let userRole = callerRole || '';
   let userId = '';
-  if (userRes.data && userRes.data.length > 0) {
-    userRole = userRes.data[0].role || '';
-    userId = userRes.data[0]._id;
+
+  if (!userRole) {
+    const userRes = await db.collection('users')
+      .where({ _openid: openid })
+      .limit(1)
+      .get();
+
+    if (userRes.data && userRes.data.length > 0) {
+      userRole = userRes.data[0].role || '';
+      userId = userRes.data[0]._id;
+    }
   }
 
   if (!userRole) {
@@ -1164,7 +1176,7 @@ async function getStudentDetail(data, openid) {
   console.log('[getStudentDetail] 找到学生记录:', { studentDocId, student_id: studentRecord.student_id });
 
   let permission_level = 'no_access';
-  const allowedRoles = ['admin', 'head_teacher', 'class_teacher'];
+  const allowedRoles = ['admin', 'head_teacher', 'subject_teacher'];
 
   if (allowedRoles.includes(userRole)) {
     permission_level = 'full_access';

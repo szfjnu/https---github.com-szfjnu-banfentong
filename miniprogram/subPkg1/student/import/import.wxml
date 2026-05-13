@@ -20,6 +20,10 @@
         <text class="result-num">{{importResult.skipCount}}</text>
         <text class="result-label">跳过(已存在)</text>
       </view>
+      <view class="result-item overwrite" wx:if="{{importResult.overwriteCount > 0}}">
+        <text class="result-num">{{importResult.overwriteCount}}</text>
+        <text class="result-label">覆盖</text>
+      </view>
       <view class="result-item fail" wx:if="{{importResult.failCount > 0}}">
         <text class="result-num">{{importResult.failCount}}</text>
         <text class="result-label">失败</text>
@@ -124,6 +128,17 @@
         <view class="preview-stats">
           <text class="stat-valid">有效：{{validCount}}</text>
           <text class="stat-invalid" wx:if="{{invalidCount > 0}}">无效：{{invalidCount}}</text>
+          <text class="stat-duplicate" wx:if="{{duplicateCount > 0}}">重复：{{duplicateCount}}</text>
+        </view>
+      </view>
+
+      <!-- 重复数据提醒 -->
+      <view class="duplicate-warning" wx:if="{{duplicateCount > 0}}">
+        <text class="warning-icon">⚠️</text>
+        <text class="warning-text">发现{{duplicateCount}}条重复学号数据，确认导入将覆盖已有信息</text>
+        <view class="overwrite-option">
+          <switch checked="{{overwriteConfirmed}}" bindchange="onOverwriteChange" color="#ff4d4f" />
+          <text class="overwrite-label">覆盖已存在的学生数据</text>
         </view>
       </view>
       
@@ -131,20 +146,20 @@
         <view class="preview-item {{item.valid ? 'valid' : 'invalid'}}" wx:for="{{previewData}}" wx:key="rowIndex">
           <view class="preview-main">
             <view class="preview-info">
-              <text class="preview-name">{{item.name}}</text>
-              <text class="preview-id">{{item.student_id}}</text>
+              <text class="preview-name">{{item.student.name || item.name}}</text>
+              <text class="preview-id">{{item.student.student_id || item.student_id}}</text>
             </view>
             <view class="preview-detail">
-              <text wx:if="{{item.gender}}">{{item.gender}}</text>
-              <text wx:if="{{item.is_boarding}}">住宿</text>
-              <text wx:if="{{item.position}}">{{item.position}}</text>
+              <text wx:if="{{item.student.gender || item.gender}}">{{item.student.gender || item.gender}}</text>
+              <text wx:if="{{item.student.is_boarding || item.is_boarding}}">住宿</text>
+              <text wx:if="{{item.student.position || item.position}}">{{item.student.position || item.position}}</text>
             </view>
           </view>
           <view class="preview-status">
             <text class="status-valid" wx:if="{{item.valid}}">✓</text>
             <view class="status-invalid" wx:else>
               <text class="status-icon">✗</text>
-              <text class="status-error">{{item.errors[0]}}</text>
+              <text class="status-error">{{item.errors[0] || item.student.errors[0]}}</text>
             </view>
           </view>
           <view class="preview-actions">

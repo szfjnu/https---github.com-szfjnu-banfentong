@@ -16,7 +16,9 @@ const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('./utils/auth')
 exports.main = async (event, context) => {
   const db = cloud.database()
   const _ = db.command
-  const { recordType, recordId, classId } = event
+  const { action, data } = event
+  const params = (data && typeof data === 'object') ? data : event
+  const { recordType, recordId, classId } = params
 
   if (!recordType || !recordId) {
     return {

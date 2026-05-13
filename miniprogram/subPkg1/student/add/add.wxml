@@ -69,14 +69,12 @@
 
       <view class="form-item">
         <text class="form-label">民族</text>
-        <input 
-          class="form-input" 
-          name="ethnicity" 
-          placeholder="请输入民族（选填）"
-          value="{{formData.ethnicity}}"
-          bindinput="onInputChange"
-          data-field="ethnicity"
-        />
+        <picker mode="selector" range="{{ethnicityOptions}}" value="{{ethnicityIndex}}" bindchange="onEthnicityChange">
+          <view class="picker-value">
+            <text>{{ethnicityOptions[ethnicityIndex] || '请选择'}}</text>
+            <text class="arrow">▼</text>
+          </view>
+        </picker>
       </view>
 
       <view class="form-item">

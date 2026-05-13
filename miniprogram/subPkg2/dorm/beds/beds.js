@@ -75,25 +75,43 @@ Page({
       const bedsWithStudents = await Promise.all(beds.map(async (bed) => {
         let student = null;
 
-        console.log('处理床位:', bed.bed_number, 'occupied:', bed.occupied, 'student_id:', bed.student_id);
-
-        if (bed.occupied === true && bed.student_id && bed.student_id.trim() !== '') {
+        if (bed.occupied === true) {
           try {
-            console.log('获取床位学生的信息，学生ID:', bed.student_id);
-            let studentRes = await db.collection('students')
-              .where({ _id: bed.student_id })
-              .limit(1)
-              .get();
-            if (!studentRes.data || studentRes.data.length === 0) {
-              studentRes = await db.collection('students')
-                .where({ student_id: bed.student_id })
+            if (bed.student_id) {
+              try {
+                const docRes = await db.collection('students').doc(bed.student_id).get();
+                student = docRes.data;
+              } catch (e) {
+                // doc() 方式失败，尝试 where 查询
+              }
+              if (!student) {
+                let studentRes = await db.collection('students')
+                  .where({ _id: bed.student_id })
+                  .limit(1)
+                  .get();
+                if (studentRes.data && studentRes.data.length > 0) {
+                  student = studentRes.data[0];
+                }
+              }
+              if (!student) {
+                let studentRes = await db.collection('students')
+                  .where({ student_id: bed.student_id })
+                  .limit(1)
+                  .get();
+                if (studentRes.data && studentRes.data.length > 0) {
+                  student = studentRes.data[0];
+                }
+              }
+            }
+            if (!student) {
+              let studentRes = await db.collection('students')
+                .where({ dorm_bed_id: bed._id })
                 .limit(1)
                 .get();
+              if (studentRes.data && studentRes.data.length > 0) {
+                student = studentRes.data[0];
+              }
             }
-            if (studentRes.data && studentRes.data.length > 0) {
-              student = studentRes.data[0];
-            }
-            console.log('学生信息:', student);
           } catch (err) {
             console.error('获取学生信息失败:', err);
             student = null;

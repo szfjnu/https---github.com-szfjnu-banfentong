@@ -1,4 +1,4 @@
-const batchQuery = require('../../../utils/batchQuery.js');
+const batchQuery = require('../../../../utils/batchQuery.js');
 
 const studentLoader = {
   loadEditStudents: async function (classId, selectedDate) {

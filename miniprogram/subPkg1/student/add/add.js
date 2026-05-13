@@ -2,6 +2,7 @@
 const app = getApp();
 const api = require('../../../utils/api.js');
 const util = require('../../../utils/util.js');
+const { ETHNIC_GROUPS } = require('../../../utils/ethnic-groups.js');
 
 Page({
   data: {
@@ -44,8 +45,11 @@ Page({
     genderIndex: 0,
     politicalOptions: ['群众', '共青团员', '中共党员'],
     politicalIndex: 0,
-    positionOptions: ['无', '班长', '班主任助理', '副班长', '学习委员', '纪律委员', '卫生委员', '组织委员', '体育委员', '文艺委员', '生活委员', '心理委员', '课代表'],
+    positionOptions: [],
     positionIndex: 0,
+
+    ethnicityOptions: ETHNIC_GROUPS,
+    ethnicityIndex: 0,
 
     dormLoading: false,
     dormDataLoaded: false,
@@ -79,6 +83,7 @@ Page({
 
     this.checkPermission();
     this.loadCurrentClass(currentClassId);
+    this.loadPositionOptions(currentClassId);
 
     if (options.id) {
       this.setData({
@@ -100,6 +105,24 @@ Page({
       setTimeout(() => {
         wx.navigateBack();
       }, 2000);
+    }
+  },
+
+  loadPositionOptions: async function (classId) {
+    const DEFAULT_POSITIONS = ['无', '班长', '班主任助理', '副班长', '学习委员', '纪律委员', '卫生委员', '组织委员', '体育委员', '文艺委员', '生活委员', '心理委员', '课代表'];
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'manageSemester',
+        data: { action: 'getClassPositions', data: { class_id: classId } }
+      });
+      if (res.result && res.result.success && res.result.data && res.result.data.length > 0) {
+        this.setData({ positionOptions: res.result.data });
+      } else {
+        this.setData({ positionOptions: DEFAULT_POSITIONS });
+      }
+    } catch (err) {
+      console.error('加载职位列表失败:', err);
+      this.setData({ positionOptions: DEFAULT_POSITIONS });
     }
   },
 
@@ -165,11 +188,18 @@ Page({
 
         const genderIndex = this.data.genderOptions.indexOf(formData.gender);
         const politicalIndex = this.data.politicalOptions.indexOf(formData.political_status);
-        const positionIndex = this.data.positionOptions.indexOf(formData.position);
+        let positionIndex = this.data.positionOptions.indexOf(formData.position);
+        let finalPositionOptions = this.data.positionOptions;
+        if (positionIndex < 0 && formData.position) {
+          finalPositionOptions = [...this.data.positionOptions, formData.position];
+          positionIndex = finalPositionOptions.length - 1;
+        }
 
         this.setData({
+          positionOptions: finalPositionOptions,
           genderIndex: genderIndex >= 0 ? genderIndex : 0,
           politicalIndex: politicalIndex >= 0 ? politicalIndex : 0,
+          ethnicityIndex: this.data.ethnicityOptions.indexOf(formData.ethnicity),
           positionIndex: positionIndex >= 0 ? positionIndex : 0,
           loading: false
         });
@@ -216,6 +246,14 @@ Page({
     this.setData({
       politicalIndex: index,
       'formData.political_status': this.data.politicalOptions[index]
+    });
+  },
+
+  onEthnicityChange: function (e) {
+    const index = e.detail.value;
+    this.setData({
+      ethnicityIndex: index,
+      'formData.ethnicity': this.data.ethnicityOptions[index]
     });
   },
 

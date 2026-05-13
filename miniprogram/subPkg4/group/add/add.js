@@ -2,6 +2,7 @@
 const app = getApp();
 const api = require('../../../utils/api.js');
 const util = require('../../../utils/util.js');
+const batchQuery = require('../../utils/batchQuery.js');
 
 Page({
   data: {
@@ -305,14 +306,13 @@ Page({
         groupQuery._id = _.neq(groupId);
       }
 
-      const groupRes = await db.collection('student_groups')
-        .where(groupQuery)
-        .get();
+      const groupRes = await batchQuery.getAllRecords('student_groups', groupQuery);
 
       // 收集已占用学生ID（包括组长和组员）
+      const groups = groupRes || [];
       const occupiedIds = new Set();
-      if (groupRes.data && groupRes.data.length > 0) {
-        groupRes.data.forEach(g => {
+      if (groups.length > 0) {
+        groups.forEach(g => {
           // 组长也是占用的
           if (g.leader_id) {
             occupiedIds.add(g.leader_id);
@@ -325,15 +325,12 @@ Page({
       }
 
       // 2. 查询全班学生
-      const studentRes = await db.collection('students')
-        .where({
-          class_id: currentClassId,
-          status: _.neq('graduated')
-        })
-        .orderBy('name', 'asc')
-        .get();
+      const studentData = await batchQuery.getAllRecords('students', {
+        class_id: currentClassId,
+        status: _.neq('graduated')
+      }, 'name', 'asc');
 
-      const students = (studentRes.data || []).map(s => ({
+      const students = (studentData || []).map(s => ({
         ...s,
         student_name: s.name || s.student_name || '',
         isOccupied: occupiedIds.has(s.student_id)
@@ -525,6 +522,11 @@ Page({
     const student = this.data.availableMemberStudents.find(s => s.student_id === studentId);
     if (!student) return;
 
+    if (student.isOccupied) {
+      wx.showToast({ title: '该学生已在其他小组', icon: 'none' });
+      return;
+    }
+
     const selectedIds = [...this.data.selectedStudentIds];
     const index = selectedIds.indexOf(studentId);
 
@@ -571,24 +573,18 @@ Page({
     this.setData({ submitting: true });
 
     try {
-      const db = wx.cloud.database();
-      const serverDate = db.serverDate();
-
-      // 2. 确保组长也在成员列表中
       let members = [...formData.members];
       const leaderInMembers = members.find(m => m.student_id === formData.leader_id);
       if (!leaderInMembers) {
-        // 组长不在成员列表中，需要添加
         members.unshift({
           student_id: formData.leader_id,
           student_name: formData.leader_name,
-          joined_at: new Date(),
-          is_leader: true  // 标记为组长
+          joined_at: new Date().toISOString(),
+          is_leader: true
         });
         console.log('【分组保存】组长已添加到成员列表:', formData.leader_name);
       }
 
-      // 3. 构建公共数据体
       const commonData = {
         group_name: formData.group_name.trim(),
         group_type: formData.group_type,
@@ -596,11 +592,10 @@ Page({
         description: formData.description.trim(),
         leader_id: formData.leader_id,
         leader_name: formData.leader_name,
-        members: members,  // 包含组长的完整成员列表
+        members: members,
         semester_id: currentSemesterId || '',
         semester_name: currentSemesterName || '',
-        class_id: currentClassId || '',
-        updated_at: serverDate
+        class_id: currentClassId || ''
       };
 
       if (mode === 'add') {
@@ -625,7 +620,7 @@ Page({
           name: 'scoreManager',
           data: {
             action: 'updateStudentGroup',
-            data: { _id: groupId, ...commonData }
+            data: { groupId: groupId, ...commonData }
           }
         });
         if (!res.result || !res.result.success) {

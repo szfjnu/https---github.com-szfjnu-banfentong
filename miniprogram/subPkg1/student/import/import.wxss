@@ -430,6 +430,46 @@
   color: var(--error-color);
 }
 
+.result-item.overwrite .result-num {
+  color: #fa8c16;
+}
+
+.stat-duplicate {
+  font-size: 24rpx;
+  color: #fa8c16;
+}
+
+.duplicate-warning {
+  background: #fff7e6;
+  border: 2rpx solid #faad14;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.duplicate-warning .warning-icon {
+  font-size: 28rpx;
+  margin-right: 8rpx;
+}
+
+.duplicate-warning .warning-text {
+  font-size: 26rpx;
+  color: #d48806;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.overwrite-option {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.overwrite-label {
+  font-size: 26rpx;
+  color: #d48806;
+}
+
 .result-label {
   font-size: 24rpx;
   color: var(--text-color-light);

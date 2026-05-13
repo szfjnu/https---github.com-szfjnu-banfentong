@@ -2,7 +2,7 @@ const BATCH_SIZE = 50
 const MAX_LIMIT = 100
 const DATA_TOO_LARGE_THRESHOLD = 3000
 
-const VALID_ACTIONS = ['importStudent', 'exportStudent', 'exportScoreRecords', 'exportAttendance', 'importSchedule', 'importGrade']
+const VALID_ACTIONS = ['importStudent', 'importStudents', 'exportStudent', 'exportScoreRecords', 'exportAttendance', 'importSchedule', 'importGrade']
 
 const ALLOWED_IMPORT_ROLES = ['admin', 'head_teacher']
 

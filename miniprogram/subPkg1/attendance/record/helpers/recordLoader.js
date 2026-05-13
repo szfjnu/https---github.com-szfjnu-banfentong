@@ -1,4 +1,4 @@
-const batchQuery = require('../../../utils/batchQuery.js');
+const batchQuery = require('../../../../utils/batchQuery.js');
 const dataFormatter = require('./dataFormatter.js');
 const util = require('../../../utils/util.js');
 

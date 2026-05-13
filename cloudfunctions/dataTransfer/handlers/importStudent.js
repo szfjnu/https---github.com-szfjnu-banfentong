@@ -13,22 +13,40 @@ async function doPreview(fileID, classId, className) {
   const strategy = strategyManager.getStrategy(format)
   const result = await strategy.parse(fileID, { classId, className })
 
+  let duplicateCount = 0
   for (const row of result.rows) {
     if (row.valid) {
       row.student.class_id = classId
       row.student.class_name = className
+
+      if (row.student.student_id) {
+        const { data: existing } = await db.collection('students')
+          .where({
+            student_id: row.student.student_id,
+            class_id: classId
+          })
+          .limit(1)
+          .get()
+        if (existing.length > 0) {
+          row.duplicate = true
+          row.existingDocId = existing[0]._id
+          duplicateCount++
+        }
+      }
     }
   }
 
+  result.duplicateCount = duplicateCount
   return result
 }
 
-async function doImport(previewData, classId, className) {
+async function doImport(previewData, classId, className, overwrite) {
   const validRows = previewData.filter(r => r.valid)
   const errors = []
   let successCount = 0
   let failCount = 0
   let skipCount = 0
+  let overwriteCount = 0
 
   for (let i = 0; i < validRows.length; i += BATCH_SIZE) {
     const batch = validRows.slice(i, i + BATCH_SIZE)
@@ -38,8 +56,8 @@ async function doImport(previewData, classId, className) {
         if (student.current_score === undefined) student.current_score = student.initial_score || 100
         if (student.initial_score === undefined) student.initial_score = 100
         if (student.dorm_score === undefined) student.dorm_score = 100
-        if (!student.created_at) student.created_at = db.serverDate()
         if (!student.updated_at) student.updated_at = db.serverDate()
+
         const { data: existing } = await db.collection('students')
           .where({
             student_id: student.student_id,
@@ -49,10 +67,19 @@ async function doImport(previewData, classId, className) {
           .get()
 
         if (existing.length > 0) {
-          skipCount++
+          if (overwrite && row.duplicate) {
+            const existingDocId = row.existingDocId || existing[0]._id
+            const { _id, created_at, ...updateData } = student
+            await db.collection('students').doc(existingDocId).update({ data: updateData })
+            overwriteCount++
+            successCount++
+          } else {
+            skipCount++
+          }
           return
         }
 
+        if (!student.created_at) student.created_at = db.serverDate()
         await db.collection('students').add({ data: student })
         successCount++
       } catch (e) {
@@ -63,11 +90,11 @@ async function doImport(previewData, classId, className) {
     await Promise.all(tasks)
   }
 
-  return { successCount, failCount, skipCount, errors }
+  return { successCount, failCount, skipCount, overwriteCount, errors }
 }
 
 async function importStudentHandler(data, OPENID) {
-  let { fileID, classId, className, confirm, previewData } = data
+  let { fileID, classId, className, confirm, previewData, overwrite } = data
 
   if (!classId) {
     const relRes = await db.collection('user_class_relation')
@@ -104,7 +131,7 @@ async function importStudentHandler(data, OPENID) {
     }
   }
 
-  const result = await doImport(previewData, classId, className)
+  const result = await doImport(previewData, classId, className, overwrite)
   await logger.log({
     action: 'importStudent_import',
     operator: OPENID,

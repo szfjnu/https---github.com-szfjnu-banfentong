@@ -241,6 +241,16 @@ Page({
     }
   },
 
+  // 查看学生详情
+  onViewStudent: function (e) {
+    const studentId = e.currentTarget.dataset.id;
+    if (studentId) {
+      wx.navigateTo({
+        url: `/subPkg1/student/detail/detail?id=${studentId}`
+      });
+    }
+  },
+
   // 批量检查：全部合格
   onBatchAllQualified: async function () {
     const { pendingTasks, checkForm } = this.data;

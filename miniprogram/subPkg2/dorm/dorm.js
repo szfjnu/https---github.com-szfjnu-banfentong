@@ -1,5 +1,5 @@
 ﻿const app = getApp();
-const batchQuery = require('../../utils/batchQuery.js');
+const batchQuery = require('../utils/batchQuery.js');
 
 let db = null;
 let _ = null;

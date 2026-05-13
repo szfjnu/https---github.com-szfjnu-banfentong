@@ -13,9 +13,21 @@ exports.main = async (event, context) => {
     const caller = await getCallerInfo(event, data?.class_id || data?.classId)
 
     switch (action) {
-      case 'updateSemester':
-        requireClassAccess(caller, data.class_id, ['head_teacher', 'admin'])
-        return await updateSemester(data, caller)
+      case 'updateSemester': {
+        const semClassId = data.class_id || data.classes_id
+        let effectiveClassId = semClassId
+        if (!effectiveClassId && data._id) {
+          try {
+            const semRes = await db.collection('semesters').doc(data._id).get()
+            effectiveClassId = semRes.data?.class_id || semRes.data?.classes_id || ''
+          } catch (e) {}
+        }
+        const updateCaller = effectiveClassId
+          ? await getCallerInfo(event, effectiveClassId)
+          : caller
+        requireClassAccess(updateCaller, effectiveClassId, ['head_teacher', 'admin'])
+        return await updateSemester(data, updateCaller)
+      }
       case 'addSemester':
         requireClassAccess(caller, data.class_id, ['head_teacher', 'admin'])
         return await addSemester(data, caller)
@@ -36,6 +48,11 @@ exports.main = async (event, context) => {
       case 'addClassSettings':
         requireTeacher(caller)
         return await addClassSettings(data, caller)
+      case 'getClassPositions':
+        return await getClassPositions(data, caller)
+      case 'saveResetSettings':
+        requireTeacher(caller)
+        return await saveResetSettings(data, caller)
       default: return { success: false, message: '未知操作' }
     }
   } catch (err) {
@@ -308,6 +325,27 @@ async function deleteSemester(data, caller) {
   }
 }
 
+async function getClassPositions(data, caller) {
+  const DEFAULT_POSITIONS = ['无', '班长', '班主任助理', '副班长', '学习委员', '纪律委员', '卫生委员', '组织委员', '体育委员', '文艺委员', '生活委员', '心理委员', '课代表']
+  const classId = data.class_id || caller.classId || ''
+  if (!classId) {
+    return { success: true, data: DEFAULT_POSITIONS }
+  }
+  try {
+    const res = await db.collection('class_settings')
+      .where({ class_id: classId })
+      .limit(1)
+      .get()
+    if (res.data && res.data.length > 0 && res.data[0].cadre_positions) {
+      return { success: true, data: res.data[0].cadre_positions }
+    }
+    return { success: true, data: DEFAULT_POSITIONS }
+  } catch (err) {
+    console.error('getClassPositions error:', err)
+    return { success: true, data: DEFAULT_POSITIONS }
+  }
+}
+
 async function updateClassSettings(data, caller) {
   const { settingsId, _id, class_id, ...updateFields } = data || {}
   const effectiveId = settingsId || _id
@@ -351,5 +389,37 @@ async function addClassSettings(data, caller) {
   } catch (err) {
     console.error('addClassSettings error:', err)
     return { success: false, message: err.message || '添加失败' }
+  }
+}
+
+async function saveResetSettings(data, caller) {
+  const { classId, resetSettings } = data
+  if (!classId) {
+    return { success: false, message: '缺少班级ID' }
+  }
+  if (!resetSettings || typeof resetSettings !== 'object') {
+    return { success: false, message: '缺少重置设置参数' }
+  }
+
+  try {
+    const now = db.serverDate()
+    const res = await db.collection('class_settings')
+      .where({ class_id: classId })
+      .limit(1)
+      .get()
+
+    if (res.data && res.data.length > 0) {
+      await db.collection('class_settings').doc(res.data[0]._id).update({
+        data: { reset_settings: resetSettings, updated_at: now }
+      })
+    } else {
+      await db.collection('class_settings').add({
+        data: { class_id: classId, reset_settings: resetSettings, created_at: now, updated_at: now }
+      })
+    }
+    return { success: true, message: '设置已保存' }
+  } catch (err) {
+    console.error('saveResetSettings error:', err)
+    return { success: false, message: err.message || '保存失败' }
   }
 }

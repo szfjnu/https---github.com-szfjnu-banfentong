@@ -12,7 +12,9 @@ const db = cloud.database()
 const _ = db.command
 
 exports.main = async (event, context) => {
-  const { studentId, studentIdNumber, scoreAfter, operatorId, operatorName, classId } = event
+  const { action, data } = event
+  const params = (data && typeof data === 'object') ? { ...event, ...data } : event
+  const { studentId, studentIdNumber, scoreAfter, operatorId, operatorName, classId } = params
 
   try {
     const caller = await getCallerInfo(event, classId)

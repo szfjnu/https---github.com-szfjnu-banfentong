@@ -375,7 +375,8 @@ Page({
         dorm_conversion_ratio: editFormData.dorm_conversion_ratio || 0.3,
         dorm_warning_threshold: editFormData.dorm_warning_threshold || 60,
         dorm_critical_threshold: editFormData.dorm_critical_threshold || 40,
-        description: editFormData.description || ''
+        description: editFormData.description || '',
+        class_id: this.data.classId
       });
 
       wx.hideLoading();
