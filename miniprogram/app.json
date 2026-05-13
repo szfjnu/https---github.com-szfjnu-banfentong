@@ -120,7 +120,8 @@
         "seat/history/history",
         "group/group",
         "group/add/add",
-        "admin/users/users"
+        "admin/users/users",
+        "admin/transferConfig/transferConfig"
       ]
     },
     {

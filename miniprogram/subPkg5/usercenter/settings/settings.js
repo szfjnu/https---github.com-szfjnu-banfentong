@@ -1,21 +1,31 @@
 // pages/usercenter/settings/settings.js
 const app = getApp();
 
+const ROLE_MAP = {
+  'admin': '管理员',
+  'head_teacher': '班主任',
+  'subject_teacher': '科任教师',
+  'class_cadre': '班干部',
+  'student': '学生',
+  'parent': '家长',
+  'new_user': '新用户'
+};
+
 Page({
   data: {
     loading: true,
-    activeTab: 'profile', // profile / notification / privacy / display
+    activeTab: 'profile',
 
-    // 个人信息
     userInfo: null,
     nickname: '',
     phone: '',
     email: '',
+    role: '',
+    roleLabel: '',
+    className: '',
 
-    // 通知偏好
     notificationPreferences: {},
 
-    // 隐私设置
     privacySettings: {
       show_score_to_parent: true,
       show_attendance_to_parent: true,
@@ -23,14 +33,12 @@ Page({
       show_volunteer_to_parent: true
     },
 
-    // 显示设置
     displaySettings: {
       dark_mode: false,
       font_size: 'medium',
       language: 'zh-CN'
     },
 
-    // 通知类型列表
     notificationTypes: [
       { key: 'system', label: '系统通知', icon: '📢' },
       { key: 'discipline', label: '处分通知', icon: '⚠️' },
@@ -64,6 +72,10 @@ Page({
     this.loadSettings();
   },
 
+  onShow: function () {
+    this.loadSettings();
+  },
+
   loadSettings: async function () {
     this.setData({ loading: true });
     try {
@@ -77,39 +89,79 @@ Page({
         this.setData({
           notificationPreferences: settings.notification_preferences || {},
           privacySettings: settings.privacy_settings || this.data.privacySettings,
-          displaySettings: settings.display_settings || this.data.displaySettings,
-          loading: false
+          displaySettings: settings.display_settings || this.data.displaySettings
         });
         if (settings.display_settings && settings.display_settings.font_size) {
           wx.setStorageSync('display_font_size', settings.display_settings.font_size);
         }
       }
 
-      // 加载用户信息
       const profileRes = await wx.cloud.callFunction({
         name: 'manageUserCenter',
         data: { action: 'getUserProfile', data: {} }
       });
+
       if (profileRes.result && profileRes.result.success) {
         const profile = profileRes.result.data;
-        const autoPhone = profile.phone || app.globalData.phone || '';
+        const role = profile.role || app.globalData.role || '';
+        const className = profile.class_name || app.globalData.currentClassName || '';
+        const autoPhone = profile.phone || app.globalData.phone || (app.globalData.userInfo && app.globalData.userInfo.phone) || '';
+        const nickname = profile.nickname || profile.nickName || (app.globalData.userInfo && (app.globalData.userInfo.nickName || app.globalData.userInfo.nickname)) || '';
+        const avatarUrl = profile.avatarUrl || (app.globalData.userInfo && app.globalData.userInfo.avatarUrl) || '';
+
         this.setData({
-          userInfo: profile,
-          nickname: profile.nickname || profile.nickName || '',
+          userInfo: { ...profile, role, class_name: className, avatarUrl },
+          nickname,
           phone: autoPhone,
           email: profile.email || '',
-          membershipLevel: (profile.membership && profile.membership.level) || 'free'
+          role,
+          roleLabel: ROLE_MAP[role] || role || '未设置',
+          className: className || '未分配',
+          membershipLevel: profile.membershipLevel || (profile.membership && profile.membership.level) || 'free'
         });
+
         if (autoPhone && !profile.phone) {
           app.globalData.phone = autoPhone;
         }
+        if (role && !app.globalData.role) {
+          app.globalData.role = role;
+          wx.setStorageSync('role', role);
+        }
+        if (className && !app.globalData.currentClassName) {
+          app.globalData.currentClassName = className;
+        }
+      } else {
+        this._loadFromGlobalData();
       }
 
       this.setData({ loading: false });
     } catch (err) {
       console.error('加载设置失败:', err);
+      this._loadFromGlobalData();
       this.setData({ loading: false });
     }
+  },
+
+  _loadFromGlobalData: function () {
+    const role = app.globalData.role || '';
+    const className = app.globalData.currentClassName || '';
+    const phone = app.globalData.phone || (app.globalData.userInfo && app.globalData.userInfo.phone) || '';
+    const nickname = (app.globalData.userInfo && (app.globalData.userInfo.nickName || app.globalData.userInfo.nickname)) || '';
+    const avatarUrl = (app.globalData.userInfo && app.globalData.userInfo.avatarUrl) || '';
+
+    this.setData({
+      userInfo: {
+        role,
+        class_name: className,
+        avatarUrl,
+        phone
+      },
+      nickname,
+      phone,
+      role,
+      roleLabel: ROLE_MAP[role] || role || '未设置',
+      className: className || '未分配'
+    });
   },
 
   // 切换Tab
@@ -154,6 +206,10 @@ Page({
           'userInfo.phone': this.data.phone,
           'userInfo.email': this.data.email
         });
+        if (this.data.phone) {
+          app.globalData.phone = this.data.phone;
+          wx.setStorageSync('phone', this.data.phone);
+        }
         if (app.globalData.userInfo) {
           app.globalData.userInfo.nickname = this.data.nickname;
           app.globalData.userInfo.nickName = this.data.nickname;

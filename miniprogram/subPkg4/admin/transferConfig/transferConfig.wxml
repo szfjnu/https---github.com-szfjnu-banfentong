@@ -1,0 +1,26 @@
+<view class="container">
+  <view class="section-title">
+    <text>高级会员权限控制</text>
+  </view>
+  <view class="desc">
+    <text>开启后，对应操作需要高级会员才能执行；关闭则所有教师均可操作</text>
+  </view>
+
+  <view class="config-list">
+    <view class="config-item" wx:for="{{operations}}" wx:key="key">
+      <view class="config-info">
+        <text class="config-label">{{item.label}}</text>
+        <text class="config-desc">{{item.desc}}</text>
+      </view>
+      <switch checked="{{item.requireAdvanced}}" bindchange="onToggle" data-key="{{item.key}}" color="#1890ff" />
+    </view>
+  </view>
+
+  <view class="save-area">
+    <button class="save-btn" bindtap="onSave" loading="{{saving}}" disabled="{{saving}}">保存配置</button>
+  </view>
+
+  <view class="tip">
+    <text>配置存储在 system_config 集合的 transfer_permissions 文档中</text>
+  </view>
+</view>

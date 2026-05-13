@@ -108,4 +108,74 @@ const SCHEMAS = {
   }
 }
 
-module.exports = { validateInput, RULES, SCHEMAS }
+function validateStudent(student) {
+  const errors = []
+  const cleaned = { ...student }
+
+  if (!cleaned.student_id) {
+    errors.push('学号为空')
+  } else {
+    cleaned.student_id = String(cleaned.student_id).trim()
+  }
+
+  if (!cleaned.name) {
+    errors.push('姓名为空')
+  } else {
+    cleaned.name = String(cleaned.name).trim()
+    if (cleaned.name.length > 20) {
+      errors.push('姓名过长')
+    }
+  }
+
+  if (cleaned.gender) {
+    const g = String(cleaned.gender).trim().toLowerCase()
+    if (g === '男' || g === 'male' || g === 'm' || g === '1') {
+      cleaned.gender = '男'
+    } else if (g === '女' || g === 'female' || g === 'f' || g === '2') {
+      cleaned.gender = '女'
+    }
+  }
+
+  if (cleaned.is_boarding !== undefined && cleaned.is_boarding !== null) {
+    const v = String(cleaned.is_boarding).trim().toLowerCase()
+    cleaned.is_boarding = v === '是' || v === 'true' || v === 'yes' || v === '1' || v === '住' || v === '住宿'
+  }
+
+  if (cleaned.phone_number !== undefined) {
+    cleaned.phone = cleaned.phone_number
+    delete cleaned.phone_number
+  }
+  if (cleaned.phone && !/^1[3-9]\d{9}$/.test(String(cleaned.phone).trim())) {
+    errors.push('手机号格式错误')
+  }
+
+  if (cleaned.parent_phone_number !== undefined) {
+    cleaned.parent_phone = cleaned.parent_phone_number
+    delete cleaned.parent_phone_number
+  }
+  if (cleaned.parent_phone && !/^1[3-9]\d{9}$/.test(String(cleaned.parent_phone).trim())) {
+    errors.push('家长电话格式错误')
+  }
+
+  if (cleaned.home_address !== undefined) {
+    cleaned.address = cleaned.home_address
+    delete cleaned.home_address
+  }
+
+  if (cleaned.initial_score !== undefined && cleaned.initial_score !== '') {
+    const num = Number(cleaned.initial_score)
+    if (isNaN(num)) {
+      errors.push('初始积分无效')
+    } else {
+      cleaned.initial_score = num
+    }
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    student: cleaned
+  }
+}
+
+module.exports = { validateInput, validateStudent, RULES, SCHEMAS }

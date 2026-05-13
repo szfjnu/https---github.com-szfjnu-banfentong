@@ -18,6 +18,37 @@ const ROLE_OPTIONS = [
   { value: 'parent', label: '家长' }
 ];
 
+async function checkAdminAccess() {
+  const db = wx.cloud.database()
+  const openid = app.globalData.openid
+  if (!openid) return false
+  try {
+    const userRes = await db.collection('users')
+      .where({ _openid: openid, role: 'admin' })
+      .limit(1).get()
+    if (userRes.data && userRes.data.length > 0) return true
+  } catch (e) {}
+  try {
+    const userRes2 = await db.collection('users')
+      .where({ openid: openid, role: 'admin' })
+      .limit(1).get()
+    if (userRes2.data && userRes2.data.length > 0) return true
+  } catch (e) {}
+  try {
+    const relRes = await db.collection('user_class_relation')
+      .where({ user_openid: openid, role: 'admin' })
+      .limit(1).get()
+    if (relRes.data && relRes.data.length > 0) return true
+  } catch (e) {}
+  try {
+    const relRes2 = await db.collection('user_class_relation')
+      .where({ _openid: openid, role: 'admin' })
+      .limit(1).get()
+    if (relRes2.data && relRes2.data.length > 0) return true
+  } catch (e) {}
+  return false
+}
+
 Page({
   data: {
     loading: true,
@@ -45,9 +76,14 @@ Page({
     auditLogs: []
   },
 
-  onLoad: function () {
+  onLoad: async function () {
     const role = app.globalData.role;
-    if (role !== 'admin') {
+    if (role === 'admin') {
+      this.loadUsers();
+      return;
+    }
+    const hasAccess = await checkAdminAccess();
+    if (!hasAccess) {
       wx.showToast({ title: '仅管理员可访问', icon: 'none' });
       setTimeout(() => wx.navigateBack(), 1500);
       return;
