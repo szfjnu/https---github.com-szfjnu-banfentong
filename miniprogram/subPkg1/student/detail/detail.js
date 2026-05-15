@@ -7,6 +7,7 @@ const batchQuery = require('../../utils/batchQuery.js');
 Page({
   data: {
     studentId: null,
+    classId: '',
     student: null,
     scoreRecords: [],
     volunteerRecords: [],
@@ -37,12 +38,16 @@ Page({
       { key: 'attendance', label: '考勤' },
       { key: 'volunteer', label: '志愿' },
       { key: 'dorm', label: '住宿' },
+      { key: 'duty', label: '值日' },
       { key: 'discipline', label: '处分' }
-    ]
+    ],
+    dutyInfo: null,
+    dutyRecords: []
   },
 
   onLoad: function (options) {
     const studentId = options.id;
+    const classId = options.classId || '';
 
     if (!studentId) {
       wx.showToast({
@@ -56,7 +61,7 @@ Page({
       return;
     }
 
-    this.setData({ studentId });
+    this.setData({ studentId, classId });
     this.checkPermissionAndLoad();
   },
 
@@ -119,6 +124,8 @@ Page({
         await this.loadDisciplineRecords();
       } else if (activeTab === 'attendance') {
         await this.loadAttendanceStats();
+      } else if (activeTab === 'duty') {
+        await this.loadDutyRecords();
       }
 
       this.setData({ loading: false });
@@ -142,6 +149,7 @@ Page({
           action: 'getStudentDetail',
           data: {
             target_student_id: studentId,
+            class_id: this.data.classId || app.globalData.class_id || '',
             operation_type: 'detail_view'
           }
         }
@@ -335,6 +343,8 @@ Page({
       this.loadDisciplineRecords();
     } else if (tab === 'attendance') {
       this.loadAttendanceStats();
+    } else if (tab === 'duty') {
+      this.loadDutyRecords();
     }
   },
 
@@ -447,6 +457,69 @@ Page({
       this.setData({ dormScoreInfo, dormRecords, isBoarding: true });
     } catch (err) {
       console.error('加载住宿积分失败:', err);
+    }
+  },
+
+  loadDutyRecords: async function () {
+    try {
+      const studentId = this.data.studentId;
+      const db = wx.cloud.database();
+      const _ = db.command;
+
+      let dutySchedules = [];
+      try {
+        const scheduleRes = await db.collection('duty_schedule')
+          .where({ student_id: studentId })
+          .orderBy('date', 'desc')
+          .limit(20)
+          .get();
+        dutySchedules = (scheduleRes.data || []).map(s => ({
+          ...s,
+          dateStr: s.date ? util.formatDate(new Date(s.date)) : '',
+          statusText: s.status === 'completed' ? '已完成' : s.status === 'pending' ? '待执行' : s.status === 'missed' ? '未执行' : (s.status || '待执行')
+        }));
+      } catch (e) {
+        console.warn('duty_schedule集合查询失败:', e);
+      }
+
+      let dutyTaskRecords = [];
+      let hygieneScore = 0;
+      try {
+        const taskRes = await db.collection('duty_tasks')
+          .where({ student_id: studentId })
+          .orderBy('created_at', 'desc')
+          .limit(20)
+          .get();
+        dutyTaskRecords = (taskRes.data || []).map(t => ({
+          ...t,
+          dateStr: t.date || (t.created_at ? util.formatDate(new Date(t.created_at)) : ''),
+          scoreText: (t.score || t.score_value || 0) > 0 ? `+${t.score || t.score_value || 0}` : `${t.score || t.score_value || 0}`,
+          scoreClass: (t.score || t.score_value || 0) > 0 ? 'score-add' : 'score-minus'
+        }));
+        hygieneScore = dutyTaskRecords.reduce((sum, t) => sum + (t.score || t.score_value || 0), 0);
+      } catch (e) {
+        console.warn('duty_tasks集合查询失败:', e);
+      }
+
+      let hygieneCheckRecords = [];
+
+      const dutyInfo = {
+        totalSchedules: dutySchedules.length,
+        completedSchedules: dutySchedules.filter(s => s.status === 'completed').length,
+        hygieneScore: hygieneScore
+      };
+
+      this.setData({
+        dutyInfo,
+        dutyRecords: {
+          schedules: dutySchedules,
+          tasks: dutyTaskRecords,
+          hygieneChecks: hygieneCheckRecords
+        }
+      });
+    } catch (err) {
+      console.error('加载值日记录失败:', err);
+      this.setData({ dutyInfo: null, dutyRecords: [] });
     }
   },
 

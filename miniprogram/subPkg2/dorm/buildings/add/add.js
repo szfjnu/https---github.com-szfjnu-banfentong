@@ -125,8 +125,8 @@ Page({
         building_code: formData.building_code.trim(),
         floor_count: parseInt(formData.floor_count) || 0,
         description: formData.description.trim(),
-        class_id: app.globalData.classId || '',
-        updated_at: db.serverDate()
+        class_id: app.globalData.class_id || app.globalData.classId || '',
+        updated_at: new Date().toISOString()
       };
 
       if (editingBuilding) {

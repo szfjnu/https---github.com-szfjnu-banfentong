@@ -13,25 +13,40 @@ async function doPreview(fileID, classId, className) {
   const strategy = strategyManager.getStrategy(format)
   const result = await strategy.parse(fileID, { classId, className })
 
+  const validStudentIds = []
+  for (const row of result.rows) {
+    if (row.valid && row.student.student_id) {
+      validStudentIds.push(row.student.student_id)
+    }
+  }
+
+  const existingMap = {}
+  if (validStudentIds.length > 0) {
+    const uniqueIds = [...new Set(validStudentIds)]
+    for (let i = 0; i < uniqueIds.length; i += 20) {
+      const batch = uniqueIds.slice(i, i + 20)
+      const { data: existing } = await db.collection('students')
+        .where({
+          student_id: _.in(batch),
+          class_id: classId
+        })
+        .get()
+      for (const s of existing) {
+        existingMap[s.student_id] = s._id
+      }
+    }
+  }
+
   let duplicateCount = 0
   for (const row of result.rows) {
     if (row.valid) {
       row.student.class_id = classId
       row.student.class_name = className
 
-      if (row.student.student_id) {
-        const { data: existing } = await db.collection('students')
-          .where({
-            student_id: row.student.student_id,
-            class_id: classId
-          })
-          .limit(1)
-          .get()
-        if (existing.length > 0) {
-          row.duplicate = true
-          row.existingDocId = existing[0]._id
-          duplicateCount++
-        }
+      if (row.student.student_id && existingMap[row.student.student_id]) {
+        row.duplicate = true
+        row.existingDocId = existingMap[row.student.student_id]
+        duplicateCount++
       }
     }
   }
@@ -48,53 +63,134 @@ async function doImport(previewData, classId, className, overwrite) {
   let skipCount = 0
   let overwriteCount = 0
 
-  for (let i = 0; i < validRows.length; i += BATCH_SIZE) {
-    const batch = validRows.slice(i, i + BATCH_SIZE)
-    const tasks = batch.map(async (row, idx) => {
-      try {
-        const student = { ...row.student, class_id: classId, class_name: className }
-        if (student.current_score === undefined) student.current_score = student.initial_score || 100
-        if (student.initial_score === undefined) student.initial_score = 100
-        if (student.dorm_score === undefined) student.dorm_score = 100
-        if (!student.updated_at) student.updated_at = db.serverDate()
+  const studentIds = validRows.filter(r => r.student.student_id && !r.duplicate).map(r => r.student.student_id)
+  const existingMap = {}
+  if (studentIds.length > 0) {
+    const uniqueIds = [...new Set(studentIds)]
+    for (let i = 0; i < uniqueIds.length; i += 20) {
+      const batch = uniqueIds.slice(i, i + 20)
+      const { data: existing } = await db.collection('students')
+        .where({ student_id: _.in(batch), class_id: classId })
+        .get()
+      for (const s of existing) {
+        existingMap[s.student_id] = s._id
+      }
+    }
+  }
 
-        const { data: existing } = await db.collection('students')
-          .where({
-            student_id: student.student_id,
-            class_id: classId
-          })
-          .limit(1)
-          .get()
+  for (const row of validRows) {
+    try {
+      const student = { ...row.student, class_id: classId, class_name: className }
+      if (student.current_score === undefined) student.current_score = student.initial_score || 100
+      if (student.initial_score === undefined) student.initial_score = 100
+      if (student.dorm_score === undefined) student.dorm_score = 100
+      if (!student.updated_at) student.updated_at = db.serverDate()
 
-        if (existing.length > 0) {
-          if (overwrite && row.duplicate) {
-            const existingDocId = row.existingDocId || existing[0]._id
+      let existingDocId = row.existingDocId || null
+      if (!existingDocId && student.student_id) {
+        existingDocId = existingMap[student.student_id] || null
+      }
+
+      if (existingDocId || row.duplicate) {
+        if (overwrite && (row.duplicate || existingDocId)) {
+          const docId = existingDocId || row.existingDocId
+          if (docId) {
             const { _id, created_at, ...updateData } = student
-            await db.collection('students').doc(existingDocId).update({ data: updateData })
+            await db.collection('students').doc(docId).update({ data: updateData })
             overwriteCount++
             successCount++
-          } else {
-            skipCount++
           }
-          return
+        } else {
+          skipCount++
         }
-
-        if (!student.created_at) student.created_at = db.serverDate()
-        await db.collection('students').add({ data: student })
-        successCount++
-      } catch (e) {
-        failCount++
-        errors.push(`第${row.rowIndex}行: ${e.message}`)
+        continue
       }
-    })
-    await Promise.all(tasks)
+
+      if (!student.created_at) student.created_at = db.serverDate()
+      await db.collection('students').add({ data: student })
+      successCount++
+    } catch (e) {
+      failCount++
+      errors.push(`第${row.rowIndex}行: ${e.message}`)
+    }
   }
 
   return { successCount, failCount, skipCount, overwriteCount, errors }
 }
 
+async function doDirectImport(students, classId, OPENID) {
+  if (!classId) {
+    const relRes = await db.collection('user_class_relation')
+      .where({ user_openid: OPENID, status: 'joined' })
+      .limit(1).get()
+    if (relRes.data && relRes.data.length > 0) {
+      classId = relRes.data[0].class_id
+    }
+  }
+
+  if (!classId) {
+    return { success: false, message: '缺少班级ID，且无法自动获取当前用户班级' }
+  }
+
+  const existingMap = {}
+  const studentIds = students.filter(s => s.student_id).map(s => s.student_id)
+  if (studentIds.length > 0) {
+    const uniqueIds = [...new Set(studentIds)]
+    for (let i = 0; i < uniqueIds.length; i += 20) {
+      const batch = uniqueIds.slice(i, i + 20)
+      const { data: existing } = await db.collection('students')
+        .where({ student_id: _.in(batch), class_id: classId })
+        .get()
+      for (const s of existing) {
+        existingMap[s.student_id] = s._id
+      }
+    }
+  }
+
+  const errors = []
+  let successCount = 0
+  let failCount = 0
+  let skipCount = 0
+  let overwriteCount = 0
+
+  for (const student of students) {
+    try {
+      student.class_id = classId
+      if (!student.created_at) student.created_at = db.serverDate()
+      if (!student.updated_at) student.updated_at = db.serverDate()
+      if (student.current_score === undefined) student.current_score = student.initial_score || 100
+      if (student.initial_score === undefined) student.initial_score = 100
+      if (student.dorm_score === undefined) student.dorm_score = 100
+
+      if (student.student_id && existingMap[student.student_id]) {
+        const { _id, created_at, ...updateData } = student
+        await db.collection('students').doc(existingMap[student.student_id]).update({ data: updateData })
+        overwriteCount++
+        successCount++
+        continue
+      }
+
+      await db.collection('students').add({ data: student })
+      successCount++
+    } catch (e) {
+      failCount++
+      errors.push(`导入失败: ${e.message}`)
+    }
+  }
+
+  return { success: true, data: { successCount, failCount, skipCount, overwriteCount, errors } }
+}
+
 async function importStudentHandler(data, OPENID) {
-  let { fileID, classId, className, confirm, previewData, overwrite } = data
+  let { fileID, classId, className, confirm, previewData, overwrite, students } = data
+
+  if (students && Array.isArray(students) && students.length > 0) {
+    return await doDirectImport(students, classId || data.class_id, OPENID)
+  }
+
+  if (!classId) {
+    classId = data.class_id
+  }
 
   if (!classId) {
     const relRes = await db.collection('user_class_relation')

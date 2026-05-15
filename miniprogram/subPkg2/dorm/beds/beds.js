@@ -74,10 +74,11 @@ Page({
 
       const bedsWithStudents = await Promise.all(beds.map(async (bed) => {
         let student = null;
+        const isOccupied = bed.occupied === true || (bed.student_id && bed.student_id !== '');
 
-        if (bed.occupied === true) {
+        if (isOccupied) {
           try {
-            if (bed.student_id) {
+            if (bed.student_id && bed.student_id !== '') {
               try {
                 const docRes = await db.collection('students').doc(bed.student_id).get();
                 student = docRes.data;
@@ -118,8 +119,11 @@ Page({
           }
         }
 
+        const effectiveOccupied = isOccupied && student !== null;
+
         return {
           ...bed,
+          occupied: effectiveOccupied,
           student
         };
       }));

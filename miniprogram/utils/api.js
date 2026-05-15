@@ -86,8 +86,6 @@ const studentApi = {
   },
 
   addStudent: async (data) => {
-    data.created_at = db.serverDate();
-    data.updated_at = db.serverDate();
     try {
       const res = await wx.cloud.callFunction({
         name: 'joinClass',
@@ -101,7 +99,6 @@ const studentApi = {
   },
 
   updateStudent: async (studentId, data) => {
-    data.updated_at = db.serverDate();
     try {
       const res = await wx.cloud.callFunction({
         name: 'joinClass',
@@ -191,7 +188,6 @@ const scoreApi = {
   },
 
   addScoreRecord: async (data) => {
-    data.created_at = db.serverDate();
     try {
       const res = await wx.cloud.callFunction({
         name: 'scoreManager',
@@ -225,8 +221,6 @@ const scoreApi = {
   },
 
   addScoreItem: async (data) => {
-    data.created_at = db.serverDate();
-    data.updated_at = db.serverDate();
     try {
       const res = await wx.cloud.callFunction({
         name: 'scoreManager',
@@ -240,7 +234,6 @@ const scoreApi = {
   },
 
   updateScoreItem: async (itemId, data) => {
-    data.updated_at = db.serverDate();
     try {
       const res = await wx.cloud.callFunction({
         name: 'scoreManager',
@@ -334,7 +327,6 @@ const volunteerApi = {
   },
 
   addVolunteerRecord: async (data) => {
-    data.created_at = db.serverDate();
     try {
       const res = await wx.cloud.callFunction({
         name: 'scoreManager',
@@ -366,8 +358,6 @@ const disciplineApi = {
   },
 
   addDisciplineRecord: async (data) => {
-    data.createdAt = db.serverDate();
-    data.updatedAt = db.serverDate();
     try {
       const res = await wx.cloud.callFunction({
         name: 'manageDiscipline',
@@ -561,8 +551,6 @@ const classApi = {
   },
 
   addClass: async (data) => {
-    data.created_at = db.serverDate();
-    data.updated_at = db.serverDate();
     try {
       const res = await wx.cloud.callFunction({
         name: 'joinClass',
@@ -576,7 +564,6 @@ const classApi = {
   },
 
   updateClass: async (classId, data) => {
-    data.updated_at = db.serverDate();
     try {
       const res = await wx.cloud.callFunction({
         name: 'joinClass',
@@ -624,7 +611,6 @@ const userApi = {
   },
 
   updateUser: async (userId, data) => {
-    data.updated_at = db.serverDate();
     try {
       const res = await wx.cloud.callFunction({
         name: 'manageUserCenter',
@@ -638,8 +624,6 @@ const userApi = {
   },
 
   addUser: async (data) => {
-    data.created_at = db.serverDate();
-    data.updated_at = db.serverDate();
     try {
       const res = await wx.cloud.callFunction({
         name: 'login',
@@ -683,8 +667,6 @@ const redemptionApi = {
   },
 
   addItem: async (data) => {
-    data.created_at = db.serverDate();
-    data.updated_at = db.serverDate();
     try {
       const res = await wx.cloud.callFunction({
         name: 'processRedemption',
@@ -698,7 +680,6 @@ const redemptionApi = {
   },
 
   updateItem: async (itemId, data) => {
-    data.updated_at = db.serverDate();
     try {
       const res = await wx.cloud.callFunction({
         name: 'processRedemption',
@@ -712,7 +693,6 @@ const redemptionApi = {
   },
 
   submitRedemption: async (data) => {
-    data.created_at = db.serverDate();
     try {
       const res = await wx.cloud.callFunction({
         name: 'processRedemption',
@@ -811,7 +791,6 @@ const gradeApi = {
   },
 
   addGradeRecord: async (data) => {
-    data.created_at = db.serverDate();
     try {
       const res = await wx.cloud.callFunction({
         name: 'gradeManager',
@@ -870,8 +849,6 @@ const groupApi = {
   },
 
   addGroup: async (data) => {
-    data.created_at = db.serverDate();
-    data.updated_at = db.serverDate();
     try {
       const res = await wx.cloud.callFunction({
         name: 'scoreManager',
@@ -885,7 +862,6 @@ const groupApi = {
   },
 
   updateGroup: async (groupId, data) => {
-    data.updated_at = db.serverDate();
     try {
       const res = await wx.cloud.callFunction({
         name: 'scoreManager',
@@ -968,8 +944,6 @@ const relationApi = {
   },
 
   addRelation: async (data) => {
-    data.created_at = db.serverDate();
-    data.updated_at = db.serverDate();
     try {
       const res = await wx.cloud.callFunction({
         name: 'joinClass',
@@ -983,7 +957,6 @@ const relationApi = {
   },
 
   updateRelation: async (relationId, data) => {
-    data.updated_at = db.serverDate();
     try {
       const res = await wx.cloud.callFunction({
         name: 'joinClass',

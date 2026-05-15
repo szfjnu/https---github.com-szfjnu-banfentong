@@ -230,7 +230,7 @@ Page({
         inspector_name: app.globalData.userInfo.nickName || '未知',
         inspector_openid: app.globalData.openid,
         status: 'pending',
-        created_at: db.serverDate()
+        created_at: new Date().toISOString()
       };
 
       // 保存到数据库

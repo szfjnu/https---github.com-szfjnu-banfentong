@@ -60,7 +60,7 @@ Page({
 
   async loadStudents() {
     try {
-      const classId = app.globalData.classId || ''
+      const classId = app.globalData.class_id || ''
       const db = wx.cloud.database()
       const res = await db.collection('students')
         .where({ class_id: classId, status: db.command.neq('graduated') })
@@ -170,7 +170,7 @@ Page({
           data: {
             type: formType,
             student_id: selectedStudent.student_id,
-            class_id: app.globalData.classId || '',
+            class_id: app.globalData.class_id || '',
             name: formData.name.trim(),
             level: formData.level,
             category: formData.category,

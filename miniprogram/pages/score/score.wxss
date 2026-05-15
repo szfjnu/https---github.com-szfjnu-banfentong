@@ -479,3 +479,15 @@
   font-size: 20rpx;
   color: #ff4d4f;
 }
+
+/* 学生模式自身高亮 */
+.ranking-item.self-highlight {
+  background: rgba(24, 144, 255, 0.06);
+  border-left: 6rpx solid var(--primary-color);
+}
+
+.self-tag {
+  font-size: 22rpx;
+  color: var(--primary-color);
+  margin-left: 8rpx;
+}

@@ -104,13 +104,23 @@ Page({
       if (profileRes.result && profileRes.result.success) {
         const profile = profileRes.result.data;
         const role = profile.role || app.globalData.role || '';
-        const className = profile.class_name || app.globalData.currentClassName || '';
+        let className = profile.class_name || app.globalData.currentClassName || '';
+        const classId = profile.class_id || app.globalData.class_id || '';
         const autoPhone = profile.phone || app.globalData.phone || (app.globalData.userInfo && app.globalData.userInfo.phone) || '';
         const nickname = profile.nickname || profile.nickName || (app.globalData.userInfo && (app.globalData.userInfo.nickName || app.globalData.userInfo.nickname)) || '';
         const avatarUrl = profile.avatarUrl || (app.globalData.userInfo && app.globalData.userInfo.avatarUrl) || '';
 
+        if (!className && classId) {
+          try {
+            const classRes = await wx.cloud.database().collection('classes').doc(classId).get();
+            if (classRes.data) {
+              className = classRes.data.class_name || '';
+            }
+          } catch (e) {}
+        }
+
         this.setData({
-          userInfo: { ...profile, role, class_name: className, avatarUrl },
+          userInfo: { ...profile, role, class_name: className, class_id: classId, avatarUrl },
           nickname,
           phone: autoPhone,
           email: profile.email || '',

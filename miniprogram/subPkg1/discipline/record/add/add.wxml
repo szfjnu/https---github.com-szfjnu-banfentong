@@ -20,7 +20,7 @@
     <!-- 处分原因 -->
     <view class="form-group">
       <text class="form-label">处分原因 *</text>
-      <textarea class="form-textarea" value="{{form.reason}}" bindinput="onInput" data-field="reason" placeholder="请填写处分原因" maxlength="500" />
+      <textarea class="form-textarea" value="{{form.reason}}" bindinput="onInput" data-field="reason" placeholder="请填写处分原因" placeholder-style="color:#999;" maxlength="500" />
     </view>
 
     <!-- 处分日期 -->
@@ -34,13 +34,13 @@
     <!-- 发布人/单位 -->
     <view class="form-group">
       <text class="form-label">发布人/单位</text>
-      <input class="form-input" value="{{form.issuer}}" bindinput="onInput" data-field="issuer" placeholder="班主任姓名" />
+      <input class="form-input" value="{{form.issuer}}" bindinput="onInput" data-field="issuer" placeholder="班主任姓名" placeholder-style="color:#999;" />
     </view>
 
     <!-- 文件编号 -->
     <view class="form-group">
       <text class="form-label">处分文件编号</text>
-      <input class="form-input" value="{{form.document_id}}" bindinput="onInput" data-field="document_id" placeholder="可选" />
+      <input class="form-input" value="{{form.document_id}}" bindinput="onInput" data-field="document_id" placeholder="可选" placeholder-style="color:#999;" />
     </view>
 
     <!-- 级别参数 -->

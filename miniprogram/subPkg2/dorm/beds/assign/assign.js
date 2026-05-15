@@ -106,9 +106,10 @@ Page({
 
       const cfRes = await wx.cloud.callFunction({
         name: 'manageAuthorization',
-        data: { action: 'getStudents', data: { class_id: classId } }
+        data: { action: 'getStudents', data: { class_id: classId, is_boarding: true } }
       });
       let students = (cfRes.result && cfRes.result.success) ? cfRes.result.data : [];
+      students = students.filter(s => s.is_boarding === true);
 
       if (this.data.searchKeyword.trim()) {
         const keyword = this.data.searchKeyword.trim().toLowerCase();

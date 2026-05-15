@@ -614,6 +614,31 @@ async function syncScoreToStudent(task, scoreChange, inspection, openid) {
   }
   const semester_id = semesterRes.data && semesterRes.data.length > 0 ? semesterRes.data[0]._id : '';
 
+  // 读取class_settings中的卫生同步配置
+  let hygieneSyncEnabled = true;
+  let hygieneConversionRatio = 1.0;
+  try {
+    const settingsRes = await db.collection('class_settings')
+      .where({ class_id: class_id })
+      .limit(1)
+      .get();
+    if (settingsRes.data && settingsRes.data.length > 0) {
+      const cs = settingsRes.data[0];
+      hygieneSyncEnabled = cs.hygiene_sync_enabled !== false;
+      hygieneConversionRatio = cs.hygiene_conversion_ratio !== undefined ? cs.hygiene_conversion_ratio : 1.0;
+    }
+  } catch (err) {
+    console.error('读取卫生同步配置失败，使用默认值:', err);
+  }
+
+  // 如果未开启同步，直接返回
+  if (!hygieneSyncEnabled) {
+    return '';
+  }
+
+  // 按折算比例计算实际积分变化
+  const convertedScoreChange = Math.round(scoreChange * hygieneConversionRatio * 100) / 100;
+
   // 获取积分项目
   const scoreItemRes = await db.collection('score_items')
     .where({
@@ -630,6 +655,7 @@ async function syncScoreToStudent(task, scoreChange, inspection, openid) {
   const item_name = scoreItemRes.data && scoreItemRes.data.length > 0 ? scoreItemRes.data[0].name : '卫生值日';
 
   const now = db.serverDate();
+  const ratioLabel = hygieneConversionRatio !== 1.0 ? ` (折算比例${hygieneConversionRatio})` : '';
 
   // 调用统一积分变更云函数
   try {
@@ -641,13 +667,13 @@ async function syncScoreToStudent(task, scoreChange, inspection, openid) {
           student_id: task.student_id,
           class_id: task.class_id || '',
           semester_id: semester_id || '',
-          score_change: scoreChange,
+          score_change: convertedScoreChange,
           source_type: '卫生值日',
           item_id: item_id || '',
           item_name: item_name || '卫生值日',
           rule_name: item_name || '卫生值日',
           rule_code: 'DUTY_CHECK',
-          reason_detail: `${task.duty_date}值日任务【${task.task_name}】${scoreChange > 0 ? '合格加分' : '不合格扣分'}${inspection.comment ? '：' + inspection.comment : ''}`,
+          reason_detail: `${task.duty_date}值日任务【${task.task_name}】${scoreChange > 0 ? '合格加分' : '不合格扣分'}${ratioLabel}${inspection.comment ? '：' + inspection.comment : ''}`,
           recorder_openid: openid,
           recorder_name: inspection.inspector_name || '系统',
           date: task.duty_date || ''
@@ -661,8 +687,8 @@ async function syncScoreToStudent(task, scoreChange, inspection, openid) {
         record_id,
         student_id: task.student_id,
         item_id,
-        score_change: scoreChange,
-        reason_detail: `${task.duty_date}值日任务【${task.task_name}】${scoreChange > 0 ? '合格加分' : '不合格扣分'}${inspection.comment ? '：' + inspection.comment : ''}`,
+        score_change: convertedScoreChange,
+        reason_detail: `${task.duty_date}值日任务【${task.task_name}】${scoreChange > 0 ? '合格加分' : '不合格扣分'}${ratioLabel}${inspection.comment ? '：' + inspection.comment : ''}`,
         date: now,
         recorder_name: inspection.inspector_name || '系统',
         recorder_openid: openid,
@@ -680,7 +706,7 @@ async function syncScoreToStudent(task, scoreChange, inspection, openid) {
       const student = studentRes.data[0];
       const currentScore = student.current_score || 100;
       await db.collection('students').doc(student._id).update({
-        data: { current_score: currentScore + scoreChange, updated_at: now }
+        data: { current_score: currentScore + convertedScoreChange, updated_at: now }
       });
     }
   }

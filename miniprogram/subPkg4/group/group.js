@@ -86,12 +86,12 @@ Page({
       const groups = res.data || [];
       
       for (let group of groups) {
-        // 组员数量
-        const memberCount = (group.members || []).length;
-        // 是否有组长
-        const hasLeader = group.leader_id ? 1 : 0;
-        // 总人数 = 组员 + 组长
-        group.total_count = memberCount + hasLeader;
+        const members = group.members || [];
+        const leaderId = group.leader_id || '';
+        const leaderInMembers = leaderId && members.some(m => (m.student_id || m.user_id || m.openid || m) === leaderId);
+        const memberCount = members.length;
+        const hasLeader = leaderId ? 1 : 0;
+        group.total_count = memberCount + (hasLeader && !leaderInMembers ? 1 : 0);
         group.member_count = memberCount;
       }
 

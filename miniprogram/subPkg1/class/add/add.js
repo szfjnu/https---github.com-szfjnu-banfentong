@@ -294,7 +294,7 @@ Page({
         subject: formData.subject,
         creator_id: app.globalData.openid,
         status: 'active',
-        updated_at: db.serverDate()
+        updated_at: new Date().toISOString()
       };
 
       if (isEdit) {
@@ -319,7 +319,7 @@ Page({
         }, 1500);
       } else {
         // 添加
-        saveData.created_at = db.serverDate();
+        saveData.created_at = new Date().toISOString();
         saveData.class_code = this.generateClassCode();
 
         const res = await wx.cloud.callFunction({

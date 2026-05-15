@@ -2,7 +2,7 @@
 const app = getApp();
 const api = require('../../../utils/api.js');
 const util = require('../../../utils/util.js');
-const { ETHNIC_GROUPS } = require('../../../utils/ethnic-groups.js');
+const { ETHNIC_GROUPS } = require('../../utils/ethnic-groups.js');
 
 Page({
   data: {
@@ -523,7 +523,7 @@ Page({
         position: formData.position,
         initial_score: formData.initial_score,
         current_score: formData.current_score,
-        updated_at: db.serverDate()
+        updated_at: new Date().toISOString()
       };
 
       if (this.data.isEdit) {
@@ -610,7 +610,7 @@ Page({
         util.showSuccess('更新成功');
 
       } else {
-        basicData.created_at = db.serverDate();
+        basicData.created_at = new Date().toISOString();
 
         const checkRes = await db.collection('students')
           .where({

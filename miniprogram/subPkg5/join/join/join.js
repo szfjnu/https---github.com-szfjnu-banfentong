@@ -35,8 +35,9 @@ Page({
   },
 
   // 检查是否可以搜索
-  checkCanSearch: function (value) {
-    if (!this.data.agreed) return false;
+  checkCanSearch: function (value, agreed) {
+    const isAgreed = agreed !== undefined ? agreed : this.data.agreed;
+    if (!isAgreed) return false;
 
     if (this.data.activeMethod === 'code') {
       return value.length >= 4;
@@ -45,12 +46,11 @@ Page({
     }
   },
 
-  // 切换协议同意
   onToggleAgreement: function () {
     const agreed = !this.data.agreed;
     this.setData({
       agreed,
-      canSearch: this.checkCanSearch(this.data.inputValue)
+      canSearch: this.checkCanSearch(this.data.inputValue, agreed)
     });
   },
 

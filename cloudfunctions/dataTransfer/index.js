@@ -64,7 +64,7 @@ exports.main = async (event, context) => {
       }
     }
 
-    const classIdFromData = data && data.class_id
+    const classIdFromData = (data && data.class_id) || (data && data.classId)
     const caller = await getCallerInfo(event, classIdFromData)
     const classId = classIdFromData || caller.classId
 

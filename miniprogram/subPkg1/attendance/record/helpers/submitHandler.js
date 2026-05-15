@@ -32,7 +32,7 @@ const submitHandler = {
           category_name: category.category_name,
           score_change: newScoreChange,
           semester_id: app.globalData.currentSemesterId || '',
-          updated_at: db.serverDate()
+          updated_at: new Date().toISOString()
         };
         const updateRes = await wx.cloud.callFunction({
           name: 'scoreManager',
@@ -92,8 +92,8 @@ const submitHandler = {
               recorder_name: app.globalData.userInfo.nickName,
               recorder_role: userRole,
               semester_id: app.globalData.currentSemesterId || '',
-              created_at: db.serverDate(),
-              updated_at: db.serverDate()
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
             };
             const addRes = await wx.cloud.callFunction({
               name: 'scoreManager',
@@ -134,8 +134,8 @@ const submitHandler = {
             recorder_name: app.globalData.userInfo.nickName,
             recorder_role: userRole,
             semester_id: app.globalData.currentSemesterId || '',
-            created_at: db.serverDate(),
-            updated_at: db.serverDate()
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           };
           const addRes = await wx.cloud.callFunction({
             name: 'scoreManager',

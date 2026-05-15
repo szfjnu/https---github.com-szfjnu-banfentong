@@ -301,7 +301,7 @@ Page({
         class_id: this.data.classId,
         date: date,
         semester_id: this.data.currentSemesterId,
-        updated_at: db.serverDate()
+        updated_at: new Date().toISOString()
       };
       
       if (checkRes.data && checkRes.data.length > 0) {
@@ -321,7 +321,7 @@ Page({
         }
       } else {
         statData.stat_id = `STAT${Date.now()}${Math.random().toString(36).substr(2, 9)}`;
-        statData.created_at = db.serverDate();
+        statData.created_at = new Date().toISOString();
         const addRes = await wx.cloud.callFunction({
           name: 'attendanceWarning',
           data: {

@@ -2,6 +2,7 @@ const app = getApp()
 
 function initChart(canvas, ctx, width, height, echarts) {
   const chart = echarts.init(canvas, null, { width, height, devicePixelRatio: wx.getSystemInfoSync().pixelRatio })
+  canvas.setChart = canvas.setChart || function () {}
   canvas.setChart(chart)
   return chart
 }

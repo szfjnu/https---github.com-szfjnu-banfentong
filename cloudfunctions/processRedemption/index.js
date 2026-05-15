@@ -10,7 +10,7 @@ exports.main = async (event, context) => {
   const { action, data } = event;
 
   try {
-    const caller = await getCallerInfo(event, data?.classId || data?.class_id);
+    const caller = await getCallerInfo(event, data?.classId || data?.class_id || data?.itemData?.class_id || data?.updateData?.class_id);
 
     switch (action) {
       case 'submitRedemption':

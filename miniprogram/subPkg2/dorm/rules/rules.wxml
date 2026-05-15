@@ -44,6 +44,10 @@
       </view>
     </view>
     <view class="tabs-right">
+      <view class="init-rules-btn" bindtap="onInitRules">
+        <text class="icon">⚡</text>
+        <text>初始化规则</text>
+      </view>
       <button class="add-btn" bindtap="onAddRule">
         <text>➕ 添加</text>
       </button>
@@ -113,6 +117,7 @@
           <input 
             class="form-input" 
             placeholder="请输入规则名称"
+            placeholder-style="color:#999;"
             value="{{formData.rule_name}}"
             bindinput="onInputChange"
             data-field="rule_name"
@@ -155,6 +160,7 @@
             class="form-input" 
             type="number"
             placeholder="正数=加分，负数=扣分"
+            placeholder-style="color:#999;"
             value="{{formData.score_value}}"
             bindinput="onInputChange"
             data-field="score_value"
@@ -181,6 +187,7 @@
           <textarea 
             class="form-textarea" 
             placeholder="详细描述违规/加分情形"
+            placeholder-style="color:#999;"
             value="{{formData.standard}}"
             bindinput="onInputChange"
             data-field="standard"
@@ -192,6 +199,7 @@
           <textarea 
             class="form-textarea" 
             placeholder="规则详细说明"
+            placeholder-style="color:#999;"
             value="{{formData.description}}"
             bindinput="onInputChange"
             data-field="description"

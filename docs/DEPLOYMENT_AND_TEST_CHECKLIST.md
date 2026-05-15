@@ -41,7 +41,7 @@
 - `score_anomaly_alerts` — 积分异常告警
 - `permission_audit_logs` — 权限审计日志
 - `user_settings` — 用户设置
-- `student_status` — 学生状态
+- ` ` — 学生状态
 
 > 提示：setupIndexes 云函数会自动创建缺失的集合，也可在云控制台手动创建。
 

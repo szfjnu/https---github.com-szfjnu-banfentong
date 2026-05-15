@@ -542,3 +542,35 @@
 .dorm-record-score.score-minus {
   color: var(--error-color);
 }
+
+.duty-stats-card,
+.duty-schedules-card,
+.duty-tasks-card,
+.hygiene-checks-card {
+  background: var(--white);
+  margin: 20rpx;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+}
+
+.duty-status {
+  font-size: 24rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 6rpx;
+}
+
+.duty-status.completed {
+  background: #f6ffed;
+  color: #52c41a;
+}
+
+.duty-status.pending {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.duty-status.missed {
+  background: #fff2f0;
+  color: #ff4d4f;
+}

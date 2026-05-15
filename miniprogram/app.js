@@ -422,7 +422,7 @@ App({
                   location: {
                     latitude: res.latitude,
                     longitude: res.longitude,
-                    updated_at: db.serverDate()
+                    updated_at: new Date().toISOString()
                   }
                 }
               }).catch(err => console.error('更新位置失败:', err));

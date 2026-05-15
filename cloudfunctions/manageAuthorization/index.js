@@ -74,13 +74,18 @@ exports.main = async (event, context) => {
 };
 
 async function getStudents(data) {
-  const { class_id } = data;
+  const { class_id, is_boarding } = data;
   if (!class_id) return { success: false, message: '缺少班级ID' };
 
-  const students = await batchQuery.getAllRecords('students', {
+  const query = {
     class_id: class_id,
     status: _.neq('graduated')
-  });
+  };
+  if (is_boarding === true) {
+    query.is_boarding = true;
+  }
+
+  const students = await batchQuery.getAllRecords('students', query);
 
   return { success: true, data: students };
 }

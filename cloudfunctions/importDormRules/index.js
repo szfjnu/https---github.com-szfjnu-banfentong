@@ -108,6 +108,12 @@ async function importRules(data, caller) {
     { rule_name: '策划或为首打架', category: '安全', score_value: -40, severity: '重大', standard: '策划或带头参与打架斗殴', description: '策划或为首打架扣40分', requires_proof: true },
     { rule_name: '持械打架', category: '安全', score_value: -50, severity: '重大', standard: '使用器械参与打架斗殴', description: '持械打架扣50分', requires_proof: true },
 
+    { rule_name: '文明宿舍奖', category: '卫生', score_value: 1, severity: '一般', standard: '宿舍获评校级周/月"文明宿舍"，全体成员加1分；获学期文明宿舍加5分', description: '文明宿舍奖：周/月文明宿舍每人加1分，学期文明宿舍每人加5分', requires_proof: true },
+    { rule_name: '内务进步奖', category: '卫生', score_value: 1, severity: '轻微', standard: '个人内务或宿舍整体卫生较上周有明显进步，获宿管老师点名表扬，或单周宿舍评分平均分大于92分', description: '内务进步奖每人加1分', requires_proof: false },
+    { rule_name: '标识不规范罚', category: '卫生', score_value: -3, severity: '轻微', standard: '未按学校要求张贴宿舍门牌照片，或床位标签缺失', description: '标识不规范罚每次扣3分', requires_proof: false },
+    { rule_name: '仪容仪表罚(宿舍)', category: '纪律', score_value: -3, severity: '轻微', standard: '不穿校服、不按要求穿校服、穿拖鞋进入教学区/宿舍公共区', description: '仪容仪表罚(宿舍)每次扣3分', requires_proof: false },
+    { rule_name: '言语冲突罚(宿舍)', category: '纪律', score_value: -20, severity: '严重', standard: '使用粗言秽语辱骂攻击他人，引发矛盾，或顶撞管理人员/老师', description: '言语冲突罚(宿舍)每次扣20分', requires_proof: true },
+
     { rule_name: '连续日劳动', category: '其他', score_value: 2, severity: '轻微', standard: '通过连续日劳动获得加分', description: '连续日劳动每次加回2分', requires_proof: true },
     { rule_name: '其他加分', category: '其他', score_value: 5, severity: '轻微', standard: '其他类型的加分奖励', description: '其他加分等', requires_proof: false }
   ]
@@ -118,7 +124,8 @@ async function importRules(data, caller) {
     const existing = await db.collection('dorm_rules')
       .where({
         rule_name: rule.rule_name,
-        category: rule.category
+        category: rule.category,
+        class_id: class_id || ''
       })
       .get()
 

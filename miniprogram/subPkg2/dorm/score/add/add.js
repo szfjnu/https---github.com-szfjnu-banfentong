@@ -94,26 +94,17 @@ Page({
 
       console.log('开始加载数据，班级ID:', userClassId);
 
-      // 加载学生列表
-      const studentRes = await db.collection('students')
-        .where({
-          class_id: _.eq(userClassId)
-        })
-        .field({
-          student_id: true,
-          name: true,
-          dorm_info: true
-        })
-        .orderBy('student_id', 'asc')
-        .get();
-
-      const students = studentRes.data || [];
+      // 加载学生列表（使用batchQuery全量加载住宿生）
+      const students = await batchQuery.getAllRecords('students', {
+        class_id: _.eq(userClassId),
+        is_boarding: true
+      }, 'student_id', 'asc');
       console.log('学生列表:', students);
 
       // 加载宿舍房间列表
       const buildingRes = await db.collection('dorm_buildings')
         .where({
-          class_id: _.eq(userClassId)
+          class_id: _.in([userClassId, ''])
         })
         .get();
 
@@ -131,7 +122,7 @@ Page({
       } else {
         const roomRes = await db.collection('dorm_rooms')
           .where({
-            class_id: _.eq(userClassId)
+            class_id: _.in([userClassId, ''])
           })
           .orderBy('room_number', 'asc')
           .get();

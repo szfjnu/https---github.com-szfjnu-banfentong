@@ -267,6 +267,23 @@ async function addDisciplineRecord(data, caller) {
   const now = db.serverDate();
   const issueDate = issue_date || getTodayStr();
 
+  // 读取class_settings中的处分同步配置
+  let disciplineSyncEnabled = true;
+  let disciplineConversionRatio = 1.0;
+  try {
+    const settingsRes = await db.collection('class_settings')
+      .where({ class_id: class_id })
+      .limit(1)
+      .get();
+    if (settingsRes.data && settingsRes.data.length > 0) {
+      const cs = settingsRes.data[0];
+      disciplineSyncEnabled = cs.discipline_sync_enabled !== false;
+      disciplineConversionRatio = cs.discipline_conversion_ratio !== undefined ? cs.discipline_conversion_ratio : 1.0;
+    }
+  } catch (err) {
+    console.error('读取处分同步配置失败，使用默认值:', err);
+  }
+
   // 计算到期日期
   let expiration_date = null;
   if (probation_months > 0) {
@@ -308,6 +325,43 @@ async function addDisciplineRecord(data, caller) {
         updated_by: caller.openid
       }
     });
+
+    if (score_deduction && score_deduction > 0 && disciplineSyncEnabled) {
+      try {
+        const convertedDeduction = Math.round(score_deduction * disciplineConversionRatio * 100) / 100;
+        const ratioLabel = disciplineConversionRatio !== 1.0 ? ` (折算比例${disciplineConversionRatio})` : '';
+        const scoreRes = await cloud.callFunction({
+          name: 'scoreManager',
+          data: {
+            action: 'applyScoreChange',
+            data: {
+              student_id,
+              class_id,
+              semester_id: semester_id || '',
+              score_change: -convertedDeduction,
+              source_type: '处分扣分',
+              item_id: 'discipline_deduction',
+              item_name: `处分扣分：${level_name}`,
+              rule_name: `处分扣分：${level_name}`,
+              rule_code: 'DISCIPLINE',
+              reason_detail: `处分扣分：${level_name} - ${reason}${ratioLabel}`,
+              recorder_openid: caller.openid,
+              recorder_name: issuer || '系统',
+              date: issueDate
+            }
+          }
+        });
+        const scoreResult = scoreRes.result || {};
+        if (scoreResult.success && scoreResult.data) {
+          await db.collection('discipline_records')
+            .doc(existingDoc._id)
+            .update({ data: { related_score_record_id: scoreResult.data.record_id } });
+        }
+      } catch (err) {
+        console.error('积分扣减失败（恢复记录）:', err);
+      }
+    }
+
     return { success: true, data: { record_id: existingDoc.record_id, restored: true } };
   }
 
@@ -344,23 +398,25 @@ async function addDisciplineRecord(data, caller) {
 
   await db.collection('discipline_records').add({ data: record });
 
-  if (score_deduction && score_deduction > 0) {
+  if (score_deduction && score_deduction > 0 && disciplineSyncEnabled) {
     try {
+      const convertedDeduction = Math.round(score_deduction * disciplineConversionRatio * 100) / 100;
+      const ratioLabel = disciplineConversionRatio !== 1.0 ? ` (折算比例${disciplineConversionRatio})` : '';
       const scoreRes = await cloud.callFunction({
         name: 'scoreManager',
         data: {
           action: 'applyScoreChange',
           data: {
             student_id,
-            class_id: class_id || '',
+            class_id,
             semester_id: semester_id || '',
-            score_change: -score_deduction,
+            score_change: -convertedDeduction,
             source_type: '处分扣分',
             item_id: 'discipline_deduction',
             item_name: `处分扣分：${level_name}`,
             rule_name: `处分扣分：${level_name}`,
             rule_code: 'DISCIPLINE',
-            reason_detail: `处分扣分：${level_name} - ${reason}`,
+            reason_detail: `处分扣分：${level_name} - ${reason}${ratioLabel}`,
             recorder_openid: caller.openid,
             recorder_name: issuer || '系统',
             date: issueDate
@@ -373,6 +429,8 @@ async function addDisciplineRecord(data, caller) {
         await db.collection('discipline_records')
           .where({ record_id })
           .update({ data: { related_score_record_id: scoreResult.data.record_id } });
+      } else {
+        console.error('积分扣减未成功:', scoreResult.message || '未知原因');
       }
     } catch (err) {
       console.error('积分扣减失败:', err);
@@ -663,6 +721,69 @@ async function reviewRevocationApplication(data, caller) {
             updated_at: now
           }
         });
+
+      try {
+        const discRes = await db.collection('discipline_records')
+          .where({ record_id: app.discipline_record_id })
+          .limit(1)
+          .get();
+        if (discRes.data.length > 0) {
+          const disc = discRes.data[0];
+          const scoreDeduction = disc.score_deduction || disc.score_change || 0;
+          if (scoreDeduction < 0 && disc.student_id) {
+            let classId = disc.class_id || '';
+            if (!classId) {
+              const studentRes = await db.collection('students')
+                .where({ student_id: disc.student_id })
+                .limit(1).get();
+              if (studentRes.data.length > 0) {
+                classId = studentRes.data[0].class_id || '';
+              }
+            }
+            let conversionRatio = 1;
+            let syncEnabled = true;
+            if (classId) {
+              try {
+                const settingsRes = await db.collection('class_settings')
+                  .where({ class_id: classId }).limit(1).get();
+                if (settingsRes.data.length > 0) {
+                  const settings = settingsRes.data[0];
+                  syncEnabled = settings.discipline_sync_enabled !== false;
+                  conversionRatio = settings.discipline_conversion_ratio || 1;
+                }
+              } catch (e) { console.error('读取class_settings失败:', e); }
+            }
+            if (syncEnabled) {
+              const restoredScore = Math.abs(scoreDeduction) * conversionRatio;
+              await db.collection('students')
+                .where({ student_id: disc.student_id })
+                .update({ data: { current_score: _.inc(restoredScore), updated_at: now } });
+              if (disc.related_score_record_id) {
+                try {
+                  await db.collection('score_records')
+                    .doc(disc.related_score_record_id)
+                    .update({ data: { is_enabled: false, updated_at: now } });
+                } catch (e) { console.error('禁用原积分记录失败:', e); }
+              }
+              await db.collection('score_records').add({
+                data: {
+                  student_id: disc.student_id,
+                  class_id: classId,
+                  item_name: '处分撤销积分恢复',
+                  score_change: restoredScore,
+                  source_type: 'discipline_revoke',
+                  source_record_id: app.discipline_record_id,
+                  is_enabled: true,
+                  created_at: now,
+                  updated_at: now
+                }
+              });
+            }
+          }
+        }
+      } catch (err) {
+        console.error('撤销处分积分恢复失败:', err);
+      }
 
       // 通知学生
       try {

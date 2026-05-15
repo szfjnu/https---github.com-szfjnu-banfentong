@@ -64,6 +64,39 @@
       </view>
     </view>
 
+    <!-- 前5名排行（学生/家长模式，仅自己可点击跳转） -->
+    <view class="score-card radius-lg shadow-sm" wx:if="{{topStudents && topStudents.length > 0}}">
+      <view class="card-title">班级积分排行（前5名）</view>
+      <view class="ranking-list">
+        <view
+          class="ranking-item {{item.isSelf ? 'self-highlight' : ''}}"
+          wx:for="{{topStudents}}"
+          wx:key="_id"
+          bindtap="onViewDetail"
+          data-id="{{item.student_id}}"
+        >
+          <view class="ranking-number {{index < 3 ? 'top-' + (index + 1) : ''}}">
+            {{index + 1}}
+          </view>
+          <view class="student-avatar">
+            <image src="/images/icons/default-avatar.png" mode="aspectFill"></image>
+          </view>
+          <view class="student-info min-w-0">
+            <view class="student-name ellipsis">{{item.name}}<text wx:if="{{item.isSelf}}" class="self-tag">（我）</text></view>
+            <view class="student-meta">
+              <text class="meta-item">{{item.student_id}}</text>
+            </view>
+          </view>
+          <view class="score-info">
+            <view class="score-value" style="color: {{item.scoreColor}}">
+              {{item.current_score || 100}}
+            </view>
+            <view class="score-level">{{item.scoreLevel}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
     <!-- 加载状态 -->
     <view class="loading" wx:if="{{loading}}">
       <view class="loading-icon"></view>
@@ -145,7 +178,7 @@
       <view class="card-title">积分排行榜</view>
       <view class="ranking-list" wx:if="{{!loading && students.length > 0}}">
         <view
-          class="ranking-item {{item.canView ? '' : 'disabled'}}"
+          class="ranking-item"
           wx:for="{{students}}"
           wx:key="_id"
           bindtap="onViewDetail"
@@ -169,9 +202,6 @@
               {{item.current_score || 100}}
             </view>
             <view class="score-level">{{item.scoreLevel}}</view>
-          </view>
-          <view class="no-permission-mask" wx:if="{{!item.canView}}">
-            <text class="no-permission-text">无权限</text>
           </view>
         </view>
       </view>

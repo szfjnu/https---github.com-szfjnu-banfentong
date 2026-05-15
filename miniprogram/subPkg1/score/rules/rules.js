@@ -291,6 +291,43 @@ Page({
     this.setData({ activeTab: tab });
   },
 
+  // 初始化内置规则
+  onInitRules: function () {
+    wx.showModal({
+      title: '初始化规则',
+      content: '将导入内置的积分规则模板（30条）。当前班级已有规则将被跳过，确认初始化？',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            wx.showLoading({ title: '初始化中...', mask: true });
+            const cfRes = await wx.cloud.callFunction({
+              name: 'scoreManager',
+              data: {
+                action: 'initScoreRules',
+                data: {
+                  class_id: this.data.userClassId || '',
+                  semester_id: this.data.currentSemesterId || ''
+                }
+              }
+            });
+            wx.hideLoading();
+            const result = cfRes.result || {};
+            if (result.success) {
+              util.showSuccess(result.message || '初始化成功');
+              this.loadRules();
+            } else {
+              util.showError(result.message || '初始化失败');
+            }
+          } catch (err) {
+            wx.hideLoading();
+            console.error('初始化规则失败:', err);
+            util.showError('初始化失败');
+          }
+        }
+      }
+    });
+  },
+
   // 显示添加弹窗
   onShowAddModal: function () {
     const defaultCategoryIndex = 0;

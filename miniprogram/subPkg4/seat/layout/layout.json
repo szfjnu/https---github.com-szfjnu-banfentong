@@ -1,6 +1,6 @@
 {
   "navigationBarTitleText": "座位布局设置",
   "usingComponents": {
-    "seat-grid": "/subPkg4/components/seat-grid/seat-grid"
+    "seat-grid": "../../components/seat-grid/seat-grid"
   }
 }

@@ -10,11 +10,54 @@ const _ = db.command
 
 const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('./utils/auth')
 
+let aiInstance = null
+function getAI() {
+  if (!aiInstance) {
+    try {
+      aiInstance = cloud.ai()
+    } catch (e) {
+      console.error('cloud.ai()初始化失败:', e.message)
+    }
+  }
+  return aiInstance
+}
+
+async function callAI(prompt, systemPrompt) {
+  const ai = getAI()
+  if (!ai) {
+    throw new Error('云开发AI服务未开通或wx-server-sdk版本不支持')
+  }
+  try {
+    const model = ai.createModel('deepseek')
+    const result = await model.generateText({
+      model: 'deepseek-r1-0528',
+      messages: [
+        { role: 'system', content: systemPrompt || '你是一名专业的班主任，擅长撰写学生评语和综合评价。' },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.7,
+      max_tokens: 2000
+    })
+    if (result && result.choices && result.choices.length > 0 && result.choices[0].message) {
+      return result.choices[0].message.content
+    }
+    throw new Error('AI返回格式异常')
+  } catch (err) {
+    throw new Error(`AI调用失败: ${err.message}`)
+  }
+}
+
 exports.main = async (event, context) => {
   const { student_id, review_type, review_period } = event
   const { class_id } = event
 
   try {
+    if (event._prompt) {
+      const caller = await getCallerInfo(event, class_id)
+      const content = await callAI(event._prompt, event._systemPrompt || '')
+      return { success: true, data: { content } }
+    }
+
     const caller = await getCallerInfo(event, class_id)
     requireTeacher(caller)
 
@@ -128,27 +171,74 @@ exports.main = async (event, context) => {
 
     const disciplineRecords = disciplineRecordsRes.data
 
-    // 9. 生成AI点评内容
-    const reviewContent = generateReviewContent({
-      student,
-      review_type,
-      review_period,
-      totalScoreChange,
-      volunteerHours,
-      competitionCount: competitionRecords.length,
-      certificateCount: certificateRecords.length,
-      disciplineCount: disciplineRecords.length,
-      disciplineLevels: disciplineRecords.map(d => d.discipline_level)
-    })
+    // 9. 生成AI点评内容（优先使用AI接口，失败则回退模板）
+    let reviewContent = ''
+    let usedAI = false
+    try {
+      const dataSummary = `学生姓名：${student.name}
+当前总积分：${student.current_score}
+本${review_type === '按月' ? '月' : review_type === '按学期' ? '学期' : '学年'}积分变化：${totalScoreChange > 0 ? '+' : ''}${totalScoreChange}分
+志愿服务时长：${volunteerHours}小时
+竞赛参与次数：${competitionRecords.length}次
+获得证书数量：${certificateRecords.length}个
+受处分次数：${disciplineRecords.length}次${disciplineRecords.length > 0 ? '（级别：' + disciplineRecords.map(d => d.discipline_level).join('、') + '）' : ''}`
+
+      const aiPrompt = `请为以下学生生成一份${review_type}综合评语（${review_period}）：
+
+${dataSummary}
+
+要求：
+1. 评语应客观、有建设性，语言亲切自然
+2. 分别评价积分表现、活动参与、纪律表现
+3. 给出针对性改进建议
+4. 总字数300-500字
+5. 用第二人称"你"称呼学生`
+
+      const aiSystemPrompt = '你是一名经验丰富的班主任，擅长撰写学生综合评语。评语应客观准确，积极鼓励为主，同时指出需改进之处。语气亲切自然。'
+
+      reviewContent = await callAI(aiPrompt, aiSystemPrompt)
+      if (reviewContent) usedAI = true
+    } catch (aiErr) {
+      console.error('AI生成评语失败，回退模板生成:', aiErr.message)
+    }
+
+    if (!usedAI) {
+      reviewContent = generateReviewContent({
+        student,
+        review_type,
+        review_period,
+        totalScoreChange,
+        volunteerHours,
+        competitionCount: competitionRecords.length,
+        certificateCount: certificateRecords.length,
+        disciplineCount: disciplineRecords.length,
+        disciplineLevels: disciplineRecords.map(d => d.discipline_level)
+      })
+    }
 
     // 10. 生成改进建议
-    const suggestions = generateSuggestions({
-      totalScoreChange,
-      volunteerHours,
-      competitionCount: competitionRecords.length,
-      certificateCount: certificateRecords.length,
-      disciplineCount: disciplineRecords.length
-    })
+    let suggestions = []
+    if (usedAI) {
+      try {
+        const sugPrompt = `基于以下学生数据，给出3-5条简洁的改进建议（每条不超过20字）：
+积分变化：${totalScoreChange > 0 ? '+' : ''}${totalScoreChange}分，志愿服务：${volunteerHours}小时，竞赛：${competitionRecords.length}次，处分：${disciplineRecords.length}次`
+        const sugResult = await callAI(sugPrompt, '你是教育顾问，给出简洁可操作的学生改进建议。')
+        if (sugResult) {
+          suggestions = sugResult.split('\n').filter(s => s.trim()).map(s => s.replace(/^[\d.、\-\s]+/, '').trim()).slice(0, 5)
+        }
+      } catch (err) {
+        console.error('AI生成建议失败:', err.message)
+      }
+    }
+    if (suggestions.length === 0) {
+      suggestions = generateSuggestions({
+        totalScoreChange,
+        volunteerHours,
+        competitionCount: competitionRecords.length,
+        certificateCount: certificateRecords.length,
+        disciplineCount: disciplineRecords.length
+      })
+    }
 
     // 11. 保存点评记录
     const reviewRes = await db.collection('ai_reviews').add({
@@ -174,6 +264,7 @@ exports.main = async (event, context) => {
         suggestions: suggestions,
         is_edited: false,
         is_confirmed: false,
+        generated_by_ai: usedAI,
         created_at: new Date(),
         updated_at: new Date()
       }

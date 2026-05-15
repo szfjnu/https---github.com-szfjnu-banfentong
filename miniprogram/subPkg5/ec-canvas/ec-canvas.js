@@ -13,7 +13,7 @@ function wrapAsComponent() {
     },
 
     lifetimes: {
-      attached: function () {
+      ready: function () {
         this.init()
       }
     },
@@ -32,13 +32,8 @@ function wrapAsComponent() {
 
             if (!echarts) return
 
-            const bindbindTouchStart = this.bindTouchStart.bind(this)
-            const bindbindTouchMove = this.bindTouchMove.bind(this)
-            const bindbindTouchEnd = this.bindTouchEnd.bind(this)
-
-            canvasNode.bindbindTouchStart = bindbindTouchStart
-            canvasNode.bindbindTouchMove = bindbindTouchMove
-            canvasNode.bindbindTouchEnd = bindbindTouchEnd
+            canvasNode.addEventListener = canvasNode.addEventListener || function () {}
+            canvasNode.removeEventListener = canvasNode.removeEventListener || function () {}
 
             if (this.data.ec && typeof this.data.ec.onInit === 'function') {
               this.chart = this.data.ec.onInit(canvasNode, ctx, canvasWidth, canvasHeight, echarts)

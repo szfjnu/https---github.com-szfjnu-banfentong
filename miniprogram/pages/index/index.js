@@ -791,6 +791,7 @@ fetchWeather: async function (location) {
       actions = [
         { title: '学生管理', icon: 'student', color: '#1890ff', colorDark: '#096dd9', url: '/pages/student/student', disabled: false },
         { title: '班级管理', icon: 'class', color: '#13c2c2', colorDark: '#08979c', url: '/subPkg1/class/class', disabled: false },
+        { title: '班级配置', icon: 'settings', color: '#8c8c8c', colorDark: '#595959', url: '__classSettings__', disabled: false },
         { title: '分组管理', icon: 'class', color: '#eb2f96', colorDark: '#c41d7f', url: '/subPkg4/group/group', disabled: false },
         { title: '考勤管理', icon: 'attendance', color: '#722ed1', colorDark: '#531dab', url: '/subPkg1/attendance/attendance', disabled: false },
         { title: '积分管理', icon: 'score', color: '#52c41a', colorDark: '#389e0d', url: '/pages/score/score', disabled: false },
@@ -916,6 +917,16 @@ fetchWeather: async function (location) {
         icon: 'none',
         duration: 2000
       });
+      return;
+    }
+    
+    if (url === '__classSettings__') {
+      const classId = app.globalData.class_id;
+      if (!classId) {
+        wx.showToast({ title: '请先选择班级', icon: 'none' });
+        return;
+      }
+      wx.navigateTo({ url: `/subPkg1/class/settings/settings?id=${classId}` });
       return;
     }
     

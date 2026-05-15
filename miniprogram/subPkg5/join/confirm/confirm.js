@@ -204,12 +204,24 @@ Page({
           }
         });
       } else {
-        util.showError(result.error || '加入失败');
+        const errMsg = result.error || result.message || '加入失败';
+        if (errMsg.includes('already exists') || errMsg.includes('重复') || errMsg.includes('唯一')) {
+          util.showError('该学号已存在，请检查学号是否正确或联系班主任');
+        } else if (errMsg.includes('权限') || errMsg.includes('无权')) {
+          util.showError('权限不足，请联系班主任处理');
+        } else {
+          util.showError(errMsg);
+        }
       }
     } catch (err) {
       console.error('加入班级失败:', err);
       this.setData({ loading: false });
-      util.showError('加入失败');
+      const msg = err.errMsg || err.message || '';
+      if (msg.includes('timeout') || msg.includes('超时')) {
+        util.showError('网络超时，请重试');
+      } else {
+        util.showError('加入失败，请稍后重试');
+      }
     }
   }
 });

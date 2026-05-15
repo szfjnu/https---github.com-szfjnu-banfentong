@@ -1,7 +1,7 @@
 {
   "navigationBarTitleText": "安排座位",
   "usingComponents": {
-    "seat-grid": "/subPkg4/components/seat-grid/seat-grid",
-    "student-picker": "/subPkg4/components/student-picker/student-picker"
+    "seat-grid": "../../components/seat-grid/seat-grid",
+    "student-picker": "../../components/student-picker/student-picker"
   }
 }

@@ -132,43 +132,44 @@ async function getUserProfile(data, openid) {
 
   // 获取用户角色（从 user_class_relation 集合）
   let role = user.role || '';
-  if (!role) {
-    const relationRes = await db.collection('user_class_relation')
+  let relationClassId = '';
+  const relationRes = await db.collection('user_class_relation')
+    .where({
+      user_openid: openid,
+      status: 'joined'
+    })
+    .limit(1)
+    .get();
+  if (relationRes.data && relationRes.data.length > 0) {
+    if (!role) role = relationRes.data[0].role || '';
+    relationClassId = relationRes.data[0].class_id || '';
+  }
+  if (!role && !relationClassId) {
+    const relationRes2 = await db.collection('user_class_relation')
       .where({
-        user_openid: openid,
+        _openid: openid,
         status: 'joined'
       })
       .limit(1)
       .get();
-    if (relationRes.data && relationRes.data.length > 0) {
-      role = relationRes.data[0].role || '';
-    }
-    if (!role) {
-      const relationRes2 = await db.collection('user_class_relation')
-        .where({
-          _openid: openid,
-          status: 'joined'
-        })
-        .limit(1)
-        .get();
-      if (relationRes2.data && relationRes2.data.length > 0) {
-        role = relationRes2.data[0].role || '';
-      }
+    if (relationRes2.data && relationRes2.data.length > 0) {
+      if (!role) role = relationRes2.data[0].role || '';
+      relationClassId = relationRes2.data[0].class_id || '';
     }
   }
 
   // 获取班级信息
   let classInfo = null;
-  let classId = user.class_id || '';
+  let classId = user.class_id || relationClassId || '';
   let className = user.class_name || '';
 
-  if (!classId && role) {
+  if (!classId) {
     const relForClass = await db.collection('user_class_relation')
-      .where({ user_openid: openid, status: 'joined' })
+      .where({ _openid: openid, status: 'joined' })
       .limit(1)
       .get();
     if (relForClass.data && relForClass.data.length > 0) {
-      classId = relForClass.data[0].class_id || classId;
+      classId = relForClass.data[0].class_id || '';
     }
   }
 
@@ -1297,7 +1298,7 @@ async function getAccessibleStudents(data, openid) {
 
   console.log('[getAccessibleStudents] 访问者信息:', { openid, userRole: userRole || '未知', userId, userStudentId });
 
-  const allowedRoles = ['admin', 'head_teacher', 'class_teacher'];
+  const allowedRoles = ['admin', 'head_teacher', 'subject_teacher'];
   
   if (allowedRoles.includes(userRole)) {
     const allStudentsRes = await db.collection('students')

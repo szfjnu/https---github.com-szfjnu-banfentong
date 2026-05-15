@@ -71,6 +71,45 @@
     </view>
   </view>
 
+  <!-- 积分同步设置 -->
+  <view class="settings-section">
+    <view class="section-title">积分同步设置</view>
+    <view class="settings-list">
+      <view class="setting-item">
+        <view class="setting-left">
+          <text class="setting-icon">🧹</text>
+          <text class="setting-name">卫生检查同步积分</text>
+        </view>
+        <switch checked="{{settings.hygiene_sync_enabled}}" bindchange="onToggleSetting" data-key="hygiene_sync_enabled" color="#1890ff" />
+      </view>
+      <view class="setting-item" wx:if="{{settings.hygiene_sync_enabled}}">
+        <view class="setting-left">
+          <text class="setting-icon">📐</text>
+          <text class="setting-name">卫生折算比例</text>
+        </view>
+        <view class="ratio-input-wrap">
+          <input class="ratio-input" type="digit" value="{{settings.hygiene_conversion_ratio}}" data-key="hygiene_conversion_ratio" bindinput="onRatioInput" bindblur="onRatioBlur" />
+        </view>
+      </view>
+      <view class="setting-item">
+        <view class="setting-left">
+          <text class="setting-icon">📋</text>
+          <text class="setting-name">处分同步积分</text>
+        </view>
+        <switch checked="{{settings.discipline_sync_enabled}}" bindchange="onToggleSetting" data-key="discipline_sync_enabled" color="#1890ff" />
+      </view>
+      <view class="setting-item" wx:if="{{settings.discipline_sync_enabled}}">
+        <view class="setting-left">
+          <text class="setting-icon">📐</text>
+          <text class="setting-name">处分析算比例</text>
+        </view>
+        <view class="ratio-input-wrap">
+          <input class="ratio-input" type="digit" value="{{settings.discipline_conversion_ratio}}" data-key="discipline_conversion_ratio" bindinput="onRatioInput" bindblur="onRatioBlur" />
+        </view>
+      </view>
+    </view>
+  </view>
+
   <!-- 班级操作 -->
   <view class="actions-section">
     <view class="section-title">班级操作</view>

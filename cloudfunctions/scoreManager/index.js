@@ -104,6 +104,9 @@ exports.main = async (event, context) => {
         return await getScores(data, caller)
       case 'getGroups':
         return await getGroups(data, caller)
+      case 'initScoreRules':
+        requireTeacher(caller)
+        return await initScoreRules(data, caller)
       default:
         return { success: false, message: '未知操作' }
     }
@@ -845,4 +848,107 @@ async function getGroups(data, caller) {
     console.error('getGroups失败:', err)
     return { success: false, message: err.message }
   }
+}
+
+async function initScoreRules(data, caller) {
+  const { class_id, semester_id } = data || {}
+  const effectiveClassId = class_id || caller.classId
+  if (!effectiveClassId) return { success: false, message: '缺少班级ID' }
+
+  let effectiveSemesterId = semester_id || ''
+  if (!effectiveSemesterId) {
+    try {
+      let semesterQuery = { status: 'active' }
+      if (effectiveClassId) semesterQuery = { class_id: effectiveClassId, status: 'active' }
+      const semesterRes = await db.collection('semesters').where(semesterQuery).limit(1).get()
+      if (semesterRes.data.length === 0 && effectiveClassId) {
+        const fallbackRes = await db.collection('semesters').where({ status: 'active' }).limit(1).get()
+        if (fallbackRes.data.length > 0) semesterRes.data = fallbackRes.data
+      }
+      if (semesterRes.data.length > 0) effectiveSemesterId = semesterRes.data[0]._id
+    } catch (err) {
+      console.error('获取学期失败:', err)
+    }
+  }
+
+  const existingRules = await db.collection('score_items')
+    .where({ class_id: effectiveClassId, record_type: 'rule' })
+    .count()
+
+  if (existingRules.total > 0) {
+    return { success: false, message: '当前班级已有积分规则，无法重复初始化。请先删除现有规则。' }
+  }
+
+  const DEFAULT_RULES = [
+    { rule_code: 'AD022', rule_name: '课堂互动奖', rule_category: '课堂表现', category: '课堂表现', category_id: 'classroom_performance', score_value: 1, description: '课堂上主动回答问题、上台演示或提出有价值问题，每次加1分。' },
+    { rule_code: 'AD023', rule_name: '课堂专注奖', rule_category: '课堂表现', category: '课堂表现', category_id: 'classroom_performance', score_value: 2, description: '整周课堂表现良好，无睡觉、玩手机、闲聊记录，获任课老师提名，加2分。' },
+    { rule_code: 'AD024', rule_name: '实训规范奖', rule_category: '课堂表现', category: '课堂表现', category_id: 'classroom_performance', score_value: 1, description: '专业实训课操作规范、设备维护良好，获实训老师特别表扬，每次加1分。' },
+    { rule_code: 'AD020', rule_name: '作业卓越奖', rule_category: '作业完成', category: '作业完成', category_id: 'homework', score_value: 1, description: '作业按时提交且质量优秀（获老师批注"优"或表扬），每次加1分。' },
+    { rule_code: 'AD021', rule_name: '作业全勤奖', rule_category: '作业完成', category: '作业完成', category_id: 'homework', score_value: 1, description: '连续一周所有学科作业按时提交，无缺交漏交，加1分。' },
+    { rule_code: 'MI020', rule_name: '作业迟交罚', rule_category: '作业完成', category: '作业完成', category_id: 'homework', score_value: -1, description: '未按时提交作业，每缺一次扣1分；抄袭作业双倍扣分（-2）。' },
+    { rule_code: 'AD030', rule_name: '金牌小组奖', rule_category: '小组协作', category: '小组协作', category_id: 'group_collaboration', score_value: 3, description: '所在小组在周/月评比中获得"优秀小组"称号，全体成员加3分。' },
+    { rule_code: 'AD031', rule_name: '协作互助奖', rule_category: '小组协作', category: '小组协作', category_id: 'group_collaboration', score_value: 2, description: '主动帮助组内困难同学，经组长提名，班委确认，加2分。' },
+    { rule_code: 'MI030', rule_name: '团队拖后腿罚', rule_category: '小组协作', category: '小组协作', category_id: 'group_collaboration', score_value: -2, description: '因个人原因导致小组被扣分或评比失败，每次扣2分。' },
+    { rule_code: 'AD007', rule_name: '文明宿舍奖', rule_category: '宿舍卫生', category: '宿舍卫生', category_id: 'dorm_hygiene', score_value: 1, description: '宿舍获评校级周/月"文明宿舍"，全体成员加1/3分；获学期文明宿舍加5分。' },
+    { rule_code: 'AD008', rule_name: '内务进步奖', rule_category: '宿舍卫生', category: '宿舍卫生', category_id: 'dorm_hygiene', score_value: 1, description: '个人内务或宿舍整体卫生较上周有明显进步，获宿管老师点名表扬，加1分。' },
+    { rule_code: 'MI017', rule_name: '标识不规范罚', rule_category: '宿舍卫生', category: '宿舍卫生', category_id: 'dorm_hygiene', score_value: -3, description: '未按学校要求张贴宿舍门牌照片，或床位标签缺失，每次扣3分。' },
+    { rule_code: 'MI003b', rule_name: '仪容仪表罚(宿舍）', rule_category: '宿舍纪律', category: '宿舍纪律', category_id: 'dorm_discipline', score_value: -3, description: '不穿校服、不按要求穿校服、穿拖鞋进入教学区/宿舍公共区，每次扣3分。' },
+    { rule_code: 'MI012b', rule_name: '言语冲突罚（宿舍）', rule_category: '宿舍纪律', category: '宿舍纪律', category_id: 'dorm_discipline', score_value: -20, description: '使用粗言秽语辱骂攻击他人，引发矛盾，或顶撞管理人员/老师，每次扣20分。' },
+    { rule_code: 'AD003', rule_name: '劳动满分奖', rule_category: '劳动卫生', category: '劳动卫生', category_id: 'hygiene', score_value: 1, description: '班级大扫除或卫生值日获得学校检查满分，所在小组/值日生每人加1分。' },
+    { rule_code: 'AD009', rule_name: '劳动修复奖', rule_category: '劳动卫生', category: '劳动卫生', category_id: 'hygiene', score_value: 2, description: '针对轻微违纪，通过连续3天主动承担宿舍/教室公共区域深度清洁，经核实加2分。' },
+    { rule_code: 'MI040', rule_name: '值日失职罚', rule_category: '劳动卫生', category: '劳动卫生', category_id: 'hygiene', score_value: -2, description: '卫生值日逃跑、敷衍了事导致班级被扣分，当事人每次扣2分。' },
+    { rule_code: 'MI041', rule_name: '礼仪缺失罚', rule_category: '文明礼仪', category: '文明礼仪', category_id: 'etiquette', score_value: -2, description: '见到师长不问好、公共场所大声喧哗、乱扔垃圾，每次扣2分。' },
+    { rule_code: 'AD009', rule_name: '文明礼貌奖', rule_category: '文明礼仪', category: '文明礼仪', category_id: 'etiquette', score_value: 1, description: '受到学校、老师公开表扬（如拾金不昧、主动问好、让座等），每次加1-2分。' },
+    { rule_code: 'MI003a', rule_name: '仪容仪表罚', rule_category: '文明礼仪', category: '文明礼仪', category_id: 'etiquette', score_value: -1, description: '不穿校服、不按要求穿校服、穿拖鞋进入教学区/宿舍公共区，每次扣1分。' },
+    { rule_code: 'MI012', rule_name: '言语冲突罚', rule_category: '文明礼仪', category: '文明礼仪', category_id: 'etiquette', score_value: -10, description: '使用粗言秽语辱骂攻击他人，引发矛盾，或顶撞教学管理人员/老师，每次扣10分。' },
+    { rule_code: 'AD032', rule_name: '班级服务奖', rule_category: '班级贡献', category: '班级贡献', category_id: 'class_contribution', score_value: 2, description: '担任班干部、课代表或临时负责人，工作认真负责，每周/每月考核合格加2-3分。' },
+    { rule_code: 'AD033', rule_name: '公物维护奖', rule_category: '班级贡献', category: '班级贡献', category_id: 'class_contribution', score_value: 1, description: '主动维修班级公物、整理图书角、美化教室环境，每次加1分。' },
+    { rule_code: 'AD015', rule_name: '志愿服务奖', rule_category: '班级贡献', category: '班级贡献', category_id: 'class_contribution', score_value: 4, description: '参加校内外志愿服务（如图书馆、社区服务、大型活动协助），每4小时或每次大型活动加4分。' },
+    { rule_code: 'AD034', rule_name: '特殊贡献奖', rule_category: '班级贡献', category: '班级贡献', category_id: 'class_contribution', score_value: 5, description: '为班级争取校级及以上荣誉，或在突发事件中维护班级利益，酌情加5分。' },
+    { rule_code: 'AD040', rule_name: '赛事参与奖', rule_category: '文体活动', category: '文体活动', category_id: 'sports_arts', score_value: 2, description: '代表班级或学校参加校级及以上体育、文艺、技能竞赛（无论获奖与否），每次加2分。' },
+    { rule_code: 'AD041', rule_name: '竞技获奖奖', rule_category: '文体活动', category: '文体活动', category_id: 'sports_arts', score_value: 5, description: '在校级比赛中获前三名/一二等奖加3分；获市级及以上奖项加5分。' },
+    { rule_code: 'AD042', rule_name: '文艺表演奖', rule_category: '文体活动', category: '文体活动', category_id: 'sports_arts', score_value: 3, description: '在学校晚会、艺术节中进行个人或集体节目表演，每次加3分。' },
+    { rule_code: 'AD043', rule_name: '社团活跃奖', rule_category: '文体活动', category: '文体活动', category_id: 'sports_arts', score_value: 2, description: '加入学校社团并积极参与活动，月度全勤且表现积极，每月加2分。' },
+    { rule_code: 'AD044', rule_name: '组织策划奖', rule_category: '文体活动', category: '文体活动', category_id: 'sports_arts', score_value: 4, description: '成功组织或策划班级/校级文体活动（如班会表演、篮球赛），主要负责人加4分。' },
+    { rule_code: 'MI042', rule_name: '活动缺席罚', rule_category: '文体活动', category: '文体活动', category_id: 'sports_arts', score_value: -3, description: '报名参加了集体文体活动无故缺席或不配合排练，每次扣3分。' }
+  ]
+
+  const now = db.serverDate()
+  const effectiveDate = now
+  let created = 0
+
+  for (const rule of DEFAULT_RULES) {
+    try {
+      const recordId = `RULE-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`
+      await db.collection('score_items').add({
+        data: {
+          record_id: recordId,
+          record_type: 'rule',
+          rule_code: rule.rule_code,
+          rule_name: rule.rule_name,
+          rule_category: rule.rule_category,
+          category: rule.category,
+          category_id: rule.category_id,
+          score_value: rule.score_value,
+          description: rule.description,
+          is_enabled: true,
+          priority: 1,
+          icon_name: 'star',
+          class_id: effectiveClassId,
+          semester_id: effectiveSemesterId,
+          effective_date: effectiveDate,
+          expiry_date: null,
+          created_by: caller.openid,
+          updated_by: caller.openid,
+          created_at: now,
+          updated_at: now
+        }
+      })
+      created++
+    } catch (err) {
+      console.error(`创建规则失败 [${rule.rule_code}]:`, err)
+    }
+  }
+
+  return { success: true, message: `初始化完成，共创建${created}条规则`, data: { count: created } }
 }

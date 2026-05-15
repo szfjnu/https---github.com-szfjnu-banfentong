@@ -12,7 +12,11 @@ Page({
       attendance_enabled: false,
       mall_enabled: true,
       discipline_enabled: true,
-      enable_dorm_management: false
+      enable_dorm_management: false,
+      hygiene_sync_enabled: true,
+      hygiene_conversion_ratio: 1.0,
+      discipline_sync_enabled: true,
+      discipline_conversion_ratio: 1.0
     },
     loading: true,
 
@@ -78,7 +82,11 @@ Page({
             attendance_enabled: classSettings.feature_flags?.enable_duty !== false,
             mall_enabled: true,
             discipline_enabled: true,
-            enable_dorm_management: classSettings.feature_flags?.enable_dorm || false
+            enable_dorm_management: classSettings.feature_flags?.enable_dorm || false,
+            hygiene_sync_enabled: classSettings.hygiene_sync_enabled !== false,
+            hygiene_conversion_ratio: classSettings.hygiene_conversion_ratio !== undefined ? classSettings.hygiene_conversion_ratio : 1.0,
+            discipline_sync_enabled: classSettings.discipline_sync_enabled !== false,
+            discipline_conversion_ratio: classSettings.discipline_conversion_ratio !== undefined ? classSettings.discipline_conversion_ratio : 1.0
           };
         }
       } catch (settingsErr) {
@@ -115,6 +123,27 @@ Page({
       [`settings.${key}`]: value
     });
 
+    await this.saveSettings(key, value, originalValue);
+  },
+
+  // 修改折算比例
+  onRatioInput: function (e) {
+    const key = e.currentTarget.dataset.key;
+    const value = parseFloat(e.detail.value);
+    if (!isNaN(value) && value >= 0 && value <= 10) {
+      this.setData({ [`settings.${key}`]: value });
+    }
+  },
+
+  // 保存折算比例
+  onRatioBlur: async function (e) {
+    const key = e.currentTarget.dataset.key;
+    const value = this.data.settings[key];
+    await this.saveSettings(key, value, value);
+  },
+
+  // 保存设置的通用方法
+  saveSettings: async function (key, value, originalValue) {
     try {
       const db = wx.cloud.database();
 
@@ -130,11 +159,10 @@ Page({
 
       // 构建要保存的 feature_flags 数据
       const featureFlags = {
-      enable_volunteer: currentSettings.volunteer_enabled,
-      // 修复点：这里直接取 value，不要用三元表达式覆盖
-      enable_dorm: value, 
-      enable_competition: false,
-      enable_duty: currentSettings.attendance_enabled
+        enable_volunteer: currentSettings.volunteer_enabled,
+        enable_dorm: currentSettings.enable_dorm_management,
+        enable_competition: false,
+        enable_duty: currentSettings.attendance_enabled
       };
 
       // 构建完整的 class_settings 数据
@@ -152,7 +180,11 @@ Page({
           notify_on_birthday: true,
           notify_on_schedule: true
         },
-        updated_at: db.serverDate()
+        hygiene_sync_enabled: currentSettings.hygiene_sync_enabled,
+        hygiene_conversion_ratio: currentSettings.hygiene_conversion_ratio,
+        discipline_sync_enabled: currentSettings.discipline_sync_enabled,
+        discipline_conversion_ratio: currentSettings.discipline_conversion_ratio,
+        updated_at: new Date().toISOString()
       };
 
       if (existingRes.data && existingRes.data.length > 0) {
@@ -172,7 +204,7 @@ Page({
           name: 'manageSemester',
           data: {
             action: 'addClassSettings',
-            data: { ...classSettingsData, created_at: db.serverDate() }
+            data: { ...classSettingsData, created_at: new Date().toISOString() }
           }
         });
         if (!res.result || !res.result.success) {

@@ -81,6 +81,21 @@
   border-radius: 2rpx;
 }
 
+.init-rules-btn {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 16rpx 24rpx;
+  background: #f6ffed;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  color: #52c41a;
+}
+
+.init-rules-btn .icon {
+  font-size: 28rpx;
+}
+
 .add-btn {
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
   color: var(--white);

@@ -11,7 +11,7 @@ async function parse(fileID, options) {
   const workbook = XLSX.read(buffer, { type: 'buffer' })
   const sheetName = workbook.SheetNames[0]
   const sheet = workbook.Sheets[sheetName]
-  const rawData = XLSX.utils.sheet_to_json(sheet, { raw: false, defval: '' })
+  const rawData = XLSX.utils.sheet_to_json(sheet, { raw: true, defval: '' })
 
   if (rawData.length === 0) {
     return {
@@ -34,12 +34,25 @@ async function parse(fileID, options) {
 
   for (let i = 0; i < rawData.length; i++) {
     const row = rawData[i]
+    const allValues = Object.values(row)
+    if (allValues.every(v => v === '' || v === undefined || v === null)) continue
     const student = {}
     const fields = Object.keys(fieldIndex)
     for (const field of fields) {
       const colKey = headers[fieldIndex[field]]
-      if (fieldIndex[field] !== -1 && colKey && row[colKey] !== undefined) {
-        student[field] = row[colKey]
+      if (fieldIndex[field] !== -1 && colKey && row[colKey] !== undefined && row[colKey] !== '') {
+        let value = row[colKey]
+        if (typeof value === 'number' && (field === 'date_of_birth' || field === 'enrollment_date')) {
+          const epoch = new Date((value - 25569) * 86400 * 1000)
+          value = `${epoch.getFullYear()}-${String(epoch.getMonth() + 1).padStart(2, '0')}-${String(epoch.getDate()).padStart(2, '0')}`
+        } else if (typeof value === 'number' && field === 'phone_number') {
+          value = String(value)
+        } else if (typeof value === 'number' && field === 'parent_phone_number') {
+          value = String(value)
+        } else if (typeof value === 'number' && field === 'student_id') {
+          value = String(value)
+        }
+        student[field] = value
       }
     }
     const validation = validator.validateStudent(student)

@@ -6,8 +6,8 @@
       <text class="illustration-icon">👋</text>
     </view>
     <view class="welcome-text">
-      <text class="welcome-title">欢迎使用班小二</text>
-      <text class="welcome-desc">你正在加入「{{classInfo.class_name}}」</text>
+      <text class="welcome-title">欢迎使用班分通</text>
+      <text class="welcome-desc">您正在加入「{{classInfo.class_name}}」</text>
     </view>
   </view>
 

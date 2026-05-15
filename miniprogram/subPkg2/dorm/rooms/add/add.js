@@ -150,7 +150,7 @@ Page({
         bed_count: parseInt(formData.bed_count),
         description: formData.description.trim(),
         class_id: app.globalData.classId || '',
-        updated_at: db.serverDate()
+        updated_at: new Date().toISOString()
       };
 
       if (editingRoom) {

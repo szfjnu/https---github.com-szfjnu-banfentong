@@ -204,6 +204,51 @@ Page({
     });
   },
 
+  // 初始化内置规则
+  onInitRules: function () {
+    wx.showModal({
+      title: '初始化宿舍规则',
+      content: '将导入内置的宿舍积分规则模板。当前班级已有规则将被跳过，确认初始化？',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            wx.showLoading({ title: '初始化中...', mask: true });
+            const cfRes = await wx.cloud.callFunction({
+              name: 'importDormRules',
+              data: {
+                action: 'importRules',
+                data: {
+                  class_id: this.data.classId || ''
+                }
+              }
+            });
+            wx.hideLoading();
+            const result = cfRes.result || {};
+            if (result.success) {
+              wx.showToast({
+                title: result.message || '初始化成功',
+                icon: 'success'
+              });
+              this.loadRules(true);
+            } else {
+              wx.showToast({
+                title: result.message || '初始化失败',
+                icon: 'none'
+              });
+            }
+          } catch (err) {
+            wx.hideLoading();
+            console.error('初始化规则失败:', err);
+            wx.showToast({
+              title: '初始化失败',
+              icon: 'none'
+            });
+          }
+        }
+      }
+    });
+  },
+
   // 加载更多
   onLoadMore: function () {
     if (this.data.hasMore && !this.data.loadingMore) {

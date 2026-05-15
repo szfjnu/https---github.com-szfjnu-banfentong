@@ -340,3 +340,20 @@
   color: var(--primary-color);
   font-weight: 500;
 }
+
+/* 折算比例输入框 */
+.ratio-input-wrap {
+  width: 120rpx;
+  display: flex;
+  align-items: center;
+}
+
+.ratio-input {
+  width: 120rpx;
+  height: 56rpx;
+  border: 1rpx solid var(--border-color);
+  border-radius: 8rpx;
+  text-align: center;
+  font-size: 28rpx;
+  color: var(--text-color);
+}

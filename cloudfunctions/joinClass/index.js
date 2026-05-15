@@ -13,7 +13,7 @@ exports.main = async (event, context) => {
 
   try {
     let caller
-    if (action === 'createClass') {
+    if (action === 'createClass' || action === 'searchByCode' || action === 'searchByPhone' || action === 'getClassDetail') {
       caller = await getCallerInfo(event, null, { allowNoClass: true })
     } else {
       caller = await getCallerInfo(event, data?.classId || data?.class_id)
@@ -84,19 +84,32 @@ async function searchByCode(data, caller) {
     .limit(1)
     .get()
 
-  if (res.data.length === 0) {
-    const res2 = await db.collection('classes')
-      .where({ class_code: classCode })
-      .limit(1)
-      .get()
+  if (res.data.length > 0) {
+    return { success: true, data: res.data.map(sanitizeClassData) }
+  }
 
-    if (res2.data.length === 0) {
-      return { success: true, data: [] }
-    }
+  const res2 = await db.collection('classes')
+    .where({ class_code: classCode })
+    .limit(1)
+    .get()
+
+  if (res2.data.length > 0) {
     return { success: true, data: res2.data.map(sanitizeClassData) }
   }
 
-  return { success: true, data: res.data.map(sanitizeClassData) }
+  const res3 = await db.collection('classes')
+    .where({
+      class_code: db.RegExp({ regexp: classCode, options: 'i' }),
+      status: _.in(['active', undefined, null, ''])
+    })
+    .limit(1)
+    .get()
+
+  if (res3.data.length > 0) {
+    return { success: true, data: res3.data.map(sanitizeClassData) }
+  }
+
+  return { success: true, data: [] }
 }
 
 function sanitizeClassData(classData) {
@@ -134,22 +147,16 @@ async function getClassDetail(data, caller) {
     return { success: false, error: '请提供班级ID' }
   }
 
-  const isMember = caller.classId === classId || caller.role === 'admin'
-  if (!isMember) {
-    const memberCheck = await db.collection('user_class_relation')
-      .where({
-        user_openid: caller.openid,
-        class_id: classId,
-        status: 'joined'
-      })
-      .limit(1)
-      .get()
-    if (!memberCheck.data || memberCheck.data.length === 0) {
-      return { success: false, error: '无权访问该班级详情' }
-    }
+  let classRes
+  try {
+    classRes = await db.collection('classes').doc(classId).get()
+  } catch (err) {
+    return { success: false, error: '班级不存在' }
   }
 
-  const classRes = await db.collection('classes').doc(classId).get()
+  if (!classRes || !classRes.data) {
+    return { success: false, error: '班级不存在' }
+  }
 
   const studentCountRes = await db.collection('students')
     .where({ class_id: classId })
@@ -239,14 +246,17 @@ async function joinClass(caller, data) {
   const checkRes = await db.collection('user_class_relation')
     .where({
       user_openid: caller.openid,
-      class_id: classId,
-      status: _.in(['joined', 'pending'])
+      class_id: classId
     })
     .limit(1)
     .get()
 
+  let existingRelation = null
   if (checkRes.data.length > 0) {
-    return { success: false, error: '您已经加入了该班级，无需重复加入', alreadyJoined: true }
+    existingRelation = checkRes.data[0]
+    if (existingRelation.status === 'joined' || existingRelation.status === 'pending') {
+      return { success: false, error: '您已经加入了该班级，无需重复加入', alreadyJoined: true }
+    }
   }
 
   let finalStudentId = studentId
@@ -312,7 +322,21 @@ async function joinClass(caller, data) {
     }
   }
 
-  await db.collection('user_class_relation').add({ data: relationData })
+  if (existingRelation) {
+    await db.collection('user_class_relation').doc(existingRelation._id).update({
+      data: {
+        role: relationData.role,
+        student_id: relationData.student_id || '',
+        is_owner: false,
+        status: 'joined',
+        apply_info: relationData.apply_info || {},
+        join_time: db.serverDate(),
+        updated_at: db.serverDate()
+      }
+    })
+  } else {
+    await db.collection('user_class_relation').add({ data: relationData })
+  }
 
   const existUserRes = await db.collection('users')
     .where({ _openid: caller.openid })

@@ -314,7 +314,19 @@ async function callAIWithFallback(prompt, systemPrompt) {
   try {
     return await callAI(prompt, systemPrompt)
   } catch (err) {
-    console.error('AI调用失败，使用fallback:', err.message)
+    console.error('cloud.ai()调用失败，尝试generateAIReview云函数:', err.message)
+    try {
+      const aiRes = await cloud.callFunction({
+        name: 'generateAIReview',
+        data: { _prompt: prompt, _systemPrompt: systemPrompt }
+      })
+      if (aiRes.result && aiRes.result.success && aiRes.result.data && aiRes.result.data.content) {
+        return aiRes.result.data.content
+      }
+      console.error('generateAIReview云函数返回失败:', aiRes.result?.message || '无内容')
+    } catch (e) {
+      console.error('generateAIReview云函数调用失败:', e.message)
+    }
     return null
   }
 }
@@ -1222,33 +1234,38 @@ async function detectWarnings(data, openid) {
   const students = await getAllRecords('students', { class_id: targetClassId })
   const allWarnings = []
 
-  for (const student of students.slice(0, 30)) {
+  const studentSlice = students.slice(0, 20)
+  const checkTasks = []
+  for (const student of studentSlice) {
     const sid = student.student_id || student._id
     const sname = student.student_name || student.name || ''
 
     for (const rule of rules) {
-      try {
-        const value = await getIndicatorValue(targetClassId, sid, rule.indicator)
-        if (value === null) continue
-        if (evaluateCondition(value, rule.operator, rule.threshold)) {
-          const existingWarn = await db.collection('growth_warnings').where({
-            rule_id: rule.rule_id, student_id: sid, status: 'pending'
-          }).limit(1).get()
-          if (existingWarn.data && existingWarn.data.length > 0) continue
+      checkTasks.push((async () => {
+        try {
+          const value = await getIndicatorValue(targetClassId, sid, rule.indicator)
+          if (value === null) return
+          if (evaluateCondition(value, rule.operator, rule.threshold)) {
+            const existingWarn = await db.collection('growth_warnings').where({
+              rule_id: rule.rule_id, student_id: sid, status: 'pending'
+            }).limit(1).get()
+            if (existingWarn.data && existingWarn.data.length > 0) return
 
-          const message = buildWarningDescription(rule, value, sname)
-          allWarnings.push({
-            rule_id: rule.rule_id, student_id: sid, student_name: sname,
-            indicator: rule.indicator, operator: rule.operator,
-            threshold: rule.threshold, current_value: value,
-            type: 'threshold', level: value < 40 ? 'high' : 'medium',
-            message, class_id: targetClassId, status: 'pending',
-            generated_at: Date.now(), notify_roles: rule.notify_roles || []
-          })
-        }
-      } catch (e) { console.error(`预警检测${sid}规则${rule.rule_id}失败:`, e) }
+            const message = buildWarningDescription(rule, value, sname)
+            allWarnings.push({
+              rule_id: rule.rule_id, student_id: sid, student_name: sname,
+              indicator: rule.indicator, operator: rule.operator,
+              threshold: rule.threshold, current_value: value,
+              type: 'threshold', level: value < 40 ? 'high' : 'medium',
+              message, class_id: targetClassId, status: 'pending',
+              generated_at: Date.now(), notify_roles: rule.notify_roles || []
+            })
+          }
+        } catch (e) { console.error(`预警检测${sid}规则${rule.rule_id}失败:`, e) }
+      })())
     }
   }
+  await Promise.all(checkTasks)
 
   try {
     const trendWarnings = await detectTrendWarnings(targetClassId, students, openid)

@@ -138,15 +138,20 @@ Page({
         })
         .field({
           dorm_building: true,
-          dorm_room: true
+          dorm_room: true,
+          dorm_info: true
         })
         .get();
 
       // 提取唯一的宿舍
       const dormMap = new Map();
       studentsRes.data.forEach(student => {
-        const building = student.dorm_building || '';
-        const room = student.dorm_room || '';
+        let building = student.dorm_building || '';
+        let room = student.dorm_room || '';
+        if ((!building || !room) && student.dorm_info && typeof student.dorm_info === 'object') {
+          building = building || student.dorm_info.building || '';
+          room = room || student.dorm_info.room || '';
+        }
         if (building && room) {
           const key = `${building}-${room}`;
           if (!dormMap.has(key)) {
@@ -185,15 +190,24 @@ Page({
           student_id: true,
           name: true,
           dorm_building: true,
-          dorm_room: true
+          dorm_room: true,
+          dorm_info: true
         })
         .get();
 
-      const students = res.data.map(student => ({
-        ...student,
-        dorm_info: `${student.dorm_building || ''}${student.dorm_room || ''}室`,
-        selected: false
-      }));
+      const students = res.data.map(student => {
+        let building = student.dorm_building || '';
+        let room = student.dorm_room || '';
+        if ((!building || !room) && student.dorm_info && typeof student.dorm_info === 'object') {
+          building = building || student.dorm_info.building || '';
+          room = room || student.dorm_info.room || '';
+        }
+        return {
+          ...student,
+          dorm_info: `${building}${room}室`,
+          selected: false
+        };
+      });
 
       this.setData({
         allStudents: students,
@@ -254,8 +268,11 @@ Page({
       const res = await db.collection('students')
         .where({
           class_id: classId,
-          dorm_building: building,
-          dorm_room: room
+          is_boarding: true,
+          _.or: [
+            { dorm_building: building, dorm_room: room },
+            { 'dorm_info.building': building, 'dorm_info.room': room }
+          ]
         })
         .field({
           student_id: true,

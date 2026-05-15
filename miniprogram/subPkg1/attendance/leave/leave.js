@@ -389,6 +389,25 @@ Page({
   generateAttendanceRecords: async function (studentId, studentName, startDate, endDate, leaveType) {
     try {
       const categoryId = leaveType === '病假' ? 'sick_leave' : 'personal_leave';
+      const semesterId = app.globalData.currentSemesterId || '';
+
+      const attendanceData = [];
+      const currentDate = new Date(startDate);
+      const end = new Date(endDate);
+      while (currentDate <= end) {
+        attendanceData.push({
+          date: this.formatDate(currentDate),
+          category_id: categoryId,
+          leave_type: leaveType,
+          student_name: studentName,
+          recorder_openid: app.globalData.openid,
+          recorder_name: app.globalData.userInfo.nickName,
+          recorder_role: this.data.userRole,
+          semester_id: semesterId,
+          status: '请假'
+        });
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
 
       const res = await wx.cloud.callFunction({
         name: 'scoreManager',
@@ -396,16 +415,8 @@ Page({
           action: 'generateLeaveAttendanceRecords',
           data: {
             student_id: studentId,
-            student_name: studentName,
-            start_date: startDate,
-            end_date: endDate,
-            leave_type: leaveType,
-            category_id: categoryId,
             class_id: this.data.classId,
-            recorder_openid: app.globalData.openid,
-            recorder_name: app.globalData.userInfo.nickName,
-            recorder_role: this.data.userRole,
-            semester_id: app.globalData.currentSemesterId || ''
+            attendance_data: attendanceData
           }
         }
       });
@@ -452,7 +463,7 @@ Page({
         name: 'scoreManager',
         data: {
           action: 'deleteLeaveRecord',
-          data: { record_id: record._id }
+          data: { recordId: record._id, class_id: this.data.classId }
         }
       });
 

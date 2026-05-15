@@ -16,13 +16,13 @@ Page({
     userRole: '',
     currentClassId: '',
 
-    // 学生个人积分信息（学生/家长模式）
     myScoreInfo: null,
     myRank: 0,
     totalStudents: 0,
     isStudentMode: false,
-    
-    // 权限控制
+    topStudents: [],
+    myStudentId: '',
+
     accessibleStudentIds: [],
     permissionType: 'none'
   },
@@ -30,7 +30,8 @@ Page({
   onLoad: function () {
     this.setData({ 
       userRole: app.globalData.role,
-      currentClassId: app.globalData.class_id || '' 
+      currentClassId: app.globalData.class_id || '',
+      myStudentId: app.globalData.student_id || ''
     });
     this.initView();
   },
@@ -39,20 +40,22 @@ Page({
     const newClassId = app.globalData.class_id || '';
     this.setData({ 
       userRole: app.globalData.role,
-      currentClassId: newClassId
+      currentClassId: newClassId,
+      myStudentId: app.globalData.student_id || ''
     });
     this.initView();
   },
 
-  // 根据角色初始化视图
   initView: async function () {
     const role = this.data.userRole;
-    const canAddScore = app.hasPermission('score', 'add');
-    const canViewAll = app.hasPermission('score', 'view');
+    const canViewAll = role === 'admin' || role === 'head_teacher' || role === 'subject_teacher';
     const isStudentMode = !canViewAll;
+    const canAddScore = canViewAll;
     this.setData({ isStudentMode, canAddScore });
 
-    await this.loadPermissionInfo();
+    if (!isStudentMode) {
+      await this.loadPermissionInfo();
+    }
 
     if (isStudentMode) {
       this.loadMyScore();
@@ -61,21 +64,18 @@ Page({
     }
   },
 
-  // 加载权限信息
   loadPermissionInfo: async function () {
     try {
       const res = await wx.cloud.callFunction({
         name: 'manageUserCenter',
         data: {
           action: 'getAccessibleStudents',
-          data: {}
+          data: { class_id: this.data.currentClassId }
         }
       });
 
       if (res.result && res.result.success) {
         const { permission_type, accessible_student_ids } = res.result;
-        console.log('[权限预判断] 权限类型:', permission_type, '可访问学生数:', accessible_student_ids.length);
-        
         this.setData({
           permissionType: permission_type,
           accessibleStudentIds: accessible_student_ids
@@ -83,14 +83,17 @@ Page({
       }
     } catch (err) {
       console.error('权限预判断失败:', err);
+      const role = this.data.userRole;
+      if (role === 'admin' || role === 'head_teacher' || role === 'subject_teacher') {
+        this.setData({ permissionType: 'all', accessibleStudentIds: [] });
+      }
     }
   },
 
-  // 学生/家长：加载个人积分和排名
   loadMyScore: async function () {
     this.setData({ loading: true });
     try {
-      const studentId = app.globalData.student_id;
+      const studentId = this.data.myStudentId;
       const classId = this.data.currentClassId;
       if (!studentId || !classId) {
         this.setData({ loading: false });
@@ -100,7 +103,6 @@ Page({
       const db = wx.cloud.database();
       const _ = db.command;
 
-      // 获取个人积分
       const studentRes = await db.collection('students')
         .where({ student_id: studentId, class_id: classId })
         .limit(1)
@@ -114,7 +116,6 @@ Page({
       const student = studentRes.data[0];
       const currentScore = student.current_score || 100;
 
-      // 获取班级排名 - 查询积分高于自己的学生数量
       const rankRes = await db.collection('students')
         .where({
           class_id: classId,
@@ -123,7 +124,6 @@ Page({
         })
         .count();
 
-      // 获取班级总人数
       const totalRes = await db.collection('students')
         .where({
           class_id: classId,
@@ -134,14 +134,47 @@ Page({
       const myRank = rankRes.total + 1;
       const totalStudents = totalRes.total;
 
+      const allStudentsRes = await batchQuery.getAllRecords('students', 
+        { class_id: classId, status: _.neq('graduated') }, 
+        'current_score', 'desc'
+      );
+
+      const allStudents = (allStudentsRes || []).map(s => ({
+        ...s,
+        bonusScore: s.bonus_score || 0,
+        scoreLevel: util.getScoreLevel(s.current_score || 100),
+        scoreColor: util.getScoreColor(s.current_score || 100),
+        isSelf: s.student_id === studentId
+      }));
+
+      allStudents.sort((a, b) => {
+        const scoreA = a.current_score || 100;
+        const scoreB = b.current_score || 100;
+        if (scoreB !== scoreA) return scoreB - scoreA;
+        const bonusA = a.bonusScore || 0;
+        const bonusB = b.bonusScore || 0;
+        if (bonusB !== bonusA) return bonusB - bonusA;
+        return (a.student_id || '').localeCompare(b.student_id || '');
+      });
+
+      const topStudents = allStudents.slice(0, 5);
+      const selfInTop = topStudents.some(s => s.isSelf);
+
+      let myRankInList = myRank;
+      if (!selfInTop) {
+        const selfIdx = allStudents.findIndex(s => s.isSelf);
+        myRankInList = selfIdx >= 0 ? selfIdx + 1 : myRank;
+      }
+
       this.setData({
         myScoreInfo: {
           ...student,
           scoreLevel: util.getScoreLevel(currentScore),
           scoreColor: util.getScoreColor(currentScore)
         },
-        myRank,
+        myRank: myRankInList,
         totalStudents,
+        topStudents,
         loading: false
       });
 
@@ -151,14 +184,13 @@ Page({
     }
   },
 
-  // 管理员/教师：加载积分排行榜
   loadRanking: async function (refresh = true) {
     if (refresh) {
       this.setData({ loading: true, page: 0 });
     }
 
     try {
-      const { searchKeyword, currentClassId, userRole, page, pageSize } = this.data;
+      const { searchKeyword, currentClassId, userRole } = this.data;
 
       let query = {};
       if (userRole !== 'admin' && currentClassId) {
@@ -167,12 +199,30 @@ Page({
 
       const allStudents = await batchQuery.getAllRecords('students', query, 'current_score', 'desc');
 
-      let students = allStudents.map(student => ({
-        ...student,
-        scoreLevel: util.getScoreLevel(student.current_score || 100),
-        scoreColor: util.getScoreColor(student.current_score || 100),
-        canView: this.data.permissionType === 'all' || this.data.accessibleStudentIds.includes(student.student_id)
-      }));
+      let students = allStudents.map(student => {
+        const bonusScore = student.bonus_score || 0;
+        let canView = true;
+        if (this.data.permissionType === 'specific') {
+          canView = this.data.accessibleStudentIds.includes(student.student_id);
+        }
+        return {
+          ...student,
+          bonusScore,
+          scoreLevel: util.getScoreLevel(student.current_score || 100),
+          scoreColor: util.getScoreColor(student.current_score || 100),
+          canView
+        };
+      });
+
+      students.sort((a, b) => {
+        const scoreA = a.current_score || 100;
+        const scoreB = b.current_score || 100;
+        if (scoreB !== scoreA) return scoreB - scoreA;
+        const bonusA = a.bonusScore || 0;
+        const bonusB = b.bonusScore || 0;
+        if (bonusB !== bonusA) return bonusB - bonusA;
+        return (a.student_id || '').localeCompare(b.student_id || '');
+      });
 
       if (searchKeyword) {
         students = students.filter(s =>
@@ -181,6 +231,7 @@ Page({
         );
       }
 
+      const { page, pageSize } = this.data;
       const displayStudents = students.slice(0, (page + 1) * pageSize);
       const hasMore = displayStudents.length < students.length;
 
@@ -197,123 +248,91 @@ Page({
     }
   },
 
-  // 搜索输入
   onSearchInput: function (e) {
     this.setData({ searchKeyword: e.detail.value });
   },
 
-  // 搜索确认
   onSearch: function () {
     this.loadRanking(true);
   },
 
-  // 清除搜索
   onClearSearch: function () {
     this.setData({ searchKeyword: '' });
     this.loadRanking(true);
   },
 
-  // 查看详情
   onViewDetail: function (e) {
     const studentId = e.currentTarget.dataset.id;
-    
-    if (this.data.permissionType !== 'all') {
-      if (!this.data.accessibleStudentIds.includes(studentId)) {
-        wx.showToast({
-          title: '无权限查看该学生信息',
-          icon: 'none',
-          duration: 2000
-        });
+    const classId = this.data.currentClassId;
+
+    if (this.data.isStudentMode) {
+      if (studentId !== this.data.myStudentId) {
         return;
       }
+    } else {
+      if (this.data.permissionType === 'specific') {
+        if (!this.data.accessibleStudentIds.includes(studentId)) {
+          wx.showToast({ title: '无权限查看该学生', icon: 'none', duration: 2000 });
+          return;
+        }
+      }
     }
-    
+
     wx.navigateTo({
-      url: `/subPkg1/student/detail/detail?id=${studentId}`
+      url: `/subPkg1/score/record/record?studentId=${studentId}&classId=${classId}`
     });
   },
 
-  // 查看积分记录
   onViewRecords: function () {
     wx.navigateTo({
       url: '/subPkg1/score/record/record'
     });
   },
 
-  // 添加积分
   onAddScore: function () {
     const role = app.globalData.role;
     if (role !== 'admin' && role !== 'head_teacher' && role !== 'teacher') {
-      wx.showToast({
-        title: '无权限操作',
-        icon: 'none',
-        duration: 2000
-      });
+      wx.showToast({ title: '无权限操作', icon: 'none', duration: 2000 });
       return;
     }
-    wx.navigateTo({
-      url: '/subPkg1/score/add/add'
-    });
+    wx.navigateTo({ url: '/subPkg1/score/add/add' });
   },
 
-  // 积分规则管理
   onManageRules: function () {
-    wx.navigateTo({
-      url: '/subPkg1/score/rules/rules'
-    });
+    wx.navigateTo({ url: '/subPkg1/score/rules/rules' });
   },
 
-  // 兑换管理
   onManageExchange: function () {
-    wx.navigateTo({
-      url: '/subPkg1/score/mall/admin/admin'
-    });
+    wx.navigateTo({ url: '/subPkg1/score/mall/admin/admin' });
   },
 
-  // 兑换台账
   onManageLedger: function () {
-    wx.navigateTo({
-      url: '/subPkg1/score/mall/ledger/ledger'
-    });
+    wx.navigateTo({ url: '/subPkg1/score/mall/ledger/ledger' });
   },
 
-  // 学生端：去积分商城
   onGoMall: function () {
-    wx.navigateTo({
-      url: '/subPkg1/score/mall/mall'
-    });
+    wx.navigateTo({ url: '/subPkg1/score/mall/mall' });
   },
 
-  // 学生端：去志愿服务
   onGoVolunteer: function () {
-    wx.navigateTo({
-      url: '/subPkg1/volunteer/volunteer'
-    });
+    wx.navigateTo({ url: '/subPkg1/volunteer/volunteer' });
   },
 
-  // 学生端：去住宿积分
   onGoDorm: function () {
-    wx.navigateTo({
-      url: '/subPkg2/dorm/mydorm/mydorm'
-    });
+    wx.navigateTo({ url: '/subPkg2/dorm/mydorm/mydorm' });
   },
 
-  // 查看积分规则（学生/家长端）
   onViewRules: function () {
-    wx.navigateTo({
-      url: '/subPkg1/score/rules/rules'
-    });
+    wx.navigateTo({ url: '/subPkg1/score/rules/rules' });
   },
 
-  // 下拉刷新
   onPullDownRefresh: function () {
-    this.loadRanking(true);
+    this.initView();
     wx.stopPullDownRefresh();
   },
 
-  // 上拉加载更多
   onReachBottom: function () {
-    if (this.data.hasMore && !this.data.loading) {
+    if (this.data.hasMore && !this.data.loading && !this.data.isStudentMode) {
       const { allRankedStudents, page, pageSize } = this.data;
       const newPage = page + 1;
       const displayStudents = allRankedStudents.slice(0, (newPage + 1) * pageSize);

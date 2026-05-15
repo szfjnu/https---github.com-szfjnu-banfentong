@@ -145,7 +145,7 @@ Page({
                 data: {
                   phone: phone,
                   phone_verified: true,
-                  updated_at: db.serverDate()
+                  updated_at: new Date().toISOString()
                 }
               }).catch(err => console.error('更新手机号失败:', err));
             }
@@ -172,9 +172,9 @@ Page({
         user_id: openid,
         nickname: userInfo.nickName,
         avatarUrl: userInfo.avatarUrl,
-        last_login: db.serverDate(),
+        last_login: new Date().toISOString(),
         is_active: true,
-        updated_at: db.serverDate()
+        updated_at: new Date().toISOString()
       };
 
       if (dbUser) {
@@ -188,7 +188,7 @@ Page({
         }
       } else {
         // 新用户,添加记录
-        userData.created_at = db.serverDate();
+        userData.created_at = new Date().toISOString();
         await api.userApi.addUser(userData);
         console.log('新用户添加成功');
       }

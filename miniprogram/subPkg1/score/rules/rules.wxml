@@ -41,6 +41,10 @@
         </view>
       </view>
       <view class="tabs-right">
+        <view class="init-rules-btn" bindtap="onInitRules">
+          <text class="icon">⚡</text>
+          <text>初始化规则</text>
+        </view>
         <view class="category-manage-btn" bindtap="onManageCategories">
           <text class="icon">📋</text>
           <text>类别管理</text>
@@ -146,6 +150,7 @@
           <input 
             class="form-input"
             placeholder="输入规则名称"
+            placeholder-style="color:#999;"
             value="{{formData.rule_name}}"
             data-field="rule_name"
             bindinput="onInputChange"
@@ -157,6 +162,7 @@
           <input 
             class="form-input"
             placeholder="输入规则编码（选填）"
+            placeholder-style="color:#999;"
             value="{{formData.rule_code}}"
             data-field="rule_code"
             bindinput="onInputChange"
@@ -204,6 +210,7 @@
               class="form-input score"
               type="number"
               placeholder="积分值"
+              placeholder-style="color:#999;"
               value="{{formData.score_value}}"
               data-field="score_value"
               bindinput="onInputChange"
@@ -220,6 +227,7 @@
           <textarea 
             class="form-textarea"
             placeholder="输入规则描述（选填）"
+            placeholder-style="color:#999;"
             value="{{formData.description}}"
             data-field="description"
             bindinput="onInputChange"

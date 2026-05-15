@@ -305,6 +305,87 @@
       </block>
     </view>
 
+    <!-- 值日内容 -->
+    <view class="tab-content" wx:if="{{activeTab === 'duty'}}">
+      <view wx:if="{{loading}}" class="loading">
+        <text>加载中...</text>
+      </view>
+
+      <block wx:else>
+        <!-- 值日概览 -->
+        <view class="duty-stats-card" wx:if="{{dutyInfo}}">
+          <view class="section-title">🧹 值日概况</view>
+          <view class="stats-grid">
+            <view class="stat-item">
+              <text class="stat-value" style="color: #1890ff">{{dutyInfo.totalSchedules}}</text>
+              <text class="stat-label">值日次数</text>
+            </view>
+            <view class="stat-item">
+              <text class="stat-value" style="color: #52c41a">{{dutyInfo.completedSchedules}}</text>
+              <text class="stat-label">已完成</text>
+            </view>
+            <view class="stat-item">
+              <text class="stat-value" style="color: #fa8c16">{{dutyInfo.hygieneScore}}</text>
+              <text class="stat-label">卫生积分</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 值日安排 -->
+        <view class="duty-schedules-card" wx:if="{{dutyRecords.schedules && dutyRecords.schedules.length > 0}}">
+          <view class="section-title">📅 值日安排</view>
+          <view class="record-list">
+            <view class="record-item" wx:for="{{dutyRecords.schedules}}" wx:key="_id">
+              <view class="record-header">
+                <text class="record-date">{{item.dateStr}}</text>
+                <view class="duty-status {{item.status === 'completed' ? 'completed' : item.status === 'missed' ? 'missed' : 'pending'}}">{{item.statusText}}</view>
+              </view>
+              <view class="record-body" wx:if="{{item.area || item.task_name}}">
+                <text class="record-reason">{{item.area || item.task_name || '卫生值日'}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 值日得分记录 -->
+        <view class="duty-tasks-card" wx:if="{{dutyRecords.tasks && dutyRecords.tasks.length > 0}}">
+          <view class="section-title">📝 值日得分</view>
+          <view class="record-list">
+            <view class="record-item" wx:for="{{dutyRecords.tasks}}" wx:key="_id">
+              <view class="record-header">
+                <text class="record-date">{{item.dateStr}}</text>
+                <view class="score-change {{item.scoreClass}}">{{item.scoreText}}分</view>
+              </view>
+              <view class="record-body" wx:if="{{item.reason || item.task_name}}">
+                <text class="record-reason">{{item.reason || item.task_name || '值日记录'}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 卫生检查记录 -->
+        <view class="hygiene-checks-card" wx:if="{{dutyRecords.hygieneChecks && dutyRecords.hygieneChecks.length > 0}}">
+          <view class="section-title">🔍 卫生检查</view>
+          <view class="record-list">
+            <view class="record-item" wx:for="{{dutyRecords.hygieneChecks}}" wx:key="_id">
+              <view class="record-header">
+                <text class="record-date">{{item.dateStr}}</text>
+                <view class="score-change {{item.scoreClass}}">{{item.scoreText}}分</view>
+              </view>
+              <view class="record-body" wx:if="{{item.remark || item.check_item}}">
+                <text class="record-reason">{{item.remark || item.check_item || '卫生检查'}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view class="empty" wx:if="{{!dutyInfo && (!dutyRecords || !dutyRecords.schedules || dutyRecords.schedules.length === 0) && (!dutyRecords.tasks || dutyRecords.tasks.length === 0)}}">
+          <text class="empty-icon">🧹</text>
+          <text class="empty-text">暂无值日记录</text>
+        </view>
+      </block>
+    </view>
+
     <!-- 处分记录内容 -->
     <view class="tab-content" wx:if="{{activeTab === 'discipline'}}">
       <view wx:if="{{loading}}" class="loading">

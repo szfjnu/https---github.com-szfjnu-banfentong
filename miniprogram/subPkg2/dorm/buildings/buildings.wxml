@@ -20,14 +20,6 @@
     </view>
   </view>
 
-  <!-- 顶部添加按钮 -->
-  <view class="top-add-bar">
-    <button class="top-add-btn" bindtap="onAdd">
-      <text class="btn-icon">➕</text>
-      <text>添加楼栋</text>
-    </button>
-  </view>
-
   <!-- 搜索框 -->
   <view class="search-box">
     <text class="search-icon">🔍</text>

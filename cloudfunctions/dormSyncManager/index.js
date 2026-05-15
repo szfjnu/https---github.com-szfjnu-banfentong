@@ -212,6 +212,8 @@ async function syncDormInfo(data, openid) {
             room: roomNumber,
             bed: bedNumber
           },
+          dorm_building: buildingName,
+          dorm_room: roomNumber,
           dorm_building_id: building_id,
           dorm_room_id: room_id,
           dorm_bed_id: bed_id

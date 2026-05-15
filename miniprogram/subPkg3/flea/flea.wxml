@@ -44,7 +44,7 @@ module.exports = {
   <view class="search-bar">
     <view class="search-input-wrap">
       <image class="search-icon" src="/images/icons/search.png" mode="aspectFit" />
-      <input class="search-input" placeholder="搜索商品..." value="{{keyword}}" bindinput="onSearchInput" confirm-type="search" bindconfirm="onSearch" />
+      <input class="search-input" placeholder="搜索商品..." placeholder-style="color:#999;" value="{{keyword}}" bindinput="onSearchInput" confirm-type="search" bindconfirm="onSearch" />
     </view>
   </view>
 
@@ -128,7 +128,7 @@ module.exports = {
         <!-- 标题 -->
         <view class="form-field">
           <text class="form-label">商品标题 *</text>
-          <input class="form-input" placeholder="简要描述你的商品" value="{{publishForm.title}}" bindinput="onPublishInput" data-field="title" maxlength="30" />
+          <input class="form-input" placeholder="简要描述你的商品" placeholder-style="color:#999;" value="{{publishForm.title}}" bindinput="onPublishInput" data-field="title" maxlength="30" />
         </view>
 
         <!-- 分类 -->
@@ -150,19 +150,19 @@ module.exports = {
         <!-- 价格 -->
         <view class="form-field">
           <text class="form-label">价格(元) *  <text class="form-hint">0 = 免费赠送</text></text>
-          <input class="form-input" type="digit" placeholder="0" value="{{publishForm.price}}" bindinput="onPublishInput" data-field="price" />
+          <input class="form-input" type="digit" placeholder="0" placeholder-style="color:#999;" value="{{publishForm.price}}" bindinput="onPublishInput" data-field="price" />
         </view>
 
         <!-- 原价 -->
         <view class="form-field">
           <text class="form-label">原价(选填)</text>
-          <input class="form-input" type="digit" placeholder="选填" value="{{publishForm.originalPrice}}" bindinput="onPublishInput" data-field="originalPrice" />
+          <input class="form-input" type="digit" placeholder="选填" placeholder-style="color:#999;" value="{{publishForm.originalPrice}}" bindinput="onPublishInput" data-field="originalPrice" />
         </view>
 
         <!-- 描述 -->
         <view class="form-field">
           <text class="form-label">描述 *</text>
-          <textarea class="form-textarea" placeholder="详细描述商品状况、使用时长等" value="{{publishForm.description}}" bindinput="onPublishInput" data-field="description" maxlength="500" />
+          <textarea class="form-textarea" placeholder="详细描述商品状况、使用时长等" placeholder-style="color:#999;" value="{{publishForm.description}}" bindinput="onPublishInput" data-field="description" maxlength="500" />
         </view>
 
         <!-- 图片 -->
@@ -184,7 +184,7 @@ module.exports = {
         <!-- 联系方式 -->
         <view class="form-field">
           <text class="form-label">联系方式(选填)</text>
-          <input class="form-input" placeholder="QQ/微信/手机号" value="{{publishForm.sellerContact}}" bindinput="onPublishInput" data-field="sellerContact" />
+          <input class="form-input" placeholder="QQ/微信/手机号" placeholder-style="color:#999;" value="{{publishForm.sellerContact}}" bindinput="onPublishInput" data-field="sellerContact" />
         </view>
       </scroll-view>
 

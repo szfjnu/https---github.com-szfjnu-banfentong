@@ -39,11 +39,11 @@
     </view>
     <view class="form-row">
       <text class="form-label">阈值</text>
-      <input class="form-input" type="digit" value="{{thresholdValue}}" bindinput="onThresholdInput" placeholder="输入阈值" />
+      <input class="form-input" type="digit" value="{{thresholdValue}}" bindinput="onThresholdInput" placeholder="输入阈值" placeholder-style="color:#999;" />
     </view>
     <view class="form-row">
       <text class="form-label">描述</text>
-      <input class="form-input" value="{{ruleDescription}}" bindinput="onDescriptionInput" placeholder="规则描述" />
+      <input class="form-input" value="{{ruleDescription}}" bindinput="onDescriptionInput" placeholder="规则描述" placeholder-style="color:#999;" />
     </view>
     <view class="form-btns">
       <view class="form-btn primary" bindtap="onSaveRule">保存规则</view>
