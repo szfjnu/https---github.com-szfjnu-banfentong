@@ -1,0 +1,41 @@
+<view class="module-card" wx:if="{{visible}}">
+  <view class="module-header">
+    <text class="module-title">成长预警</text>
+    <view class="pending-badge" wx:if="{{pendingCount > 0}}">{{pendingCount}}条待处理</view>
+  </view>
+
+  <view class="warning-list" wx:if="{{!loading && warnings.length > 0}}">
+    <view class="warning-item {{item.level === 'high' ? 'high' : item.level === 'medium' ? 'medium' : 'low'}}" wx:for="{{warnings}}" wx:key="_id">
+      <view class="level-indicator {{item.level}}"></view>
+      <view class="warning-content">
+        <view class="warning-meta">
+          <text class="warning-title">{{item.student_name || item.title}}</text>
+          <text class="warning-status {{item.status}}">{{item.status === 'pending' ? '待处理' : item.status === 'confirmed' ? '已确认' : '已处理'}}</text>
+        </view>
+        <text class="warning-desc">{{item.message || item.description}}</text>
+        <view class="warning-actions" wx:if="{{canOperate && item.status === 'pending'}}">
+          <view class="action-btn confirm" bindtap="onWarningConfirm" data-wid="{{item._id}}">确认</view>
+          <view class="action-btn resolve" bindtap="onWarningResolve" data-wid="{{item._id}}">处理</view>
+        </view>
+        <view class="warning-actions" wx:elif="{{canOperate && item.status === 'confirmed'}}">
+          <view class="action-btn resolve" bindtap="onWarningResolve" data-wid="{{item._id}}">处理</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty-tip" wx:elif="{{!loading && warnings.length === 0}}">
+    <text>暂无预警记录</text>
+  </view>
+
+  <view class="config-bar" wx:if="{{canOperate && !loading}}">
+    <view class="config-btn detect {{detecting ? 'disabled' : ''}}" bindtap="onDetectWarnings">
+      {{detecting ? '检测中...' : '检测预警'}}
+    </view>
+    <view class="config-btn setting" bindtap="onWarningConfig">配置规则</view>
+  </view>
+
+  <view class="loading-wrap" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

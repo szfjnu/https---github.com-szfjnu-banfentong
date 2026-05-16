@@ -5,5 +5,9 @@
   "main": "index.js",
   "dependencies": {
     "wx-server-sdk": "~2.6.3"
+  },
+  "cloudfunction-config": {
+    "memorySize": 256,
+    "timeout": 20
   }
 }

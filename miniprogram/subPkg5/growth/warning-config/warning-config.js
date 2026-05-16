@@ -165,10 +165,26 @@ Page({
     wx.showModal({
       title: '确认删除',
       content: '确定删除该预警规则？',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          const rules = this.data.rules.filter(r => r.rule_id !== ruleId)
-          this.setData({ rules })
+          try {
+            wx.showLoading({ title: '删除中...' })
+            const result = await wx.cloud.callFunction({
+              name: 'growthManager',
+              data: { action: 'deleteWarningRule', data: { rule_id: ruleId } }
+            })
+            wx.hideLoading()
+            if (result.result && result.result.success) {
+              wx.showToast({ title: '已删除', icon: 'success' })
+              this.loadRules()
+            } else {
+              wx.showToast({ title: result.result?.message || '删除失败', icon: 'none' })
+            }
+          } catch (err) {
+            wx.hideLoading()
+            console.error('删除规则失败:', err)
+            wx.showToast({ title: '删除失败', icon: 'none' })
+          }
         }
       }
     })

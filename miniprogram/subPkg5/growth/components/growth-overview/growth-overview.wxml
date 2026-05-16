@@ -1,0 +1,43 @@
+<view class="module-card">
+  <view class="module-header">
+    <text class="module-title">班级成长趋势</text>
+  </view>
+
+  <view class="dimension-tabs" wx:if="{{!loading}}">
+    <view class="dim-tab {{selectedDimension === item ? 'active' : ''}}" wx:for="{{dimensionTabs}}" wx:key="*this" bindtap="onDimensionChange" data-dim="{{item}}">
+      {{item}}
+    </view>
+  </view>
+
+  <view class="kpi-row" wx:if="{{kpiCards.length > 0}}">
+    <view class="kpi-card" wx:for="{{kpiCards}}" wx:key="label">
+      <text class="kpi-value">{{item.value}}</text>
+      <text class="kpi-label">{{item.label}}</text>
+      <text class="kpi-trend {{item.trend > 0 ? 'up' : item.trend < 0 ? 'down' : ''}}" wx:if="{{item.trend !== undefined}}">{{item.trend > 0 ? '↑' : item.trend < 0 ? '↓' : '-'}}{{item.trend > 0 ? item.trend : item.trend < 0 ? Math.abs(item.trend) : ''}}</text>
+    </view>
+  </view>
+
+  <view class="trend-chart" wx:if="{{ec.onInit}}">
+    <ec-canvas id="trendChart" ec="{{ec}}" class="chart-canvas" />
+  </view>
+  <view class="empty-tip" wx:elif="{{!loading && !trendData}}">
+    <text>暂无趋势数据</text>
+  </view>
+
+  <view class="grade-rank" wx:if="{{gradeRank.length > 0}}">
+    <text class="rank-title">年级排名</text>
+    <view class="rank-item" wx:for="{{gradeRank}}" wx:key="index">
+      <text class="rank-pos">{{item.rank}}</text>
+      <text class="rank-name">{{item.class_name}}</text>
+      <text class="rank-score">{{item.score}}</text>
+    </view>
+  </view>
+
+  <view class="role-actions" wx:if="{{canWrite}}">
+    <view class="action-link" bindtap="onWarningCountClick">查看预警详情</view>
+  </view>
+
+  <view class="loading-wrap" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

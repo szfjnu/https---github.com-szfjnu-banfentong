@@ -1,0 +1,94 @@
+.module-card {
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+}
+
+.module-header {
+  margin-bottom: 16rpx;
+}
+
+.module-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.dimension-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+}
+
+.dimension-card {
+  padding: 20rpx;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  text-align: center;
+}
+
+.dimension-card.status-warning {
+  background: #fffbe6;
+}
+
+.dimension-card.status-danger {
+  background: #fff2f0;
+}
+
+.dimension-card.status-good {
+  background: #f6ffed;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  margin-bottom: 8rpx;
+}
+
+.card-icon {
+  font-size: 32rpx;
+}
+
+.card-name {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.card-value {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 4rpx;
+}
+
+.card-status {
+  font-size: 22rpx;
+  padding: 2rpx 12rpx;
+  border-radius: 4rpx;
+  display: inline-block;
+}
+
+.card-status.status-warning {
+  color: #faad14;
+  background: #fffbe6;
+}
+
+.card-status.status-good {
+  color: #52c41a;
+  background: #f6ffed;
+}
+
+.card-status.status-danger {
+  color: #ff4d4f;
+  background: #fff2f0;
+}
+
+.loading-wrap {
+  text-align: center;
+  padding: 40rpx 0;
+  color: #999;
+  font-size: 28rpx;
+}

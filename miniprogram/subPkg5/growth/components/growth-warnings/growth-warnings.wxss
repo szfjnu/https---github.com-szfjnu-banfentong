@@ -1,0 +1,182 @@
+.module-card {
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+}
+
+.module-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+
+.module-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.pending-badge {
+  font-size: 22rpx;
+  color: #ff4d4f;
+  background: #fff2f0;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+}
+
+.warning-list {
+  margin-bottom: 16rpx;
+}
+
+.warning-item {
+  display: flex;
+  gap: 12rpx;
+  padding: 16rpx;
+  border-radius: 8rpx;
+  margin-bottom: 12rpx;
+  background: #f9f9f9;
+}
+
+.warning-item.high {
+  background: #fff2f0;
+}
+
+.warning-item.medium {
+  background: #fffbe6;
+}
+
+.warning-item.low {
+  background: #f0f3ff;
+}
+
+.level-indicator {
+  width: 8rpx;
+  border-radius: 4rpx;
+  flex-shrink: 0;
+}
+
+.level-indicator.high {
+  background: #ff4d4f;
+}
+
+.level-indicator.medium {
+  background: #faad14;
+}
+
+.level-indicator.low {
+  background: #1890ff;
+}
+
+.warning-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.warning-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4rpx;
+}
+
+.warning-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.warning-status {
+  font-size: 22rpx;
+  padding: 2rpx 12rpx;
+  border-radius: 4rpx;
+}
+
+.warning-status.pending {
+  color: #faad14;
+  background: #fffbe6;
+}
+
+.warning-status.confirmed {
+  color: #1890ff;
+  background: #e6f7ff;
+}
+
+.warning-status.resolved {
+  color: #52c41a;
+  background: #f6ffed;
+}
+
+.warning-desc {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.6;
+  display: block;
+}
+
+.warning-actions {
+  display: flex;
+  gap: 12rpx;
+  margin-top: 8rpx;
+}
+
+.action-btn {
+  padding: 4rpx 16rpx;
+  border-radius: 4rpx;
+  font-size: 24rpx;
+}
+
+.action-btn.confirm {
+  background: #e6f7ff;
+  color: #1890ff;
+  border: 1rpx solid #91d5ff;
+}
+
+.action-btn.resolve {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1rpx solid #b7eb8f;
+}
+
+.config-bar {
+  display: flex;
+  gap: 16rpx;
+}
+
+.config-btn {
+  flex: 1;
+  padding: 16rpx;
+  border-radius: 12rpx;
+  text-align: center;
+  font-size: 28rpx;
+}
+
+.config-btn.detect {
+  background: #667eea;
+  color: #fff;
+}
+
+.config-btn.detect.disabled {
+  opacity: 0.5;
+}
+
+.config-btn.setting {
+  background: #fff;
+  border: 1rpx solid #667eea;
+  color: #667eea;
+}
+
+.loading-wrap {
+  text-align: center;
+  padding: 40rpx 0;
+  color: #999;
+  font-size: 28rpx;
+}
+
+.empty-tip {
+  text-align: center;
+  padding: 40rpx 0;
+  font-size: 26rpx;
+  color: #999;
+}

@@ -1,0 +1,190 @@
+.module-card {
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+}
+
+.module-header {
+  margin-bottom: 16rpx;
+}
+
+.module-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.search-bar {
+  margin-bottom: 16rpx;
+}
+
+.search-input {
+  padding: 16rpx;
+  border: 1rpx solid #ddd;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  background: #f5f7fa;
+}
+
+.sort-picker {
+  margin-bottom: 16rpx;
+}
+
+.sort-label {
+  font-size: 26rpx;
+  color: #667eea;
+  padding: 8rpx 16rpx;
+  border: 1rpx solid #667eea;
+  border-radius: 20rpx;
+  display: inline-block;
+}
+
+.student-list {
+  max-height: 800rpx;
+  overflow-y: auto;
+}
+
+.student-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.check-area {
+  padding: 8rpx;
+  flex-shrink: 0;
+}
+
+.check-box {
+  width: 32rpx;
+  height: 32rpx;
+  border: 2rpx solid #ddd;
+  border-radius: 4rpx;
+}
+
+.check-box.checked {
+  background: #667eea;
+  border-color: #667eea;
+}
+
+.student-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.rank-badge {
+  width: 36rpx;
+  height: 36rpx;
+  background: #667eea;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 20rpx;
+  text-align: center;
+  line-height: 36rpx;
+  flex-shrink: 0;
+}
+
+.student-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.student-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.student-name {
+  display: block;
+  font-size: 28rpx;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.student-dorm {
+  display: block;
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 2rpx;
+}
+
+.score-value {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #667eea;
+  flex-shrink: 0;
+}
+
+.warning-badge {
+  width: 28rpx;
+  height: 28rpx;
+  background: #ff4d4f;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 20rpx;
+  text-align: center;
+  line-height: 28rpx;
+  flex-shrink: 0;
+}
+
+.batch-bar {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx 0 0;
+  border-top: 1rpx solid #f0f0f0;
+  margin-top: 16rpx;
+}
+
+.batch-info {
+  font-size: 26rpx;
+  color: #666;
+  flex: 1;
+}
+
+.batch-btn {
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+}
+
+.batch-btn.cancel {
+  background: #f5f7fa;
+  color: #666;
+}
+
+.batch-btn.select-all {
+  background: #f0f3ff;
+  color: #667eea;
+}
+
+.batch-btn.generate {
+  background: #667eea;
+  color: #fff;
+}
+
+.batch-btn.generate.disabled {
+  opacity: 0.5;
+}
+
+.loading-wrap {
+  text-align: center;
+  padding: 40rpx 0;
+  color: #999;
+  font-size: 28rpx;
+}
+
+.empty-tip {
+  text-align: center;
+  padding: 40rpx 0;
+  font-size: 26rpx;
+  color: #999;
+}

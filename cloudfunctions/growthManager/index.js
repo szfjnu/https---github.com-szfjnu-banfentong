@@ -41,6 +41,11 @@ function getAI() {
 exports.main = async (event, context) => {
   const { action, data } = event
 
+  if (!action) {
+    console.error('growthManager: action为空', JSON.stringify(event).substring(0, 200))
+    return { success: false, message: '缺少action参数' }
+  }
+
   try {
     const caller = await getCallerInfo(event, data?.class_id || data?.classId)
     const OPENID = caller.openid
@@ -52,6 +57,7 @@ exports.main = async (event, context) => {
       case 'saveComment': await requireTeacherOrDelegated(caller, 'skill_cert', 'write'); return await saveComment(data, OPENID)
       case 'getWarnings': return await getWarnings(data, OPENID)
       case 'saveWarningRules': await requireTeacher(caller); return await saveWarningRules(data, OPENID)
+      case 'deleteWarningRule': await requireTeacher(caller); return await deleteWarningRule(data, OPENID)
       case 'updateWarningStatus': await requireTeacher(caller); return await updateWarningStatus(data, OPENID)
       case 'detectWarnings': return await detectWarnings(data, OPENID)
       case 'getRecommendations': return await getRecommendations(data, OPENID)
@@ -702,62 +708,83 @@ async function getWarnings(data, openid) {
   } catch (e) { console.error('查询预警规则失败:', e) }
 
   const students = await getAllRecords('students', { class_id: targetClassId })
+  const studentIds = students.map(s => s.student_id || s._id).filter(Boolean)
+
+  let allGrades = []
+  let allDisciplines = []
+  try {
+    allGrades = await getAllRecords('grades', { class_id: targetClassId })
+  } catch (e) { console.error('批量查询成绩失败:', e) }
+  try {
+    allDisciplines = await getAllRecords('discipline_records', { class_id: targetClassId, status: _.neq('revoked') })
+  } catch (e) { console.error('批量查询处分失败:', e) }
+
+  const gradesByStudent = {}
+  for (const g of allGrades) {
+    const sid = g.student_id
+    if (!sid) continue
+    if (!gradesByStudent[sid]) gradesByStudent[sid] = []
+    gradesByStudent[sid].push(g)
+  }
+
+  const disciplinesByStudent = {}
+  for (const d of allDisciplines) {
+    const sid = d.student_id
+    if (!sid) continue
+    if (!disciplinesByStudent[sid]) disciplinesByStudent[sid] = []
+    disciplinesByStudent[sid].push(d)
+  }
+
   const warnings = []
 
   for (const student of students) {
     const sid = student.student_id || student._id
     const sname = student.student_name || student.name || ''
 
-    try {
-      const grades = await getAllRecords('grades', { class_id: targetClassId, student_id: sid })
-      const subjects = {}
-      for (const g of grades) {
-        const subj = g.subject || g.course_name || ''
-        if (!subj) continue
-        if (!subjects[subj]) subjects[subj] = []
-        subjects[subj].push({ score: g.score || g.total_score || 0, term: g.semester_name || g.term || '' })
-      }
+    const grades = gradesByStudent[sid] || []
+    const subjects = {}
+    for (const g of grades) {
+      const subj = g.subject || g.course_name || ''
+      if (!subj) continue
+      if (!subjects[subj]) subjects[subj] = []
+      subjects[subj].push({ score: g.score || g.total_score || 0, term: g.semester_name || g.term || '' })
+    }
 
-      for (const [subj, records] of Object.entries(subjects)) {
-        if (records.length < 2) continue
-        const sorted = records.sort((a, b) => (a.term > b.term ? 1 : -1))
-        const latest = sorted[sorted.length - 1].score
-        if (latest < 60) {
-          warnings.push({
-            student_id: sid, student_name: sname,
-            type: 'score_low', level: 'high',
-            message: `${subj}成绩${latest}分，低于60分及格线`,
-            subject: subj, value: latest
-          })
-        }
-        if (sorted.length >= 3) {
-          const last3 = sorted.slice(-3).map(r => r.score)
-          if (last3[0] > last3[1] && last3[1] > last3[2]) {
-            const decline = last3[0] - last3[2]
-            warnings.push({
-              student_id: sid, student_name: sname,
-              type: 'score_decline', level: 'medium',
-              message: `${subj}成绩连续3次下滑，累计下降${decline}分`,
-              subject: subj, decline: decline
-            })
-          }
-        }
-      }
-    } catch (e) { console.error(`查询${sid}成绩预警失败:`, e) }
-
-    try {
-      const disciplines = await getAllRecords('discipline_records', {
-        class_id: targetClassId, student_id: sid, status: _.neq('revoked')
-      })
-      if (disciplines.length >= 2) {
+    for (const [subj, records] of Object.entries(subjects)) {
+      if (records.length < 2) continue
+      const sorted = records.sort((a, b) => (a.term > b.term ? 1 : -1))
+      const latest = sorted[sorted.length - 1].score
+      if (latest < 60) {
         warnings.push({
           student_id: sid, student_name: sname,
-          type: 'discipline_repeat', level: 'high',
-          message: `累计${disciplines.length}次处分记录`,
-          count: disciplines.length
+          type: 'score_low', level: 'high',
+          message: `${subj}成绩${latest}分，低于60分及格线`,
+          subject: subj, value: latest
         })
       }
-    } catch (e) { console.error(`查询${sid}处分预警失败:`, e) }
+      if (sorted.length >= 3) {
+        const last3 = sorted.slice(-3).map(r => r.score)
+        if (last3[0] > last3[1] && last3[1] > last3[2]) {
+          const decline = last3[0] - last3[2]
+          warnings.push({
+            student_id: sid, student_name: sname,
+            type: 'score_decline', level: 'medium',
+            message: `${subj}成绩连续3次下滑，累计下降${decline}分`,
+            subject: subj, decline: decline
+          })
+        }
+      }
+    }
+
+    const disciplines = disciplinesByStudent[sid] || []
+    if (disciplines.length >= 2) {
+      warnings.push({
+        student_id: sid, student_name: sname,
+        type: 'discipline_repeat', level: 'high',
+        message: `累计${disciplines.length}次处分记录`,
+        count: disciplines.length
+      })
+    }
   }
 
   if (warnings.length > 0) {
@@ -1096,6 +1123,19 @@ async function saveWarningRules(data, openid) {
   }
 
   return { success: true, data: { rules: savedRules } }
+}
+
+async function deleteWarningRule(data, openid) {
+  const { rule_id } = data || {}
+  if (!rule_id) return { success: false, message: '缺少规则ID' }
+
+  try {
+    await db.collection('growth_warning_rules').doc(rule_id).remove()
+    return { success: true, message: '规则已删除' }
+  } catch (err) {
+    console.error('删除预警规则失败:', err)
+    return { success: false, message: '删除失败: ' + err.message }
+  }
 }
 
 async function updateWarningStatus(data, openid) {

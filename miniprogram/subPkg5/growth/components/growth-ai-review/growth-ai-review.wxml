@@ -1,0 +1,67 @@
+<view class="module-card">
+  <view class="module-header">
+    <text class="module-title">AI智能点评</text>
+    <text class="published-tag" wx:if="{{published}}">已发布</text>
+  </view>
+
+  <view class="period-tabs" wx:if="{{!loading}}">
+    <view class="period-tab {{selectedPeriod === item ? 'active' : ''}}" wx:for="{{periodTabs}}" wx:key="*this" bindtap="onPeriodChange" data-period="{{item}}">
+      {{item}}
+    </view>
+  </view>
+
+  <view wx:if="{{!loading}}">
+    <view class="summary-card" wx:if="{{summary && !editing}}">
+      <text class="summary-text">{{summary}}</text>
+    </view>
+    <view class="summary-edit" wx:if="{{editing}}">
+      <textarea class="summary-textarea" value="{{editContent}}" bindinput="onEditInput" auto-height maxlength="2000" />
+      <view class="edit-actions">
+        <view class="edit-btn cancel" bindtap="onSaveEdit">取消</view>
+        <view class="edit-btn save" bindtap="onSaveEdit">保存</view>
+      </view>
+    </view>
+
+    <view class="dimension-scores" wx:if="{{dimensions.length > 0}}">
+      <text class="sub-title">维度评分</text>
+      <view class="dimension-item" wx:for="{{dimensions}}" wx:key="name">
+        <view class="dimension-name-row">
+          <text class="dimension-name">{{item.name}}</text>
+          <text class="dimension-score-val">{{item.score}}分</text>
+        </view>
+        <view class="progress-bar">
+          <view class="progress-fill" style="width: {{item.score}}%; background: {{item.color || '#667eea'}};"></view>
+        </view>
+      </view>
+    </view>
+
+    <view class="highlights-suggestions" wx:if="{{highlights.length > 0 || suggestions.length > 0}}">
+      <view class="highlight-section" wx:if="{{highlights.length > 0}}">
+        <text class="sub-title">亮点</text>
+        <view class="highlight-item" wx:for="{{highlights}}" wx:key="index">
+          <text class="highlight-dot">●</text>
+          <text class="highlight-text">{{item}}</text>
+        </view>
+      </view>
+      <view class="suggestion-section" wx:if="{{suggestions.length > 0}}">
+        <text class="sub-title">建议</text>
+        <view class="suggestion-item" wx:for="{{suggestions}}" wx:key="index">
+          <text class="suggestion-dot">●</text>
+          <text class="suggestion-text">{{item}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="action-bar" wx:if="{{canWrite && !loading}}">
+    <view class="action-btn regenerate {{generating ? 'disabled' : ''}}" bindtap="onRegenerate">
+      <text>{{generating ? 'AI生成中...' : '重新生成'}}</text>
+    </view>
+    <view class="action-btn edit" bindtap="onEdit" wx:if="{{summary && !editing}}">编辑</view>
+    <view class="action-btn publish" bindtap="onPublish" wx:if="{{summary && !published}}">发布</view>
+  </view>
+
+  <view class="loading-wrap" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

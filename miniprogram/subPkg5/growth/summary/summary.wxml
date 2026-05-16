@@ -1,0 +1,72 @@
+<view class="summary-page">
+  <view class="loading-wrap" wx:if="{{loading}}">
+    <text>加载汇总数据...</text>
+  </view>
+
+  <view class="error-wrap" wx:elif="{{error}}">
+    <text class="error-text">{{errorMsg}}</text>
+    <view class="retry-btn" bindtap="onRetry">重试</view>
+  </view>
+
+  <block wx:elif="{{summaryData}}">
+    <view class="summary-header">
+      <text class="summary-title">{{summaryData.class_name || '班级汇总'}}</text>
+      <text class="summary-date">{{summaryData.date_range || ''}}</text>
+    </view>
+
+    <view class="summary-section" wx:if="{{summaryData.score_summary}}">
+      <text class="section-title">积分概况</text>
+      <view class="stat-row">
+        <view class="stat-item">
+          <text class="stat-value">{{summaryData.score_summary.total || 0}}</text>
+          <text class="stat-label">总积分</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{summaryData.score_summary.avg || 0}}</text>
+          <text class="stat-label">平均分</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{summaryData.score_summary.count || 0}}</text>
+          <text class="stat-label">记录数</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="summary-section" wx:if="{{summaryData.attendance_summary}}">
+      <text class="section-title">出勤概况</text>
+      <view class="stat-row">
+        <view class="stat-item">
+          <text class="stat-value">{{summaryData.attendance_summary.total || 0}}</text>
+          <text class="stat-label">总记录</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{summaryData.attendance_summary.absent || 0}}</text>
+          <text class="stat-label">缺勤</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{summaryData.attendance_summary.late || 0}}</text>
+          <text class="stat-label">迟到</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="summary-section" wx:if="{{summaryData.warning_summary}}">
+      <text class="section-title">预警概况</text>
+      <view class="stat-row">
+        <view class="stat-item">
+          <text class="stat-value">{{summaryData.warning_summary.total || 0}}</text>
+          <text class="stat-label">总预警</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{summaryData.warning_summary.pending || 0}}</text>
+          <text class="stat-label">待处理</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="summary-section" wx:if="{{summaryData.ai_summary}}">
+      <text class="section-title">AI汇总分析</text>
+      <text class="ai-text">{{summaryData.ai_summary}}</text>
+    </view>
+  </block>
+</view>

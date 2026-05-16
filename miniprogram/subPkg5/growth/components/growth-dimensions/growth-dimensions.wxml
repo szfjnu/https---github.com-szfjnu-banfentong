@@ -1,0 +1,22 @@
+<view class="module-card">
+  <view class="module-header">
+    <text class="module-title">数据维度</text>
+  </view>
+
+  <view class="dimension-grid" wx:if="{{!loading}}">
+    <view class="dimension-card {{item.status !== 'normal' ? 'status-' + item.status : ''}}" wx:for="{{dimensionCards}}" wx:key="key" bindtap="onDimensionClick" data-key="{{item.key}}">
+      <view class="card-header">
+        <text class="card-icon">{{item.icon}}</text>
+        <text class="card-name">{{item.name}}</text>
+      </view>
+      <view class="card-value">{{item.coreValue}}</view>
+      <view class="card-status status-{{item.status}}" wx:if="{{item.status !== 'normal'}}">
+        {{item.status === 'warning' ? '需关注' : item.status === 'good' ? '良好' : item.status === 'danger' ? '异常' : ''}}
+      </view>
+    </view>
+  </view>
+
+  <view class="loading-wrap" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

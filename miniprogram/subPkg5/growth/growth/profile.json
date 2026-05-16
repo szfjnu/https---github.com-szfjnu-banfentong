@@ -1,6 +1,10 @@
 {
-  "navigationBarTitleText": "成长档案",
+  "navigationBarTitleText": "班级成长中心",
   "usingComponents": {
-    "ec-canvas": "../../ec-canvas/ec-canvas"
+    "growth-overview": "../components/growth-overview/growth-overview",
+    "growth-ai-review": "../components/growth-ai-review/growth-ai-review",
+    "growth-student-list": "../components/growth-student-list/growth-student-list",
+    "growth-dimensions": "../components/growth-dimensions/growth-dimensions",
+    "growth-warnings": "../components/growth-warnings/growth-warnings"
   }
 }

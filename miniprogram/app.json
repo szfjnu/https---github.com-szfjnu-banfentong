@@ -136,6 +136,7 @@
         "join/confirm/confirm",
         "growth/growth/profile",
         "growth/warning-config/warning-config",
+        "growth/summary/summary",
         "usercenter/settings/settings",
         "usercenter/notifications/notifications",
         "usercenter/notification-detail/notification-detail",

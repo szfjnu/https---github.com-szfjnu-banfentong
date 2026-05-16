@@ -1,0 +1,49 @@
+<view class="module-card">
+  <view class="module-header">
+    <text class="module-title">学生成长档案</text>
+  </view>
+
+  <view class="search-bar">
+    <input class="search-input" placeholder="搜索学生姓名" value="{{searchKeyword}}" bindinput="onSearchInput" confirm-type="search" />
+  </view>
+
+  <view class="sort-picker">
+    <picker mode="selector" range="{{sortOptions}}" range-key="label" bindchange="onSortChange">
+      <view class="sort-label">排序：{{sortOptions[0].label}} ▼</view>
+    </picker>
+  </view>
+
+  <view class="student-list" wx:if="{{!loading}}">
+    <view class="student-item" wx:for="{{students}}" wx:key="student_id" wx:if="{{!searchKeyword || item.student_name.indexOf(searchKeyword) >= 0}}">
+      <view class="check-area" wx:if="{{canWrite}}" bindtap="onStudentCheckToggle" data-sid="{{item.student_id}}">
+        <view class="check-box {{checkedStudentIds.indexOf(item.student_id) >= 0 ? 'checked' : ''}}"></view>
+      </view>
+      <view class="student-main" bindtap="onStudentClick" data-sid="{{item.student_id}}">
+        <text class="rank-badge" wx:if="{{item.rank}}">{{item.rank}}</text>
+        <image class="student-avatar" src="{{item.avatar_url || '/images/default-avatar.png'}}" mode="aspectFill" />
+        <view class="student-info">
+          <text class="student-name">{{item.student_name}}</text>
+          <text class="student-dorm" wx:if="{{item.dormitory}}">{{item.dormitory}}</text>
+        </view>
+        <text class="score-value">{{item.total_score || 0}}</text>
+        <view class="warning-badge" wx:if="{{item.has_warning}}">!</view>
+      </view>
+    </view>
+    <view class="empty-tip" wx:if="{{students.length === 0}}">
+      <text>暂无学生数据</text>
+    </view>
+  </view>
+
+  <view class="batch-bar" wx:if="{{showBatchBtn && canWrite}}">
+    <view class="batch-info">已选{{checkedStudentIds.length}}人</view>
+    <view class="batch-btn cancel" bindtap="onClearCheck">取消</view>
+    <view class="batch-btn select-all" bindtap="onCheckAll">全选</view>
+    <view class="batch-btn generate {{generating ? 'disabled' : ''}}" bindtap="onBatchGenerateReport">
+      {{generating ? '生成中...' : '批量生成报告'}}
+    </view>
+  </view>
+
+  <view class="loading-wrap" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>
