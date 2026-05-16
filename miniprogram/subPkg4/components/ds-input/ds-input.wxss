@@ -7,10 +7,11 @@
   height: 72rpx;
   background: var(--card-bg, #ffffff);
   transition: border-color 0.2s;
+  overflow: hidden;
 }
 
 .ds-input--focused {
-  border-color: var(--primary-color);
+  border-color: var(--primary-color, #1890ff);
 }
 
 .ds-input--disabled {
@@ -28,8 +29,15 @@
 .ds-input__field {
   flex: 1;
   height: 72rpx;
+  line-height: 72rpx;
   font-size: var(--font-size-md, 28rpx);
   color: var(--text-color, #333333);
+  background-color: transparent;
+  border: none;
+  outline: none;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
 }
 
 .ds-input__placeholder {

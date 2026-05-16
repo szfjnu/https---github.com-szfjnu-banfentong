@@ -486,6 +486,26 @@
   border-left: 6rpx solid var(--primary-color);
 }
 
+.ranking-item.no-tap {
+  opacity: 0.7;
+}
+
+.ranking-item.no-tap:active {
+  background: var(--white);
+}
+
+.no-permission-hint {
+  position: absolute;
+  right: 10rpx;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.hint-text {
+  font-size: 20rpx;
+  color: var(--text-color-light);
+}
+
 .self-tag {
   font-size: 22rpx;
   color: var(--primary-color);

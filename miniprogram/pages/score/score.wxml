@@ -69,7 +69,7 @@
       <view class="card-title">班级积分排行（前5名）</view>
       <view class="ranking-list">
         <view
-          class="ranking-item {{item.isSelf ? 'self-highlight' : ''}}"
+          class="ranking-item {{item.isSelf ? 'self-highlight' : 'no-tap'}}"
           wx:for="{{topStudents}}"
           wx:key="_id"
           bindtap="onViewDetail"
@@ -92,6 +92,9 @@
               {{item.current_score || 100}}
             </view>
             <view class="score-level">{{item.scoreLevel}}</view>
+          </view>
+          <view class="no-permission-hint" wx:if="{{!item.isSelf}}">
+            <text class="hint-text">不可查看</text>
           </view>
         </view>
       </view>

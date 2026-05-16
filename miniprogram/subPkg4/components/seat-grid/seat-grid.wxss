@@ -211,6 +211,9 @@
 
 .grid-cell.drag-target-invalid {
   border: 3rpx solid var(--error-color, #ff4d4f);
+  background: #fff1f0;
+  box-shadow: 0 0 12rpx rgba(255, 77, 79, 0.3);
+  transition: all 0.15s ease;
 }
 
 .drag-float {

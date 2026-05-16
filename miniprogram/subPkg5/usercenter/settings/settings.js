@@ -8,7 +8,9 @@ const ROLE_MAP = {
   'class_cadre': '班干部',
   'student': '学生',
   'parent': '家长',
-  'new_user': '新用户'
+  'new_user': '新用户',
+  'user': '普通用户',
+  'teacher': '教师'
 };
 
 Page({
@@ -105,7 +107,7 @@ Page({
         const profile = profileRes.result.data;
         const role = profile.role || app.globalData.role || '';
         let className = profile.class_name || app.globalData.currentClassName || '';
-        const classId = profile.class_id || app.globalData.class_id || '';
+        const classId = profile.class_id || app.globalData.class_id || app.globalData.classId || '';
         const autoPhone = profile.phone || app.globalData.phone || (app.globalData.userInfo && app.globalData.userInfo.phone) || '';
         const nickname = profile.nickname || profile.nickName || (app.globalData.userInfo && (app.globalData.userInfo.nickName || app.globalData.userInfo.nickname)) || '';
         const avatarUrl = profile.avatarUrl || (app.globalData.userInfo && app.globalData.userInfo.avatarUrl) || '';
@@ -125,7 +127,7 @@ Page({
           phone: autoPhone,
           email: profile.email || '',
           role,
-          roleLabel: ROLE_MAP[role] || role || '未设置',
+          roleLabel: ROLE_MAP[role] || (role ? role : '未设置'),
           className: className || '未分配',
           membershipLevel: profile.membershipLevel || (profile.membership && profile.membership.level) || 'free'
         });
@@ -169,7 +171,7 @@ Page({
       nickname,
       phone,
       role,
-      roleLabel: ROLE_MAP[role] || role || '未设置',
+      roleLabel: ROLE_MAP[role] || (role ? role : '未设置'),
       className: className || '未分配'
     });
   },

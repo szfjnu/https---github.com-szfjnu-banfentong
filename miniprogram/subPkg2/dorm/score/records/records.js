@@ -142,10 +142,23 @@ Page({
       // 搜索
       if (searchKeyword.trim()) {
         const keyword = searchKeyword.trim();
-        query.student_id = db.RegExp({
-          regexp: keyword,
-          options: 'i'
-        });
+        const studentNameRes = await db.collection('students')
+          .where({
+            class_id: classId,
+            name: db.RegExp({ regexp: keyword, options: 'i' })
+          })
+          .field({ student_id: true })
+          .limit(100)
+          .get();
+        const matchedStudentIds = (studentNameRes.data || []).map(s => s.student_id);
+        if (matchedStudentIds.length > 0) {
+          query.student_id = _.in(matchedStudentIds);
+        } else {
+          query.student_id = db.RegExp({
+            regexp: keyword,
+            options: 'i'
+          });
+        }
       }
 
       const res = await db.collection('dorm_score_records')

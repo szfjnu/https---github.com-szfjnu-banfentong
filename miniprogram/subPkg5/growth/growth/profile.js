@@ -392,7 +392,8 @@ Page({
         }
       } catch (err) {
         console.error('生成报告失败:', sid, err)
-        results.push({ student_id: sid, student_name: sname, content: '', success: false, error: '网络异常' })
+        const errMsg = (err.errCode === -1 || err.message?.includes('timeout')) ? 'AI分析暂时不可用，请稍后再试' : '网络异常'
+        results.push({ student_id: sid, student_name: sname, content: '', success: false, error: errMsg })
       }
     }
     this.setData({ generatingReport: false, batchReportResults: results })
@@ -453,7 +454,8 @@ Page({
         }
       } catch (err) {
         console.error('生成评语失败:', sid, err)
-        results.push({ student_id: sid, student_name: sname, comment: '', success: false, error: '网络异常' })
+        const errMsg = (err.errCode === -1 || err.message?.includes('timeout')) ? 'AI分析暂时不可用，请稍后再试' : '网络异常'
+        results.push({ student_id: sid, student_name: sname, comment: '', success: false, error: errMsg })
       }
     }
     this.setData({ generatingComment: false, batchCommentResults: results })

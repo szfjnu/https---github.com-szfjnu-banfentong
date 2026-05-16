@@ -265,7 +265,7 @@ async function applyScoreChange(data, caller) {
     return { success: false, message: validation.errors.join('; ') }
   }
 
-  const changeValue = Number(score_change)
+  const changeValue = Math.round(Number(score_change) * 100) / 100
   if (isNaN(changeValue)) {
     return { success: false, message: 'score_change 必须为数字' }
   }

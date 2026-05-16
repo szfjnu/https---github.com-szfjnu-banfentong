@@ -177,7 +177,7 @@ Page({
           : students;
 
         const totalScore = filteredStudents.reduce((sum, s) => sum + (s.current_score || 100), 0);
-        const avgScore = filteredStudents.length > 0 ? (totalScore / filteredStudents.length).toFixed(1) : 100;
+        const avgScore = filteredStudents.length > 0 ? util.formatScore(totalScore / filteredStudents.length) : 100;
       
         // TODO: 这里也需要修改 API 调用，获取当前班级的待审批数量
         // 假设你有一个获取审批数量的API，也需要传入 class_id

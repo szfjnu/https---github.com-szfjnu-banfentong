@@ -263,6 +263,22 @@ async function addDisciplineRecord(data, caller) {
     return { success: false, message: '缺少必要参数' };
   }
 
+  let effectiveScoreDeduction = score_deduction;
+  if ((!effectiveScoreDeduction || effectiveScoreDeduction === 0) && level_config_id) {
+    try {
+      const levelRes = await db.collection('discipline_level_config')
+        .where({ _id: level_config_id, class_id })
+        .limit(1)
+        .get();
+      if (levelRes.data && levelRes.data.length > 0) {
+        effectiveScoreDeduction = levelRes.data[0].score_deduction || 0;
+      }
+    } catch (err) {
+      console.error('读取处分级别配置失败:', err);
+    }
+  }
+  if (!effectiveScoreDeduction) effectiveScoreDeduction = 0;
+
   const record_id = generateId('dr');
   const now = db.serverDate();
   const issueDate = issue_date || getTodayStr();
@@ -309,7 +325,7 @@ async function addDisciplineRecord(data, caller) {
         issue_date: issueDate,
         issuer: issuer || '',
         document_id: document_id || '',
-        score_deduction: score_deduction || 0,
+        score_deduction: effectiveScoreDeduction || 0,
         status: 'active',
         is_revoked: false,
         is_deleted: false,
@@ -326,9 +342,9 @@ async function addDisciplineRecord(data, caller) {
       }
     });
 
-    if (score_deduction && score_deduction > 0 && disciplineSyncEnabled) {
+    if (effectiveScoreDeduction > 0 && disciplineSyncEnabled) {
       try {
-        const convertedDeduction = Math.round(score_deduction * disciplineConversionRatio * 100) / 100;
+        const convertedDeduction = Math.round(effectiveScoreDeduction * disciplineConversionRatio * 100) / 100;
         const ratioLabel = disciplineConversionRatio !== 1.0 ? ` (折算比例${disciplineConversionRatio})` : '';
         const scoreRes = await cloud.callFunction({
           name: 'scoreManager',
@@ -377,7 +393,7 @@ async function addDisciplineRecord(data, caller) {
     discipline_level: level_name,
     reason,
     document_id: document_id || '',
-    score_deduction: score_deduction || 0,
+    score_deduction: effectiveScoreDeduction || 0,
     issue_date: issueDate,
     issuer: issuer || '',
     status: 'active',
@@ -398,9 +414,9 @@ async function addDisciplineRecord(data, caller) {
 
   await db.collection('discipline_records').add({ data: record });
 
-  if (score_deduction && score_deduction > 0 && disciplineSyncEnabled) {
+  if (effectiveScoreDeduction > 0 && disciplineSyncEnabled) {
     try {
-      const convertedDeduction = Math.round(score_deduction * disciplineConversionRatio * 100) / 100;
+      const convertedDeduction = Math.round(effectiveScoreDeduction * disciplineConversionRatio * 100) / 100;
       const ratioLabel = disciplineConversionRatio !== 1.0 ? ` (折算比例${disciplineConversionRatio})` : '';
       const scoreRes = await cloud.callFunction({
         name: 'scoreManager',

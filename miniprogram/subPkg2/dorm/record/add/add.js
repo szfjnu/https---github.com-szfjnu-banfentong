@@ -2,6 +2,7 @@
 const app = getApp();
 const db = wx.cloud.database();
 const _ = db.command;
+const util = require('../../../utils/util.js');
 
 Page({
   data: {
@@ -269,7 +270,7 @@ Page({
         .where({
           class_id: classId,
           is_boarding: true,
-          _.or: [
+          [_.or]: [
             { dorm_building: building, dorm_room: room },
             { 'dorm_info.building': building, 'dorm_info.room': room }
           ]
@@ -458,7 +459,7 @@ Page({
     }
 
     const score = parseFloat(scoreValue);
-    const calculatedPersonalScore = (score * conversionRatio).toFixed(2);
+    const calculatedPersonalScore = util.formatScore(score * conversionRatio);
 
     this.setData({
       showPreview: true,
@@ -523,7 +524,7 @@ Page({
       // 计算个人积分
       const dormScore = parseFloat(scoreValue);
       const dormScoreChange = recordType === 'violation' ? -dormScore : dormScore;
-      const personalScore = linkToPersonal ? (dormScoreChange * conversionRatio).toFixed(2) : 0;
+      const personalScore = linkToPersonal ? util.formatScore(dormScoreChange * conversionRatio) : 0;
 
       // 使用云函数 convertDormScore 处理宿舍积分记录和账户更新
       const dormRes = await wx.cloud.callFunction({

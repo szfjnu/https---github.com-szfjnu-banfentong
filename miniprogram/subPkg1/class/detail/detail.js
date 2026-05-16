@@ -117,7 +117,7 @@ Page({
 
       // 计算平均积分
       const totalScore = students.reduce((sum, s) => sum + (s.current_score || 100), 0);
-      const avgScore = studentCount > 0 ? (totalScore / studentCount).toFixed(1) : 100;
+      const avgScore = studentCount > 0 ? util.formatScore(totalScore / studentCount) : 100;
 
       // 统计优秀学生（积分 >= 110）
       const excellentCount = students.filter(s => (s.current_score || 100) >= 110).length;

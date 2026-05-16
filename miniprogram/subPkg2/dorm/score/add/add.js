@@ -3,6 +3,7 @@ const app = getApp();
 const db = wx.cloud.database();
 const _ = db.command;
 const batchQuery = require('../../../utils/batchQuery.js');
+const util = require('../../../utils/util.js');
 
 Page({
   data: {
@@ -51,8 +52,12 @@ Page({
 
   onLoad: async function () {
     await this.loadSemesterAndRatio();
-    await this.loadStudents();
-    await this.loadRules();
+    this.setData({ loading: true });
+    try {
+      await Promise.all([this.loadStudents(), this.loadRules()]);
+    } finally {
+      this.setData({ loading: false });
+    }
     this.updateCanSubmit();
   },
 
@@ -482,7 +487,7 @@ Page({
 
     if (selectedRule && selectedStudents.length > 0) {
       const calculatedPersonalScore = linkToPersonal
-        ? (scoreValue * conversionRatio).toFixed(2)
+        ? util.formatScore(scoreValue * conversionRatio)
         : 0;
 
       this.setData({
@@ -531,6 +536,11 @@ Page({
       return;
     }
 
+    if (!app.globalData.class_id) {
+      wx.showToast({ title: '班级信息缺失，无法保存', icon: 'none', duration: 2000 });
+      return;
+    }
+
     try {
       wx.showLoading({ title: '保存中...' });
 
@@ -549,7 +559,7 @@ Page({
               action: 'convertDormScore',
               data: {
                 student_id: student.student_id,
-                score_change: dormScoreChange,
+                dorm_score_change: dormScoreChange,
                 semester_id: currentSemesterId,
                 class_id: app.globalData.class_id || '',
                 record_type: recordType,
@@ -565,10 +575,13 @@ Page({
           });
 
           if (!dormRes.result || !dormRes.result.success) {
-            console.error('宿舍积分记录保存失败:', dormRes.result?.message);
+            const errMsg = dormRes.result?.message || '宿舍积分记录保存失败';
+            console.error('宿舍积分记录保存失败:', errMsg);
+            throw new Error(errMsg);
           }
         } catch (dormScoreErr) {
           console.error('更新学生宿舍积分失败:', dormScoreErr);
+          throw dormScoreErr;
         }
 
         // 如果关联个人积分，创建个人积分记录（保持原有逻辑不变）
@@ -601,6 +614,7 @@ Page({
             });
           } catch (scoreErr) {
             console.error('宿舍积分同步个人积分失败:', scoreErr);
+            throw scoreErr;
           }
         }
       }

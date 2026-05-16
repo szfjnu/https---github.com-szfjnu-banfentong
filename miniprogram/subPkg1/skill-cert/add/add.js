@@ -1,4 +1,5 @@
 const app = getApp()
+const batchQuery = require('../../utils/batchQuery')
 
 const COMPETITION_LEVELS = [
   { value: 'school', label: '校级' },
@@ -62,12 +63,11 @@ Page({
     try {
       const classId = app.globalData.class_id || ''
       const db = wx.cloud.database()
-      const res = await db.collection('students')
-        .where({ class_id: classId, status: db.command.neq('graduated') })
-        .field({ student_id: true, student_name: true, name: true })
-        .limit(200)
-        .get()
-      const students = (res.data || []).map(s => ({
+      const allData = await batchQuery.getAllRecords('students', {
+        class_id: classId,
+        status: db.command.neq('graduated')
+      })
+      const students = (allData || []).map(s => ({
         student_id: s.student_id,
         student_name: s.student_name || s.name || ''
       }))

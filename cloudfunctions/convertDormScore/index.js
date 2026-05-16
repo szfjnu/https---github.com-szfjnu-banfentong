@@ -47,6 +47,11 @@ async function adjustDormScore(data, caller) {
     return { success: false, message: '缺少必要参数: student_id, dorm_score_change' }
   }
 
+  if (!class_id) {
+    console.error('convertDormScore class_id缺失:', { student_id, class_id })
+    return { success: false, message: '班级信息缺失，无法保存' }
+  }
+
   let semesterQuery = { status: 'active' }
   if (class_id) {
     semesterQuery = { class_id: class_id, status: 'active' }
@@ -110,6 +115,7 @@ async function adjustDormScore(data, caller) {
     await db.collection('score_records').add({
       data: {
         student_id: student_id,
+        class_id: class_id,
         item_id: 'DORM_CONVERSION',
         score_change: convertedScoreChange,
         reason_detail: `宿舍积分折算 (系数${conversionRatio})`,

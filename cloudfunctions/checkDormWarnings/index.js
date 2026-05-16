@@ -69,6 +69,36 @@ exports.main = async (event, context) => {
     const students = studentsRes.data
     console.log('检查学生数:', students.length)
 
+    // 批量预查询宿舍积分账户，减少N+1问题
+    const studentIds = students.map(s => s.student_id)
+    const allAccountsRes = await db.collection('dorm_score_accounts')
+      .where({
+        student_id: _.in(studentIds),
+        semester_id: semester_id
+      })
+      .get()
+    const accountMap = {}
+    for (const acc of allAccountsRes.data) {
+      accountMap[acc.student_id] = acc
+    }
+
+    // 批量预查询近期扣分记录（近7天）
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
+    const allRecentDeductionsRes = await db.collection('dorm_score_records')
+      .where({
+        student_id: _.in(studentIds),
+        semester_id: semester_id,
+        score_change: _.lt(0),
+        date: _.gte(fourteenDaysAgo)
+      })
+      .get()
+    const deductionMap = {}
+    for (const rec of allRecentDeductionsRes.data) {
+      if (!deductionMap[rec.student_id]) deductionMap[rec.student_id] = []
+      deductionMap[rec.student_id].push(rec)
+    }
+
     // 3. 检查每个学生
     const warnings = []
     const now = new Date()
@@ -78,16 +108,8 @@ exports.main = async (event, context) => {
       const studentName = student.name || student.student_name
       const classId = student.class_id
 
-      // 获取或创建宿舍积分账户（以账户积分为准，更实时准确）
-      const accountRes = await db.collection('dorm_score_accounts')
-        .where({
-          student_id: studentId,
-          semester_id: semester_id
-        })
-        .limit(1)
-        .get()
-
-      let account = accountRes.data.length > 0 ? accountRes.data[0] : null
+      // 使用预查询的账户数据
+      let account = accountMap[studentId] || null
 
       if (!account) {
         // 创建账户
@@ -113,31 +135,17 @@ exports.main = async (event, context) => {
         ? account.current_score
         : (account.original_score || 100)
 
-      // 查询近期扣分情况（近7天）
-      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-      const recentDeductionRes = await db.collection('dorm_score_records')
-        .where({
-          student_id: studentId,
-          semester_id: semester_id,
-          score_change: _.lt(0),
-          date: _.gte(sevenDaysAgo)
-        })
-        .get()
-
-      const recentDeductionCount = recentDeductionRes.data.length
+      // 使用预查询的扣分记录
+      const allDeductions = deductionMap[studentId] || []
+      const recentDeductions = allDeductions.filter(r => new Date(r.date) >= sevenDaysAgo)
+      const recentDeductionCount = recentDeductions.length
 
       // 计算扣分趋势（近7天 vs 前7天）
-      const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
-      const previousDeductionRes = await db.collection('dorm_score_records')
-        .where({
-          student_id: studentId,
-          semester_id: semester_id,
-          score_change: _.lt(0),
-          date: _.gte(fourteenDaysAgo).and(_.lt(sevenDaysAgo))
-        })
-        .get()
-
-      const previousDeductionCount = previousDeductionRes.data.length
+      const previousDeductions = allDeductions.filter(r => {
+        const d = new Date(r.date)
+        return d >= fourteenDaysAgo && d < sevenDaysAgo
+      })
+      const previousDeductionCount = previousDeductions.length
       const deductionTrend = recentDeductionCount - previousDeductionCount
 
       // 判断预警类型和等级（基于实时 dormScore）
@@ -179,7 +187,7 @@ exports.main = async (event, context) => {
             current_score: dormScore,
             deduction_count: recentDeductionCount,
             deduction_trend: deductionTrend,
-            suggestions: generateSuggestions(warningResult, recentDeductionRes.data),
+            suggestions: generateSuggestions(warningResult, recentDeductions),
             is_notified: false,
             parent_notified: false,
             teacher_notified: false,

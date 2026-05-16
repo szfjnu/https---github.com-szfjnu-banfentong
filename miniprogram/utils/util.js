@@ -313,6 +313,13 @@ const formatFileSize = (bytes) => {
   return (bytes / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i];
 };
 
+const formatScore = (value) => {
+  if (value === null || value === undefined || value === '' || isNaN(value) || !isFinite(value)) {
+    return 0;
+  }
+  return Math.round(Number(value) * 100) / 100;
+};
+
 module.exports = {
   formatDate,
   formatTime,
@@ -334,5 +341,6 @@ module.exports = {
   getScoreLevel,
   getScoreColor,
   calculateAge,
-  formatFileSize
+  formatFileSize,
+  formatScore
 };

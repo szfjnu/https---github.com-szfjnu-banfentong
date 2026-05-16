@@ -29,15 +29,30 @@ Page({
 
   loadRules: async function () {
     try {
-      const res = await wx.cloud.callFunction({
-        name: 'growthManager',
-        data: { action: 'getWarnings', data: {} }
-      })
+      const res = await this._callWithRetry('getWarnings', {})
       if (res.result && res.result.success) {
         this.setData({ rules: res.result.data.warning_rules || [] })
       }
     } catch (err) {
       console.error('加载规则失败:', err)
+      wx.showToast({ title: '加载规则失败，请重试', icon: 'none' })
+    }
+  },
+
+  _callWithRetry: async function (action, data, retries) {
+    retries = retries || 1
+    try {
+      return await wx.cloud.callFunction({
+        name: 'growthManager',
+        data: { action: action, data: data }
+      })
+    } catch (err) {
+      if (retries > 0) {
+        console.warn(`云函数${action}调用失败，${2}秒后重试...`, err)
+        await new Promise(resolve => setTimeout(resolve, 2000))
+        return await this._callWithRetry(action, data, retries - 1)
+      }
+      throw err
     }
   },
 
@@ -111,10 +126,7 @@ Page({
 
     wx.showLoading({ title: '保存中...' })
     try {
-      const res = await wx.cloud.callFunction({
-        name: 'growthManager',
-        data: { action: 'saveWarningRules', data: { rules: [rule] } }
-      })
+      const res = await this._callWithRetry('saveWarningRules', { rules: [rule] })
       if (res.result && res.result.success) {
         wx.showToast({ title: '保存成功', icon: 'success' })
         this.onCancelEdit()

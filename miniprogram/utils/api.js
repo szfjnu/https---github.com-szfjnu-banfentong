@@ -32,30 +32,21 @@ const studentApi = {
   //},
   // 获取学生列表修改后的代码
   getStudents: function (options = {}) {
-    const { limit = 20, skip = 0, search = '', class_id } = options; // 1. 接收 class_id
+    const { limit = 20, skip = 0, search = '', class_id } = options;
 
-    let query = db.collection('students');
-
-    // 2. 如果有 class_id，就加 where 条件
+    let where = {};
     if (class_id) {
-      query = query.where({
-        class_id: class_id
-      });
+      where.class_id = class_id;
     }
-
-    // 3. 搜索逻辑
     if (search) {
-      // 这里假设你有一个 search_name 字段或者用正则
-      // 注意：云开发正则查询比较消耗性能，建议简单搜索
-      query = query.where({
-        name: db.RegExp({
-          regexp: search,
-          options: 'i'
-        })
+      where.name = db.RegExp({
+        regexp: search,
+        options: 'i'
       });
     }
 
-    return query
+    return db.collection('students')
+      .where(where)
       .orderBy('created_at', 'desc')
       .skip(skip)
       .limit(limit)

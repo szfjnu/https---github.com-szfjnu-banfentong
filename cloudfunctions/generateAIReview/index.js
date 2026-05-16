@@ -51,6 +51,8 @@ exports.main = async (event, context) => {
   const { student_id, review_type, review_period } = event
   const { class_id } = event
 
+  console.log('=== generateAIReview 被调用 ===', { student_id, review_type, review_period, class_id })
+
   try {
     if (event._prompt) {
       const caller = await getCallerInfo(event, class_id)
@@ -285,7 +287,10 @@ ${dataSummary}
     if (err.code && Object.values(AUTH_ERRORS).includes(err.code)) {
       return { success: false, message: err.message, code: err.code }
     }
-    return { success: false, message: `生成失败: ${err.message}` }
+    const msg = err.message && (err.message.includes('AI') || err.message.includes('ai'))
+      ? 'AI分析暂时不可用，请稍后再试'
+      : `生成失败: ${err.message}`
+    return { success: false, message: msg }
   }
 }
 
