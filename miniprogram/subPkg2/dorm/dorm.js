@@ -359,6 +359,24 @@ Page({
     });
   },
 
+  goToScoringAdd: function () {
+    wx.navigateTo({
+      url: '/subPkg2/dorm/scoring/add/add'
+    });
+  },
+
+  goToScoringList: function () {
+    wx.navigateTo({
+      url: '/subPkg2/dorm/scoring/list/list'
+    });
+  },
+
+  goToScoringChart: function () {
+    wx.navigateTo({
+      url: '/subPkg2/dorm/scoring/chart/chart'
+    });
+  },
+
   goToStudentList: function () {
     // 跳转到学生列表页，筛选住宿生
     wx.navigateTo({

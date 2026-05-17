@@ -79,10 +79,11 @@ studentLoader.loadStudentsByGroup = async function (groupName, currentClassId, a
   var batchQuery = require('../../../utils/batchQuery.js');
   var dataFormatter = require('./dataFormatter.js');
 
-  var groupQuery = {
-    group_name: groupName,
-    class_id: currentClassId || appGlobalClassId || ''
-  };
+  var effectiveClassId = currentClassId || appGlobalClassId;
+  var groupQuery = _.or([{ group_name: groupName }, { name: groupName }]);
+  if (effectiveClassId) {
+    groupQuery = _.and([groupQuery, { class_id: effectiveClassId }]);
+  }
 
   var groupRes = await db.collection('student_groups')
     .where(groupQuery)

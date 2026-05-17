@@ -23,13 +23,23 @@ Page({
     page: 1,
 
     // 权限
-    isAdmin: false
+    isAdmin: false,
+    canManage: false
   },
 
   onLoad: function () {
+    const role = app.globalData.role || ''
+    const isAdmin = app.globalData.isAdmin || role === 'admin'
+    const canManage = isAdmin || role === 'head_teacher'
     this.setData({
-      isAdmin: app.globalData.isAdmin || false
+      isAdmin,
+      canManage
     });
+    this.loadBuildings(true);
+    this.loadStats();
+  },
+
+  onShow: function () {
     this.loadBuildings(true);
     this.loadStats();
   },
@@ -37,19 +47,18 @@ Page({
   // 加载统计数据
   loadStats: async function () {
     try {
-      // 获取楼栋总数
-      const buildingRes = await db.collection('dorm_buildings').count();
+      const userClassId = app.globalData.class_id || app.globalData.classId || '';
+
+      const buildingQuery = userClassId ? { class_id: userClassId } : {};
+      const buildingRes = await db.collection('dorm_buildings').where(buildingQuery).count();
       const totalBuildings = buildingRes.total || 0;
 
-      // 获取房间总数
       const roomRes = await db.collection('dorm_rooms').count();
       const totalRooms = roomRes.total || 0;
 
-      // 获取床位总数
       const bedRes = await db.collection('dorm_beds').count();
       const totalBeds = bedRes.total || 0;
 
-      // 获取已入住床位
       const occupiedRes = await db.collection('students')
         .where({
           dorm_info: _.exists(true)
@@ -86,7 +95,7 @@ Page({
       }
 
       const { searchKeyword, pageSize, page } = this.data;
-      const userClassId = app.globalData.classId || '';
+      const userClassId = app.globalData.class_id || app.globalData.classId || '';
 
       // 构建查询条件
       let query = {

@@ -26,6 +26,9 @@
         <image class="btn-icon" src="/images/icons/add.png" mode="aspectFit"></image>
         <text>添加积分</text>
       </button>
+      <button class="action-btn" bindtap="goToScoringAdd" wx:if="{{isAdmin}}">
+        <text>录入评分</text>
+      </button>
     </view>
 
     <!-- 管理员功能区 -->
@@ -43,6 +46,14 @@
         <view class="admin-btn" bindtap="goToStatistics">
           <text class="btn-icon-text">📊</text>
           <text>积分统计</text>
+        </view>
+        <view class="admin-btn" bindtap="goToScoringList">
+          <text class="btn-icon-text">📝</text>
+          <text>每日评分</text>
+        </view>
+        <view class="admin-btn" bindtap="goToScoringChart">
+          <text class="btn-icon-text">📈</text>
+          <text>评分趋势</text>
         </view>
       </view>
     </view>

@@ -253,6 +253,7 @@
             <view class="record-item" wx:for="{{attendanceRecords}}" wx:key="_id">
               <view class="record-header">
                 <text class="record-date">{{item.dateText}}</text>
+                <text class="record-period" wx:if="{{item.periodText}}">{{item.periodText}}</text>
                 <view class="attendance-type" style="color: {{item.categoryColor}}">{{item.categoryText}}</view>
               </view>
               <view class="record-body" wx:if="{{item.reason}}">

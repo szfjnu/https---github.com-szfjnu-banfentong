@@ -63,6 +63,14 @@ async function getCallerInfo(event, classId, options = {}) {
     targetRelation = userRes.data[0]
   }
 
+  let avatarUrl = ''
+  try {
+    const userRes2 = await db.collection('users').where({ openid }).limit(1).get()
+    if (userRes2.data && userRes2.data.length > 0) {
+      avatarUrl = userRes2.data[0].avatarUrl || ''
+    }
+  } catch (e) {}
+
   return {
     openid,
     role: targetRelation.role,
@@ -70,6 +78,7 @@ async function getCallerInfo(event, classId, options = {}) {
     studentId: targetRelation.student_id || null,
     isOwner: targetRelation.is_owner || false,
     realName: targetRelation.real_name || '匿名',
+    avatarUrl,
     allClasses
   }
 }

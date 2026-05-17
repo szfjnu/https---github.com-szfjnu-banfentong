@@ -144,6 +144,7 @@
       </view>
       <view class="modal-actions">
         <button class="btn-back" bindtap="onCloseSuccessModal">返回列表</button>
+        <button class="btn-enter" bindtap="onInitSemester">初始化学期</button>
         <button class="btn-enter" bindtap="onEnterClass">进入班级</button>
       </view>
     </view>

@@ -53,6 +53,10 @@ exports.main = async (event, context) => {
       case 'saveResetSettings':
         requireTeacher(caller)
         return await saveResetSettings(data, caller)
+      case 'getSemesters':
+        return await getSemestersList(data, caller)
+      case 'getSemesterDetail':
+        return await getSemesterDetail(data, caller)
       default: return { success: false, message: '未知操作' }
     }
   } catch (err) {
@@ -421,5 +425,35 @@ async function saveResetSettings(data, caller) {
   } catch (err) {
     console.error('saveResetSettings error:', err)
     return { success: false, message: err.message || '保存失败' }
+  }
+}
+
+async function getSemestersList(data, caller) {
+  const { classId } = data || {}
+  try {
+    let query = {}
+    if (classId) {
+      query.class_id = _.in([classId, '', null, undefined])
+    }
+    const res = await db.collection('semesters')
+      .where(query)
+      .orderBy('start_date', 'desc')
+      .get()
+    return { success: true, data: res.data || [] }
+  } catch (err) {
+    console.error('getSemestersList error:', err)
+    return { success: false, data: [] }
+  }
+}
+
+async function getSemesterDetail(data, caller) {
+  const { semesterId } = data || {}
+  if (!semesterId) return { success: false, message: '缺少学期ID' }
+  try {
+    const res = await db.collection('semesters').doc(semesterId).get()
+    return { success: true, data: res.data }
+  } catch (err) {
+    console.error('getSemesterDetail error:', err)
+    return { success: false, message: err.message || '查询失败' }
   }
 }

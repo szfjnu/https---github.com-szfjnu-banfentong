@@ -26,6 +26,7 @@
       class="btn btn-outline btn-block btn-large phone-btn"
       open-type="getPhoneNumber"
       bindgetphonenumber="onGetPhoneNumber"
+      loading="{{phoneLoading}}"
     >
       授权手机号（可选）
     </button>

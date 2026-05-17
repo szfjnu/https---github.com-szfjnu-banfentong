@@ -75,7 +75,7 @@
         </view>
       </view>
 
-      <view class="room-actions" wx:if="{{isAdmin}}">
+      <view class="room-actions" wx:if="{{canManage}}">
         <button class="action-btn" catchtap="onEdit" data-id="{{item._id}}" size="mini">
           <text>编辑</text>
         </button>
@@ -89,7 +89,7 @@
     <view class="empty-state" wx:if="{{rooms.length === 0 && !loading}}">
       <text class="empty-icon">🚪</text>
       <text class="empty-text">暂无房间信息</text>
-      <button class="empty-btn" bindtap="onAdd" wx:if="{{isAdmin}}">添加房间</button>
+      <button class="empty-btn" bindtap="onAdd" wx:if="{{canManage}}">添加房间</button>
     </view>
   </view>
 

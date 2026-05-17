@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "评分趋势",
+  "usingComponents": {
+    "ec-canvas": "/subPkg5/ec-canvas/ec-canvas"
+  }
+}

@@ -2,7 +2,7 @@
 const app = getApp();
 const db = wx.cloud.database();
 const _ = db.command;
-const util = require('../../../utils/util.js');
+const util = require('/utils/util.js');
 
 Page({
   data: {

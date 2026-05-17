@@ -1,7 +1,7 @@
 <view class="import-page">
   <view class="info-section">
-    <text class="info-text">班级: {{className}}</text>
-    <text class="info-text">学期: {{semesterName || '未设置'}}</text>
+    <text class="info-text">班级: {{className || '请先选择班级'}}</text>
+    <text class="info-text">学期: {{semesterName || '请先选择学期'}}</text>
   </view>
 
   <!-- 导入方式切换 -->

@@ -1,0 +1,52 @@
+<view class="container">
+  <view class="selector-section">
+    <view class="selector-row">
+      <picker mode="selector" range="{{buildingOptions}}" range-key="building_name" value="{{buildingIndex}}" bindchange="onBuildingChange">
+        <view class="selector-picker">
+          <text>{{buildingOptions[buildingIndex].building_name || '请选择楼栋'}}</text>
+          <text class="arrow">▼</text>
+        </view>
+      </picker>
+
+      <picker mode="selector" range="{{roomOptions}}" range-key="room_number" value="{{roomIndex}}" bindchange="onRoomChange">
+        <view class="selector-picker">
+          <text>{{roomOptions[roomIndex].room_number || '请选择房间'}}</text>
+          <text class="arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="chart-type-bar">
+      <view
+        class="type-item {{selectedChartType === item.value ? 'active' : ''}}"
+        wx:for="{{chartTypes}}"
+        wx:key="value"
+        bindtap="onChartTypeTap"
+        data-value="{{item.value}}"
+        data-index="{{index}}"
+      >
+        <text>{{item.label}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="chart-section" wx:if="{{!useFallbackList}}">
+    <ec-canvas id="myChart" canvas-id="scoreChart" ec="{{ec}}" wx:if="{{ec}}"></ec-canvas>
+    <view class="loading" wx:if="{{chartLoading}}">
+      <text>图表加载中...</text>
+    </view>
+    <view class="no-data" wx:if="{{noData && !chartLoading}}">
+      <text>暂无评分数据</text>
+    </view>
+  </view>
+
+  <view class="fallback-list" wx:if="{{useFallbackList}}">
+    <view class="fallback-item" wx:for="{{fallbackRecords}}" wx:key="date">
+      <text class="fb-date">{{item.date}}</text>
+      <text class="fb-score">{{item.score}}分</text>
+    </view>
+    <view class="no-data" wx:if="{{fallbackRecords.length === 0}}">
+      <text>暂无评分数据</text>
+    </view>
+  </view>
+</view>

@@ -236,6 +236,12 @@
   color: var(--text-color-light);
 }
 
+.record-period {
+  font-size: 22rpx;
+  color: var(--text-color-light);
+  margin-left: 10rpx;
+}
+
 .score-change {
   font-size: 32rpx;
   font-weight: bold;

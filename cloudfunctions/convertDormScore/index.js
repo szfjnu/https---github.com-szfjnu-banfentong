@@ -7,7 +7,7 @@ cloud.init({
 const db = cloud.database()
 const _ = db.command
 
-const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('./utils/auth')
+const { getCallerInfo, requireTeacher, requireTeacherOrDelegated, AUTH_ERRORS } = require('./utils/auth')
 
 exports.main = async (event, context) => {
   const { action, data } = event
@@ -15,7 +15,7 @@ exports.main = async (event, context) => {
 
   try {
     const caller = await getCallerInfo(event, data?.class_id)
-    requireTeacher(caller)
+    await requireTeacherOrDelegated(caller, 'dorm_score', 'write')
 
     switch (effectiveAction) {
       case 'convertDormScore':
@@ -86,6 +86,7 @@ async function adjustDormScore(data, caller) {
     const createRes = await db.collection('dorm_score_accounts').add({
       data: {
         student_id: student_id,
+        class_id: class_id,
         semester_id: targetSemesterId,
         original_score: 100,
         converted_score: 0,

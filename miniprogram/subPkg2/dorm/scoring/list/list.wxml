@@ -1,0 +1,72 @@
+<view class="container">
+  <view class="filter-section">
+    <view class="filter-row">
+      <picker mode="selector" range="{{buildingOptions}}" range-key="building_name" value="{{buildingIndex}}" bindchange="onBuildingChange">
+        <view class="filter-picker">
+          <text>{{buildingOptions[buildingIndex].building_name || '全部楼栋'}}</text>
+          <text class="arrow">▼</text>
+        </view>
+      </picker>
+
+      <picker mode="selector" range="{{roomOptions}}" range-key="room_number" value="{{roomIndex}}" bindchange="onRoomChange">
+        <view class="filter-picker">
+          <text>{{roomOptions[roomIndex].room_number || '全部房间'}}</text>
+          <text class="arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="filter-row">
+      <picker mode="date" value="{{dateRangeStart}}" bindchange="onStartDateChange">
+        <view class="filter-picker">
+          <text>{{dateRangeStart || '起始日期'}}</text>
+        </view>
+      </picker>
+
+      <text class="date-sep">至</text>
+
+      <picker mode="date" value="{{dateRangeEnd}}" bindchange="onEndDateChange">
+        <view class="filter-picker">
+          <text>{{dateRangeEnd || '结束日期'}}</text>
+        </view>
+      </picker>
+    </view>
+  </view>
+
+  <view class="list-section">
+    <view class="list-header">
+      <text class="total-text">共 {{total}} 条记录</text>
+    </view>
+
+    <view class="record-item" wx:for="{{scoreRecords}}" wx:key="_id">
+      <view class="record-main">
+        <view class="record-top">
+          <text class="room-tag">{{item.building_name}} {{item.room_number}}</text>
+          <text class="score-value">{{item.score}}分</text>
+        </view>
+        <view class="record-bottom">
+          <text class="record-date">{{item.score_date}}</text>
+          <text class="recorder">录入: {{item.recorder_name}}</text>
+        </view>
+        <view class="record-remark" wx:if="{{item.remark}}">
+          <text>{{item.remark}}</text>
+        </view>
+      </view>
+      <view class="record-action" wx:if="{{canDelete}}">
+        <button class="delete-btn" size="mini" catchtap="onDeleteScore" data-id="{{item._id}}">删除</button>
+      </view>
+    </view>
+
+    <view class="loading" wx:if="{{loading}}">
+      <text>加载中...</text>
+    </view>
+
+    <view class="empty" wx:if="{{!loading && scoreRecords.length === 0}}">
+      <text>暂无评分记录</text>
+    </view>
+
+    <view class="load-more" wx:if="{{hasMore && !loading && scoreRecords.length > 0}}" bindtap="onLoadMore">
+      <text>加载更多</text>
+    </view>
+  </view>
+</view>

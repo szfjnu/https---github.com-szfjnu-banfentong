@@ -1,6 +1,6 @@
 const app = getApp();
 const db = wx.cloud.database();
-const util = require('../../../../utils/util');
+const util = require('/utils/util.js');
 
 Page({
   data: {

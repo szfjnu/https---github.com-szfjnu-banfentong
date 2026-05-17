@@ -15,7 +15,8 @@ Page({
       description: ''
     },
 
-    canSubmit: false
+    canSubmit: false,
+    currentClassId: ''
   },
 
   onLoad: function (options) {
@@ -25,6 +26,9 @@ Page({
       });
       this.loadBuilding(options.building_id);
     }
+
+    const classId = options.class_id || app.globalData.class_id || app.globalData.classId || '';
+    this.setData({ currentClassId: classId });
 
     if (options.id) {
       this.loadRoom(options.id);
@@ -149,9 +153,15 @@ Page({
         floor: parseInt(formData.floor),
         bed_count: parseInt(formData.bed_count),
         description: formData.description.trim(),
-        class_id: app.globalData.classId || '',
+        class_id: this.data.currentClassId || app.globalData.class_id || app.globalData.classId || '',
         updated_at: new Date().toISOString()
       };
+
+      if (!editingRoom && !roomData.class_id) {
+        wx.hideLoading();
+        wx.showToast({ title: '请先选择班级', icon: 'none' });
+        return;
+      }
 
       if (editingRoom) {
         // 更新房间

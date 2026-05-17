@@ -92,8 +92,8 @@ const studentApi = {
   updateStudent: async (studentId, data) => {
     try {
       const res = await wx.cloud.callFunction({
-        name: 'joinClass',
-        data: { action: 'updateStudent', data: { studentId, ...data } }
+        name: 'manageUserCenter',
+        data: { action: 'updateStudentInfo', data: { studentId, ...data } }
       });
       return res.result;
     } catch (err) {
@@ -382,22 +382,30 @@ const semesterApi = {
     }
   },
 
-  getSemesters: (classId) => {
-    const query = {};
-    if (classId) {
-      const _ = wx.cloud.database().command;
-      query.class_id = _.in([classId, '', null, undefined]);
+  getSemesters: async (classId) => {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'manageSemester',
+        data: { action: 'getSemesters', data: { classId } }
+      });
+      return res.result || { data: [] };
+    } catch (err) {
+      console.error('getSemesters云函数调用失败:', err);
+      return { data: [] };
     }
-    return db.collection('semesters')
-      .where(query)
-      .orderBy('start_date', 'desc')
-      .get();
   },
 
-  getAllSemesters: () => {
-    return db.collection('semesters')
-      .orderBy('start_date', 'desc')
-      .get();
+  getAllSemesters: async () => {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'manageSemester',
+        data: { action: 'getSemesters', data: {} }
+      });
+      return res.result || { data: [] };
+    } catch (err) {
+      console.error('getAllSemesters云函数调用失败:', err);
+      return { data: [] };
+    }
   },
 
   addSemester: async (data) => {
@@ -478,8 +486,17 @@ const semesterApi = {
     }
   },
 
-  getSemesterDetail: (semesterId) => {
-    return db.collection('semesters').doc(semesterId).get();
+  getSemesterDetail: async (semesterId) => {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'manageSemester',
+        data: { action: 'getSemesterDetail', data: { semesterId } }
+      });
+      return res.result || {};
+    } catch (err) {
+      console.error('getSemesterDetail云函数调用失败:', err);
+      return {};
+    }
   }
 };
 

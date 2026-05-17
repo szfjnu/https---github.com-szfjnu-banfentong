@@ -12,10 +12,10 @@ exports.main = async (event, context) => {
     const caller = await getCallerInfo(event, data?.class_id || data?.classId)
 
   switch (action) {
-    case 'create': return await createActivity(event, caller.openid)
+    case 'create': return await createActivity(event, caller)
     case 'list': return await listActivities(event, caller.openid)
     case 'detail': return await getActivity(event)
-    case 'join': return await joinActivity(event, caller.openid)
+    case 'join': return await joinActivity(event, caller)
     case 'leave': return await leaveActivity(event, caller.openid)
     case 'cancel': return await cancelActivity(event, caller.openid)
     case 'auditList': return await getAuditList(event)
@@ -30,11 +30,12 @@ exports.main = async (event, context) => {
 }
 
 // 发布活动
-async function createActivity(event, openid) {
+async function createActivity(event, caller) {
   const {
     title, category, cover_image, start_time, location,
     max_people, organizer_id, organizer_name, class_id, is_class_committee
   } = event
+  const openid = caller.openid
 
   if (!title || !category || !start_time || !location) {
     return { success: false, message: '缺少必填字段' }
@@ -43,6 +44,7 @@ async function createActivity(event, openid) {
   try {
     const now = Date.now()
     let resolvedName = organizer_name || ''
+    let resolvedAvatar = caller.avatarUrl || ''
     if (!resolvedName) {
       const targetOpenid = organizer_id || openid
       let userRes = await db.collection('user_class_relation')
@@ -62,6 +64,7 @@ async function createActivity(event, openid) {
       organizer: {
         id: organizer_id || openid,
         name: resolvedName,
+        avatar: resolvedAvatar,
         class_id: class_id || '',
         is_class_committee: is_class_committee || false
       },
@@ -147,16 +150,15 @@ async function getActivity(event) {
 }
 
 // 报名
-async function joinActivity(event, openid) {
+async function joinActivity(event, caller) {
   const { activityId, user_id, user_name } = event
+  const openid = caller.openid
   if (!activityId) return { success: false, message: '缺少活动ID' }
 
   try {
-    // 先查询活动
     const actRes = await db.collection('campus_activities').doc(activityId).get()
     const activity = actRes.data
 
-    // 检查状态
     if (activity.status !== 0) {
       return { success: false, message: '活动不在招募中' }
     }
@@ -164,20 +166,19 @@ async function joinActivity(event, openid) {
       return { success: false, message: '活动未审核通过' }
     }
 
-    // 检查是否已报名
     const joined = activity.joined_list || []
     const userId = user_id || openid
     if (joined.some(j => j.user_id === userId)) {
       return { success: false, message: '您已报名' }
     }
 
-    // 检查是否满员
     if (activity.max_people > 0 && activity.current_count >= activity.max_people) {
       return { success: false, message: '活动已满员' }
     }
 
     const now = Date.now()
     let resolvedUserName = user_name || ''
+    const resolvedAvatar = caller.avatarUrl || ''
     if (!resolvedUserName) {
       let userRes = await db.collection('user_class_relation')
         .where({ user_openid: userId })
@@ -191,7 +192,7 @@ async function joinActivity(event, openid) {
         resolvedUserName = userRes.data[0].real_name || userRes.data[0].name || ''
       }
     }
-    const newMember = { user_id: userId, name: resolvedUserName, joined_time: now }
+    const newMember = { user_id: userId, name: resolvedUserName, avatar: resolvedAvatar, joined_time: now }
 
     // 构建更新对象
     let updateData = {

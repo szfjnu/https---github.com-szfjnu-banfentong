@@ -1,0 +1,69 @@
+<view class="container">
+  <view class="form-section">
+    <view class="form-title">楼栋/房间选择</view>
+
+    <view class="form-item" wx:if="{{!isDormLeader}}">
+      <text class="label">楼栋</text>
+      <picker mode="selector" range="{{buildingOptions}}" range-key="building_name" value="{{buildingIndex}}" bindchange="onBuildingChange">
+        <view class="picker-value">
+          <text>{{selectedBuildingName || '请选择楼栋'}}</text>
+          <text class="arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item" wx:if="{{isDormLeader}}">
+      <text class="label">楼栋</text>
+      <view class="locked-value">
+        <text>{{selectedBuildingName || '未分配'}}</text>
+        <text class="lock-tag">宿舍长</text>
+      </view>
+    </view>
+
+    <view class="form-item" wx:if="{{!isDormLeader}}">
+      <text class="label">房间</text>
+      <picker mode="selector" range="{{roomOptions}}" range-key="room_number" value="{{roomIndex}}" bindchange="onRoomChange">
+        <view class="picker-value">
+          <text>{{selectedRoomNumber || '请选择房间'}}</text>
+          <text class="arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item" wx:if="{{isDormLeader}}">
+      <text class="label">房间</text>
+      <view class="locked-value">
+        <text>{{selectedRoomNumber || '未分配'}}</text>
+        <text class="lock-tag">宿舍长</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="form-section">
+    <view class="form-title">评分录入</view>
+
+    <view class="form-item">
+      <text class="label">日期</text>
+      <picker mode="date" value="{{scoreDate}}" bindchange="onDateChange">
+        <view class="picker-value">
+          <text>{{scoreDate || '请选择日期'}}</text>
+          <text class="arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="label">评分</text>
+      <input class="score-input" type="digit" placeholder="0-100，最多一位小数" value="{{scoreValue}}" bindinput="onScoreInput" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">备注</text>
+      <textarea class="remark-input" placeholder="选填" value="{{remark}}" bindinput="onRemarkInput" maxlength="200" />
+    </view>
+  </view>
+
+  <button class="submit-btn" bindtap="onSubmit" disabled="{{!canInput || isSubmitting}}" loading="{{isSubmitting}}">
+    提交评分
+  </button>
+</view>

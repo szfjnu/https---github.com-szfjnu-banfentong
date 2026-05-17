@@ -1,6 +1,7 @@
 // pages/attendance/leave/leave.js
 const app = getApp();
 const util = require('../../../utils/util.js');
+const batchQuery = require('../../../utils/batchQuery.js');
 
 Page({
   data: {
@@ -37,6 +38,9 @@ Page({
     
     // 学生列表
     students: [],
+    studentSearchKeyword: '',
+    filteredStudents: [],
+    showStudentCandidates: false,
     
     // 请假类型
     leaveTypes: ['病假', '事假', '其他'],
@@ -89,15 +93,12 @@ Page({
     try {
       const db = wx.cloud.database();
       const _ = db.command;
-      const res = await db.collection('students')
-        .where({
-          class_id: this.data.classId,
-          status: _.neq('graduated')
-        })
-        .orderBy('student_id', 'asc')
-        .get();
-      
-      this.setData({ students: res.data || [] });
+      const students = await batchQuery.getAllRecords('students', {
+        class_id: this.data.classId,
+        status: _.neq('graduated')
+      });
+      const sorted = (students || []).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      this.setData({ students: sorted, filteredStudents: sorted });
     } catch (err) {
       console.error('加载学生失败:', err);
     }
@@ -222,14 +223,47 @@ Page({
     this.setData({ showAddModal: false });
   },
 
-  // 选择学生
-  onSelectStudent: function (e) {
-    const index = e.detail.value;
-    const student = this.data.students[index];
+  onStudentSearchInput: function (e) {
+    const keyword = e.detail.value.trim().substring(0, 50);
+    this.setData({ studentSearchKeyword: keyword, showStudentCandidates: true });
+    if (!keyword) {
+      this.setData({ filteredStudents: this.data.students });
+      return;
+    }
+    const lower = keyword.toLowerCase();
+    const filtered = this.data.students.filter(s =>
+      (s.name && s.name.toLowerCase().includes(lower)) ||
+      (s.student_id && String(s.student_id).toLowerCase().includes(lower))
+    );
+    this.setData({ filteredStudents: filtered });
+  },
+
+  onSelectStudentFromSearch: function (e) {
+    const studentId = e.currentTarget.dataset.studentId;
+    const studentName = e.currentTarget.dataset.studentName;
     this.setData({
-      'leaveForm.student_id': student.student_id,
-      'leaveForm.student_name': student.name
+      'leaveForm.student_id': studentId,
+      'leaveForm.student_name': studentName,
+      studentSearchKeyword: studentName,
+      showStudentCandidates: false
     });
+  },
+
+  onClearStudentSearch: function () {
+    this.setData({
+      'leaveForm.student_id': '',
+      'leaveForm.student_name': '',
+      studentSearchKeyword: '',
+      showStudentCandidates: false,
+      filteredStudents: this.data.students
+    });
+  },
+
+  onStudentSearchFocus: function () {
+    this.setData({ showStudentCandidates: true });
+    if (!this.data.studentSearchKeyword) {
+      this.setData({ filteredStudents: this.data.students });
+    }
   },
 
   // 选择请假类型

@@ -157,6 +157,7 @@ Page({
       // 处理学生数据
       students = students.map(student => ({
         ...student,
+        current_score: util.formatScore(student.current_score),
         scoreLevel: util.getScoreLevel(student.current_score || 100),
         scoreColor: util.getScoreColor(student.current_score || 100)
       }));
@@ -186,6 +187,7 @@ Page({
       let students = (res.data || []).map(student => ({
         ...student,
         name: student.name || student.student_name || '',
+        current_score: util.formatScore(student.current_score),
         scoreLevel: util.getScoreLevel(student.current_score || 100),
         scoreColor: util.getScoreColor(student.current_score || 100)
       }));

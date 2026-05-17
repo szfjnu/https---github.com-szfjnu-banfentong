@@ -15,7 +15,7 @@ function validateParams(data, requiredFields) {
 }
 
 async function getDormCandidates(data) {
-  const { level, building_id, room_id } = data;
+  const { level, building_id, room_id, class_id } = data;
   const validation = validateParams(data, ['level']);
   if (!validation.valid) {
     return { success: false, message: `缺少参数: ${validation.missing}` };
@@ -23,7 +23,10 @@ async function getDormCandidates(data) {
 
   try {
     if (level === 'buildings') {
+      let query = {}
+      if (class_id) query.class_id = class_id
       const res = await db.collection('dorm_buildings')
+        .where(query)
         .orderBy('building_code', 'asc')
         .limit(100)
         .get();
@@ -39,8 +42,10 @@ async function getDormCandidates(data) {
       const v = validateParams(data, ['building_id']);
       if (!v.valid) return { success: false, message: `缺少参数: ${v.missing}` };
 
+      let query = { building_id }
+      if (class_id) query.class_id = class_id
       const res = await db.collection('dorm_rooms')
-        .where({ building_id })
+        .where(query)
         .orderBy('room_number', 'asc')
         .limit(100)
         .get();
@@ -304,6 +309,7 @@ async function releaseBed(data, openid) {
 }
 
 async function addBuilding(data, caller) {
+  if (!data.class_id) return { success: false, message: '缺少必要参数: class_id' }
   try {
     const now = db.serverDate()
     const res = await db.collection('dorm_buildings').add({
@@ -349,6 +355,7 @@ async function deleteBuilding(data, caller) {
 }
 
 async function addRoomWithBeds(data, caller) {
+  if (!data.class_id) return { success: false, message: '缺少必要参数: class_id' }
   const roomData = data.room_data || data || {}
   const { building_id, room_number, floor, bed_count, ...rest } = roomData
   if (!building_id || !room_number || !bed_count) {
@@ -373,6 +380,7 @@ async function addRoomWithBeds(data, caller) {
         data: {
           room_id: roomId,
           building_id,
+          class_id: data.class_id,
           bed_number: `${room_number}-${i}`,
           bed_index: i,
           occupied: false,
@@ -409,6 +417,13 @@ async function deleteRoom(data, caller) {
   const { _id } = data || {}
   if (!_id) return { success: false, message: '缺少必要参数: _id' }
   try {
+    const occupiedBedsRes = await db.collection('dorm_beds')
+      .where({ room_id: _id, occupied: true })
+      .limit(1)
+      .get()
+    if (occupiedBedsRes.data && occupiedBedsRes.data.length > 0) {
+      return { success: false, message: '该房间还有学生居住，无法删除', code: 'ROOM_OCCUPIED' }
+    }
     await db.collection('dorm_beds').where({ room_id: _id }).remove()
     await db.collection('dorm_rooms').doc(_id).remove()
     return { success: true }

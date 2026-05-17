@@ -65,7 +65,7 @@ exports.main = async (event, context) => {
 
 async function publishItem(event, caller) {
   const { classId, title, description, category, price, originalPrice, condition, images, sellerContact, tags } = event
-  const { openid, realName } = caller
+  const { openid, realName, avatarUrl } = caller
 
   if (!title || !description || !category || price === undefined || !condition) {
     return { code: 400, msg: '缺少必填字段' }
@@ -86,6 +86,7 @@ async function publishItem(event, caller) {
     images: images || [],
     seller_id: openid,
     seller_name: sellerName,
+    seller_avatar: avatarUrl || '',
     seller_contact: sellerContact || '',
     class_id: classId,
     status: 'on_sale',

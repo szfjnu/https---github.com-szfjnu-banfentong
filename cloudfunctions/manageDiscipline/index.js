@@ -375,6 +375,33 @@ async function addDisciplineRecord(data, caller) {
         }
       } catch (err) {
         console.error('积分扣减失败（恢复记录）:', err);
+        try {
+          const fallbackRecordId = generateId('sr');
+          await db.collection('score_records').add({
+            data: {
+              record_id: fallbackRecordId,
+              student_id,
+              class_id,
+              item_id: 'discipline_deduction',
+              item_name: `处分扣分：${level_name}`,
+              score_change: -convertedDeduction,
+              source_type: '处分扣分',
+              source_record_id: existingDoc.record_id || existingDoc._id,
+              reason_detail: `处分扣分：${level_name} - ${reason}${ratioLabel}`,
+              recorder_openid: caller.openid,
+              recorder_name: issuer || '系统',
+              date: issueDate,
+              is_enabled: true,
+              created_at: now,
+              updated_at: now
+            }
+          });
+          await db.collection('students')
+            .where({ student_id })
+            .update({ data: { current_score: _.inc(-convertedDeduction), updated_at: now } });
+        } catch (fallbackErr) {
+          console.error('回退写入积分记录失败（恢复记录）:', fallbackErr);
+        }
       }
     }
 
@@ -450,6 +477,35 @@ async function addDisciplineRecord(data, caller) {
       }
     } catch (err) {
       console.error('积分扣减失败:', err);
+      try {
+        const fallbackRecordId = generateId('sr');
+        const convertedDeduction = Math.round(effectiveScoreDeduction * disciplineConversionRatio * 100) / 100;
+        const ratioLabel = disciplineConversionRatio !== 1.0 ? ` (折算比例${disciplineConversionRatio})` : '';
+        await db.collection('score_records').add({
+          data: {
+            record_id: fallbackRecordId,
+            student_id,
+            class_id,
+            item_id: 'discipline_deduction',
+            item_name: `处分扣分：${level_name}`,
+            score_change: -convertedDeduction,
+            source_type: '处分扣分',
+            source_record_id: record_id,
+            reason_detail: `处分扣分：${level_name} - ${reason}${ratioLabel}`,
+            recorder_openid: caller.openid,
+            recorder_name: issuer || '系统',
+            date: issueDate,
+            is_enabled: true,
+            created_at: now,
+            updated_at: now
+          }
+        });
+        await db.collection('students')
+          .where({ student_id })
+          .update({ data: { current_score: _.inc(-convertedDeduction), updated_at: now } });
+      } catch (fallbackErr) {
+        console.error('回退写入积分记录失败:', fallbackErr);
+      }
     }
   }
 
@@ -746,7 +802,7 @@ async function reviewRevocationApplication(data, caller) {
         if (discRes.data.length > 0) {
           const disc = discRes.data[0];
           const scoreDeduction = disc.score_deduction || disc.score_change || 0;
-          if (scoreDeduction < 0 && disc.student_id) {
+          if (scoreDeduction > 0 && disc.student_id) {
             let classId = disc.class_id || '';
             if (!classId) {
               const studentRes = await db.collection('students')
@@ -770,7 +826,7 @@ async function reviewRevocationApplication(data, caller) {
               } catch (e) { console.error('读取class_settings失败:', e); }
             }
             if (syncEnabled) {
-              const restoredScore = Math.abs(scoreDeduction) * conversionRatio;
+              const restoredScore = Math.round(scoreDeduction * conversionRatio * 100) / 100;
               await db.collection('students')
                 .where({ student_id: disc.student_id })
                 .update({ data: { current_score: _.inc(restoredScore), updated_at: now } });

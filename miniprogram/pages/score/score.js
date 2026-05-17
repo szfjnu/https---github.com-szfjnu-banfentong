@@ -141,6 +141,7 @@ Page({
 
       const allStudents = (allStudentsRes || []).map(s => ({
         ...s,
+        current_score: util.formatScore(s.current_score),
         bonusScore: s.bonus_score || 0,
         scoreLevel: util.getScoreLevel(s.current_score || 100),
         scoreColor: util.getScoreColor(s.current_score || 100),
@@ -207,6 +208,7 @@ Page({
         }
         return {
           ...student,
+          current_score: util.formatScore(student.current_score),
           bonusScore,
           scoreLevel: util.getScoreLevel(student.current_score || 100),
           scoreColor: util.getScoreColor(student.current_score || 100),

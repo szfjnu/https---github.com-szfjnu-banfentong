@@ -7,7 +7,7 @@ const db = cloud.database();
 const _ = db.command;
 const batchQuery = require('./utils/batchQuery');
 
-const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('./utils/auth');
+const { getCallerInfo, requireTeacher, requireTeacherOrDelegated, AUTH_ERRORS } = require('./utils/auth');
 
 // 生成唯一ID
 function generateId(prefix) {
@@ -43,12 +43,16 @@ exports.main = async (event, context) => {
     const classId = data && data.class_id
     const caller = await getCallerInfo(event, classId)
 
-    const WRITE_ACTIONS = ['addTemplate', 'updateTemplate', 'deleteTemplate',
+    const TEACHER_ONLY_ACTIONS = ['addTemplate', 'updateTemplate', 'deleteTemplate',
       'saveRotation', 'advanceRotation', 'arrangeDuty',
-      'inspectTask', 'batchInspect', 'updateDutyTask', 'deleteDutyTask']
+      'updateDutyTask', 'deleteDutyTask']
 
-    if (WRITE_ACTIONS.includes(action)) {
+    const DELEGATED_ACTIONS = ['inspectTask', 'batchInspect']
+
+    if (TEACHER_ONLY_ACTIONS.includes(action)) {
       requireTeacher(caller)
+    } else if (DELEGATED_ACTIONS.includes(action)) {
+      await requireTeacherOrDelegated(caller, 'duty', 'check')
     }
 
     switch (action) {
@@ -641,13 +645,14 @@ async function syncScoreToStudent(task, scoreChange, inspection, openid) {
 
   // 获取积分项目
   const scoreItemRes = await db.collection('score_items')
-    .where({
-      $or: [
+    .where(
+      _.or(
         { name: db.RegExp({ regexp: '卫生', options: 'i' }) },
         { category: '卫生' }
-      ],
-      is_active: _.neq(false)
-    })
+      ).and({
+        is_active: _.neq(false)
+      })
+    )
     .limit(1)
     .get();
 
@@ -686,6 +691,7 @@ async function syncScoreToStudent(task, scoreChange, inspection, openid) {
       data: {
         record_id,
         student_id: task.student_id,
+        class_id: task.class_id || '',
         item_id,
         score_change: convertedScoreChange,
         reason_detail: `${task.duty_date}值日任务【${task.task_name}】${scoreChange > 0 ? '合格加分' : '不合格扣分'}${ratioLabel}${inspection.comment ? '：' + inspection.comment : ''}`,
@@ -699,16 +705,11 @@ async function syncScoreToStudent(task, scoreChange, inspection, openid) {
         created_at: now
       }
     });
-    const studentRes = await db.collection('students')
+    await db.collection('students')
       .where({ student_id: task.student_id })
-      .limit(1).get();
-    if (studentRes.data && studentRes.data.length > 0) {
-      const student = studentRes.data[0];
-      const currentScore = student.current_score || 100;
-      await db.collection('students').doc(student._id).update({
-        data: { current_score: currentScore + convertedScoreChange, updated_at: now }
+      .update({
+        data: { current_score: _.inc(convertedScoreChange), updated_at: now }
       });
-    }
   }
 
   return record_id;

@@ -22,16 +22,27 @@ Page({
     loading: false,
 
     // 权限
-    isAdmin: false
+    isAdmin: false,
+    canManage: false
   },
 
   onLoad: function (options) {
     if (options.building_id) {
+      const role = app.globalData.role || ''
+      const isAdmin = app.globalData.isAdmin || role === 'admin'
+      const canManage = isAdmin || role === 'head_teacher'
       this.setData({
         buildingId: options.building_id,
-        isAdmin: app.globalData.isAdmin || false
+        isAdmin,
+        canManage
       });
       this.loadBuilding();
+      this.loadRooms();
+    }
+  },
+
+  onShow: function () {
+    if (this.data.buildingId) {
       this.loadRooms();
     }
   },

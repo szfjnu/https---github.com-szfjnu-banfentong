@@ -373,12 +373,21 @@ Page({
       });
       stats.total_leave = stats.sick_leave + stats.personal_leave;
 
-      const formattedRecords = records.slice(0, 30).map(r => ({
-        ...r,
-        dateText: r.date || '',
-        categoryText: r.category_name || r.category_code || '',
-        categoryColor: this.getAttendanceCategoryColor(r.category_code)
-      }));
+      const formattedRecords = records.slice(0, 30).map(r => {
+        const code = r.category_code || r.category_id || '';
+        const statusMap = {
+          'sick_leave': '病假', 'personal_leave': '事假',
+          'late': '迟到', 'early_leave': '早退', 'absent': '旷课', 'normal': '正常'
+        };
+        return {
+          ...r,
+          dateText: r.date || '',
+          categoryText: r.category_name || statusMap[code] || r.status || '未知',
+          categoryColor: this.getAttendanceCategoryColor(code),
+          periodText: r.period ? '第' + r.period + '节' : '',
+          statusText: statusMap[code] || r.status || '未知'
+        };
+      });
 
       this.setData({
         attendanceStats: stats,

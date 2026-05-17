@@ -116,14 +116,25 @@
       <!-- 选择学生 -->
       <view class="form-item">
         <text class="form-label">选择学生</text>
-        <picker mode="selector" range="{{students}}" range-key="name" bindchange="onSelectStudent">
-          <view class="form-picker">
-            <text class="{{leaveForm.student_name ? '' : 'placeholder'}}">
-              {{leaveForm.student_name || '请选择学生'}}
-            </text>
-            <text class="picker-icon">▼</text>
+        <view class="student-search-wrap">
+          <input class="student-search-input"
+                 placeholder="请输入学生姓名"
+                 value="{{studentSearchKeyword}}"
+                 bindinput="onStudentSearchInput"
+                 bindfocus="onStudentSearchFocus"/>
+          <view class="student-search-clear" wx:if="{{studentSearchKeyword}}" bindtap="onClearStudentSearch">✕</view>
+        </view>
+        <view class="student-candidate-list" wx:if="{{showStudentCandidates}}">
+          <view class="student-candidate-item" wx:for="{{filteredStudents}}" wx:key="student_id"
+                bindtap="onSelectStudentFromSearch"
+                data-student-id="{{item.student_id}}"
+                data-student-name="{{item.name}}">
+            <text>{{item.name}}</text>
           </view>
-        </picker>
+          <view class="student-candidate-empty" wx:if="{{filteredStudents.length === 0}}">
+            <text>未找到匹配学生</text>
+          </view>
+        </view>
       </view>
 
       <!-- 请假类型 -->

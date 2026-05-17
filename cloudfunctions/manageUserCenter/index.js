@@ -1037,7 +1037,8 @@ async function updateStudentInfo(data, openid) {
     allowedFields = [
       'name', 'gender', 'date_of_birth', 'ethnicity', 'political_status',
       'enrollment_date', 'phone_number', 'parent_phone_number', 'home_address',
-      'is_boarding', 'position', 'class_name', 'class_id'
+      'is_boarding', 'position', 'class_name', 'class_id',
+      'initial_score', 'current_score', 'dorm_score'
     ];
   } else {
     allowedFields = [

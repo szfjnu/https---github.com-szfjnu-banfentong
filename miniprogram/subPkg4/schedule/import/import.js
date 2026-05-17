@@ -7,6 +7,7 @@ Page({
   data: {
     classId: '',
     className: '',
+    semesterId: '',
     semesterName: '',
     jsonText: '',
     validated: false,
@@ -26,13 +27,18 @@ Page({
 
   onLoad: function (options) {
     const classId = options.class_id || app.globalData.class_id || ''
-    const className = options.class_name ? decodeURIComponent(options.class_name) : (app.globalData.className || app.globalData.class_name || '')
+    const className = options.class_name ? decodeURIComponent(options.class_name) : (app.globalData.currentClassName || app.globalData.className || '')
+    const semesterId = options.semester_id || app.globalData.currentSemesterId || ''
     const semesterName = options.semester_name ? decodeURIComponent(options.semester_name) : (app.globalData.currentSemesterName || '')
 
-    this.setData({ classId, className, semesterName })
+    this.setData({ classId, className, semesterId, semesterName })
 
     if (!className || !semesterName) {
       this.loadClassInfo(classId)
+    }
+
+    if (!classId) {
+      wx.showToast({ title: '请先选择班级和学期', icon: 'none', duration: 3000 })
     }
 
     this.checkExcelPermission()
@@ -51,6 +57,17 @@ Page({
           className: this.data.className || info.class_name || '',
           semesterName: this.data.semesterName || info.current_semester_name || ''
         })
+      }
+      if (!this.data.semesterName && this.data.semesterId) {
+        try {
+          const db = wx.cloud.database()
+          const semRes = await db.collection('semesters').doc(this.data.semesterId).get()
+          if (semRes.data) {
+            this.setData({ semesterName: semRes.data.semester_name || semRes.data.name || '' })
+          }
+        } catch (se) {
+          console.error('查询学期信息失败:', se)
+        }
       }
     } catch (e) {
       console.error('获取班级信息失败:', e)

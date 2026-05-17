@@ -278,7 +278,10 @@ async function aggregateStudentData(classId, studentId) {
     },
     attendance_summary: {
       total: attendance.length,
-      absent: attendance.filter(a => a.status === 'absent' || a.status === '缺勤').length,
+      absent: attendance.filter(a => {
+        const code = a.category_code || a.category_id || ''
+        return a.status === 'absent' || a.status === '缺勤' || ['absent', 'sick_leave', 'personal_leave'].includes(code)
+      }).length,
       late: attendance.filter(a => a.status === 'late' || a.status === '迟到').length,
       leave: attendance.filter(a => a.status === 'leave' || a.status === '请假').length
     },
@@ -1176,8 +1179,12 @@ async function getIndicatorValue(classId, studentId, indicator) {
     case 'attendance_rate': {
       const attendance = await getAllRecords('attendance_records', { class_id: classId, student_id: studentId })
       if (attendance.length === 0) return null
-      const absent = attendance.filter(a => a.status === 'absent' || a.status === '缺勤').length
-      return ((attendance.length - absent) / attendance.length) * 100
+      const nonPresent = attendance.filter(a => {
+        const code = a.category_code || a.category_id || ''
+        return ['absent', 'sick_leave', 'personal_leave'].includes(code)
+          || a.status === 'absent' || a.status === '缺勤' || a.status === '请假'
+      }).length
+      return ((attendance.length - nonPresent) / attendance.length) * 100
     }
     case 'moral_score': {
       const scores = await getAllRecords('score_records', { class_id: classId, student_id: studentId })

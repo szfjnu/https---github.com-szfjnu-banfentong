@@ -41,9 +41,15 @@ Page({
     }
   },
 
-  onLoad: function () {
-    this.setData({ classId: app.globalData.class_id || '' });
+  onLoad: function (options) {
+    const classId = (options && options.class_id) || app.globalData.class_id || '';
+    this.setData({ classId });
     this.loadData();
+    if (options && options.autoInit === 'true') {
+      setTimeout(() => {
+        this.onInitClassSemester && this.onInitClassSemester();
+      }, 800);
+    }
   },
 
   onShow: function () {

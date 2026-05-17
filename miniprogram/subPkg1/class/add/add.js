@@ -470,5 +470,19 @@ Page({
     wx.switchTab({
       url: '/pages/index/index'
     });
+  },
+
+  onInitSemester: function () {
+    const classId = this.data.createdClass && this.data.createdClass._id;
+    this.setData({ showSuccessModal: false });
+    if (classId) {
+      wx.navigateTo({
+        url: `/subPkg1/semester/semester?class_id=${classId}&autoInit=true`
+      });
+    } else {
+      wx.navigateTo({
+        url: '/subPkg1/semester/semester'
+      });
+    }
   }
 });

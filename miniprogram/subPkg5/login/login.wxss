@@ -127,6 +127,9 @@
   border: 2rpx solid #667eea;
   background: transparent;
   color: #667eea;
+  font-size: 28rpx;
+  padding: 16rpx 0;
+  opacity: 0.85;
 }
 
 .btn-outline {

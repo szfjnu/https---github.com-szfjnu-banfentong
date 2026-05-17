@@ -81,6 +81,14 @@
   border-radius: 2rpx;
 }
 
+.tabs-right {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
 .init-rules-btn {
   display: flex;
   align-items: center;
@@ -90,6 +98,8 @@
   border-radius: 8rpx;
   font-size: 26rpx;
   color: #52c41a;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .init-rules-btn .icon {
@@ -105,11 +115,12 @@
   font-size: 26rpx;
   line-height: 1;
   box-shadow: 0 4rpx 12rpx rgba(24, 144, 255, 0.3);
-  margin-left: 20rpx;
   min-width: 120rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .add-btn::after {

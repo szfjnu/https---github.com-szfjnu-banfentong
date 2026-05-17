@@ -1,0 +1,13 @@
+{
+  "name": "dormScoringManager",
+  "version": "1.0.0",
+  "description": "宿舍每日评分录入与趋势分析云函数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  },
+  "cloudfunction-config": {
+    "memorySize": 256,
+    "timeout": 20
+  }
+}

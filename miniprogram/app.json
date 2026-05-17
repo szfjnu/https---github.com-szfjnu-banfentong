@@ -85,7 +85,10 @@
         "dorm/mydorm/mydorm",
         "dorm/inspection/inspection",
         "dorm/inspection/add/add",
-        "dorm/record/add/add"
+        "dorm/record/add/add",
+        "dorm/scoring/add/add",
+        "dorm/scoring/list/list",
+        "dorm/scoring/chart/chart"
       ]
     },
     {
@@ -200,5 +203,8 @@
   "requiredPrivateInfos": [
     "getLocation"
   ],
-  "cloud": true
+  "cloud": true,
+  "componentPlaceholder": {
+    "ec-canvas": "view"
+  }
 }

@@ -2,7 +2,7 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
-const { getCallerInfo, requireClassAccess, requireTeacher } = require('./utils/auth')
+const { getCallerInfo, requireClassAccess, requireTeacher, requireTeacherOrDelegated } = require('./utils/auth')
 const { withTransaction } = require('./utils/transaction')
 const { validateInput, SCHEMAS } = require('./utils/validator')
 
@@ -22,7 +22,7 @@ exports.main = async (event, context) => {
       case 'getScoreRecords':
         return await getScoreRecords(data, caller)
       case 'applyScoreChange':
-        requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin'])
+        await requireTeacherOrDelegated(caller, 'score', 'register')
         return await applyScoreChange(data, caller)
       case 'addLeaveRecord':
         requireTeacher(caller)
@@ -57,10 +57,10 @@ exports.main = async (event, context) => {
         requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin'])
         return await updateAttendanceRecord(data, caller)
       case 'addAttendanceRecord':
-        requireTeacher(caller)
-        requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin'])
+        await requireTeacherOrDelegated(caller, 'attendance', 'register')
         return await addAttendanceRecord(data, caller)
       case 'addVolunteerRecord':
+        await requireTeacherOrDelegated(caller, 'volunteer', 'submit')
         return await addVolunteerRecord(data, caller)
       case 'addScoreItem':
         requireTeacher(caller)
@@ -257,6 +257,8 @@ async function applyScoreChange(data, caller) {
     return { success: false, message: '缺少必要参数: student_id, score_change' }
   }
 
+  if (!semester_id) return { success: false, message: '缺少必要参数: semester_id' }
+
   const validation = validateInput(
     { class_id, student_id, score_change },
     SCHEMAS.scoreChange
@@ -374,6 +376,7 @@ async function generateLeaveAttendanceRecords(data, caller) {
           student_id,
           class_id,
           ...record,
+          category_code: record.category_code || record.category_id || '',
           source_type: 'leave',
           created_at: now
         }
@@ -478,6 +481,7 @@ async function updateAttendanceRecord(data, caller) {
 }
 
 async function addAttendanceRecord(data, caller) {
+  if (!data.class_id) return { success: false, message: '缺少必要参数: class_id' }
   try {
     const now = db.serverDate()
     const recordData = { ...data, created_at: now, updated_at: now }
@@ -491,6 +495,8 @@ async function addAttendanceRecord(data, caller) {
 }
 
 async function addVolunteerRecord(data, caller) {
+  if (!data.class_id) return { success: false, message: '缺少必要参数: class_id' }
+  if (!data.student_id) return { success: false, message: '缺少必要参数: student_id' }
   try {
     const now = db.serverDate()
     const recordData = { ...data, created_at: now, updated_at: now }

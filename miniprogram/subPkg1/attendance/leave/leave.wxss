@@ -468,3 +468,63 @@
   font-size: 30rpx;
   color: var(--white);
 }
+
+/* 学生搜索 */
+.student-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.student-search-input {
+  flex: 1;
+  height: 80rpx;
+  padding: 0 20rpx;
+  background: var(--background-color);
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.student-search-clear {
+  position: absolute;
+  right: 20rpx;
+  width: 36rpx;
+  height: 36rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  color: var(--text-color-light);
+}
+
+.student-candidate-list {
+  max-height: 300rpx;
+  overflow-y: scroll;
+  background: var(--white);
+  border: 2rpx solid var(--border-color);
+  border-radius: 16rpx;
+  margin-top: 10rpx;
+}
+
+.student-candidate-item {
+  padding: 20rpx 24rpx;
+  font-size: 28rpx;
+  color: var(--text-color);
+  border-bottom: 1rpx solid var(--border-color);
+}
+
+.student-candidate-item:active {
+  background: var(--background-color);
+}
+
+.student-candidate-item:last-child {
+  border-bottom: none;
+}
+
+.student-candidate-empty {
+  padding: 20rpx 24rpx;
+  font-size: 26rpx;
+  color: var(--text-color-light);
+  text-align: center;
+}

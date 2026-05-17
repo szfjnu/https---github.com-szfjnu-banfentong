@@ -2,6 +2,7 @@
 const app = getApp();
 const api = require('../../utils/api.js');
 const util = require('../../utils/util.js');
+const batchQuery = require('../../utils/batchQuery.js');
 
 Page({
   data: {
@@ -197,14 +198,10 @@ Page({
       }
       
       // 获取当日考勤记录 - 兼容不同class_id格式
-      const recordsRes = await db.collection('attendance_records')
-        .where({
-          class_id: this.data.classId,
-          date: date
-        })
-        .get();
-      
-      const records = recordsRes.data || [];
+      const records = await batchQuery.getAllRecords('attendance_records', {
+        class_id: this.data.classId,
+        date: date
+      });
       console.log('考勤记录查询结果:', records.length, '条, 日期:', date, '班级ID:', this.data.classId);
       
       // 3. 建立 ID 到 Code 的映射 (关键修复)
@@ -229,7 +226,7 @@ Page({
       
       records.forEach(record => {
         // 优先使用记录中的 category_code，如果没有则通过映射从 category_id 获取
-        const code = record.category_code || catMap[record.category_id] || '';
+        const code = record.category_code || catMap[record.category_id] || record.category_id || '';
         const studentId = record.student_id;
         
         console.log('处理记录:', record.student_name, 'code:', code);

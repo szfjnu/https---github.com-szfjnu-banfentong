@@ -44,7 +44,7 @@
           <view class="action-btn" catchtap="onEdit" data-id="{{item._id}}">
             <text>编辑</text>
           </view>
-          <view class="action-btn delete" catchtap="onDelete" data-id="{{item._id}}" wx:if="{{isAdmin}}">
+          <view class="action-btn delete" catchtap="onDelete" data-id="{{item._id}}" wx:if="{{canManage}}">
             <text>删除</text>
           </view>
         </view>
