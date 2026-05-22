@@ -34,7 +34,7 @@ Page({
     const classId = options.class_id || app.globalData.class_id;
     const semesterId = app.globalData.currentSemesterId || '';
     const role = app.globalData.role;
-    const isAdmin = ['admin', 'head_teacher'].includes(role);
+    const isAdmin = app.hasPermission('attendance', 'write');
     const mode = options.mode || 'view';
     const date = options.date || dataFormatter.formatDate(new Date());
 

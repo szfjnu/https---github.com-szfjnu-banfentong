@@ -7,7 +7,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 const batchQuery = require('./utils/batchQuery');
-const { getCallerInfo, requireClassAccess, requireTeacher } = require('./utils/auth');
+const { getCallerInfo, requireClassAccess } = require('./utils/auth');
 const { batchWithIndependentTransaction } = require('./utils/transaction');
 
 const ALLOWED_MODULES = {

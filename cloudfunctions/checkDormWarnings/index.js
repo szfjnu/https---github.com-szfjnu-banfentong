@@ -7,14 +7,14 @@ cloud.init({
 
 const db = cloud.database()
 const _ = db.command
-const { getCallerInfo, requireTeacher } = require('./utils/auth')
+const { getCallerInfo, requireTeacherOrModule } = require('./utils/auth')
 
 exports.main = async (event, context) => {
   const { class_id, check_type = 'all', student_id } = event
 
   try {
     const caller = await getCallerInfo(event, class_id)
-    requireTeacher(caller)
+    await requireTeacherOrModule(caller, 'dorm')
     console.log('=== 开始检查宿舍积分预警 ===')
     console.log('参数:', { class_id, check_type, student_id })
 

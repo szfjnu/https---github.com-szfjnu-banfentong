@@ -129,18 +129,18 @@
         <view class="action-icon leave">📄</view>
         <text class="action-text">请假审批</text>
       </view>
-      <view class="action-item primary" bindtap="onNavToWarning">
+      <view class="action-item primary" bindtap="onNavToWarning" wx:if="{{isSystemAdmin}}">
         <view class="action-icon warning">⚠️</view>
         <text class="action-text">预警管理</text>
       </view>
-      <view class="action-item more-trigger" bindtap="onToggleMoreActions">
+      <view class="action-item more-trigger" bindtap="onToggleMoreActions" wx:if="{{isSystemAdmin}}">
         <view class="action-icon more">···</view>
         <text class="action-text">更多</text>
       </view>
     </view>
 
     <!-- 更多功能弹出面板 -->
-    <view class="more-panel" wx:if="{{showMoreActions}}">
+    <view class="more-panel" wx:if="{{showMoreActions && isSystemAdmin}}">
       <view class="more-mask" bindtap="onToggleMoreActions"></view>
       <view class="more-content">
         <view class="more-grid">

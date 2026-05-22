@@ -2,7 +2,7 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
-const { getCallerInfo, requireClassAccess, requireTeacher, requireTeacherOrDelegated } = require('./utils/auth')
+const { getCallerInfo, requireClassAccess, requireTeacherOrModule, requireTeacherOrDelegated } = require('./utils/auth')
 const { withTransaction } = require('./utils/transaction')
 const { validateInput, SCHEMAS } = require('./utils/validator')
 
@@ -14,98 +14,90 @@ exports.main = async (event, context) => {
 
     switch (action) {
       case 'getScoreItems':
-        requireTeacher(caller)
+        await requireTeacherOrModule(caller, 'score', 'read')
         return await getScoreItems(data, caller)
       case 'getScoreCategories':
-        requireTeacher(caller)
+        await requireTeacherOrModule(caller, 'score', 'read')
         return await getScoreCategories(data, caller)
       case 'getScoreRecords':
         return await getScoreRecords(data, caller)
       case 'applyScoreChange':
-        await requireTeacherOrDelegated(caller, 'score', 'register')
+        await requireTeacherOrModule(caller, 'score', 'register')
         return await applyScoreChange(data, caller)
       case 'addLeaveRecord':
-        requireTeacher(caller)
-        requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin'])
+        await requireTeacherOrModule(caller, 'attendance')
         return await addLeaveRecord(data, caller)
       case 'generateLeaveAttendanceRecords':
-        requireTeacher(caller)
-        requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin'])
+        await requireTeacherOrModule(caller, 'attendance')
         return await generateLeaveAttendanceRecords(data, caller)
       case 'deleteLeaveRecord':
-        requireTeacher(caller)
-        requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin'])
+        await requireTeacherOrModule(caller, 'attendance')
         return await deleteLeaveRecord(data, caller)
       case 'addStudentGroup':
-        requireTeacher(caller)
-        requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin'])
+        await requireTeacherOrModule(caller, 'score')
         return await addStudentGroup(data, caller)
       case 'updateStudentGroup':
-        requireTeacher(caller)
-        requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin'])
+        await requireTeacherOrModule(caller, 'score')
         return await updateStudentGroup(data, caller)
       case 'deleteStudentGroup':
-        requireTeacher(caller)
-        requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin'])
+        await requireTeacherOrModule(caller, 'score')
         return await deleteStudentGroup(data, caller)
       case 'batchAddStudentGroups':
-        requireTeacher(caller)
-        requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin'])
+        await requireTeacherOrModule(caller, 'score')
         return await batchAddStudentGroups(data, caller)
       case 'updateAttendanceRecord':
-        requireTeacher(caller)
-        requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin'])
+        await requireTeacherOrModule(caller, 'attendance')
         return await updateAttendanceRecord(data, caller)
       case 'addAttendanceRecord':
-        await requireTeacherOrDelegated(caller, 'attendance', 'register')
+        await requireTeacherOrModule(caller, 'attendance', 'register')
         return await addAttendanceRecord(data, caller)
       case 'addVolunteerRecord':
-        await requireTeacherOrDelegated(caller, 'volunteer', 'submit')
+        await requireTeacherOrModule(caller, 'volunteer', 'submit')
         return await addVolunteerRecord(data, caller)
       case 'addScoreItem':
-        requireTeacher(caller)
+        await requireTeacherOrModule(caller, 'score')
         return await addScoreItem(data, caller)
       case 'updateScoreItem':
-        requireTeacher(caller)
+        await requireTeacherOrModule(caller, 'score')
         return await updateScoreItem(data, caller)
       case 'addScoreRecord':
-        requireTeacher(caller)
+        await requireTeacherOrModule(caller, 'score')
         return await addScoreRecord(data, caller)
       case 'deleteScoreItem':
-        requireTeacher(caller)
+        await requireTeacherOrModule(caller, 'score')
         return await deleteScoreItem(data, caller)
       case 'addScoreCategory':
-        requireTeacher(caller)
+        await requireTeacherOrModule(caller, 'score')
         return await addScoreCategory(data, caller)
       case 'updateScoreCategory':
-        requireTeacher(caller)
+        await requireTeacherOrModule(caller, 'score')
         return await updateScoreCategory(data, caller)
       case 'addGroup':
-        requireTeacher(caller)
+        await requireTeacherOrModule(caller, 'score')
         return await addStudentGroup(data, caller)
       case 'updateGroup':
-        requireTeacher(caller)
+        await requireTeacherOrModule(caller, 'score')
         return await updateStudentGroup(data, caller)
       case 'deleteGroup':
-        requireTeacher(caller)
+        await requireTeacherOrModule(caller, 'score')
         return await deleteStudentGroup(data, caller)
       case 'submitAppeal':
         return await submitAppeal(data, caller)
       case 'createVersionSnapshot':
-        requireTeacher(caller)
+        await requireTeacherOrModule(caller, 'score')
         return await createVersionSnapshot(data, caller)
       case 'createInitialVersion':
-        requireTeacher(caller)
+        await requireTeacherOrModule(caller, 'score')
         return await createInitialVersion(data, caller)
       case 'rollbackVersion':
-        requireTeacher(caller)
+        await requireTeacherOrModule(caller, 'score')
         return await rollbackVersion(data, caller)
       case 'getScores':
         return await getScores(data, caller)
       case 'getGroups':
         return await getGroups(data, caller)
       case 'initScoreRules':
-        requireTeacher(caller)
+        await requireTeacherOrModule(caller, 'score')
         return await initScoreRules(data, caller)
       default:
         return { success: false, message: '未知操作' }
@@ -250,7 +242,7 @@ async function applyScoreChange(data, caller) {
     student_id, class_id, semester_id,
     score_change, source_type, item_name, reason_detail,
     item_id, rule_id, rule_name, rule_code, rule_version,
-    recorder_name, date
+    recorder_name, date, source_record_id
   } = data || {}
 
   if (!student_id || score_change === undefined || score_change === null) {
@@ -275,6 +267,92 @@ async function applyScoreChange(data, caller) {
   try {
     return await withTransaction(async (tx) => {
       const now = db.serverDate()
+
+      // 去重校验：检查是否已存在相同来源的积分记录
+      const dedupQuery = {
+        student_id,
+        class_id: class_id || _.exists(false),
+        source_type: source_type || '',
+        date: date || '',
+        rule_code: rule_code || ''
+      }
+      if (source_record_id) {
+        dedupQuery.source_record_id = source_record_id
+      } else if (item_id) {
+        dedupQuery.item_id = item_id
+      }
+
+      const existRes = await tx.collection('score_records')
+        .where(dedupQuery)
+        .limit(1)
+        .get()
+
+      if (existRes.data && existRes.data.length > 0) {
+        const existingRecord = existRes.data[0]
+        const existingChange = existingRecord.score_change || 0
+
+        // 积分变更值相同则幂等跳过
+        if (existingChange === changeValue) {
+          return {
+            success: true,
+            data: {
+              record_id: existingRecord.record_id,
+              score_before: existingRecord.score_before,
+              score_after: existingRecord.score_after,
+              score_change: existingChange,
+              mode: 'idempotent'
+            }
+          }
+        }
+
+        // 积分变更值不同则更新已有记录，并调整学生积分差额
+        const diff = changeValue - existingChange
+        const stuRes = await tx.collection('students')
+          .where({ student_id, class_id })
+          .limit(1)
+          .get()
+
+        if (!stuRes.data || stuRes.data.length === 0) {
+          throw new Error(`未找到学生: ${student_id}`)
+        }
+
+        const student = stuRes.data[0]
+        const scoreBefore = student.current_score !== undefined && student.current_score !== null
+          ? Number(student.current_score) : 100
+        const scoreAfter = scoreBefore + diff
+
+        await tx.collection('score_records').doc(existingRecord._id).update({
+          data: {
+            score_change: changeValue,
+            score_value: changeValue,
+            score_before: scoreBefore,
+            score_after: scoreAfter,
+            score_type: changeValue >= 0 ? '加分' : '扣分',
+            reason_detail: reason_detail || existingRecord.reason_detail || '',
+            updated_at: now
+          }
+        })
+
+        await tx.collection('students').doc(student._id).update({
+          data: {
+            current_score: scoreAfter,
+            updated_at: now
+          }
+        })
+
+        return {
+          success: true,
+          data: {
+            record_id: existingRecord.record_id,
+            score_before: scoreBefore,
+            score_after: scoreAfter,
+            score_change: changeValue,
+            mode: 'updated'
+          }
+        }
+      }
+
+      // 不存在则新增
       const stuRes = await tx.collection('students')
         .where({ student_id, class_id })
         .limit(1)
@@ -315,6 +393,7 @@ async function applyScoreChange(data, caller) {
         recorder_openid: caller.openid,
         recorder_name: recorder_name || '',
         source_type: source_type || '',
+        source_record_id: source_record_id || '',
         approval_status: '已通过',
         status: '已确认',
         created_at: now,
@@ -336,13 +415,152 @@ async function applyScoreChange(data, caller) {
           record_id: recordId,
           score_before: scoreBefore,
           score_after: scoreAfter,
-          score_change: changeValue
+          score_change: changeValue,
+          mode: 'created'
         }
       }
     })
   } catch (err) {
     console.error('applyScoreChange失败:', err)
+    // E11000重复键错误的兜底处理：尝试更新而非插入
+    if (err.message && (err.message.includes('E11000') || err.message.includes('duplicate'))) {
+      try {
+        return await _updateExistingScoreRecord(data, caller)
+      } catch (updateErr) {
+        console.error('重复键兜底更新失败:', updateErr)
+        return { success: false, message: `重复键更新失败: ${updateErr.message}` }
+      }
+    }
     return { success: false, message: err.message }
+  }
+}
+
+// E11000重复键错误的兜底更新函数
+async function _updateExistingScoreRecord(data, caller) {
+  const {
+    student_id, class_id, semester_id,
+    score_change, source_type, item_name, reason_detail,
+    item_id, rule_id, rule_name, rule_code,
+    recorder_name, date, source_record_id
+  } = data || {}
+
+  const changeValue = Math.round(Number(score_change) * 100) / 100
+  const now = db.serverDate()
+
+  // 查找已有的重复记录
+  const dedupQuery = {
+    student_id,
+    source_type: source_type || '',
+    date: date || '',
+    rule_code: rule_code || ''
+  }
+  if (source_record_id) {
+    dedupQuery.source_record_id = source_record_id
+  } else if (item_id) {
+    dedupQuery.item_id = item_id
+  }
+
+  const existRes = await db.collection('score_records')
+    .where(dedupQuery)
+    .limit(1)
+    .get()
+
+  if (!existRes.data || existRes.data.length === 0) {
+    // 找不到已有记录，用更宽泛的条件重试
+    const broadQuery = { student_id, source_type: source_type || '', date: date || '' }
+    const broadRes = await db.collection('score_records')
+      .where(broadQuery)
+      .orderBy('created_at', 'desc')
+      .limit(1)
+      .get()
+
+    if (!broadRes.data || broadRes.data.length === 0) {
+      return { success: false, message: '重复键兜底：未找到匹配记录' }
+    }
+
+    const existingRecord = broadRes.data[0]
+    const existingChange = existingRecord.score_change || 0
+
+    if (existingChange === changeValue) {
+      return {
+        success: true,
+        data: { record_id: existingRecord.record_id, score_change: existingChange, mode: 'idempotent_fallback' }
+      }
+    }
+
+    const diff = changeValue - existingChange
+    const stuRes = await db.collection('students')
+      .where({ student_id, class_id })
+      .limit(1)
+      .get()
+
+    if (!stuRes.data || stuRes.data.length === 0) {
+      return { success: false, message: '未找到学生' }
+    }
+
+    const student = stuRes.data[0]
+    const scoreBefore = Number(student.current_score) || 100
+    const scoreAfter = scoreBefore + diff
+
+    await db.collection('score_records').doc(existingRecord._id).update({
+      data: {
+        score_change: changeValue, score_value: changeValue,
+        score_before: scoreBefore, score_after: scoreAfter,
+        score_type: changeValue >= 0 ? '加分' : '扣分',
+        reason_detail: reason_detail || existingRecord.reason_detail || '',
+        updated_at: now
+      }
+    })
+    await db.collection('students').doc(student._id).update({
+      data: { current_score: scoreAfter, updated_at: now }
+    })
+
+    return {
+      success: true,
+      data: { record_id: existingRecord.record_id, score_before: scoreBefore, score_after: scoreAfter, score_change: changeValue, mode: 'updated_fallback' }
+    }
+  }
+
+  const existingRecord = existRes.data[0]
+  const existingChange = existingRecord.score_change || 0
+
+  if (existingChange === changeValue) {
+    return {
+      success: true,
+      data: { record_id: existingRecord.record_id, score_change: existingChange, mode: 'idempotent_fallback' }
+    }
+  }
+
+  const diff = changeValue - existingChange
+  const stuRes = await db.collection('students')
+    .where({ student_id, class_id })
+    .limit(1)
+    .get()
+
+  if (!stuRes.data || stuRes.data.length === 0) {
+    return { success: false, message: '未找到学生' }
+  }
+
+  const student = stuRes.data[0]
+  const scoreBefore = Number(student.current_score) || 100
+  const scoreAfter = scoreBefore + diff
+
+  await db.collection('score_records').doc(existingRecord._id).update({
+    data: {
+      score_change: changeValue, score_value: changeValue,
+      score_before: scoreBefore, score_after: scoreAfter,
+      score_type: changeValue >= 0 ? '加分' : '扣分',
+      reason_detail: reason_detail || existingRecord.reason_detail || '',
+      updated_at: now
+    }
+  })
+  await db.collection('students').doc(student._id).update({
+    data: { current_score: scoreAfter, updated_at: now }
+  })
+
+  return {
+    success: true,
+    data: { record_id: existingRecord.record_id, score_before: scoreBefore, score_after: scoreAfter, score_change: changeValue, mode: 'updated_fallback' }
   }
 }
 

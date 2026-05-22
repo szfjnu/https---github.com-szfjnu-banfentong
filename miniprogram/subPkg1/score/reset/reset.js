@@ -62,7 +62,7 @@ Page({
     const semesterName = app.globalData.currentSemesterName || '';
     
     this.setData({
-      canManage: ['admin', 'head_teacher'].includes(role),
+      canManage: app.hasPermission('score', 'manage'),
       classId: classId,
       className: className,
       semesterId: semesterId,

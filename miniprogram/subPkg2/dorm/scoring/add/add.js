@@ -29,7 +29,7 @@ Page({
     const isAdmin = role === 'admin'
     const isHeadTeacher = role === 'head_teacher'
     const isDormLeader = role === 'dorm_leader'
-    const canInput = isAdmin || isHeadTeacher || isDormLeader
+    const canInput = app.hasPermission('dorm_score', 'write')
 
     this.setData({
       scoreDate: dateStr,
@@ -43,6 +43,11 @@ Page({
     if (isDormLeader && app.globalData.studentId) {
       this.loadDormLeaderRoom()
     }
+  },
+
+  onShow: function () {
+    const canInput = app.hasPermission('dorm_score', 'write')
+    this.setData({ canInput })
   },
 
   loadSemesterAndBuildings: async function () {

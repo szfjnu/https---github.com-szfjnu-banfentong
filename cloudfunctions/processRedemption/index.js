@@ -2,7 +2,7 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
-const { getCallerInfo, requireRole, requireClassAccess, requireTeacher, requireClassCadre } = require('./utils/auth');
+const { getCallerInfo, requireRole, requireClassAccess, requireTeacherOrModule, requireClassCadre } = require('./utils/auth');
 const { withTransaction } = require('./utils/transaction');
 const { validateInput, SCHEMAS } = require('./utils/validator');
 
@@ -26,12 +26,12 @@ exports.main = async (event, context) => {
       case 'confirmReceive':
         return await confirmReceive(data, caller);
       case 'processBidResult':
-        requireTeacher(caller);
+        await requireTeacherOrModule(caller, 'score');
         return await processBidResult(data, caller);
       case 'getMyRedemptions':
         return await getMyRedemptions(data, caller);
       case 'getRedemptionLedger':
-        requireTeacher(caller);
+        await requireTeacherOrModule(caller, 'score');
         return await getRedemptionLedger(data, caller);
       case 'deleteItem':
         requireClassAccess(caller, data.class_id, ['head_teacher', 'admin']);
@@ -61,7 +61,11 @@ exports.main = async (event, context) => {
 };
 
 async function submitRedemption(data, caller) {
-  const { itemId, bidScore, studentId, studentName, classId } = data;
+  const itemId = data.itemId || data.item_id || '';
+  const bidScore = data.bidScore || data.bid_score || data.required_score || 0;
+  const studentId = data.studentId || data.student_id || '';
+  const studentName = data.studentName || data.student_name || '';
+  const classId = data.classId || data.class_id || '';
 
   if (!itemId || !bidScore || !studentId || !classId) {
     return { success: false, message: '参数不完整' };
@@ -104,8 +108,23 @@ async function submitRedemption(data, caller) {
   }
 
   const student = studentRes.data[0];
-  if ((student.current_score || 100) < bidScore) {
-    return { success: false, message: '积分不足' };
+  const initialScore = student.initial_score || 100;
+  const totalScore = student.current_score || 100;
+
+  let redeemedTotal = 0;
+  try {
+    const redeemedRes = await db.collection('redemption_requests')
+      .where({
+        student_id: studentId,
+        status: _.in(['待审批', '待班主任审批', '已通过', '已批准', '已中标', '已发货', '已收货'])
+      })
+      .get();
+    redeemedTotal = (redeemedRes.data || []).reduce((sum, r) => sum + (r.bid_score || r.required_score || 0), 0);
+  } catch (e) {}
+
+  const redeemableScore = Math.max(0, totalScore - initialScore - redeemedTotal);
+  if (redeemableScore < bidScore) {
+    return { success: false, message: '可兑换积分不足' };
   }
 
   const existRes = await db.collection('redemption_requests')
@@ -221,16 +240,24 @@ async function teacherApprove(data, caller) {
         }
 
         const student = studentRes.data[0];
-        if ((student.current_score || 100) < score) {
-          throw new Error('学生积分不足，无法完成审批');
-        }
+        const initialScore = student.initial_score || 100;
+        const totalScore = student.current_score || 100;
 
-        await tx.collection('students').doc(student._id).update({
-          data: {
-            current_score: _.inc(-score),
-            updated_at: db.serverDate()
-          }
-        });
+        let redeemedTotal = 0;
+        try {
+          const redeemedRes = await tx.collection('redemption_requests')
+            .where({
+              student_id: request.student_id,
+              status: _.in(['待审批', '待班主任审批', '已通过', '已批准', '已中标', '已发货', '已收货'])
+            })
+            .get();
+          redeemedTotal = (redeemedRes.data || []).reduce((sum, r) => sum + (r.bid_score || r.required_score || 0), 0);
+        } catch (e) {}
+
+        const redeemableScore = Math.max(0, totalScore - initialScore - redeemedTotal);
+        if (redeemableScore < score) {
+          throw new Error('学生可兑换积分不足，无法完成审批');
+        }
       }
 
       if (request.item_id) {

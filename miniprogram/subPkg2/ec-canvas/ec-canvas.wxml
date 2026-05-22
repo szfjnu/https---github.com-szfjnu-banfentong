@@ -1,0 +1,1 @@
+<canvas type="2d" id="ec-canvas" class="ec-canvas" disable-scroll="true" bindtouchstart="bindTouchStart" bindtouchmove="bindTouchMove" bindtouchend="bindTouchEnd"></canvas>

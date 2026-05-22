@@ -7,7 +7,7 @@ const db = cloud.database();
 const _ = db.command;
 const batchQuery = require('./utils/batchQuery');
 
-const { getCallerInfo, requireTeacher, requireTeacherOrDelegated, AUTH_ERRORS } = require('./utils/auth');
+const { getCallerInfo, requireTeacherOrModule, AUTH_ERRORS } = require('./utils/auth');
 
 // 生成唯一ID
 function generateId(prefix) {
@@ -50,9 +50,9 @@ exports.main = async (event, context) => {
     const DELEGATED_ACTIONS = ['inspectTask', 'batchInspect']
 
     if (TEACHER_ONLY_ACTIONS.includes(action)) {
-      requireTeacher(caller)
+      await requireTeacherOrModule(caller, 'duty')
     } else if (DELEGATED_ACTIONS.includes(action)) {
-      await requireTeacherOrDelegated(caller, 'duty', 'check')
+      await requireTeacherOrModule(caller, 'duty', 'check')
     }
 
     switch (action) {
@@ -530,17 +530,30 @@ async function inspectTask(data, openid) {
     }
   }
 
-  // 积分同步成功后，才更新任务状态
-  await db.collection('duty_task').doc(task._id).update({
-    data: {
-      status: newStatus,
-      score_change: finalScoreChange,
-      completion_time: is_qualified ? now : null,
-      inspection: inspectionData,
-      related_score_record_id: scoreRecordId || '',
-      updated_at: now
+  // 积分同步成功后，才更新任务状态（使用重试确保一致性）
+  let taskUpdateRetries = 0;
+  const maxRetries = 3;
+  while (taskUpdateRetries < maxRetries) {
+    try {
+      await db.collection('duty_task').doc(task._id).update({
+        data: {
+          status: newStatus,
+          score_change: finalScoreChange,
+          completion_time: is_qualified ? now : null,
+          inspection: inspectionData,
+          related_score_record_id: scoreRecordId || '',
+          updated_at: now
+        }
+      });
+      break;
+    } catch (taskErr) {
+      taskUpdateRetries++;
+      console.error(`任务状态更新失败(第${taskUpdateRetries}次):`, taskErr);
+      if (taskUpdateRetries >= maxRetries) {
+        console.error('任务状态更新最终失败，但积分已同步，需人工核实');
+      }
     }
-  });
+  }
 
   // 创建检查结果提醒
   const reminderContent = is_qualified
@@ -643,12 +656,16 @@ async function syncScoreToStudent(task, scoreChange, inspection, openid) {
   // 按折算比例计算实际积分变化
   const convertedScoreChange = Math.round(scoreChange * hygieneConversionRatio * 100) / 100;
 
-  // 获取积分项目
+  // 获取积分项目（匹配"劳动卫生"类别）
   const scoreItemRes = await db.collection('score_items')
     .where(
       _.or(
         { name: db.RegExp({ regexp: '卫生', options: 'i' }) },
-        { category: '卫生' }
+        { name: db.RegExp({ regexp: '劳动', options: 'i' }) },
+        { category: db.RegExp({ regexp: '卫生', options: 'i' }) },
+        { category: db.RegExp({ regexp: '劳动', options: 'i' }) },
+        { category_id: 'hygiene' },
+        { category_code: 'HYGIENE' }
       ).and({
         is_active: _.neq(false)
       })
@@ -657,14 +674,14 @@ async function syncScoreToStudent(task, scoreChange, inspection, openid) {
     .get();
 
   const item_id = scoreItemRes.data && scoreItemRes.data.length > 0 ? scoreItemRes.data[0].item_id : '';
-  const item_name = scoreItemRes.data && scoreItemRes.data.length > 0 ? scoreItemRes.data[0].name : '卫生值日';
+  const item_name = scoreItemRes.data && scoreItemRes.data.length > 0 ? scoreItemRes.data[0].name : '劳动卫生';
 
   const now = db.serverDate();
   const ratioLabel = hygieneConversionRatio !== 1.0 ? ` (折算比例${hygieneConversionRatio})` : '';
 
   // 调用统一积分变更云函数
   try {
-    await cloud.callFunction({
+    const scoreRes = await cloud.callFunction({
       name: 'scoreManager',
       data: {
         action: 'applyScoreChange',
@@ -674,9 +691,10 @@ async function syncScoreToStudent(task, scoreChange, inspection, openid) {
           semester_id: semester_id || '',
           score_change: convertedScoreChange,
           source_type: '卫生值日',
+          source_record_id: task.task_id || '',
           item_id: item_id || '',
-          item_name: item_name || '卫生值日',
-          rule_name: item_name || '卫生值日',
+          item_name: item_name || '劳动卫生',
+          rule_name: item_name || '劳动卫生',
           rule_code: 'DUTY_CHECK',
           reason_detail: `${task.duty_date}值日任务【${task.task_name}】${scoreChange > 0 ? '合格加分' : '不合格扣分'}${ratioLabel}${inspection.comment ? '：' + inspection.comment : ''}`,
           recorder_openid: openid,
@@ -685,31 +703,47 @@ async function syncScoreToStudent(task, scoreChange, inspection, openid) {
         }
       }
     });
+    if (!scoreRes.result || !scoreRes.result.success) {
+      const errMsg = scoreRes.result?.message || '未知错误';
+      console.error('scoreManager.applyScoreChange返回失败:', errMsg);
+      throw new Error('积分同步失败: ' + errMsg);
+    }
   } catch (scoreErr) {
-    console.error('调用统一积分云函数失败，回退直接写入:', scoreErr);
-    await db.collection('score_records').add({
-      data: {
-        record_id,
-        student_id: task.student_id,
-        class_id: task.class_id || '',
-        item_id,
-        score_change: convertedScoreChange,
-        reason_detail: `${task.duty_date}值日任务【${task.task_name}】${scoreChange > 0 ? '合格加分' : '不合格扣分'}${ratioLabel}${inspection.comment ? '：' + inspection.comment : ''}`,
-        date: now,
-        recorder_name: inspection.inspector_name || '系统',
-        recorder_openid: openid,
-        semester_id,
-        source_type: '卫生值日',
-        source_record_id: task.task_id,
-        approval_status: '已通过',
-        created_at: now
-      }
-    });
-    await db.collection('students')
-      .where({ student_id: task.student_id })
-      .update({
-        data: { current_score: _.inc(convertedScoreChange), updated_at: now }
+    console.error('调用统一积分云函数失败，回退用事务写入:', scoreErr);
+    try {
+      await db.runTransaction(async (t) => {
+        await t.collection('score_records').add({
+          data: {
+            record_id,
+            student_id: task.student_id,
+            class_id: task.class_id || '',
+            item_id,
+            score_change: convertedScoreChange,
+            reason_detail: `${task.duty_date}值日任务【${task.task_name}】${scoreChange > 0 ? '合格加分' : '不合格扣分'}${ratioLabel}${inspection.comment ? '：' + inspection.comment : ''}`,
+            date: now,
+            recorder_name: inspection.inspector_name || '系统',
+            recorder_openid: openid,
+            semester_id,
+            source_type: '卫生值日',
+            source_record_id: task.task_id,
+            approval_status: '已通过',
+            created_at: now
+          }
+        });
+        const stuRes = await t.collection('students')
+          .where({ student_id: task.student_id, class_id: task.class_id })
+          .limit(1)
+          .get();
+        if (stuRes.data && stuRes.data.length > 0) {
+          await t.collection('students').doc(stuRes.data[0]._id).update({
+            data: { current_score: _.inc(convertedScoreChange), updated_at: now }
+          });
+        }
       });
+    } catch (txErr) {
+      console.error('事务写入积分失败:', txErr);
+      throw new Error('积分同步失败: ' + (txErr.message || ''));
+    }
   }
 
   return record_id;

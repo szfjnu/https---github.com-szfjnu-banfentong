@@ -2,7 +2,7 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
-const { getCallerInfo, requireClassAccess, requireTeacher } = require('./utils/auth')
+const { getCallerInfo, requireClassAccess, requireTeacherOrModule } = require('./utils/auth')
 const { withTransaction } = require('./utils/transaction')
 const { validateInput, SCHEMAS } = require('./utils/validator')
 
@@ -43,15 +43,15 @@ exports.main = async (event, context) => {
         requireClassAccess(caller, data.class_id, ['head_teacher', 'admin'])
         return await deleteSemester(data, caller)
       case 'updateClassSettings':
-        requireTeacher(caller)
+        await requireTeacherOrModule(caller, 'semester')
         return await updateClassSettings(data, caller)
       case 'addClassSettings':
-        requireTeacher(caller)
+        await requireTeacherOrModule(caller, 'semester')
         return await addClassSettings(data, caller)
       case 'getClassPositions':
         return await getClassPositions(data, caller)
       case 'saveResetSettings':
-        requireTeacher(caller)
+        await requireTeacherOrModule(caller, 'semester')
         return await saveResetSettings(data, caller)
       case 'getSemesters':
         return await getSemestersList(data, caller)

@@ -95,8 +95,7 @@ Page({
   },
 
   checkPermission: function () {
-    const role = app.globalData.role;
-    if (role !== 'admin' && role !== 'head_teacher' && role !== 'subject_teacher') {
+    if (!app.hasPermission('student', 'edit')) {
       wx.showToast({
         title: '无权限操作',
         icon: 'none',

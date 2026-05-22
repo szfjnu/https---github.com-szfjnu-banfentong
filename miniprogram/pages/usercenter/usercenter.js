@@ -450,39 +450,11 @@ Page({
         title: '校园服务',
         items: [
           {
-            id: 'aichat',
-            title: '微聊陪伴',
-            icon: '💬',
-            color: '#667eea',
-            url: '/subPkg3/aichat/aichat'
-          },
-          {
-            id: 'treehole',
-            title: '心灵树洞',
-            icon: '🌳',
-            color: '#52c41a',
-            url: '/subPkg3/treehole/treehole'
-          },
-          {
-            id: 'activity',
-            title: '聚光点',
-            icon: '🎪',
-            color: '#667eea',
-            url: '/subPkg3/activity/list/list'
-          },
-          {
             id: 'hero',
             title: '英雄台',
             icon: '🏆',
             color: '#faad14',
             url: '/subPkg3/hero/hero'
-          },
-          {
-            id: 'flea',
-            title: '校园闲鱼',
-            icon: '🏷',
-            color: '#fa8c16',
-            url: '/subPkg3/flea/flea'
           },
           {
             id: 'grade',

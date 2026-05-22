@@ -171,14 +171,19 @@
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
   white-space: nowrap;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .tab-item {
   flex-shrink: 0;
-  min-width: 100rpx;
+  min-width: 88rpx;
   text-align: center;
-  padding: 24rpx 0;
-  font-size: 28rpx;
+  padding: 22rpx 8rpx;
+  font-size: 26rpx;
   color: var(--text-color-secondary);
   background: var(--white);
   border-bottom: 4rpx solid transparent;

@@ -26,7 +26,7 @@ dataFormatter.applyFilter = function (students, selectedClass, selectedGroup, se
     filtered = filtered.filter(function (s) { return s.class_id === selectedClass; });
   }
   if (selectedGroup) {
-    filtered = filtered.filter(function (s) { return s.group === selectedGroup; });
+    filtered = filtered.filter(function (s) { return s.group === selectedGroup || s.group_name === selectedGroup; });
   }
   if (searchKeyword) {
     var kw = searchKeyword.toLowerCase();

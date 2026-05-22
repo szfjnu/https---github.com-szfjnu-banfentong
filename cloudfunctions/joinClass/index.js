@@ -13,7 +13,7 @@ exports.main = async (event, context) => {
 
   try {
     let caller
-    if (action === 'createClass' || action === 'searchByCode' || action === 'searchByPhone' || action === 'getClassDetail') {
+    if (action === 'createClass' || action === 'searchByCode' || action === 'searchByPhone' || action === 'getClassDetail' || action === 'joinClass' || action === 'getStudents') {
       caller = await getCallerInfo(event, null, { allowNoClass: true })
     } else {
       caller = await getCallerInfo(event, data?.classId || data?.class_id)
@@ -183,12 +183,15 @@ async function getStudents(data, caller) {
       .where({
         user_openid: caller.openid,
         class_id: classId,
-        status: 'joined'
+        status: _.in(['joined', 'pending'])
       })
       .limit(1)
       .get()
     if (!memberCheck.data || memberCheck.data.length === 0) {
-      return { success: false, error: '无权访问该班级学生列表' }
+      const classRes = await db.collection('classes').doc(classId).get()
+      if (!classRes.data) {
+        return { success: false, error: '班级不存在' }
+      }
     }
   }
 

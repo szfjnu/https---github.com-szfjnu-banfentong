@@ -2,7 +2,7 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
-const { getCallerInfo, requireTeacher, requireClassAccess } = require('./utils/auth')
+const { getCallerInfo, requireTeacherOrModule, requireClassAccess } = require('./utils/auth')
 
 const SECTION_NAMES = ['', '第一节课', '第二节课', '第三节课', '第四节课', '第五节课', '第六节课', '第七节课']
 const WEEK_DAY_NAMES = ['', '星期一', '星期二', '星期三', '星期四', '星期五']
@@ -17,11 +17,11 @@ exports.main = async (event, context) => {
 
   switch (action) {
     case 'getSchedule': return await getSchedule(data, caller.openid)
-    case 'importSchedule': requireTeacher(caller); requireClassAccess(caller, data?.class_id, ['head_teacher', 'admin']); return await importSchedule(data, caller.openid)
-    case 'updateSchedule': requireTeacher(caller); requireClassAccess(caller, data?.class_id, ['head_teacher', 'admin']); return await updateSchedule(data, caller.openid)
-    case 'deleteSchedule': requireTeacher(caller); requireClassAccess(caller, data?.class_id, ['head_teacher', 'admin']); return await deleteSchedule(data, caller.openid)
+    case 'importSchedule': await requireTeacherOrModule(caller, 'schedule'); requireClassAccess(caller, data?.class_id, ['head_teacher', 'admin']); return await importSchedule(data, caller.openid)
+    case 'updateSchedule': await requireTeacherOrModule(caller, 'schedule'); requireClassAccess(caller, data?.class_id, ['head_teacher', 'admin']); return await updateSchedule(data, caller.openid)
+    case 'deleteSchedule': await requireTeacherOrModule(caller, 'schedule'); requireClassAccess(caller, data?.class_id, ['head_teacher', 'admin']); return await deleteSchedule(data, caller.openid)
     case 'ensureCollection': return await ensureCollection()
-    case 'fixMissingIsBase': requireTeacher(caller); return await fixMissingIsBase(data, caller.openid)
+    case 'fixMissingIsBase': await requireTeacherOrModule(caller, 'schedule'); return await fixMissingIsBase(data, caller.openid)
     default: return { success: false, message: '未知操作' }
   }
   } catch (err) {

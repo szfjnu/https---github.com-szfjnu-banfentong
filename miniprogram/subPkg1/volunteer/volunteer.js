@@ -93,7 +93,7 @@ Page({
     console.log('志愿服务页面初始化 - classId:', classId, 'role:', role);
     
     // 判断权限
-    const canEdit = ['admin', 'head_teacher'].includes(role);
+    const canEdit = app.hasPermission('volunteer', 'write');
     
     if (!classId) {
       console.error('志愿服务页面初始化失败: classId 为空');

@@ -39,6 +39,10 @@ exports.main = async (event, context) => {
         return await getHistory(caller.openid, npc_type)
       case 'saveMessages':
         return await saveMessages(caller.openid, npc_type, newMessages)
+      case 'clearHistory':
+        return await clearHistory(caller.openid, npc_type)
+      case 'deleteMessage':
+        return await deleteMessage(caller.openid, npc_type, event.message_index)
       case 'getSystemPrompt':
         return { success: true, data: { prompt: SYSTEM_PROMPTS[npc_type] || SYSTEM_PROMPTS.companion } }
       default:
@@ -120,5 +124,60 @@ async function saveMessages(openid, npc_type, newMessages) {
   } catch (err) {
     console.error('保存消息失败:', err)
     return { success: false, message: '保存消息失败' }
+  }
+}
+
+async function clearHistory(openid, npc_type) {
+  try {
+    const res = await db.collection('chat_logs')
+      .where({ user_id: openid, npc_type })
+      .get()
+
+    if (res.data.length > 0) {
+      await db.collection('chat_logs').doc(res.data[0]._id).remove()
+    }
+
+    return { success: true }
+  } catch (err) {
+    console.error('清空历史失败:', err)
+    return { success: false, message: '清空历史失败' }
+  }
+}
+
+async function deleteMessage(openid, npc_type, messageIndex) {
+  if (messageIndex === undefined || messageIndex === null) {
+    return { success: false, message: '缺少 message_index 参数' }
+  }
+
+  try {
+    const res = await db.collection('chat_logs')
+      .where({ user_id: openid, npc_type })
+      .get()
+
+    if (res.data.length === 0) {
+      return { success: false, message: '无聊天记录' }
+    }
+
+    const record = res.data[0]
+    const messages = record.messages || []
+    const idx = Number(messageIndex)
+
+    if (idx < 0 || idx >= messages.length) {
+      return { success: false, message: '消息索引越界' }
+    }
+
+    messages.splice(idx, 1)
+
+    await db.collection('chat_logs').doc(record._id).update({
+      data: {
+        messages,
+        updated_at: db.serverDate()
+      }
+    })
+
+    return { success: true, data: { messages } }
+  } catch (err) {
+    console.error('删除消息失败:', err)
+    return { success: false, message: '删除消息失败' }
   }
 }

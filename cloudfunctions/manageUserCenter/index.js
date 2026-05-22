@@ -5,7 +5,7 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
-const { getCallerInfo, requireClassAccess, requireTeacher, requireAdmin } = require('./utils/auth');
+const { getCallerInfo, requireClassAccess, requireTeacherOrModule, requireAdmin } = require('./utils/auth');
 
 // 生成唯一ID
 function generateId(prefix) {
@@ -67,7 +67,7 @@ exports.main = async (event, context) => {
       case 'updateNotificationPreference': return await updateNotificationPreference(data, caller.openid);
 
       case 'publishNotification': requireClassAccess(caller, data.class_id, ['head_teacher', 'admin']); return await publishNotification(data, caller);
-      case 'recallNotification': requireTeacher(caller); return await recallNotification(data, caller);
+      case 'recallNotification': await requireTeacherOrModule(caller, 'notification'); return await recallNotification(data, caller);
       case 'getPublishedNotifications': return await getPublishedNotifications(data, caller.openid);
 
       case 'getNotifications': return await getNotifications(data, caller.openid);
@@ -78,7 +78,7 @@ exports.main = async (event, context) => {
       case 'toggleStar': return await toggleStar(data, caller.openid);
       case 'deleteNotification': return await deleteNotification(data, caller.openid);
 
-      case 'sendSystemNotification': requireTeacher(caller); return await sendSystemNotification(data, caller);
+      case 'sendSystemNotification': await requireTeacherOrModule(caller, 'notification'); return await sendSystemNotification(data, caller);
 
       case 'getNotificationTypes': return { success: true, data: NOTIFICATION_TYPES };
 

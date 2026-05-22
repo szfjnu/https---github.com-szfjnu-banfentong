@@ -34,7 +34,7 @@ Page({
 
   onLoad: function () {
     const role = app.globalData.role;
-    const canManage = ['admin', 'head_teacher', 'class_cadre'].includes(role);
+    const canManage = app.hasPermission('mall', 'manage');
     
     if (!canManage) {
       wx.showModal({
@@ -189,14 +189,14 @@ Page({
       const res = await wx.cloud.callFunction({
         name: 'processRedemption',
         data: {
-          action: 'approveRedemption',
+          action: 'teacherApprove',
           data: {
             requestId: request._id,
             studentId: request.student_id,
             classId: request.class_id,
             itemId: request.item_id,
             score: request.bid_score || request.required_score || 0,
-            approver: app.globalData.userInfo?.nickName || '管理员'
+            approverName: app.globalData.userInfo?.nickName || '管理员'
           }
         }
       });
@@ -268,7 +268,7 @@ Page({
             const cfRes = await wx.cloud.callFunction({
               name: 'processRedemption',
               data: {
-                action: 'shipRedemption',
+                action: 'confirmShip',
                 data: { requestId: request._id }
               }
             });

@@ -139,11 +139,11 @@
         </view>
         <view class="form-group">
           <text class="form-label">标题</text>
-          <input class="form-input" value="{{publishForm.title}}" bindinput="onPublishTitleInput" placeholder="请输入通知标题" placeholder-style="color:#999;" />
+          <input class="form-input" value="{{publishForm.title}}" bindinput="onPublishTitleInput" placeholder="请输入通知标题" placeholder-class="form-placeholder" adjust-position="{{true}}"/>
         </view>
         <view class="form-group">
           <text class="form-label">内容</text>
-          <textarea class="form-textarea" value="{{publishForm.content}}" bindinput="onPublishContentInput" placeholder="请输入通知内容" placeholder-style="color:#999;" maxlength="2000" />
+          <textarea class="form-textarea" value="{{publishForm.content}}" bindinput="onPublishContentInput" placeholder="请输入通知内容" placeholder-class="form-placeholder" adjust-position="{{true}}" auto-height="{{false}}" maxlength="2000" />
         </view>
         <view class="form-group">
           <text class="form-label">优先级</text>

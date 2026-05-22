@@ -114,7 +114,9 @@ App({
       }
       // 异步加载用户授权权限（仅当未加载时才调用）
       if (!this.globalData.authorizations || Object.keys(this.globalData.authorizations).length === 0) {
-        this.loadUserAuthorizations();
+        this.loadUserAuthorizations().then(() => {
+          this._authLoaded = true;
+        });
       }
     } else {
       console.log('用户未登录');
@@ -218,10 +220,15 @@ App({
     if (!role) return false;
 
     if (role === 'admin') return true;
+    if (role === 'head_teacher' || role === 'subject_teacher') return true;
 
-    const auths = this.globalData.authorizations || {};
+    // 家长角色守卫：强制忽略authorizations，仅依据权限矩阵判定（家长不可继承学生管理权限）
+    const auths = role === 'parent' ? {} : (this.globalData.authorizations || {});
+    const WRITE_ACTIONS = ['add', 'edit', 'delete', 'manage', 'write', 'register', 'submit', 'check', 'score', 'approve', 'export', 'admin', 'arrange'];
     if (auths[module] && Array.isArray(auths[module])) {
       if (auths[module].includes(action)) return true;
+      if (auths[module].includes('write') && WRITE_ACTIONS.includes(action)) return true;
+      if (auths[module].includes('read') && action === 'view') return true;
     }
 
     if (role === 'class_cadre') {
@@ -234,7 +241,7 @@ App({
         duty: 'duty_check'
       };
       const requiredCode = moduleCodeMap[module];
-      if (requiredCode && ['add', 'write', 'register', 'check', 'score'].includes(action)) {
+      if (requiredCode && WRITE_ACTIONS.includes(action)) {
         if (!modulePermissions.includes(requiredCode)) return false;
       }
     }
@@ -248,18 +255,27 @@ App({
     const studentId = this.globalData.student_id;
     const classId = this.globalData.class_id;
 
-    // 仅学生/家长/班干部需要加载授权记录
-    if (!studentId || !classId || (role !== 'student' && role !== 'parent' && role !== 'class_cadre')) {
+    // 仅学生/班干部可加载模块授权记录（家长绝对禁止，防止继承学生管理权限）
+    const AUTH_LOAD_ROLES = ['student', 'class_cadre'];
+    if (!studentId || !classId || !AUTH_LOAD_ROLES.includes(role)) {
       this.globalData.authorizations = {};
       return;
     }
 
     try {
       const db = wx.cloud.database();
-      const res = await db.collection('student_authorizations')
+      const openid = this.globalData.openid || '';
+      let res = await db.collection('student_authorizations')
         .where({ class_id: classId, student_id: studentId })
         .limit(1)
         .get();
+
+      if ((!res.data || res.data.length === 0) && openid) {
+        res = await db.collection('student_authorizations')
+          .where({ class_id: classId, openid: openid })
+          .limit(1)
+          .get();
+      }
 
       if (res.data && res.data.length > 0 && res.data[0].permissions) {
         this.globalData.authorizations = res.data[0].permissions;

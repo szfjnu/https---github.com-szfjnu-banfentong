@@ -53,7 +53,8 @@ const submitHandler = {
           await context.updateStudentScore(student.student_id, scoreDiff, {
             category_code: categoryCode,
             category_name: category.category_name,
-            reason_detail: `${selectedDate} ${category.category_name}(调整，原${oldScoreChange}→新${newScoreChange})`
+            reason_detail: `${selectedDate} ${category.category_name}(调整，原${oldScoreChange}→新${newScoreChange})`,
+            source_record_id: existingRecord._id || existingRecord.record_id || ''
           });
         }
       } else {
@@ -61,6 +62,9 @@ const submitHandler = {
           const selectedSections = period_sections.filter(s =>
             selected_period_sections.includes(s.section_id)
           );
+          let newlyAddedCount = 0;
+          let newlyAddedRecordIds = [];
+
           for (const section of selectedSections) {
             const existSectionRes = await db.collection('attendance_records')
               .where({
@@ -105,16 +109,22 @@ const submitHandler = {
                 }
               }
             });
-            if (!addRes.result || !addRes.result.success) {
+            if (addRes.result && addRes.result.success) {
+              newlyAddedCount++;
+              newlyAddedRecordIds.push(addRes.result.data?._id || recordId);
+            } else {
               console.error('添加考勤记录(分节)失败:', addRes.result?.message || '未知错误');
             }
           }
-          if (category.score_deduction && category.score_deduction !== 0) {
-            const totalDeduction = (category.score_deduction || 0) * selectedSections.length;
+          // 仅对新添加的节次计算积分，避免重复扣分
+          if (category.score_deduction && category.score_deduction !== 0 && newlyAddedCount > 0) {
+            const totalDeduction = (category.score_deduction || 0) * newlyAddedCount;
+            const sourceRecordId = newlyAddedRecordIds.join(',');
             await context.updateStudentScore(student.student_id, totalDeduction, {
               category_code: categoryCode,
               category_name: category.category_name,
-              reason_detail: `${selectedDate} ${category.category_name}(${selectedSections.length}节)`
+              reason_detail: `${selectedDate} ${category.category_name}(${newlyAddedCount}节)`,
+              source_record_id: sourceRecordId
             });
           }
         } else {
@@ -152,10 +162,12 @@ const submitHandler = {
           }
 
           if (category.score_deduction && category.score_deduction !== 0) {
+            const sourceRecordId = addRes.result?.data?._id || recordId;
             await context.updateStudentScore(student.student_id, category.score_deduction, {
               category_code: categoryCode,
               category_name: category.category_name,
-              reason_detail: `${selectedDate} ${category.category_name}`
+              reason_detail: `${selectedDate} ${category.category_name}`,
+              source_record_id: sourceRecordId
             });
           }
         }

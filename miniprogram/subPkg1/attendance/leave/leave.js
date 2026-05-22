@@ -53,7 +53,7 @@ Page({
   onLoad: function (options) {
     const classId = options.class_id || app.globalData.class_id;
     const role = app.globalData.role;
-    const isAdmin = ['admin', 'head_teacher', 'class_cadre'].includes(role);
+    const isAdmin = app.hasPermission('attendance', 'write');
     
     this.setData({
       classId: classId,

@@ -6,7 +6,7 @@ cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV
 })
 
-const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('./utils/auth')
+const { getCallerInfo, requireTeacherOrModule, AUTH_ERRORS } = require('./utils/auth')
 
 const db = cloud.database()
 const _ = db.command
@@ -18,7 +18,7 @@ exports.main = async (event, context) => {
 
   try {
     const caller = await getCallerInfo(event, classId)
-    requireTeacher(caller)
+    await requireTeacherOrModule(caller, 'score')
 
     if (studentId) {
       const result = await db.collection('students').doc(studentId).update({

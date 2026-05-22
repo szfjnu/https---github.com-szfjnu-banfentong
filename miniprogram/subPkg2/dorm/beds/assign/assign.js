@@ -17,7 +17,7 @@ Page({
   },
 
   onLoad: function (options) {
-    const classId = app.globalData.class_id || '';
+    const classId = app.globalData.class_id || app.globalData.classId || '';
 
     console.log('页面加载，检查班级ID:', classId);
     console.log('app.globalData:', app.globalData);
@@ -86,7 +86,7 @@ Page({
     try {
       this.setData({ loading: true });
 
-      const classId = app.globalData.class_id || '';
+      const classId = app.globalData.class_id || app.globalData.classId || '';
 
       console.log('加载学生列表，班级ID:', classId);
 
@@ -158,8 +158,8 @@ Page({
   },
 
   onSelectStudent: function (e) {
-    const studentId = e.currentTarget.dataset.id;
-    const student = this.data.students.find(s => s._id === studentId);
+    const studentDocId = e.currentTarget.dataset.id;
+    const student = this.data.students.find(s => s._id === studentDocId);
 
     if (!student) return;
 
@@ -173,21 +173,21 @@ Page({
         content: `该学生已入住 ${student.dorm_info.building || ''}-${student.dorm_info.room || ''}-${student.dorm_info.bed || ''}，确定要更换床位吗？`,
         success: (res) => {
           if (res.confirm) {
-            this.assignBed(studentId);
+            this.assignBed(studentDocId, student.student_id || '');
           }
         }
       });
     } else {
-      this.assignBed(studentId);
+      this.assignBed(studentDocId, student.student_id || '');
     }
   },
 
-  assignBed: async function (studentId) {
+  assignBed: async function (studentDocId, studentBusinessId) {
     const { bedId, bedInfo, roomInfo, buildingInfo } = this.data;
 
     console.log('开始分配床位');
     console.log('床位ID:', bedId);
-    console.log('学生ID:', studentId);
+    console.log('学生文档ID:', studentDocId, '业务ID:', studentBusinessId);
 
     try {
       wx.showLoading({ title: '分配中...' });
@@ -197,7 +197,8 @@ Page({
         data: {
           action: 'syncDormInfo',
           data: {
-            student_doc_id: studentId,
+            student_doc_id: studentDocId,
+            student_id: studentBusinessId,
             building_id: buildingInfo._id,
             room_id: roomInfo._id,
             bed_id: bedId,

@@ -30,7 +30,7 @@ Page({
     if (options.building_id) {
       const role = app.globalData.role || ''
       const isAdmin = app.globalData.isAdmin || role === 'admin'
-      const canManage = isAdmin || role === 'head_teacher'
+      const canManage = app.hasPermission('dorm', 'manage')
       this.setData({
         buildingId: options.building_id,
         isAdmin,
@@ -148,16 +148,14 @@ Page({
             let student_name = '';
             if (bed.occupied && bed.student_id && bed.student_id.trim() !== '') {
               try {
-                const studentRes = await db.collection('students')
-                  .where({ student_id: bed.student_id })
-                  .field({ name: true })
-                  .limit(1)
-                  .get();
-                if (studentRes.data && studentRes.data.length > 0) {
-                  student_name = studentRes.data[0].name || '';
+                const studentRes = await db.collection('students').where({ student_id: bed.student_id }).limit(1).get();
+                  
+                if (studentRes.data.length > 0) {
+                  student_name = studentRes.data[0].name;
                 }
               } catch (err) {
                 console.error('获取床位学生姓名失败:', err);
+                student_name = '未知学生';
               }
             }
             return { ...bed, student_name };

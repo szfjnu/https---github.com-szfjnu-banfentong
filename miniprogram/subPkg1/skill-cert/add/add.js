@@ -45,7 +45,7 @@ Page({
 
   onLoad() {
     const role = app.globalData.role || ''
-    const isStudentRole = role === 'student'
+    const isStudentRole = role === 'student' && !app.hasPermission('skill_cert', 'write')
     this.setData({ isStudentRole })
 
     if (isStudentRole) {

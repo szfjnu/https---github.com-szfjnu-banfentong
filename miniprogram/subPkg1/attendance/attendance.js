@@ -66,6 +66,7 @@ Page({
     const role = app.globalData.role;
     const semesterId = app.globalData.currentSemesterId || '';
     const isAdmin = app.hasPermission('attendance', 'add');
+    const isSystemAdmin = ['admin', 'head_teacher', 'subject_teacher'].includes(role);
     const canViewAll = app.hasPermission('attendance', 'view');
     const isStudentView = !canViewAll;
     
@@ -74,6 +75,7 @@ Page({
       userRole: role,
       currentSemesterId: semesterId,
       isAdmin: isAdmin,
+      isSystemAdmin: isSystemAdmin,
       canViewAll: canViewAll,
       isStudentView: isStudentView
     });

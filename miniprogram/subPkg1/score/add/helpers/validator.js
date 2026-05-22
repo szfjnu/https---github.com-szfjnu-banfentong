@@ -44,7 +44,8 @@ validator.validateSubmit = function (data) {
 };
 
 validator.checkPermission = function (role) {
-  if (role !== 'admin' && role !== 'head_teacher' && role !== 'teacher' && role !== 'class_cadre') {
+  const app = getApp();
+  if (!app.hasPermission('score', 'write')) {
     wx.showToast({
       title: '无权限操作',
       icon: 'none',

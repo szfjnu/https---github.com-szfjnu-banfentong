@@ -58,7 +58,7 @@
               wx:for="{{dutyGroups}}" wx:key="_id"
               bindtap="onGroupSelect" data-id="{{item._id}}">
           <view class="group-name">{{item.group_name}}</view>
-          <view class="group-count">{{item.members.length + (item.leader_id ? 1 : 0)}}人</view>
+          <view class="group-count">{{item.total_count}}人</view>
         </view>
       </view>
       <view class="empty-hint" wx:else>

@@ -159,10 +159,14 @@ Page({
         const student = res.result.data;
         const permissionLevel = res.result.permission_level;
 
+        const rawScore = student.current_score || 100;
+        const formattedScore = util.formatScore(rawScore);
+
         this.setData({
           permissionLevel: permissionLevel,
           student: {
             ...student,
+            current_score: formattedScore, // 覆盖为格式化后的积分
             scoreLevel: util.getScoreLevel(student.current_score || 100),
             scoreColor: util.getScoreColor(student.current_score || 100),
             formattedEnrollmentDate: student.enrollment_date ? util.formatDate(new Date(student.enrollment_date)) : '未填写',
@@ -218,6 +222,8 @@ Page({
       console.log('积分记录查询结果:', rawRecords);
 
       const records = rawRecords.map(item => {
+        const scoreChange = item.score_change || item.score_value || 0;
+        const formattedChange = Number(scoreChange).toFixed(2);
         // 日期处理：兼容多种日期字段
         let dateStr = '';
         if (item.record_date) {
@@ -228,14 +234,11 @@ Page({
           dateStr = util.formatDate(new Date(item.created_at));
         }
         
-        // 积分变化
-        const scoreChange = item.score_change || item.score_value || 0;
-        
         return {
           ...item,
           date: dateStr,
           scoreChangeClass: scoreChange > 0 ? 'score-add' : 'score-minus',
-          scoreChangeText: scoreChange > 0 ? `+${scoreChange}` : `${scoreChange}`,
+          scoreChangeText: scoreChange > 0 ? `+${formattedChange}` : `${formattedChange}`,
           // 项目名称：兼容多种字段名
           rule_name: item.rule_name || item.item_name || item.source_type || '',
           // 原因详情
@@ -300,29 +303,51 @@ Page({
   loadDisciplineRecords: async function () {
     try {
       const studentId = this.data.studentId;
-      console.log('加载处分记录, student_id:', studentId);
-      
-      const res = await api.disciplineApi.getDisciplineRecords(studentId);
-      console.log('处分记录查询结果:', res);
+      const classId = this.data.classId || app.globalData.class_id || app.globalData.classId || '';
+      console.log('加载处分记录, student_id:', studentId, 'class_id:', classId);
 
-      const records = res.data.map(item => ({
+      let records = [];
+      if (classId) {
+        const res = await wx.cloud.callFunction({
+          name: 'manageDiscipline',
+          data: {
+            action: 'getDisciplineRecords',
+            data: { class_id: classId, student_id: studentId, pageSize: 50 }
+          }
+        });
+        if (res.result && res.result.success) {
+          records = res.result.data || [];
+        }
+      } else {
+        const res = await wx.cloud.callFunction({
+          name: 'manageDiscipline',
+          data: {
+            action: 'getMyDisciplineRecords',
+            data: { student_id: studentId }
+          }
+        });
+        if (res.result && res.result.success) {
+          records = res.result.data || [];
+        }
+      }
+      console.log('处分记录查询结果:', records);
+
+      const formatRecords = records.map(item => ({
         ...item,
-        // 日期格式化
-        dateText: item.date ? util.formatDate(new Date(item.date)) : '',
-        startDateText: item.start_date ? util.formatDate(new Date(item.start_date)) : '',
-        endDateText: item.end_date ? util.formatDate(new Date(item.end_date)) : '',
-        expiryDateText: item.expiry_date ? util.formatDate(new Date(item.expiry_date)) : '',
+        dateText: item.issue_date || '',
+        startDateText: item.issue_date || '',
+        endDateText: item.expiration_date ? util.formatDate(new Date(item.expiration_date)) : '',
+        expiryDateText: item.expiration_date ? util.formatDate(new Date(item.expiration_date)) : '',
         revokedDateText: item.revoked_date ? util.formatDate(new Date(item.revoked_date)) : '',
-        // 级别颜色
-        levelColor: this.getDisciplineLevelColor(item.level_name),
-        // 状态文字
-        statusText: this.getDisciplineStatusText(item.status, item.revocation_status)
+        level_name: item.discipline_level || item.level_name || '',
+        points_deducted: item.score_deduction || item.points_deducted || 0,
+        levelColor: this.getDisciplineLevelColor(item.discipline_level || item.level_name),
+        statusText: this.getDisciplineStatusText(item.status, item.is_revoked ? '已撤销' : '')
       }));
 
-      this.setData({ disciplineRecords: records });
+      this.setData({ disciplineRecords: formatRecords });
     } catch (err) {
       console.error('加载处分记录失败:', err);
-      // 集合不存在时显示空列表
       if (err.errCode === -502005) {
         this.setData({ disciplineRecords: [] });
       }
@@ -435,8 +460,8 @@ Page({
       let dormScoreInfo = null;
       if (accountRes.data && accountRes.data.length > 0) {
         const account = accountRes.data[0];
-        const current = account.current_score || account.original_score || 100;
-        const original = account.original_score || 100;
+        const current = account.current_score != null ? account.current_score : (account.original_score != null ? account.original_score : 100);
+        const original = account.original_score != null ? account.original_score : 100;
         const totalAdd = Math.max(0, current - original);
         dormScoreInfo = {
           current_score: current,
@@ -472,58 +497,54 @@ Page({
   loadDutyRecords: async function () {
     try {
       const studentId = this.data.studentId;
+      const classId = this.data.classId || app.globalData.class_id || app.globalData.classId || '';
       const db = wx.cloud.database();
       const _ = db.command;
-
-      let dutySchedules = [];
-      try {
-        const scheduleRes = await db.collection('duty_schedule')
-          .where({ student_id: studentId })
-          .orderBy('date', 'desc')
-          .limit(20)
-          .get();
-        dutySchedules = (scheduleRes.data || []).map(s => ({
-          ...s,
-          dateStr: s.date ? util.formatDate(new Date(s.date)) : '',
-          statusText: s.status === 'completed' ? '已完成' : s.status === 'pending' ? '待执行' : s.status === 'missed' ? '未执行' : (s.status || '待执行')
-        }));
-      } catch (e) {
-        console.warn('duty_schedule集合查询失败:', e);
-      }
+      const semesterId = app.globalData.currentSemesterId || '';
 
       let dutyTaskRecords = [];
+      let totalCount = 0;
+      let completedCount = 0;
       let hygieneScore = 0;
       try {
-        const taskRes = await db.collection('duty_tasks')
-          .where({ student_id: studentId })
+        let query = { student_id: studentId };
+        if (classId) query.class_id = classId;
+        if (semesterId) query.semester_id = semesterId;
+
+        const taskRes = await db.collection('duty_task')
+          .where(query)
           .orderBy('created_at', 'desc')
           .limit(20)
           .get();
-        dutyTaskRecords = (taskRes.data || []).map(t => ({
-          ...t,
-          dateStr: t.date || (t.created_at ? util.formatDate(new Date(t.created_at)) : ''),
-          scoreText: (t.score || t.score_value || 0) > 0 ? `+${t.score || t.score_value || 0}` : `${t.score || t.score_value || 0}`,
-          scoreClass: (t.score || t.score_value || 0) > 0 ? 'score-add' : 'score-minus'
-        }));
-        hygieneScore = dutyTaskRecords.reduce((sum, t) => sum + (t.score || t.score_value || 0), 0);
+        dutyTaskRecords = (taskRes.data || []).map(t => {
+          const sc = t.score_change || 0;
+          totalCount++;
+          if (t.status === '已完成') completedCount++;
+          hygieneScore += sc;
+          return {
+            ...t,
+            dateStr: t.duty_date || (t.created_at ? util.formatDate(new Date(t.created_at)) : ''),
+            taskName: t.task_name || '值日',
+            scoreText: sc > 0 ? `+${sc}` : `${sc}`,
+            scoreClass: sc > 0 ? 'score-add' : 'score-minus',
+            statusText: t.status || '待检查'
+          };
+        });
       } catch (e) {
-        console.warn('duty_tasks集合查询失败:', e);
+        console.warn('duty_task集合查询失败:', e);
       }
 
-      let hygieneCheckRecords = [];
-
       const dutyInfo = {
-        totalSchedules: dutySchedules.length,
-        completedSchedules: dutySchedules.filter(s => s.status === 'completed').length,
+        totalSchedules: totalCount,
+        completedSchedules: completedCount,
         hygieneScore: hygieneScore
       };
 
       this.setData({
         dutyInfo,
         dutyRecords: {
-          schedules: dutySchedules,
           tasks: dutyTaskRecords,
-          hygieneChecks: hygieneCheckRecords
+          hygieneChecks: []
         }
       });
     } catch (err) {
@@ -547,6 +568,7 @@ Page({
   // 获取处分级别颜色
   getDisciplineLevelColor: function (level) {
     const colorMap = {
+      '口头警告': '#1890ff',
       '警告': '#faad14',
       '严重警告': '#fa8c16',
       '记过': '#ff4d4f',
@@ -558,8 +580,8 @@ Page({
   },
 
   // 获取处分状态文字
-  getDisciplineStatusText: function (status, revocationStatus) {
-    if (revocationStatus === '已撤销' || status === 'revoked') {
+  getDisciplineStatusText: function (status, isRevoked) {
+    if (isRevoked === true || status === 'revoked') {
       return '已撤销';
     }
     const statusMap = {

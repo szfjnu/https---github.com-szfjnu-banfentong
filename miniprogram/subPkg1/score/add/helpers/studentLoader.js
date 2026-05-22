@@ -95,6 +95,7 @@ studentLoader.loadStudentsByGroup = async function (groupName, currentClassId, a
   }
 
   var group = groupRes.data[0];
+  var groupName = group.group_name || group.name || '';
   var members = group.members || [];
 
   if (members.length === 0) {
@@ -108,6 +109,11 @@ studentLoader.loadStudentsByGroup = async function (groupName, currentClassId, a
   });
 
   var students = dataFormatter.processStudentsData(studentsResData);
+
+  // 为每个学生添加 group 字段，确保 applyFilter 能按组筛选
+  students = students.map(function (s) {
+    return Object.assign({}, s, { group: s.group || s.group_name || groupName });
+  });
 
   if (group.leader_id) {
     students = students.map(function (s) {
@@ -184,6 +190,13 @@ studentLoader.resolveStudentQueryClassId = async function (role, currentClassId,
   if (role === 'class_cadre') {
     var relationData = await studentLoader.getClassCadetRelation(openid);
     if (relationData.length > 0) return { classId: relationData[0].class_id, isMultiple: false };
+    if (appGlobalClassId) return { classId: appGlobalClassId, isMultiple: false };
+    return { classId: null, isMultiple: false };
+  }
+
+  // 学生/家长拥有score模块write权限时，可查看班级学生列表
+  var app = getApp();
+  if ((role === 'student' || role === 'parent') && app.hasPermission('score', 'write')) {
     if (appGlobalClassId) return { classId: appGlobalClassId, isMultiple: false };
     return { classId: null, isMultiple: false };
   }

@@ -315,9 +315,9 @@ const formatFileSize = (bytes) => {
 
 const formatScore = (value) => {
   if (value === null || value === undefined || value === '' || isNaN(value) || !isFinite(value)) {
-    return 0;
+    return '0.00';
   }
-  return Math.round(Number(value) * 100) / 100;
+  return Number(value).toFixed(2);
 };
 
 module.exports = {

@@ -147,8 +147,7 @@ Page({
 
   // 检查权限
   checkPermission: function () {
-    const role = app.globalData.role;
-    if (role !== 'admin' && role !== 'head_teacher' && role !== 'subject_teacher') {
+    if (!app.hasPermission('score', 'manage')) {
       wx.showModal({
         title: '权限不足',
         content: '您没有权限访问此页面',

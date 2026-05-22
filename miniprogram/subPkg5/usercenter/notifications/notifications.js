@@ -54,7 +54,7 @@ Page({
 
   onLoad: function (options) {
     const role = app.globalData.role;
-    const canPublish = ['admin', 'head_teacher', 'subject_teacher'].includes(role);
+    const canPublish = app.hasPermission('notification', 'send');
 
     this.setData({
       openid: app.globalData.openid,
@@ -268,7 +268,9 @@ Page({
   },
 
   onPublishPriorityChange: function (e) {
-    this.setData({ 'publishForm.priority': e.detail.value });
+    // 从 dataset 中获取优先级值
+    this.setData({ 'publishForm.priority': e.currentTarget.dataset.value });
+    
   },
 
   submitPublish: async function () {

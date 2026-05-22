@@ -88,8 +88,7 @@ Page({
   },
 
   onLoad: function () {
-    const role = app.globalData.role;
-    if (role !== 'admin' && role !== 'head_teacher') {
+    if (!app.hasPermission('authorization', 'admin')) {
       wx.showToast({ title: '无权限访问', icon: 'none' });
       setTimeout(() => wx.navigateBack(), 1500);
       return;

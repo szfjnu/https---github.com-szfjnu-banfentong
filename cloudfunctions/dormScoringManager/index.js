@@ -3,7 +3,8 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
-const { getCallerInfo, requireScoringInputRole, requireScoringDeleteRole, getVisibleRoomFilter, AUTH_ERRORS } = require('./utils/auth');
+const { getCallerInfo, AUTH_ERRORS } = require('./utils/auth');
+const { requireScoringInputRole, requireScoringDeleteRole, getVisibleRoomFilter } = require('./utils/scoring-auth');
 
 function validateParams(data, requiredFields) {
   for (const field of requiredFields) {

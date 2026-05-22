@@ -27,7 +27,7 @@ Page({
       this.loadBuilding(options.building_id);
     }
 
-    const classId = options.class_id || app.globalData.class_id || app.globalData.classId || '';
+    const classId = app.globalData.class_id || app.globalData.classId || options.class_id || '';
     this.setData({ currentClassId: classId });
 
     if (options.id) {
@@ -119,7 +119,15 @@ Page({
 
   // 提交
   onSubmit: async function () {
-    const { formData, editingRoom, buildingId } = this.data;
+    const { formData, editingRoom, buildingId, currentClassId } = this.data;
+
+    if (!editingRoom && !currentClassId) {
+      wx.showToast({ 
+        title: '缺少班级信息，无法保存', 
+        icon: 'none' 
+      });
+      return;
+    }
 
     if (!formData.room_number.trim()) {
       wx.showToast({

@@ -65,8 +65,8 @@ Page({
       return;
     }
 
-    // 仅管理员/班主任/班干部可进入
-    if (role !== 'admin' && role !== 'head_teacher' && role !== 'class_cadre') {
+    // 管理角色或拥有模块权限可进入
+    if (!app.hasPermission('duty', 'check')) {
       wx.showToast({ title: '无权限访问', icon: 'none' });
       setTimeout(() => wx.navigateBack(), 1500);
       return;

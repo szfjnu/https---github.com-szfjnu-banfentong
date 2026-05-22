@@ -248,6 +248,37 @@ function isStudentOrParent(role) {
   return role === 'student' || role === 'parent';
 }
 
+/**
+ * 判断是否有模块权限配置（角色优先，模块权限兜底）
+ * @param {string} role - 角色标识
+ * @param {string} module - 模块名
+ * @param {string} action - 操作名，默认 'write'
+ * @param {Object} modulePermissions - 模块权限配置，如 { score: ['read','write'], duty: ['read','write'] }
+ * @returns {boolean}
+ */
+function hasModulePermission(role, module, action = 'write', modulePermissions) {
+  if (['admin', 'head_teacher', 'subject_teacher'].includes(role)) return true;
+  // 家长/班干部之外的普通学生才可使用模块授权，家长绝对禁止
+  if (!['student', 'class_cadre'].includes(role)) return false;
+  if (!modulePermissions) return false;
+  const perms = modulePermissions[module] || [];
+  return perms.includes(action);
+}
+
+/**
+ * 综合判断是否可管理模块（角色canManage + 模块权限兜底）
+ * @param {string} role - 角色标识
+ * @param {string} module - 模块名
+ * @param {Object} authorizations - 模块权限配置
+ * @returns {boolean}
+ */
+function canManageWithModule(role, module, authorizations) {
+  if (canManage(role, module)) return true;
+  // 家长绝对禁止通过模块授权获得管理权限
+  if (role === 'parent') return false;
+  return hasModulePermission(role, module, 'write', authorizations);
+}
+
 module.exports = {
   ROLES,
   ROLE_LABELS,
@@ -258,5 +289,7 @@ module.exports = {
   getRoleLabel,
   isAdminRole,
   isTeacherRole,
-  isStudentOrParent
+  isStudentOrParent,
+  hasModulePermission,
+  canManageWithModule
 };

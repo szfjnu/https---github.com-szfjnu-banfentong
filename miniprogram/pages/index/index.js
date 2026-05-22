@@ -220,7 +220,7 @@ Page({
           const studentRes = await api.studentApi.getStudentByStudentId(studentId);
           if (studentRes.data && studentRes.data.length > 0) {
             const student = studentRes.data[0];
-            const score = student.current_score || 100;
+            const score = util.formatScore(student.current_score || 100);
 
             // 获取志愿服务统计
             const volunteerRes = await api.volunteerApi.getStatistics(studentId);
@@ -247,7 +247,7 @@ Page({
           const studentRes = await api.studentApi.getStudentByStudentId(studentId);
           if (studentRes.data && studentRes.data.length > 0) {
             const student = studentRes.data[0];
-            const score = student.current_score || 100;
+            const score = util.formatScore(student.current_score || 100);
 
             // 获取志愿服务统计
             const volunteerRes = await api.volunteerApi.getStatistics(studentId);
@@ -486,7 +486,7 @@ fetchWeather: async function (location) {
         student_id: student.student_id,
         name: student.name || student.student_name || '未知',
         avatar: student.avatar || '',
-        totalScore: student.current_score || 100,
+        totalScore: util.formatScore(student.current_score || 100),
         monthlyScore: monthlyScores[student.student_id] || 0,
         badge: this.getRankBadge(index + 1)
       }));
@@ -496,12 +496,13 @@ fetchWeather: async function (location) {
       ranking.forEach((item, index) => {
         item.rank = index + 1;
         item.badge = this.getRankBadge(index + 1);
-        item.monthlyScoreDisplay = item.monthlyScore > 0 ? `+${item.monthlyScore}` : `${item.monthlyScore}`;
+        const score = util.formatScore(item.monthlyScore);
+        item.monthlyScoreDisplay = score > 0 ? `+${score}` : score;
       });
 
       this.setData({ 
         scoreRanking: ranking.slice(0, 5),
-        rankingLoading: false 
+        rankingLoading: false  
       });
     } catch (err) {
       console.error('加载排行榜失败:', err);

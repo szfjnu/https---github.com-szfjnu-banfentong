@@ -45,7 +45,8 @@
 
       <!-- 消息列表 -->
       <view class="message-item {{item.role === 'user' ? 'user' : 'assistant'}}"
-        wx:for="{{messages}}" wx:key="index" id="msg-{{index}}">
+        wx:for="{{messages}}" wx:key="index" id="msg-{{index}}"
+        bindlongpress="deleteMessage" data-index="{{index}}">
         <view class="message-avatar" wx:if="{{item.role === 'assistant'}}">
           {{currentNpc.icon}}
         </view>

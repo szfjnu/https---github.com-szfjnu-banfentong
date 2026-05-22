@@ -51,7 +51,7 @@ Page({
   // 检查权限
   checkPermission: function () {
     const role = app.globalData.role;
-    if (role !== 'admin' && role !== 'head_teacher' && role !== 'subject_teacher') {
+    if (!app.hasPermission('mall', 'manage')) {
       wx.showModal({
         title: '权限不足',
         content: '您没有权限访问此页面',
@@ -190,14 +190,14 @@ Page({
       const res = await wx.cloud.callFunction({
         name: 'processRedemption',
         data: {
-          action: 'approveRedemption',
+          action: 'teacherApprove',
           data: {
             requestId: request._id,
             studentId: request.student_id,
             classId: request.class_id,
             itemId: request.item_id,
             score: request.bid_score || request.required_score || 0,
-            approver: app.globalData.userInfo?.nickName || '管理员'
+            approverName: app.globalData.userInfo?.nickName || '管理员'
           }
         }
       });
@@ -292,14 +292,14 @@ Page({
     const res = await wx.cloud.callFunction({
       name: 'processRedemption',
       data: {
-        action: 'approveRedemption',
+        action: 'teacherApprove',
         data: {
           requestId: request._id,
           studentId: request.student_id,
           classId: request.class_id,
           itemId: request.item_id,
           score: request.bid_score || request.required_score || 0,
-          approver: app.globalData.userInfo?.nickName || '管理员'
+          approverName: app.globalData.userInfo?.nickName || '管理员'
         }
       }
     });

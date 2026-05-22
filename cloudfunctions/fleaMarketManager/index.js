@@ -3,7 +3,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
 
-const { getCallerInfo, requireRole, requireClassAccess, requireTeacher, AUTH_ERRORS } = require('./utils/auth')
+const { getCallerInfo, requireRole, requireClassAccess, requireTeacherOrModule, AUTH_ERRORS } = require('./utils/auth')
 
 const CATEGORIES = {
   textbook: '教材书籍',
@@ -180,7 +180,7 @@ async function getItemDetail(event, openid, classId) {
 }
 
 async function updateItem(event, caller) {
-  requireTeacher(caller)
+  await requireTeacherOrModule(caller, 'flea_market')
 
   const { itemId, title, description, category, price, originalPrice, condition, images, sellerContact, tags } = event
   const { openid } = caller
@@ -206,7 +206,7 @@ async function updateItem(event, caller) {
 }
 
 async function deleteItem(event, caller) {
-  requireTeacher(caller)
+  await requireTeacherOrModule(caller, 'flea_market')
 
   const { itemId } = event
   const { openid, role } = caller
@@ -377,7 +377,7 @@ async function reportItem(event, openid, classId) {
 }
 
 async function handleReport(event, caller) {
-  requireTeacher(caller)
+  await requireTeacherOrModule(caller, 'flea_market')
 
   const { reportId, action: reportAction } = event
 

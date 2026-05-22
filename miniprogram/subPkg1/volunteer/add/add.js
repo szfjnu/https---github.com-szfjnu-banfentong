@@ -67,19 +67,20 @@ Page({
       return;
     }
     
-    // 学生/家长身份：自动绑定本人/子女，不允许选择其他学生
+    // 学生/家长身份：有模块write权限可操作多人，否则只能绑定本人
     const isStudentOrParent = role === 'student' || role === 'parent';
+    const hasVolunteerWrite = app.hasPermission('volunteer', 'write');
     
     this.setData({ 
       currentClassId: classId,
       currentDate: currentDate,
-      isStudentOrParent: isStudentOrParent
+      isStudentOrParent: isStudentOrParent && !hasVolunteerWrite
     });
     this.loadCurrentSemester();
     this.loadScoreRule();
     
-    if (isStudentOrParent && studentId) {
-      // 学生/家长自动绑定，不需要加载全部学生列表
+    if (isStudentOrParent && !hasVolunteerWrite && studentId) {
+      // 无模块权限的学生/家长自动绑定，不需要加载全部学生列表
       this.autoBindStudent(studentId);
     } else {
       this.loadStudents();
@@ -376,10 +377,11 @@ Page({
       const userRole = app.globalData.role || '';
       
       // 判断审批状态（整合审批工作流）
-      const isTeacher = userRole === 'head_teacher' || userRole === 'subject_teacher' || userRole === 'admin';
+      const isTeacher = app.hasPermission('volunteer', 'submit');
       const isCadre = userRole === 'class_cadre';
-      // 学生/家长/班委提交需要审批，班主任/管理员直接通过
-      const needsApproval = isStudentOrParent || isCadre;
+      const hasModuleWrite = app.hasPermission('volunteer', 'write');
+      // 学生/家长/班委提交需要审批，有模块write权限或教师直接通过
+      const needsApproval = (isStudentOrParent || isCadre) && !hasModuleWrite;
       
       // 上传图片
       let proofUrls = [];

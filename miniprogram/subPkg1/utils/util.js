@@ -2,6 +2,20 @@
 // 通用工具函数库
 
 /**
+ * 格式化积分 -> 保留两位小数
+ * @param {Number} score 积分
+ * @returns {String} 格式化后的积分
+ */
+const formatScore = (score) => {
+  if (score === null || score === undefined || isNaN(score)) {
+    return '0.00';
+  }
+  return parseFloat(score).toFixed(2);
+};
+
+/**
+
+/**
  * 格式化日期
  * @param {Date} date 日期对象
  * @param {String} format 格式字符串
@@ -314,6 +328,7 @@ const formatFileSize = (bytes) => {
 };
 
 module.exports = {
+  formatScore, 
   formatDate,
   formatTime,
   formatDateTime,

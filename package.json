@@ -4,6 +4,8 @@
   "description": "班级德育管理系统微信小程序",
   "main": "app.js",
   "scripts": {
+    "predeploy": "node scripts/sync-common-modules.js",
+    "sync:auth": "node scripts/sync-common-modules.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [

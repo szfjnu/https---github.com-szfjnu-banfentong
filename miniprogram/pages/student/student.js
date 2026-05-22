@@ -353,7 +353,7 @@ Page({
     const semesterId = app.globalData.currentSemesterId;
     
     // 权限检查
-    if (role !== 'admin' && role !== 'head_teacher') {
+    if (!app.hasPermission('score', 'manage')) {
       wx.showToast({
         title: '无权限操作',
         icon: 'none'

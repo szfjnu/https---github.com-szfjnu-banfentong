@@ -3,7 +3,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
-const { getCallerInfo, requireTeacher, requireAdmin, AUTH_ERRORS } = require('./utils/auth');
+const { getCallerInfo, requireTeacherOrModule, requireAdmin, AUTH_ERRORS } = require('./utils/auth');
 
 function validateParams(data, requiredFields) {
   for (const field of requiredFields) {
@@ -73,25 +73,30 @@ async function getDormCandidates(data) {
           bed_number: b.bed_number,
           bed_index: b.bed_index,
           occupied: b.occupied || false,
+          student_doc_id: b.student_doc_id || '',
           student_id: b.student_id || '',
           student_name: ''
         };
-        if (b.occupied && b.student_id) {
+        if (b.occupied) {
+          const docId = b.student_doc_id || '';
+          const bizId = b.student_id || '';
           try {
-            const studentRes = await db.collection('students')
-              .where({ _id: b.student_id })
-              .limit(1)
-              .get();
-            if (!studentRes.data || studentRes.data.length === 0) {
-              const byStudentId = await db.collection('students')
-                .where({ student_id: b.student_id })
+            let found = false;
+            if (docId) {
+              const studentRes = await db.collection('students').doc(docId).get();
+              if (studentRes.data) {
+                bedItem.student_name = studentRes.data.name || '';
+                found = true;
+              }
+            }
+            if (!found && bizId) {
+              const byBizId = await db.collection('students')
+                .where({ student_id: bizId })
                 .limit(1)
                 .get();
-              if (byStudentId.data && byStudentId.data.length > 0) {
-                bedItem.student_name = byStudentId.data[0].name || '';
+              if (byBizId.data && byBizId.data.length > 0) {
+                bedItem.student_name = byBizId.data[0].name || '';
               }
-            } else {
-              bedItem.student_name = studentRes.data[0].name || '';
             }
           } catch (e) {
             console.error('查询学生姓名失败:', e);
@@ -133,16 +138,17 @@ async function syncDormInfo(data, openid) {
       return { success: false, message: '关联ID不一致：床位不属于该房间', code: 'DATA_INCONSISTENT' };
     }
 
-    if (targetBed.occupied && targetBed.student_id && targetBed.student_id !== student_doc_id) {
+    const occupantDocId = targetBed.student_doc_id || targetBed.student_id || '';
+    if (targetBed.occupied && occupantDocId && occupantDocId !== student_doc_id) {
       if (!force_replace) {
         let occupantName = '';
         try {
-          const occRes = await db.collection('students').doc(targetBed.student_id).get();
+          const occRes = await db.collection('students').doc(occupantDocId).get();
           occupantName = occRes.data ? occRes.data.name : '';
         } catch (e) {
           try {
             const occRes2 = await db.collection('students')
-              .where({ student_id: targetBed.student_id }).limit(1).get();
+              .where({ student_id: occupantDocId }).limit(1).get();
             occupantName = (occRes2.data && occRes2.data.length > 0) ? occRes2.data[0].name : '';
           } catch (e2) { }
         }
@@ -150,7 +156,7 @@ async function syncDormInfo(data, openid) {
           success: false,
           message: `该床位已被${occupantName || '其他学生'}入住`,
           code: 'BED_OCCUPIED',
-          occupied_by: targetBed.student_id,
+          occupied_by: occupantDocId,
           occupied_by_name: occupantName
         };
       }
@@ -174,7 +180,7 @@ async function syncDormInfo(data, openid) {
           const oldBedRes = await t.collection('dorm_beds').doc(oldBedId).get();
           if (oldBedRes.data) {
             await t.collection('dorm_beds').doc(oldBedId).update({
-              data: { occupied: false, student_id: '' }
+              data: { occupied: false, student_doc_id: '', student_id: '' }
             });
           }
         } catch (e) {
@@ -182,12 +188,12 @@ async function syncDormInfo(data, openid) {
         }
       }
 
-      if (targetBed.occupied && targetBed.student_id &&
-          targetBed.student_id !== student_doc_id && force_replace) {
+      if (targetBed.occupied && occupantDocId &&
+          occupantDocId !== student_doc_id && force_replace) {
         try {
-          const conflictRes = await t.collection('students').doc(targetBed.student_id).get();
+          const conflictRes = await t.collection('students').doc(occupantDocId).get();
           if (conflictRes.data) {
-            await t.collection('students').doc(targetBed.student_id).update({
+            await t.collection('students').doc(occupantDocId).update({
               data: {
                 is_boarding: false,
                 dorm_info: {},
@@ -198,14 +204,16 @@ async function syncDormInfo(data, openid) {
             });
           }
         } catch (e) {
-          console.warn('冲突学生记录不存在:', targetBed.student_id);
+          console.warn('冲突学生记录不存在:', occupantDocId);
         }
       }
 
+      const studentBusinessId = data.student_id || '';
       await t.collection('dorm_beds').doc(bed_id).update({
         data: {
           occupied: true,
-          student_id: student_doc_id
+          student_doc_id: student_doc_id,
+          student_id: studentBusinessId || student_doc_id
         }
       });
 
@@ -269,7 +277,7 @@ async function releaseBed(data, openid) {
           const bedRes = await t.collection('dorm_beds').doc(oldBedId).get();
           if (bedRes.data) {
             await t.collection('dorm_beds').doc(oldBedId).update({
-              data: { occupied: false, student_id: '' }
+              data: { occupied: false, student_doc_id: '', student_id: '' }
             });
           }
         } catch (e) {
@@ -355,7 +363,7 @@ async function deleteBuilding(data, caller) {
 }
 
 async function addRoomWithBeds(data, caller) {
-  if (!data.class_id) return { success: false, message: '缺少必要参数: class_id' }
+  if (!data.class_id && !data.room_data?.class_id) return { success: false, message: '缺少必要参数: class_id' }
   const roomData = data.room_data || data || {}
   const { building_id, room_number, floor, bed_count, ...rest } = roomData
   if (!building_id || !room_number || !bed_count) {
@@ -384,6 +392,7 @@ async function addRoomWithBeds(data, caller) {
           bed_number: `${room_number}-${i}`,
           bed_index: i,
           occupied: false,
+          student_doc_id: '',
           student_id: '',
           created_at: now,
           updated_at: now
@@ -462,19 +471,19 @@ exports.main = async (event, context) => {
         return await getDormCandidates(data || {});
 
       case 'syncDormInfo':
-        requireTeacher(caller);
+        await requireTeacherOrModule(caller, 'dorm');
         return await syncDormInfo(data || {}, caller.openid);
 
       case 'releaseBed':
-        requireTeacher(caller);
+        await requireTeacherOrModule(caller, 'dorm');
         return await releaseBed(data || {}, caller.openid);
 
       case 'addBuilding':
-        requireTeacher(caller);
+        await requireTeacherOrModule(caller, 'dorm');
         return await addBuilding(data || {}, caller);
 
       case 'updateBuilding':
-        requireTeacher(caller);
+        await requireTeacherOrModule(caller, 'dorm');
         return await updateBuilding(data || {}, caller);
 
       case 'deleteBuilding':
@@ -482,19 +491,19 @@ exports.main = async (event, context) => {
         return await deleteBuilding(data || {}, caller);
 
       case 'addRoomWithBeds':
-        requireTeacher(caller);
+        await requireTeacherOrModule(caller, 'dorm');
         return await addRoomWithBeds(data || {}, caller);
 
       case 'updateRoom':
-        requireTeacher(caller);
+        await requireTeacherOrModule(caller, 'dorm');
         return await updateRoom(data || {}, caller);
 
       case 'deleteRoom':
-        requireTeacher(caller);
+        await requireTeacherOrModule(caller, 'dorm');
         return await deleteRoom(data || {}, caller);
 
       case 'addInspectionRecord':
-        requireTeacher(caller);
+        await requireTeacherOrModule(caller, 'dorm');
         return await addInspectionRecord(data || {}, caller);
 
       default:

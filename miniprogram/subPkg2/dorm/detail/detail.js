@@ -82,7 +82,7 @@ Page({
         const account = accountRes.data[0];
         accounts = account;
         // 使用账户中的 current_score 或 original_score 作为当前宿舍积分
-        currentDormScore = account.current_score !== undefined ? account.current_score : (account.original_score || 100);
+        currentDormScore = account.current_score != null ? account.current_score : (account.original_score != null ? account.original_score : 100);
       }
 
       this.setData({
@@ -127,11 +127,11 @@ Page({
         .limit(1)
         .get();
 
-      let currentScore = this.data.student.dorm_score || 100;
+      let currentScore = this.data.student.dorm_score != null ? this.data.student.dorm_score : 100;
       if (accountRes.data.length > 0) {
-        currentScore = accountRes.data[0].current_score !== undefined
+        currentScore = accountRes.data[0].current_score != null
           ? accountRes.data[0].current_score
-          : (accountRes.data[0].original_score || 100);
+          : (accountRes.data[0].original_score != null ? accountRes.data[0].original_score : 100);
       }
 
       // 从当前积分倒推每条历史记录后的剩余积分

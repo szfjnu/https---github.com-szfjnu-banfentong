@@ -62,10 +62,12 @@ Page({
     }
 
     const role = app.globalData.role;
-    // 允许学生和家长使用积分商城
-    if (role !== 'student' && role !== 'parent') {
+    const isAdminOrTeacher = app.hasPermission('mall', 'manage');
+    const isStudentOrParent = ['student', 'parent'].includes(role);
+
+    if (!isStudentOrParent && !isAdminOrTeacher) {
       wx.showToast({
-        title: '仅学生/家长可使用积分商城',
+        title: '无权访问积分商城',
         icon: 'none',
         duration: 2000
       });
@@ -76,7 +78,8 @@ Page({
     }
 
     this.setData({
-      studentId: app.globalData.student_id
+      studentId: app.globalData.student_id || '',
+      isAdminOrTeacher: isAdminOrTeacher
     });
   },
 
@@ -116,8 +119,31 @@ Page({
       const studentRes = await api.studentApi.getStudentByStudentId(studentId);
       if (studentRes.data && studentRes.data.length > 0) {
         const student = studentRes.data[0];
+        const totalScore = student.current_score || 100;
+        const initialScore = student.initial_score || 100;
+
+        let redeemedTotal = 0;
+        try {
+          const db = wx.cloud.database();
+          const _ = db.command;
+          const redeemRes = await db.collection('redemption_requests')
+            .where({
+              student_id: studentId,
+              status: _.in(['待审批', '待班主任审批', '已通过', '已批准', '已中标', '已发货', '已收货'])
+            })
+            .get();
+          redeemedTotal = (redeemRes.data || []).reduce((sum, r) => sum + (r.bid_score || r.required_score || 0), 0);
+        } catch (e) {
+          console.error('查询已兑换积分失败:', e);
+        }
+
+        const redeemableScore = Math.max(0, totalScore - initialScore - redeemedTotal);
+
         this.setData({
-          myScore: student.current_score || 100,
+          myScore: totalScore,
+          initialScore: initialScore,
+          redeemedTotal: redeemedTotal,
+          redeemableScore: redeemableScore,
           studentInfo: student
         });
       }
@@ -144,7 +170,7 @@ Page({
       const items = res.data.map(item => {
         return {
           ...item,
-          canRedeem: item.required_score <= this.data.myScore && item.quantity > 0,
+          canRedeem: item.required_score <= this.data.redeemableScore && item.quantity > 0,
           statusText: this.getStatusText(item.status, item.quantity)
         };
       });
@@ -276,9 +302,9 @@ Page({
     const item = e.currentTarget.dataset.item;
 
     if (!item.canRedeem) {
-      if (item.required_score > this.data.myScore) {
+      if (item.required_score > this.data.redeemableScore) {
         wx.showToast({
-          title: '积分不足',
+          title: '可兑换积分不足',
           icon: 'none',
           duration: 2000
         });
@@ -368,8 +394,8 @@ Page({
       return;
     }
 
-    if (bidScore > myScore) {
-      this.setData({ bidInputError: `投标积分不能超过您的积分（${myScore}）` });
+    if (bidScore > myScore && bidScore > this.data.redeemableScore) {
+      this.setData({ bidInputError: `投标积分不能超过您的可兑换积分（${this.data.redeemableScore}）` });
       return;
     }
 
@@ -406,10 +432,10 @@ Page({
         return;
       }
 
-      // 检查积分是否充足
-      if (this.data.myScore < bidScore) {
+      // 检查可兑换积分是否充足
+      if (this.data.redeemableScore < bidScore) {
         wx.showToast({
-          title: '积分不足',
+          title: '可兑换积分不足',
           icon: 'none',
           duration: 2000
         });

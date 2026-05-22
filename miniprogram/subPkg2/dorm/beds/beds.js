@@ -76,48 +76,30 @@ Page({
         let student = null;
         const isOccupied = bed.occupied === true || (bed.student_id && bed.student_id !== '');
 
-        if (isOccupied) {
+        if (isOccupied && bed.student_id && bed.student_id !== '') {
           try {
-            if (bed.student_id && bed.student_id !== '') {
-              try {
-                const docRes = await db.collection('students').doc(bed.student_id).get();
-                student = docRes.data;
-              } catch (e) {
-                // doc() 方式失败，尝试 where 查询
-              }
-              if (!student) {
-                let studentRes = await db.collection('students')
-                  .where({ _id: bed.student_id })
-                  .limit(1)
-                  .get();
-                if (studentRes.data && studentRes.data.length > 0) {
-                  student = studentRes.data[0];
-                }
-              }
-              if (!student) {
-                let studentRes = await db.collection('students')
-                  .where({ student_id: bed.student_id })
-                  .limit(1)
-                  .get();
-                if (studentRes.data && studentRes.data.length > 0) {
-                  student = studentRes.data[0];
-                }
-              }
+            // 按学号精准查询学生，不再用doc(_id)
+            const studentRes = await db.collection('students')
+              .where({ student_id: bed.student_id })
+              .limit(1)
+              .get();
+            if (studentRes.data.length > 0) {
+              student = studentRes.data[0];
+            }else {
+             // 兜底关联床位查询
+             const bedRelateRes = await db.collection('students')
+              .where({ dorm_bed_id: bed._id })
+              .limit(1)
+              .get();
+            if (bedRelateRes.data.length > 0) {
+              student = bedRelateRes.data[0];
             }
-            if (!student) {
-              let studentRes = await db.collection('students')
-                .where({ dorm_bed_id: bed._id })
-                .limit(1)
-                .get();
-              if (studentRes.data && studentRes.data.length > 0) {
-                student = studentRes.data[0];
-              }
-            }
-          } catch (err) {
-            console.error('获取学生信息失败:', err);
-            student = null;
           }
+        } catch (err) {
+          console.error('获取学生信息失败:', err);
+          student = null;
         }
+      }  
 
         const effectiveOccupied = isOccupied && student !== null;
 
@@ -158,7 +140,7 @@ Page({
 
     if (bed && bed.occupied && bed.student) {
       wx.navigateTo({
-        url: `/subPkg1/student/detail/detail?id=${bed.student._id}`
+        url: `/subPkg1/student/detail/detail?id=${bed.student.student_id}&classId=${bed.student.class_id}`
       });
     }
   },

@@ -46,9 +46,11 @@ Page({
     // 设置日期范围
     const today = new Date();
     const minDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+    const defaultStartDate = new Date(today.getFullYear(), today.getMonth(), 1); // 本月1号
     this.setData({
       minDate: this.formatDate(minDate),
       maxDate: this.formatDate(today),
+      startDate: this.formatDate(defaultStartDate),
       endDate: this.formatDate(today)
     });
 
@@ -144,7 +146,7 @@ Page({
         const keyword = searchKeyword.trim();
         const studentNameRes = await db.collection('students')
           .where({
-            class_id: classId,
+            class_id: userClassId,
             name: db.RegExp({ regexp: keyword, options: 'i' })
           })
           .field({ student_id: true })
@@ -199,7 +201,7 @@ Page({
       // 格式化记录，关联学生信息
       const formattedRecords = records.map(record => {
         const student = studentMap[record.student_id] || {};
-        
+
         // 处理宿舍信息（可能是对象或字符串）
         let dormInfoStr = '';
         if (student.dorm_info) {
@@ -211,12 +213,26 @@ Page({
             dormInfoStr = building && room ? `${building}-${room}` : (building || room || '');
           }
         }
-        
+
+        // 处理日期：优先使用 record_date，否则使用 created_at
+        let dateValue = record.record_date || record.created_at;
+        let formattedDate = '未知日期';
+        if (dateValue) {
+          try {
+            const dateObj = new Date(dateValue);
+            if (!isNaN(dateObj.getTime())) {
+              formattedDate = this.formatDate(dateObj);
+            }
+          } catch (e) {
+            console.warn('日期格式化失败:', dateValue);
+          }
+        }
+
         return {
           ...record,
           student_name: student.name || record.student_name || '未知',
           dorm_info: dormInfoStr || record.dorm_info || '',
-          record_date_text: this.formatDate(new Date(record.record_date))
+          record_date_text: formattedDate
         };
       });
 

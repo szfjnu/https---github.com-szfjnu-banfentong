@@ -74,7 +74,7 @@ Page({
     try {
       const role = app.globalData.role;
       const classId = app.globalData.class_id;
-      const isAdmin = role === 'admin' || role === 'head_teacher';
+      const isAdmin = app.hasPermission('dorm', 'manage');
 
       const dormBuildings = app.globalData.dormBuildings || ['1号楼', '2号楼', '3号楼', '4号楼'];
       const buildingOptions = [{ label: '全部楼栋', value: '' }];
@@ -244,11 +244,11 @@ Page({
       const totalStudents = students.length;
       
       // 从宿舍积分账户计算实时平均分
-      const totalScore = accounts.reduce((sum, a) => sum + (a.current_score || a.original_score || 100), 0);
+      const totalScore = accounts.reduce((sum, a) => sum + (a.current_score != null ? a.current_score : (a.original_score != null ? a.original_score : 100)), 0);
       const avgScore = accounts.length > 0 ? Math.round(totalScore / accounts.length) : 100;
 
       // 统计预警人数（积分 < 60）
-      const warningCount = accounts.filter(a => (a.current_score || a.original_score || 100) < 60).length;
+      const warningCount = accounts.filter(a => (a.current_score != null ? a.current_score : (a.original_score != null ? a.original_score : 100)) < 60).length;
 
       // 格式化预警数据
       const warnings = warningsRes.data.map(w => ({
@@ -281,14 +281,28 @@ Page({
           }
         }
 
+        // 处理日期：优先使用 record_date，否则使用 created_at
+        let dateValue = record.record_date || record.created_at;
+        let formattedDate = '未知日期';
+        if (dateValue) {
+          try {
+            const dateObj = new Date(dateValue);
+            if (!isNaN(dateObj.getTime())) {
+              formattedDate = this.formatDate(dateObj);
+            }
+          } catch (e) {
+            console.warn('日期格式化失败:', dateValue);
+          }
+        }
+
         return {
           ...record,
           inspection_type: record.record_type === 'violation' ? '违规扣分' : '服务加分',
-          building,
-          room,
-          student_name: studentMap[record.student_id]?.name || '未知',
-          score_display: record.score_change || record.score_value || 0,  // 使用 score_change 字段
-          inspection_date: this.formatDate(new Date(record.record_date))
+          building: building || record.building || '',
+          room: room || record.room || '',
+          student_name: studentMap[record.student_id]?.name || record.student_name || '未知',
+          score_display: record.score_change || record.score_value || 0,
+          inspection_date: formattedDate
         };
       });
 

@@ -19,6 +19,11 @@ Page({
   },
 
   onLoad: function () {
+    if (app.globalData.role === 'parent') {
+      wx.showToast({ title: '家长暂不开放此功能', icon: 'none' })
+      setTimeout(() => wx.navigateBack(), 1500)
+      return
+    }
     this.checkPermission()
   },
 

@@ -2,7 +2,7 @@ const cloud = require('wx-server-sdk')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
-const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('./utils/auth')
+const { getCallerInfo, requireTeacherOrModule, AUTH_ERRORS } = require('./utils/auth')
 
 exports.main = async (event, context) => {
   const db = cloud.database()
@@ -41,7 +41,7 @@ async function batchReset(data, event) {
   }
 
   const caller = await getCallerInfo(event, classId)
-  requireTeacher(caller)
+  await requireTeacherOrModule(caller, 'score')
 
   const initialScore = resetSettings?.initial_score || 100
   let query = { class_id: classId }
@@ -87,7 +87,7 @@ async function logReset(data, event) {
   }
 
   const caller = await getCallerInfo(event, classId)
-  requireTeacher(caller)
+  await requireTeacherOrModule(caller, 'score')
 
   await db.collection('score_reset_logs').add({
     data: {
@@ -116,7 +116,7 @@ async function legacyReset(event) {
   const { classId, studentId, initialScore = 100, semesterId } = event
 
   const caller = await getCallerInfo(event, classId)
-  requireTeacher(caller)
+  await requireTeacherOrModule(caller, 'score')
 
   let query = {}
   if (studentId) {

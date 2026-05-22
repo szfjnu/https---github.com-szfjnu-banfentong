@@ -204,7 +204,5 @@
     "getLocation"
   ],
   "cloud": true,
-  "componentPlaceholder": {
-    "ec-canvas": "view"
-  }
+  "componentPlaceholder": {}
 }

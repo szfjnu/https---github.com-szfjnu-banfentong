@@ -7,14 +7,14 @@ cloud.init({
 
 const db = cloud.database()
 const _ = db.command
-const { getCallerInfo, requireTeacher } = require('./utils/auth')
+const { getCallerInfo, requireTeacherOrModule } = require('./utils/auth')
 
 exports.main = async (event, context) => {
   const { class_id, stat_type = 'daily', stat_date, building, room } = event
 
   try {
     const caller = await getCallerInfo(event, class_id)
-    requireTeacher(caller)
+    await requireTeacherOrModule(caller, 'dorm')
     console.log('=== 开始生成宿舍统计报表 ===')
     console.log('参数:', { class_id, stat_type, stat_date, building, room })
 

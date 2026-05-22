@@ -1,9 +1,17 @@
-const app = getApp()
+const app = getApp();
 
-function initChart(canvas, ctx, width, height, echarts) {
-  const chart = echarts.init(canvas, null, { width, height })
-  canvas.setChart(chart)
-  return chart
+// 👉 必须写在最外层，不能写在函数内部！
+import * as echarts from '../../../ec-canvas/echarts.js';
+
+// 👉 标准 initChart，无 require
+function initChart(canvas, width, height, dpr) {
+  const chart = echarts.init(canvas, null, {
+    width: width,
+    height: height,
+    devicePixelRatio: dpr
+  });
+  canvas.setChart(chart);
+  return chart;
 }
 
 Page({
@@ -22,7 +30,7 @@ Page({
     ],
     chartTypeIndex: 0,
     selectedChartType: 'daily',
-    ec: null,
+    ec: { onInit: initChart }, // 直接绑定
     chartLoading: false,
     noData: false,
     useFallbackList: false,
@@ -32,157 +40,177 @@ Page({
   },
 
   onLoad: function () {
-    const role = app.globalData.role
-    const canViewChart = role !== 'subject_teacher'
-    const classId = app.globalData.class_id || app.globalData.classId || ''
-    this.setData({ canViewChart, classId })
+    const role = app.globalData.role;
+    const canViewChart = role !== 'subject_teacher';
+    const classId = app.globalData.class_id || app.globalData.classId || '';
+    
+    this.setData({
+      canViewChart: canViewChart,
+      classId: classId
+    });
 
-    try {
-      this.setData({
-        ec: { onInit: initChart }
-      })
-    } catch (e) {
-      console.error('ec-canvas初始化失败:', e)
-      this.setData({ useFallbackList: true })
-    }
-
-    this.loadBuildings()
+    this.loadBuildings();
   },
 
   loadBuildings: async function () {
     try {
       const res = await wx.cloud.callFunction({
         name: 'dormSyncManager',
-        data: { action: 'getDormCandidates', data: { level: 'buildings', class_id: this.data.classId } }
-      })
+        data: {
+          action: 'getDormCandidates',
+          data: { level: 'buildings', class_id: this.data.classId }
+        }
+      });
       if (res.result && res.result.success) {
-        this.setData({ buildingOptions: res.result.data || [] })
+        this.setData({ buildingOptions: res.result.data || [] });
       }
     } catch (err) {
-      console.error('加载楼栋失败:', err)
+      console.error('加载楼栋失败:', err);
     }
   },
 
   onBuildingChange: function (e) {
-    const idx = parseInt(e.detail.value)
-    const building = this.data.buildingOptions[idx]
-    if (!building) return
+    const idx = parseInt(e.detail.value);
+    const building = this.data.buildingOptions[idx];
+    if (!building) return;
+
     this.setData({
       buildingIndex: idx,
       selectedBuildingId: building._id,
       roomIndex: 0,
       selectedRoomId: ''
-    })
-    this.loadRooms(building._id)
+    });
+    this.loadRooms(building._id);
   },
 
   loadRooms: async function (buildingId) {
     try {
       const res = await wx.cloud.callFunction({
         name: 'dormSyncManager',
-        data: { action: 'getDormCandidates', data: { level: 'rooms', building_id: buildingId, class_id: this.data.classId } }
-      })
+        data: {
+          action: 'getDormCandidates',
+          data: { level: 'rooms', building_id: buildingId, class_id: this.data.classId }
+        }
+      });
       if (res.result && res.result.success) {
-        const rooms = res.result.data || []
-        this.setData({ roomOptions: rooms })
+        const rooms = res.result.data || [];
+        this.setData({ roomOptions: rooms });
         if (rooms.length > 0) {
-          this.setData({ selectedRoomId: rooms[0]._id })
-          this.loadChartData()
+          this.setData({ selectedRoomId: rooms[0]._id });
+          this.loadChartData();
         }
       }
     } catch (err) {
-      console.error('加载房间失败:', err)
+      console.error('加载房间失败:', err);
     }
   },
 
   onRoomChange: function (e) {
-    const idx = parseInt(e.detail.value)
-    const room = this.data.roomOptions[idx]
-    if (!room) return
-    this.setData({ roomIndex: idx, selectedRoomId: room._id })
-    this.loadChartData()
+    const idx = parseInt(e.detail.value);
+    const room = this.data.roomOptions[idx];
+    if (!room) return;
+    this.setData({
+      roomIndex: idx,
+      selectedRoomId: room._id
+    });
+    this.loadChartData();
   },
 
   onChartTypeChange: function (e) {
-    const idx = parseInt(e.detail.value)
-    const ct = this.data.chartTypes[idx]
-    if (!ct) return
-    this.setData({ chartTypeIndex: idx, selectedChartType: ct.value })
-    this.loadChartData()
+    const idx = parseInt(e.detail.value);
+    const ct = this.data.chartTypes[idx];
+    if (!ct) return;
+    this.setData({
+      chartTypeIndex: idx,
+      selectedChartType: ct.value
+    });
+    this.loadChartData();
   },
 
   onChartTypeTap: function (e) {
-    const value = e.currentTarget.dataset.value
-    const index = parseInt(e.currentTarget.dataset.index)
-    this.setData({ chartTypeIndex: index, selectedChartType: value })
-    this.loadChartData()
+    const value = e.currentTarget.dataset.value;
+    const index = parseInt(e.currentTarget.dataset.index);
+    this.setData({
+      chartTypeIndex: index,
+      selectedChartType: value
+    });
+    this.loadChartData();
   },
 
   loadChartData: async function () {
-    const { selectedRoomId, selectedChartType } = this.data
-    if (!selectedRoomId) return
+    const { selectedRoomId } = this.data;
+    if (!selectedRoomId) return;
 
-    this.setData({ chartLoading: true, noData: false })
+    this.setData({ chartLoading: true, noData: false });
 
     try {
       const res = await wx.cloud.callFunction({
         name: 'dormScoringManager',
         data: {
           action: 'getScoreTrends',
-          data: { room_id: selectedRoomId, chart_type: selectedChartType, class_id: this.data.classId }
+          data: {
+            room_id: selectedRoomId,
+            chart_type: this.data.selectedChartType,
+            class_id: this.data.classId
+          }
         }
-      })
+      });
 
       if (res.result && res.result.success) {
-        const chartData = res.result.data
-        this.buildChartOption(chartData)
+        const chartData = res.result.data;
+        this.buildChartOption(chartData);
       } else {
-        this.setData({ noData: true, chartLoading: false })
+        this.setData({ noData: true, chartLoading: false });
       }
     } catch (err) {
-      console.error('加载趋势数据失败:', err)
-      this.setData({ noData: true, chartLoading: false })
+      console.error('加载趋势数据失败:', err);
+      this.setData({ noData: true, chartLoading: false });
     }
   },
 
   buildChartOption: function (chartData) {
-    const { chart_type } = chartData
+    const { chart_type } = chartData;
 
     if (this.data.useFallbackList) {
       this.setData({
-        fallbackRecords: chartData.dates ? chartData.dates.map((d, i) => ({ date: d, score: chartData.scores[i] })) : [],
+        fallbackRecords: chartData.dates ? chartData.dates.map((d, i) => ({
+          date: d,
+          score: chartData.scores[i]
+        })) : [],
         chartLoading: false,
         noData: !chartData.dates || chartData.dates.length === 0
-      })
-      return
+      });
+      return;
     }
 
-    const ecComponent = this.selectComponent('#myChart')
+    const ecComponent = this.selectComponent('#myChart');
     if (!ecComponent) {
-      this.setData({ chartLoading: false, useFallbackList: true })
-      return
+      this.setData({ chartLoading: false, useFallbackList: true });
+      return;
     }
 
-    let option = {}
+    let option = {};
 
     if (chart_type === 'daily') {
-      const { dates, scores } = chartData
+      const { dates, scores } = chartData;
       if (!dates || dates.length === 0) {
-        this.setData({ noData: true, chartLoading: false })
-        return
+        this.setData({ noData: true, chartLoading: false });
+        return;
       }
       option = {
         tooltip: { trigger: 'axis' },
         xAxis: { type: 'category', data: dates, axisLabel: { rotate: 45 } },
         yAxis: { type: 'value', min: 0, max: 100 },
-        series: [{ type: 'line', data: scores, name: '每日评分', smooth: true, itemStyle: { color: '#1890ff' } }]
-      }
+        series: [{
+          type: 'line',
+          data: scores,
+          name: '每日评分',
+          smooth: true,
+          itemStyle: { color: '#1890ff' }
+        }]
+      };
     } else if (chart_type === 'week_compare') {
-      const { current_labels, current_scores, previous_scores } = chartData
-      if (!current_labels || current_labels.length === 0) {
-        this.setData({ noData: true, chartLoading: false })
-        return
-      }
+      const { current_labels, current_scores, previous_scores } = chartData;
       option = {
         tooltip: { trigger: 'axis' },
         legend: { data: ['本周', '上周'] },
@@ -192,13 +220,9 @@ Page({
           { name: '本周', type: 'line', data: current_scores, itemStyle: { color: '#1890ff' } },
           { name: '上周', type: 'line', data: previous_scores, itemStyle: { color: '#999' }, lineStyle: { type: 'dashed' } }
         ]
-      }
+      };
     } else if (chart_type === 'month_compare') {
-      const { current_labels, current_scores, previous_scores } = chartData
-      if (!current_labels || current_labels.length === 0) {
-        this.setData({ noData: true, chartLoading: false })
-        return
-      }
+      const { current_labels, current_scores, previous_scores } = chartData;
       option = {
         tooltip: { trigger: 'axis' },
         legend: { data: ['本月', '上月'] },
@@ -208,13 +232,9 @@ Page({
           { name: '本月', type: 'line', data: current_scores, itemStyle: { color: '#1890ff' } },
           { name: '上月', type: 'line', data: previous_scores, itemStyle: { color: '#999' }, lineStyle: { type: 'dashed' } }
         ]
-      }
+      };
     } else if (chart_type === 'semester_trend') {
-      const { dates, scores, moving_avg } = chartData
-      if (!dates || dates.length === 0) {
-        this.setData({ noData: true, chartLoading: false })
-        return
-      }
+      const { dates, scores, moving_avg } = chartData;
       option = {
         tooltip: { trigger: 'axis' },
         legend: { data: ['每日评分', '7日均线'] },
@@ -238,16 +258,16 @@ Page({
             smooth: true
           }
         ]
-      }
+      };
     }
 
     try {
-      ecComponent.setOption(option)
+      ecComponent.setOption(option);
     } catch (e) {
-      console.error('setOption失败:', e)
-      this.setData({ useFallbackList: true })
+      console.error('setOption失败:', e);
+      this.setData({ useFallbackList: true });
     }
 
-    this.setData({ chartLoading: false })
+    this.setData({ chartLoading: false });
   }
-})
+});

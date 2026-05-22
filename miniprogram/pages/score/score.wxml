@@ -82,7 +82,7 @@
             <image src="/images/icons/default-avatar.png" mode="aspectFill"></image>
           </view>
           <view class="student-info min-w-0">
-            <view class="student-name ellipsis">{{item.name}}<text wx:if="{{item.isSelf}}" class="self-tag">（我）</text></view>
+            <view class="student-name ellipsis">{{item.name}}<text wx:if="{{item.isSelf}}" class="self-tag">{{isParent ? '（我的孩子）' : '（我）'}}</text></view>
             <view class="student-meta">
               <text class="meta-item">{{item.student_id}}</text>
             </view>

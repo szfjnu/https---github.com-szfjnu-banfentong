@@ -1,6 +1,6 @@
-﻿// pages/dorm/mydorm/mydorm.js
+// pages/dorm/mydorm/mydorm.js
 const app = getApp();
-const util = require('/utils/util.js');
+const util = require('../../../utils/util.js');
 
 Page({
   data: {
@@ -35,7 +35,7 @@ Page({
   onLoad: function () {
     const role = app.globalData.role;
     const studentId = app.globalData.student_id;
-    const classId = app.globalData.class_id;
+    const classId = app.globalData.class_id || app.globalData.classId || '';
 
     if (!studentId) {
       wx.showToast({ title: '未找到学生信息', icon: 'none' });
@@ -63,6 +63,7 @@ Page({
       const db = wx.cloud.database();
       const _ = db.command;
       const { studentId, classId } = this.data;
+      const semesterId = app.globalData.semesterId || '';
 
       // 查询学生信息
       const studentRes = await db.collection('students')
@@ -78,6 +79,7 @@ Page({
 
       const student = studentRes.data[0];
       const isBoarding = student.is_boarding || false;
+      const studentDocId = student._id || '';
 
       this.setData({ isBoarding });
 
@@ -86,28 +88,55 @@ Page({
         return;
       }
 
-      // 获取宿舍分配信息
-      const bedRes = await db.collection('dorm_beds')
-        .where({ student_id: studentId, status: 'occupied' })
-        .limit(1)
-        .get();
-
+      // 获取宿舍分配信息 - dorm_beds中student_doc_id存文档_id, student_id存业务ID
       let dormInfo = { building: '', room: '', bed: '' };
-      if (bedRes.data && bedRes.data.length > 0) {
-        const bed = bedRes.data[0];
-        dormInfo = {
-          building: bed.building || '',
-          room: bed.room || '',
-          bed: bed.bed_number || ''
-        };
+      try {
+        let bedRes = await db.collection('dorm_beds')
+          .where({ student_doc_id: studentDocId, occupied: true })
+          .limit(1)
+          .get();
+
+        if (!bedRes.data || bedRes.data.length === 0) {
+          bedRes = await db.collection('dorm_beds')
+            .where({ student_id: studentDocId, occupied: true })
+            .limit(1)
+            .get();
+        }
+
+        if ((!bedRes.data || bedRes.data.length === 0) && studentId !== studentDocId) {
+          bedRes = await db.collection('dorm_beds')
+            .where({ student_id: studentId, occupied: true })
+            .limit(1)
+            .get();
+        }
+
+        if (bedRes.data && bedRes.data.length > 0) {
+          const bed = bedRes.data[0];
+          let buildingName = bed.building || '';
+          let roomName = bed.room || '';
+          if (!buildingName && bed.building_id) {
+            try {
+              const bRes = await db.collection('dorm_buildings').doc(bed.building_id).get();
+              buildingName = bRes.data ? (bRes.data.name || bRes.data.building_name || '') : '';
+            } catch (e) {}
+          }
+          if (!roomName && bed.room_id) {
+            try {
+              const rRes = await db.collection('dorm_rooms').doc(bed.room_id).get();
+              roomName = rRes.data ? (rRes.data.room_number || rRes.data.name || '') : '';
+            } catch (e) {}
+          }
+          dormInfo = {
+            building: buildingName,
+            room: roomName,
+            bed: bed.bed_number || ''
+          };
+        }
+      } catch (e) {
+        console.error('查询宿舍分配失败:', e);
       }
 
       // 获取宿舍积分账户
-      const accountRes = await db.collection('dorm_score_accounts')
-        .where({ student_id: studentId })
-        .limit(1)
-        .get();
-
       let scoreInfo = {
         current_score: 100,
         original_score: 100,
@@ -115,21 +144,58 @@ Page({
         total_add: 0
       };
 
-      if (accountRes.data && accountRes.data.length > 0) {
-        const account = accountRes.data[0];
-        const current = account.current_score || account.original_score || 100;
-        const original = account.original_score || 100;
-        scoreInfo = {
-          current_score: current,
-          original_score: original,
-          total_deduct: Math.max(0, original - current),
-          total_add: Math.max(0, current - original)
-        };
+      let accountFound = false;
+      try {
+        const accountQuery = { student_id: studentId };
+        if (semesterId) accountQuery.semester_id = semesterId;
+        const accountRes = await db.collection('dorm_score_accounts')
+          .where(accountQuery)
+          .limit(1)
+          .get();
+
+        if (accountRes.data && accountRes.data.length > 0) {
+          accountFound = true;
+          const account = accountRes.data[0];
+          const current = account.current_score != null ? account.current_score : (account.original_score != null ? account.original_score : 100);
+          const original = account.original_score != null ? account.original_score : 100;
+          scoreInfo = {
+            current_score: current,
+            original_score: original,
+            total_deduct: Math.max(0, original - current),
+            total_add: Math.max(0, current - original)
+          };
+        }
+      } catch (e) {
+        console.error('查询dorm_score_accounts失败:', e);
+      }
+
+      if (!accountFound) {
+        try {
+          const fallbackQuery = { student_id: studentId, class_id: classId };
+          if (semesterId) fallbackQuery.semester_id = semesterId;
+          const allRecordsRes = await db.collection('dorm_score_records')
+            .where(fallbackQuery)
+            .get();
+          const allRecords = allRecordsRes.data || [];
+          const totalChange = allRecords.reduce((sum, r) => sum + (r.score_change || r.score_value || 0), 0);
+          const original = student.dorm_initial_score || student.initial_score || 100;
+          const current = original + totalChange;
+          scoreInfo = {
+            current_score: current,
+            original_score: original,
+            total_deduct: Math.max(0, -totalChange),
+            total_add: Math.max(0, totalChange)
+          };
+        } catch (e) {
+          console.error('从dorm_score_records计算积分失败:', e);
+        }
       }
 
       // 获取近期宿舍积分记录
+      const recentQuery = { student_id: studentId, class_id: classId };
+      if (semesterId) recentQuery.semester_id = semesterId;
       const recordsRes = await db.collection('dorm_score_records')
-        .where({ student_id: studentId, class_id: classId })
+        .where(recentQuery)
         .orderBy('record_date', 'desc')
         .limit(10)
         .get();

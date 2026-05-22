@@ -108,7 +108,7 @@ Page({
     const semesterId = app.globalData.currentSemesterId || '';
     
     // 判断权限
-    const canExport = ['admin', 'head_teacher'].includes(role);
+    const canExport = app.hasPermission('score', 'export');
     const canAppeal = ['student', 'parent'].includes(role);
     
     this.setData({ 
@@ -392,8 +392,8 @@ Page({
       this.setData({
         statistics: {
           totalCount: records.length,
-          totalAdd: totalAdd,
-          totalDeduct: totalDeduct,
+          totalAdd: util.formatScore(totalAdd),
+          totalDeduct: util.formatScore(totalDeduct),
           anomalyCount: this.data.anomalyRecordIds.length
         }
       });
@@ -500,7 +500,7 @@ Page({
           date: item.record_date ? util.formatDate(new Date(item.record_date)) : 
                 (item.date ? util.formatDate(new Date(item.date)) : ''),
           scoreChangeClass: scoreValue > 0 ? 'score-add' : 'score-minus',
-          scoreChangeText: scoreValue > 0 ? `+${scoreValue}` : `${scoreValue}`,
+          scoreChangeText: scoreValue > 0 ? `+${util.formatScore(scoreValue)}` : `${util.formatScore(scoreValue)}`,
           recorder_name: item.operator_name || '系统',
           statusClass: this.getStatusClass(item.approval_status),
           sourceTypeColor: this.getSourceTypeColor(item.source_type),

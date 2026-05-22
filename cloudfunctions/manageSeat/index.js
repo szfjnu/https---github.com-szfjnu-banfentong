@@ -2,7 +2,7 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
-const { getCallerInfo, requireTeacher, requireClassAccess } = require('./utils/auth')
+const { getCallerInfo, requireTeacherOrModule, requireClassAccess } = require('./utils/auth')
 
 const MAX_LIMIT = 100
 const LOCK_TIMEOUT = 5 * 60 * 1000
@@ -15,23 +15,23 @@ exports.main = async (event, context) => {
     switch (action) {
       case 'ensureCollection': return await ensureCollection()
       case 'getLayout': return await getLayout(data)
-      case 'saveLayout': requireTeacher(caller); return await saveLayout(data, caller)
+      case 'saveLayout': await requireTeacherOrModule(caller, 'seat'); return await saveLayout(data, caller)
       case 'getArrangement': return await getArrangement(data)
       case 'getStudentsForArrange': return await getStudentsForArrange(data)
-      case 'randomArrange': requireTeacher(caller); return await randomArrange(data, caller)
-      case 'groupArrange': requireTeacher(caller); return await groupArrange(data, caller)
-      case 'manualArrange': requireTeacher(caller); return await manualArrange(data, caller)
+      case 'randomArrange': await requireTeacherOrModule(caller, 'seat'); return await randomArrange(data, caller)
+      case 'groupArrange': await requireTeacherOrModule(caller, 'seat'); return await groupArrange(data, caller)
+      case 'manualArrange': await requireTeacherOrModule(caller, 'seat'); return await manualArrange(data, caller)
       case 'getRotateConfig': return await getRotateConfig(data)
-      case 'saveRotateConfig': requireTeacher(caller); return await saveRotateConfig(data, caller)
-      case 'executeRotate': requireTeacher(caller); return await executeRotate(data, caller)
-      case 'lockSeat': requireTeacher(caller); return await lockSeat(data, caller)
-      case 'unlockSeat': requireTeacher(caller); return await unlockSeat(data, caller)
-      case 'acquireLock': requireTeacher(caller); return await acquireLock(data, caller)
-      case 'releaseLock': requireTeacher(caller); return await releaseLock(data, caller)
+      case 'saveRotateConfig': await requireTeacherOrModule(caller, 'seat'); return await saveRotateConfig(data, caller)
+      case 'executeRotate': await requireTeacherOrModule(caller, 'seat'); return await executeRotate(data, caller)
+      case 'lockSeat': await requireTeacherOrModule(caller, 'seat'); return await lockSeat(data, caller)
+      case 'unlockSeat': await requireTeacherOrModule(caller, 'seat'); return await unlockSeat(data, caller)
+      case 'acquireLock': await requireTeacherOrModule(caller, 'seat'); return await acquireLock(data, caller)
+      case 'releaseLock': await requireTeacherOrModule(caller, 'seat'); return await releaseLock(data, caller)
       case 'getHistoryList': return await getHistoryList(data)
       case 'getHistoryDetail': return await getHistoryDetail(data)
-      case 'swapSeats': requireTeacher(caller); return await swapSeats(data, caller)
-      case 'clearLayout': requireTeacher(caller); return await clearLayout(data, caller)
+      case 'swapSeats': await requireTeacherOrModule(caller, 'seat'); return await swapSeats(data, caller)
+      case 'clearLayout': await requireTeacherOrModule(caller, 'seat'); return await clearLayout(data, caller)
       default: return { success: false, message: '未知操作' }
     }
   } catch (err) {

@@ -394,7 +394,7 @@ Page({
     const { students, selectedClass, selectedGroup, searchKeyword } = this.data;
     let filteredStudents = students;
     if (selectedClass) filteredStudents = filteredStudents.filter(s => s.class_id === selectedClass);
-    if (selectedGroup) filteredStudents = filteredStudents.filter(s => s.group === selectedGroup);
+    if (selectedGroup) filteredStudents = filteredStudents.filter(s => s.group === selectedGroup || s.group_name === selectedGroup);
     if (searchKeyword) {
       filteredStudents = filteredStudents.filter(s => s.name.includes(searchKeyword) || s.student_id.includes(searchKeyword));
     }

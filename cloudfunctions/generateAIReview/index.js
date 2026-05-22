@@ -8,7 +8,7 @@ cloud.init({
 const db = cloud.database()
 const _ = db.command
 
-const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('./utils/auth')
+const { getCallerInfo, requireTeacherOrModule, AUTH_ERRORS } = require('./utils/auth')
 
 let aiInstance = null
 function getAI() {
@@ -61,7 +61,7 @@ exports.main = async (event, context) => {
     }
 
     const caller = await getCallerInfo(event, class_id)
-    requireTeacher(caller)
+    await requireTeacherOrModule(caller, 'growth')
 
     const studentRes = await db.collection('students').where({
       student_id: student_id

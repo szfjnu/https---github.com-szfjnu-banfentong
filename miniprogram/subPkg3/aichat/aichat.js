@@ -21,6 +21,11 @@ Page({
   },
 
   onLoad: function (options) {
+    if (app.globalData.role === 'parent') {
+      wx.showToast({ title: '家长暂不开放此功能', icon: 'none' })
+      setTimeout(() => wx.navigateBack(), 1500)
+      return
+    }
     const npcType = options.type || 'companion'
     this.initNpc(npcType)
   },
@@ -149,10 +154,9 @@ Page({
 
       const flushBuffer = () => {
         if (streamBuffer) {
-          const currentContent = this.data.messages[lastIndex]?.content || fullContent
           this.setData({
-            [`messages[${lastIndex}].content`]: currentContent,
-            [`messages[${lastIndex}].displayContent`]: currentContent
+            [`messages[${lastIndex}].content`]: fullContent,
+            [`messages[${lastIndex}].displayContent`]: fullContent
           })
           streamBuffer = ''
           this.scrollToBottom()
@@ -247,8 +251,47 @@ Page({
       confirmColor: '#ff4d4f',
       success: async (res) => {
         if (res.confirm) {
-          this.setData({ messages: [] })
-          wx.showToast({ title: '已清空', icon: 'success' })
+          try {
+            await wx.cloud.callFunction({
+              name: 'aiNpc',
+              data: { action: 'clearHistory', npc_type: this.data.npcType }
+            })
+            this.setData({ messages: [] })
+            wx.showToast({ title: '已清空', icon: 'success' })
+          } catch (err) {
+            console.error('清空聊天记录失败:', err)
+            wx.showToast({ title: '清空失败', icon: 'none' })
+          }
+        }
+      }
+    })
+  },
+
+  deleteMessage: function (e) {
+    const index = e.currentTarget.dataset.index
+    if (index === undefined) return
+    wx.showModal({
+      title: '确认删除',
+      content: '确定要删除这条消息吗？',
+      confirmColor: '#ff4d4f',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            const result = await wx.cloud.callFunction({
+              name: 'aiNpc',
+              data: { action: 'deleteMessage', npc_type: this.data.npcType, message_index: index }
+            })
+            if (result.result && result.result.success) {
+              const messages = this.data.messages.filter((_, i) => i !== index)
+              this.setData({ messages })
+              wx.showToast({ title: '已删除', icon: 'success' })
+            } else {
+              wx.showToast({ title: '删除失败', icon: 'none' })
+            }
+          } catch (err) {
+            console.error('删除消息失败:', err)
+            wx.showToast({ title: '删除失败', icon: 'none' })
+          }
         }
       }
     })

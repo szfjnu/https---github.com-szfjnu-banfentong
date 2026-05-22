@@ -3,7 +3,7 @@ cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV
 })
 const db = cloud.database()
-const { getCallerInfo, requireClassAccess, requireTeacher, AUTH_ERRORS } = require('./utils/auth')
+const { getCallerInfo, requireClassAccess, requireTeacherOrModule, AUTH_ERRORS } = require('./utils/auth')
 
 exports.main = async (event, context) => {
   const { action, data } = event
@@ -17,13 +17,13 @@ exports.main = async (event, context) => {
         requireClassAccess(caller, data?.class_id || event.class_id, ['head_teacher', 'admin'])
         return await importRules(data || event, caller)
       case 'toggleRuleStatus':
-        requireTeacher(caller)
+        await requireTeacherOrModule(caller, 'dorm')
         return await toggleRuleStatus(data || {}, caller)
       case 'updateRule':
-        requireTeacher(caller)
+        await requireTeacherOrModule(caller, 'dorm')
         return await updateRule(data || {}, caller)
       case 'addRule':
-        requireTeacher(caller)
+        await requireTeacherOrModule(caller, 'dorm')
         return await addRule(data || {}, caller)
       default:
         return { success: false, message: '未知操作' }

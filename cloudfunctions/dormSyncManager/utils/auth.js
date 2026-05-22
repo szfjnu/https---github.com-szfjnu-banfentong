@@ -107,26 +107,77 @@ function requireClassCadre(caller) {
   return requireRole(caller, ['class_cadre', 'head_teacher', 'admin'])
 }
 
+async function hasModulePermission(caller, module, action) {
+  // 家长角色绝对禁止：家长不可继承学生管理权限
+  if (caller.role === 'parent') return false
+
+  try {
+    let res = await db.collection('student_authorizations')
+      .where({
+        student_id: caller.studentId,
+        class_id: caller.classId
+      })
+      .limit(1)
+      .get()
+
+    if ((!res.data || res.data.length === 0) && caller.openid) {
+      res = await db.collection('student_authorizations')
+        .where({
+          openid: caller.openid,
+          class_id: caller.classId
+        })
+        .limit(1)
+        .get()
+    }
+
+    if (!res.data || res.data.length === 0) return false
+
+    const auth = res.data[0]
+    const perms = auth.permissions || {}
+    const modulePerms = perms[module] || []
+
+    if (modulePerms.includes(action)) return true
+
+    const WRITE_ACTIONS = ['add', 'edit', 'delete', 'manage', 'write', 'register', 'submit', 'check', 'score', 'approve', 'arrange']
+    if (modulePerms.includes('write') && WRITE_ACTIONS.includes(action)) return true
+
+    if (modulePerms.includes('read') && action === 'read') return true
+
+    return false
+  } catch (e) {
+    console.error('hasModulePermission查询失败:', e)
+    return false
+  }
+}
+
+async function requireTeacherOrModule(caller, module, action = 'write') {
+  if (['admin', 'head_teacher', 'subject_teacher'].includes(caller.role)) {
+    return
+  }
+
+  // 家长角色绝对禁止：直接拒绝，不查询模块权限
+  if (caller.role === 'parent') {
+    throw { code: AUTH_ERRORS.ROLE_DENIED, message: '家长角色无管理权限' }
+  }
+
+  const permitted = await hasModulePermission(caller, module, action)
+  if (!permitted) {
+    throw { code: AUTH_ERRORS.ROLE_DENIED, message: '需要教师权限或相应模块操作权限' }
+  }
+}
+
+/**
+ * @deprecated 请使用 requireTeacherOrModule 替代
+ */
 async function hasDelegatedPermission(caller, module, action) {
   if (caller.role === 'admin' || caller.role === 'head_teacher' || caller.role === 'subject_teacher') {
     return true
   }
 
-  const db = cloud.database()
-  const res = await db.collection('student_authorizations')
-    .where({
-      student_id: caller.studentId,
-      class_id: caller.classId
-    })
-    .limit(1)
-    .get()
+  // 家长角色绝对禁止
+  if (caller.role === 'parent') return false
 
-  if (res.data.length === 0) return false
-
-  const auth = res.data[0]
-  const perms = auth.permissions || {}
-  const modulePerms = perms[module] || []
-  return modulePerms.includes(action)
+  return await hasModulePermission(caller, module, action)
 }
 
 async function requireTeacherOrDelegated(caller, module, action) {
@@ -134,7 +185,12 @@ async function requireTeacherOrDelegated(caller, module, action) {
     return
   }
 
-  const delegated = await hasDelegatedPermission(caller, module, action)
+  // 家长角色绝对禁止
+  if (caller.role === 'parent') {
+    throw { code: AUTH_ERRORS.ROLE_DENIED, message: '家长角色无委派权限' }
+  }
+
+  const delegated = await hasModulePermission(caller, module, action)
   if (!delegated) {
     throw { code: AUTH_ERRORS.ROLE_DENIED, message: '需要教师权限或相应委派权限' }
   }
@@ -147,6 +203,8 @@ module.exports = {
   requireAdmin,
   requireTeacher,
   requireClassCadre,
+  hasModulePermission,
+  requireTeacherOrModule,
   hasDelegatedPermission,
   requireTeacherOrDelegated,
   AUTH_ERRORS

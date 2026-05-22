@@ -30,7 +30,7 @@ Page({
   onLoad: function () {
     const role = app.globalData.role || ''
     const isAdmin = app.globalData.isAdmin || role === 'admin'
-    const canManage = isAdmin || role === 'head_teacher'
+    const canManage = app.hasPermission('dorm', 'manage')
     this.setData({
       isAdmin,
       canManage

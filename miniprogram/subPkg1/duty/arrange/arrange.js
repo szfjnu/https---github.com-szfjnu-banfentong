@@ -83,7 +83,16 @@ Page({
 
       const groups = res.data || [];
 
-      // 如果没有值日小组，尝试获取所有小组
+      const computeGroupCount = (groupList) => {
+        for (let group of groupList) {
+          const members = group.members || [];
+          const leaderId = group.leader_id || '';
+          const leaderInMembers = leaderId && members.some(m => (m.student_id || m.user_id || m.openid || m) === leaderId);
+          const hasLeader = leaderId ? 1 : 0;
+          group.total_count = members.length + (hasLeader && !leaderInMembers ? 1 : 0);
+        }
+      };
+
       if (groups.length === 0) {
         const allRes = await db.collection('student_groups')
           .where({
@@ -91,8 +100,11 @@ Page({
             is_deleted: _.neq(true)
           })
           .get();
-        this.setData({ dutyGroups: allRes.data || [] });
+        const allGroups = allRes.data || [];
+        computeGroupCount(allGroups);
+        this.setData({ dutyGroups: allGroups });
       } else {
+        computeGroupCount(groups);
         this.setData({ dutyGroups: groups });
       }
     } catch (err) {

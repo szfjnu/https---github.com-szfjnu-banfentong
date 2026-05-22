@@ -44,13 +44,16 @@
       </view>
     </view>
     <view class="tabs-right">
-      <view class="init-rules-btn" bindtap="onInitRules">
-        <text class="icon">⚡</text>
-        <text>初始化规则</text>
+      <!-- 新增 flex 容器包裹按钮，避免堆叠 -->
+      <view class="tabs-actions">
+        <view class="init-rules-btn" bindtap="onInitRules">
+          <text class="icon">⚡</text>
+          <text>初始化规则</text>
+        </view>
+        <button class="add-btn" bindtap="onAddRule">
+          <text>添加</text>
+        </button>
       </view>
-      <button class="add-btn" bindtap="onAddRule">
-        <text>➕ 添加</text>
-      </button>
     </view>
   </view>
 

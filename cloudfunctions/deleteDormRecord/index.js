@@ -6,14 +6,14 @@ cloud.init({
 const db = cloud.database()
 const _ = db.command
 
-const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('./utils/auth')
+const { getCallerInfo, requireTeacherOrModule, AUTH_ERRORS } = require('./utils/auth')
 
 exports.main = async (event, context) => {
   const { recordId, classId } = event
 
   try {
     const caller = await getCallerInfo(event, classId)
-    requireTeacher(caller)
+    await requireTeacherOrModule(caller, 'dorm')
 
     const recordRes = await db.collection('dorm_score_records')
       .doc(recordId)

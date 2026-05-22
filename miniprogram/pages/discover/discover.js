@@ -122,9 +122,17 @@ Page({
       ]
     }
 
+    // 家长过滤：移除微聊陪伴、心灵树洞、聚光点、校园闲鱼
+    let filteredGrowthFeatures = growthFeatures
+    let filteredCampusFeatures = campusFeatures
+    if (role === 'parent') {
+      filteredGrowthFeatures = growthFeatures.filter(f => !['aichat'].includes(f.id))
+      filteredCampusFeatures = campusFeatures.filter(f => !['activity', 'treehole', 'flea'].includes(f.id))
+    }
+
     const featureGroups = [
-      { title: '学习成长', subtitle: '成长路上的好帮手', features: growthFeatures },
-      { title: '校园生活', subtitle: '丰富多彩的校园体验', features: campusFeatures },
+      { title: '学习成长', subtitle: '成长路上的好帮手', features: filteredGrowthFeatures },
+      { title: '校园生活', subtitle: '丰富多彩的校园体验', features: filteredCampusFeatures },
       { title: '工具服务', subtitle: '班级管理实用工具', features: filteredToolFeatures }
     ]
 

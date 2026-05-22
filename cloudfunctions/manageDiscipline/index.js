@@ -5,7 +5,7 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
-const { getCallerInfo, requireClassAccess, requireTeacher } = require('./utils/auth');
+const { getCallerInfo, requireClassAccess, requireTeacherOrModule } = require('./utils/auth');
 const { withTransaction } = require('./utils/transaction');
 
 // 生成唯一ID
@@ -48,14 +48,14 @@ exports.main = async (event, context) => {
     switch (action) {
       case 'getLevelConfigs': return await getLevelConfigs(data, caller);
       case 'initLevelConfigs': requireClassAccess(caller, data.class_id, ['head_teacher', 'admin']); return await initLevelConfigs(data, caller);
-      case 'updateLevelConfig': requireTeacher(caller); return await updateLevelConfig(data, caller);
+      case 'updateLevelConfig': await requireTeacherOrModule(caller, 'discipline'); return await updateLevelConfig(data, caller);
       case 'addLevelConfig': requireClassAccess(caller, data.class_id, ['head_teacher', 'admin']); return await addLevelConfig(data, caller);
       case 'deleteLevelConfig': requireClassAccess(caller, data.class_id, ['head_teacher', 'admin']); return await deleteLevelConfig(data, caller);
 
       case 'getDisciplineRecords': return await getDisciplineRecords(data, caller);
       case 'addDisciplineRecord': requireClassAccess(caller, data.class_id, ['head_teacher', 'subject_teacher', 'admin']); return await addDisciplineRecord(data, caller);
-      case 'updateDisciplineRecord': requireTeacher(caller); return await updateDisciplineRecord(data, caller);
-      case 'deleteDisciplineRecord': requireTeacher(caller); return await deleteDisciplineRecord(data, caller);
+      case 'updateDisciplineRecord': await requireTeacherOrModule(caller, 'discipline'); return await updateDisciplineRecord(data, caller);
+      case 'deleteDisciplineRecord': await requireTeacherOrModule(caller, 'discipline'); return await deleteDisciplineRecord(data, caller);
       case 'getDisciplineDetail': return await getDisciplineDetail(data, caller);
       case 'getMyDisciplineRecords': return await getMyDisciplineRecords(data, caller);
 
@@ -283,6 +283,22 @@ async function addDisciplineRecord(data, caller) {
   const now = db.serverDate();
   const issueDate = issue_date || getTodayStr();
 
+  // 获取当前学期ID（如果没有提供）
+  let effectiveSemesterId = semester_id;
+  if (!effectiveSemesterId) {
+    try {
+      const semesterRes = await db.collection('semesters')
+        .where({ class_id, status: 'active' })
+        .limit(1)
+        .get();
+      if (semesterRes.data && semesterRes.data.length > 0) {
+        effectiveSemesterId = semesterRes.data[0]._id;
+      }
+    } catch (err) {
+      console.error('获取当前学期失败:', err);
+    }
+  }
+
   // 读取class_settings中的处分同步配置
   let disciplineSyncEnabled = true;
   let disciplineConversionRatio = 1.0;
@@ -319,6 +335,10 @@ async function addDisciplineRecord(data, caller) {
 
   if (softDeletedRes.data && softDeletedRes.data.length > 0) {
     const existingDoc = softDeletedRes.data[0];
+    const restoredRecordId = existingDoc.record_id || `dr_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 8)}`;
+    const convertedDeduction = effectiveScoreDeduction * disciplineConversionRatio;
+    const ratioLabel = disciplineConversionRatio !== 1.0 ? `（折算比例：${disciplineConversionRatio}）` : '';
+
     await db.collection('discipline_records').doc(existingDoc._id).update({
       data: {
         reason,
@@ -336,7 +356,8 @@ async function addDisciplineRecord(data, caller) {
         service_completed_hours: 0,
         expiration_date,
         affects_excellence_award: affects_excellence_award !== false,
-        semester_id: semester_id || '',
+        semester_id: effectiveSemesterId || '',
+        record_id: restoredRecordId,
         updated_at: now,
         updated_by: caller.openid
       }
@@ -344,8 +365,6 @@ async function addDisciplineRecord(data, caller) {
 
     if (effectiveScoreDeduction > 0 && disciplineSyncEnabled) {
       try {
-        const convertedDeduction = Math.round(effectiveScoreDeduction * disciplineConversionRatio * 100) / 100;
-        const ratioLabel = disciplineConversionRatio !== 1.0 ? ` (折算比例${disciplineConversionRatio})` : '';
         const scoreRes = await cloud.callFunction({
           name: 'scoreManager',
           data: {
@@ -353,17 +372,19 @@ async function addDisciplineRecord(data, caller) {
             data: {
               student_id,
               class_id,
-              semester_id: semester_id || '',
+              semester_id: effectiveSemesterId || '',
               score_change: -convertedDeduction,
               source_type: '处分扣分',
-              item_id: 'discipline_deduction',
+              item_id: `discipline_${restoredRecordId}`,
               item_name: `处分扣分：${level_name}`,
+              rule_id: 'discipline_deduction',
               rule_name: `处分扣分：${level_name}`,
               rule_code: 'DISCIPLINE',
               reason_detail: `处分扣分：${level_name} - ${reason}${ratioLabel}`,
               recorder_openid: caller.openid,
               recorder_name: issuer || '系统',
-              date: issueDate
+              date: issueDate,
+              source_record_id: restoredRecordId
             }
           }
         });
@@ -372,6 +393,9 @@ async function addDisciplineRecord(data, caller) {
           await db.collection('discipline_records')
             .doc(existingDoc._id)
             .update({ data: { related_score_record_id: scoreResult.data.record_id } });
+        } else {
+          console.error('积分扣减未成功（恢复记录）:', scoreResult.message || '未知原因');
+          throw new Error('scoreManager返回失败: ' + (scoreResult.message || '未知原因'));
         }
       } catch (err) {
         console.error('积分扣减失败（恢复记录）:', err);
@@ -382,22 +406,25 @@ async function addDisciplineRecord(data, caller) {
               record_id: fallbackRecordId,
               student_id,
               class_id,
-              item_id: 'discipline_deduction',
+              semester_id: effectiveSemesterId || '',
+              item_id: `discipline_${restoredRecordId}`,
               item_name: `处分扣分：${level_name}`,
               score_change: -convertedDeduction,
+              score_value: -convertedDeduction,
               source_type: '处分扣分',
-              source_record_id: existingDoc.record_id || existingDoc._id,
+              source_record_id: restoredRecordId,
               reason_detail: `处分扣分：${level_name} - ${reason}${ratioLabel}`,
               recorder_openid: caller.openid,
               recorder_name: issuer || '系统',
               date: issueDate,
+              approval_status: '已通过',
               is_enabled: true,
               created_at: now,
               updated_at: now
             }
           });
           await db.collection('students')
-            .where({ student_id })
+            .where({ student_id, class_id })
             .update({ data: { current_score: _.inc(-convertedDeduction), updated_at: now } });
         } catch (fallbackErr) {
           console.error('回退写入积分记录失败（恢复记录）:', fallbackErr);
@@ -405,7 +432,7 @@ async function addDisciplineRecord(data, caller) {
       }
     }
 
-    return { success: true, data: { record_id: existingDoc.record_id, restored: true } };
+    return { success: true, data: { record_id: restoredRecordId, restored: true } };
   }
 
   // 如果有旧处分未撤销，新处分的考察期从新处分生效日起重新统计
@@ -432,7 +459,7 @@ async function addDisciplineRecord(data, caller) {
     service_completed_hours: 0,
     expiration_date,
     affects_excellence_award: affects_excellence_award !== false,
-    semester_id: semester_id || '',
+    semester_id: effectiveSemesterId || '',
     created_by: caller.openid,
     is_deleted: false,
     created_at: now,
@@ -441,10 +468,14 @@ async function addDisciplineRecord(data, caller) {
 
   await db.collection('discipline_records').add({ data: record });
 
+  // 预先计算转换后的扣分数和标签，避免变量作用域问题
+  const convertedDeduction = effectiveScoreDeduction > 0
+    ? Math.round(effectiveScoreDeduction * disciplineConversionRatio * 100) / 100
+    : 0;
+  const ratioLabel = disciplineConversionRatio !== 1.0 ? ` (折算比例${disciplineConversionRatio})` : '';
+
   if (effectiveScoreDeduction > 0 && disciplineSyncEnabled) {
     try {
-      const convertedDeduction = Math.round(effectiveScoreDeduction * disciplineConversionRatio * 100) / 100;
-      const ratioLabel = disciplineConversionRatio !== 1.0 ? ` (折算比例${disciplineConversionRatio})` : '';
       const scoreRes = await cloud.callFunction({
         name: 'scoreManager',
         data: {
@@ -452,17 +483,19 @@ async function addDisciplineRecord(data, caller) {
           data: {
             student_id,
             class_id,
-            semester_id: semester_id || '',
+            semester_id: effectiveSemesterId || '',
             score_change: -convertedDeduction,
             source_type: '处分扣分',
-            item_id: 'discipline_deduction',
+            item_id: `discipline_${record_id}`,
             item_name: `处分扣分：${level_name}`,
+            rule_id: 'discipline_deduction',
             rule_name: `处分扣分：${level_name}`,
             rule_code: 'DISCIPLINE',
             reason_detail: `处分扣分：${level_name} - ${reason}${ratioLabel}`,
             recorder_openid: caller.openid,
             recorder_name: issuer || '系统',
-            date: issueDate
+            date: issueDate,
+            source_record_id: record_id
           }
         }
       });
@@ -474,34 +507,36 @@ async function addDisciplineRecord(data, caller) {
           .update({ data: { related_score_record_id: scoreResult.data.record_id } });
       } else {
         console.error('积分扣减未成功:', scoreResult.message || '未知原因');
+        throw new Error('scoreManager返回失败: ' + (scoreResult.message || '未知原因'));
       }
     } catch (err) {
       console.error('积分扣减失败:', err);
       try {
         const fallbackRecordId = generateId('sr');
-        const convertedDeduction = Math.round(effectiveScoreDeduction * disciplineConversionRatio * 100) / 100;
-        const ratioLabel = disciplineConversionRatio !== 1.0 ? ` (折算比例${disciplineConversionRatio})` : '';
         await db.collection('score_records').add({
           data: {
             record_id: fallbackRecordId,
             student_id,
             class_id,
-            item_id: 'discipline_deduction',
+            semester_id: effectiveSemesterId || '',
+            item_id: `discipline_${record_id}`,
             item_name: `处分扣分：${level_name}`,
             score_change: -convertedDeduction,
+            score_value: -convertedDeduction,
             source_type: '处分扣分',
             source_record_id: record_id,
             reason_detail: `处分扣分：${level_name} - ${reason}${ratioLabel}`,
             recorder_openid: caller.openid,
             recorder_name: issuer || '系统',
             date: issueDate,
+            approval_status: '已通过',
             is_enabled: true,
             created_at: now,
             updated_at: now
           }
         });
         await db.collection('students')
-          .where({ student_id })
+          .where({ student_id, class_id })
           .update({ data: { current_score: _.inc(-convertedDeduction), updated_at: now } });
       } catch (fallbackErr) {
         console.error('回退写入积分记录失败:', fallbackErr);

@@ -2,8 +2,8 @@
 const app = getApp();
 const db = wx.cloud.database();
 const _ = db.command;
-const batchQuery = require('../../utils/batchQuery.js');
-const util = require('/utils/util.js');
+const batchQuery = require('../../../utils/batchQuery.js');
+const util = require('../../../utils/util.js');
 
 Page({
   data: {
@@ -546,12 +546,10 @@ Page({
 
       // 遍历每个选中的学生
       for (const student of selectedStudents) {
-        const recordId = `DSR-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
-        const personalScore = linkToPersonal ? Math.round(selectedRule.score_value * conversionRatio * 100) / 100 : 0;
-
         const dormScoreChange = selectedRule.score_value;
 
-        // 使用云函数 convertDormScore 处理宿舍积分记录、学生积分和账户更新
+        // 使用云函数 convertDormScore 统一处理宿舍积分记录、账户更新和个人积分同步
+        // adjustDormScore 内部会同步写入: dorm_score_records + dorm_score_accounts + score_records + students
         try {
           const dormRes = await wx.cloud.callFunction({
             name: 'convertDormScore',
@@ -567,6 +565,9 @@ Page({
                 rule_name: selectedRule.rule_name,
                 rule_category: selectedRule.category,
                 dorm_info: student.dorm_info,
+                item_id: `dorm_${selectedRule._id}`,
+                item_name: `宿舍${recordType === 'violation' ? '扣分' : '加分'}: ${selectedRule.rule_name}`,
+                link_to_personal: linkToPersonal,
                 remark: remark,
                 recorder_name: app.globalData.userInfo?.nickName || app.globalData.userInfo?.name || '未知',
                 recorder_openid: app.globalData.openid
@@ -582,40 +583,6 @@ Page({
         } catch (dormScoreErr) {
           console.error('更新学生宿舍积分失败:', dormScoreErr);
           throw dormScoreErr;
-        }
-
-        // 如果关联个人积分，创建个人积分记录（保持原有逻辑不变）
-        if (linkToPersonal && personalScore !== 0) {
-          const dormInfoStr = student.dorm_info
-            ? `${student.dorm_info.building || ''}-${student.dorm_info.room || ''}-${student.dorm_info.bed || ''}`
-            : '';
-
-          try {
-            await wx.cloud.callFunction({
-              name: 'scoreManager',
-              data: {
-                action: 'applyScoreChange',
-                data: {
-                  student_id: student.student_id,
-                  class_id: app.globalData.class_id || '',
-                  semester_id: currentSemesterId,
-                  score_change: personalScore,
-                  source_type: '宿舍管理',
-                  item_id: `dorm_${selectedRule._id}`,
-                  item_name: `宿舍${recordType === 'violation' ? '扣分' : '加分'}: ${selectedRule.rule_name}`,
-                  rule_name: `宿舍${recordType === 'violation' ? '扣分' : '加分'}: ${selectedRule.rule_name}`,
-                  rule_code: 'DORM_SCORE',
-                  reason_detail: `${dormInfoStr} ${selectedRule.rule_name}，${remark || ''}`,
-                  recorder_openid: app.globalData.openid,
-                  recorder_name: app.globalData.userInfo?.nickName || app.globalData.userInfo?.name || '未知',
-                  date: new Date()
-                }
-              }
-            });
-          } catch (scoreErr) {
-            console.error('宿舍积分同步个人积分失败:', scoreErr);
-            throw scoreErr;
-          }
         }
       }
 

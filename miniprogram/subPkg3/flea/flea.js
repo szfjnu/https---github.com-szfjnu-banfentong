@@ -37,6 +37,11 @@ Page({
   },
 
   onLoad() {
+    if (app.globalData.role === 'parent') {
+      wx.showToast({ title: '家长暂不开放此功能', icon: 'none' })
+      setTimeout(() => wx.navigateBack(), 1500)
+      return
+    }
     const classId = app.globalData.class_id || wx.getStorageSync('class_id') || ''
     const userInfo = wx.getStorageSync('userInfo') || {}
     this.setData({ classId, role: userInfo.role || 'student' })

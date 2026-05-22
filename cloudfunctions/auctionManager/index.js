@@ -3,7 +3,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
 
-const { getCallerInfo, requireRole, requireClassAccess, requireTeacher, AUTH_ERRORS } = require('./utils/auth')
+const { getCallerInfo, requireRole, requireClassAccess, requireTeacherOrModule, AUTH_ERRORS } = require('./utils/auth')
 
 const CATEGORIES = {
   privilege: '特权卡',
@@ -465,7 +465,7 @@ async function fulfillRedemption(event, caller) {
   const { redemptionId } = event
   if (!redemptionId) return { code: 400, msg: '缺少 redemptionId' }
 
-  requireTeacher(caller)
+  await requireTeacherOrModule(caller, 'flea_market')
 
   await db.collection('auction_redemptions').doc(redemptionId).update({
     data: { status: 'fulfilled', fulfilled_at: db.serverDate() }
@@ -478,7 +478,7 @@ async function settleAuction(event, caller) {
   const { itemId } = event
   if (!itemId) return { code: 400, msg: '缺少 itemId' }
 
-  requireTeacher(caller)
+  await requireTeacherOrModule(caller, 'flea_market')
 
   const itemRes = await db.collection('auction_items').doc(itemId).get()
   const item = itemRes.data
@@ -524,7 +524,7 @@ async function settleAuction(event, caller) {
 }
 
 async function determineWinner(event, caller) {
-  requireTeacher(caller)
+  await requireTeacherOrModule(caller, 'flea_market')
 
   const { itemId } = event
   if (!itemId) return { code: 400, msg: '缺少 itemId' }

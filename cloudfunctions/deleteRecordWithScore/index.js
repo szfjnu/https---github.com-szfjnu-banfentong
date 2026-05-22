@@ -3,7 +3,7 @@ const cloud = require('wx-server-sdk')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
-const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('./utils/auth')
+const { getCallerInfo, requireTeacherOrModule, AUTH_ERRORS } = require('./utils/auth')
 
 /**
  * 删除记录并回退积分的云函数
@@ -29,7 +29,7 @@ exports.main = async (event, context) => {
 
   try {
     const caller = await getCallerInfo(event, classId)
-    requireTeacher(caller)
+    await requireTeacherOrModule(caller, 'score')
 
     let record = null
     let studentId = ''

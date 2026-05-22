@@ -32,10 +32,10 @@ Page({
   onLoad() {
     const role = app.globalData.role || ''
     this.setData({
-      canAdd: rp.hasPermission(role, 'skill_cert', 'add'),
-      canApprove: rp.hasPermission(role, 'skill_cert', 'approve_first') || rp.hasPermission(role, 'skill_cert', 'approve_final'),
-      canDelete: rp.hasPermission(role, 'skill_cert', 'delete'),
-      canConfig: rp.hasPermission(role, 'skill_cert', 'config_score')
+      canAdd: app.hasPermission('skill_cert', 'add'),
+      canApprove: app.hasPermission('skill_cert', 'approve'),
+      canDelete: app.hasPermission('skill_cert', 'delete'),
+      canConfig: app.hasPermission('skill_cert', 'config_score')
     })
     this.loadRecords()
   },

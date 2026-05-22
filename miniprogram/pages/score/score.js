@@ -20,6 +20,7 @@ Page({
     myRank: 0,
     totalStudents: 0,
     isStudentMode: false,
+    isParent: false,
     topStudents: [],
     myStudentId: '',
 
@@ -48,10 +49,11 @@ Page({
 
   initView: async function () {
     const role = this.data.userRole;
-    const canViewAll = role === 'admin' || role === 'head_teacher' || role === 'subject_teacher';
+    const isParent = role === 'parent';
+    const canViewAll = !isParent && app.hasPermission('score', 'view');
     const isStudentMode = !canViewAll;
-    const canAddScore = canViewAll;
-    this.setData({ isStudentMode, canAddScore });
+    const canAddScore = !isParent && app.hasPermission('score', 'add');
+    this.setData({ isStudentMode, canAddScore, isParent });
 
     if (!isStudentMode) {
       await this.loadPermissionInfo();
@@ -84,7 +86,7 @@ Page({
     } catch (err) {
       console.error('权限预判断失败:', err);
       const role = this.data.userRole;
-      if (role === 'admin' || role === 'head_teacher' || role === 'subject_teacher') {
+      if (app.hasPermission('score', 'view')) {
         this.setData({ permissionType: 'all', accessibleStudentIds: [] });
       }
     }
@@ -115,6 +117,7 @@ Page({
 
       const student = studentRes.data[0];
       const currentScore = student.current_score || 100;
+      const formattedScore = util.formatScore(currentScore);
 
       const rankRes = await db.collection('students')
         .where({
@@ -134,42 +137,70 @@ Page({
       const myRank = rankRes.total + 1;
       const totalStudents = totalRes.total;
 
-      const allStudentsRes = await batchQuery.getAllRecords('students', 
-        { class_id: classId, status: _.neq('graduated') }, 
-        'current_score', 'desc'
-      );
+      let topStudents = [];
+      if (this.data.isParent) {
+        const topRes = await db.collection('students')
+          .where({ class_id: classId, status: _.neq('graduated') })
+          .orderBy('current_score', 'desc')
+          .limit(5)
+          .get();
+        topStudents = (topRes.data || []).map(s => ({
+          ...s,
+          current_score: util.formatScore(s.current_score),
+          bonusScore: s.bonus_score || 0,
+          scoreLevel: util.getScoreLevel(s.current_score || 100),
+          scoreColor: util.getScoreColor(s.current_score || 100),
+          isSelf: s.student_id === studentId
+        }));
+        const selfInTop = topStudents.some(s => s.isSelf);
+        if (!selfInTop) {
+          topStudents.push({
+            ...student,
+            current_score: formattedScore,
+            bonusScore: student.bonus_score || 0,
+            scoreLevel: util.getScoreLevel(currentScore),
+            scoreColor: util.getScoreColor(currentScore),
+            isSelf: true
+          });
+        }
+      } else {
+        const allStudentsRes = await batchQuery.getAllRecords('students',
+          { class_id: classId, status: _.neq('graduated') },
+          'current_score', 'desc'
+        );
+        const allStudents = (allStudentsRes || []).map(s => ({
+          ...s,
+          current_score: util.formatScore(s.current_score),
+          bonusScore: s.bonus_score || 0,
+          scoreLevel: util.getScoreLevel(s.current_score || 100),
+          scoreColor: util.getScoreColor(s.current_score || 100),
+          isSelf: s.student_id === studentId
+        }));
+        allStudents.sort((a, b) => {
+          const scoreA = parseFloat(a.current_score) || 100;
+          const scoreB = parseFloat(b.current_score) || 100;
+          if (scoreB !== scoreA) return scoreB - scoreA;
+          const bonusA = a.bonusScore || 0;
+          const bonusB = b.bonusScore || 0;
+          if (bonusB !== bonusA) return bonusB - bonusA;
+          return (a.student_id || '').localeCompare(b.student_id || '');
+        });
+        topStudents = allStudents.slice(0, 5);
+      }
 
-      const allStudents = (allStudentsRes || []).map(s => ({
-        ...s,
-        current_score: util.formatScore(s.current_score),
-        bonusScore: s.bonus_score || 0,
-        scoreLevel: util.getScoreLevel(s.current_score || 100),
-        scoreColor: util.getScoreColor(s.current_score || 100),
-        isSelf: s.student_id === studentId
-      }));
-
-      allStudents.sort((a, b) => {
-        const scoreA = a.current_score || 100;
-        const scoreB = b.current_score || 100;
-        if (scoreB !== scoreA) return scoreB - scoreA;
-        const bonusA = a.bonusScore || 0;
-        const bonusB = b.bonusScore || 0;
-        if (bonusB !== bonusA) return bonusB - bonusA;
-        return (a.student_id || '').localeCompare(b.student_id || '');
-      });
-
-      const topStudents = allStudents.slice(0, 5);
       const selfInTop = topStudents.some(s => s.isSelf);
-
       let myRankInList = myRank;
       if (!selfInTop) {
-        const selfIdx = allStudents.findIndex(s => s.isSelf);
+        myRankInList = myRank;
+      } else {
+        const selfIdx = topStudents.findIndex(s => s.isSelf);
         myRankInList = selfIdx >= 0 ? selfIdx + 1 : myRank;
       }
 
       this.setData({
         myScoreInfo: {
           ...student,
+          current_score: formattedScore,
           scoreLevel: util.getScoreLevel(currentScore),
           scoreColor: util.getScoreColor(currentScore)
         },
@@ -292,8 +323,7 @@ Page({
   },
 
   onAddScore: function () {
-    const role = app.globalData.role;
-    if (role !== 'admin' && role !== 'head_teacher' && role !== 'teacher') {
+    if (!app.hasPermission('score', 'write')) {
       wx.showToast({ title: '无权限操作', icon: 'none', duration: 2000 });
       return;
     }

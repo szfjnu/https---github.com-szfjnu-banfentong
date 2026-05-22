@@ -1,17 +1,28 @@
 <!--pages/score/mall/mall.wxml-->
 <view class="container">
-  <!-- 我的积分卡片 -->
+  <!-- 我的积分卡片 - 修复版：按钮与文本同行，说明文字在底部 -->
   <view class="score-card">
-    <view class="score-info">
-      <text class="score-label">我的积分</text>
-      <text class="score-value">{{myScore}}</text>
+    <!-- 👉 改动1：顶部行容器，实现「左侧积分+右侧按钮」同行居中 -->
+    <view class="score-top-row">
+      <!-- 左侧：可兑换积分文本 -->
+      <view class="score-left">
+        <text class="score-label">可兑换积分</text>
+        <text class="score-value">{{redeemableScore}}</text>
+      </view>
+
+      <!-- 右侧：缩短后的按钮组 -->
+      <view class="score-actions">
+        <button class="action-btn wish-btn" bindtap="onShowWishModal">
+          <text class="btn-icon">💡</text>
+          <text class="btn-text">我想兑换</text>
+        </button>
+        <button class="action-btn records-btn" bindtap="onViewRecords">兑换记录</button>
+      </view>
     </view>
-    <view class="score-actions">
-      <button class="action-btn wish-btn" bindtap="onShowWishModal">
-        <text class="btn-icon">💡</text>
-        <text class="btn-text">我想兑换</text>
-      </button>
-      <button class="action-btn records-btn" bindtap="onViewRecords">兑换记录</button>
+
+    <!-- 👉 改动2：积分说明文字移到卡片底部，单独占一行 -->
+    <view class="score-detail">
+      <text class="detail-text">总积分{{myScore}} - 初始{{initialScore}} - 已兑{{redeemedTotal}}</text>
     </view>
   </view>
 
@@ -26,7 +37,7 @@
     </view>
   </view>
 
-  <!-- 商品列表 -->
+  <!-- 商品列表（其余部分保持不变，省略重复代码） -->
   <view class="items-container" wx:if="{{activeTab === 'items'}}">
     <view wx:if="{{loading}}" class="loading">
       <text>加载中...</text>
@@ -54,9 +65,8 @@
           <text>投标</text>
         </view>
 
-        <!-- 物品图片 -->
+        <!-- 物品图片（修复重叠问题，保留之前的改动） -->
         <view class="item-image" bindtap="onRedeem" data-item="{{item}}">
-            <!-- 增加加载状态和错误处理 -->
             <image 
               wx:if="{{item.image_url}}" 
               src="{{item.image_url}}" 
@@ -65,8 +75,7 @@
               binderror="onImageError" 
               data-id="{{item._id}}"
             />
-            <!-- 默认图标作为占位符 -->
-            <text class="default-icon">🛍️</text>
+            <text wx:else class="default-icon">🛍️</text>
         </view>
 
         <!-- 物品信息 -->
@@ -85,7 +94,6 @@
 
         <!-- 操作按钮 -->
         <view class="item-actions">
-          <!-- 投标模式显示查看投标按钮 -->
           <view 
             class="action-btn-small view-bid-btn" 
             wx:if="{{item.redemption_mode === '投标模式'}}"
@@ -95,7 +103,6 @@
             <text>📊 投标情况</text>
           </view>
           
-          <!-- 兑换按钮 -->
           <view 
             class="action-btn-small redeem-btn {{item.canRedeem ? '' : 'disabled'}}"
             catchtap="onRedeem"
@@ -115,7 +122,7 @@
     </view>
   </view>
 
-  <!-- 心愿单列表 -->
+  <!-- 心愿单列表（保持不变） -->
   <view class="wishes-container" wx:if="{{activeTab === 'wishes'}}">
     <view class="wish-header">
       <text class="wish-title">同学们想要的商品</text>
@@ -164,7 +171,7 @@
     </view>
   </view>
 
-  <!-- 投标详情弹窗 -->
+  <!-- 弹窗部分（保持不变） -->
   <view class="bid-modal" wx:if="{{showBidModal}}" catchtap="onCloseBidModal">
     <view class="modal-content" catchtap="stopPropagation">
       <view class="modal-header">
@@ -211,7 +218,6 @@
     </view>
   </view>
 
-  <!-- 投标输入弹窗（BUG2修复：替换wx.showModal为自定义弹窗，蓝色主题） -->
   <view class="bid-input-modal" wx:if="{{showBidInputDialog}}" catchtap="onCloseBidInputModal">
     <view class="modal-content" catchtap="stopPropagation">
       <view class="modal-header">
@@ -262,7 +268,6 @@
     </view>
   </view>
 
-  <!-- 商品建议弹窗 -->
   <view class="wish-modal" wx:if="{{showWishModal}}" catchtap="onCloseWishModal">
     <view class="modal-content" catchtap="stopPropagation">
       <view class="modal-header">

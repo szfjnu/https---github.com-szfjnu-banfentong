@@ -56,8 +56,7 @@ Page({
 
   // 检查权限
   checkPermission: function () {
-    const role = app.globalData.role;
-    if (role !== 'admin' && role !== 'head_teacher') {
+    if (!app.hasPermission('score', 'manage')) {
       wx.showModal({
         title: '权限不足',
         content: '您没有权限访问此页面',
@@ -349,7 +348,7 @@ Page({
 
   // 初始化基础类别
   onInitBaseCategories: async function () {
-    if (this.data.userRole !== 'admin') {
+    if (!app.hasPermission('score', 'admin')) {
       util.showError('仅管理员可执行此操作');
       return;
     }

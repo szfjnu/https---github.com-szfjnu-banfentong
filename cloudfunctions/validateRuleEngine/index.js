@@ -8,7 +8,7 @@ cloud.init({
 const db = cloud.database();
 const _ = db.command;
 
-const { getCallerInfo, requireTeacher, AUTH_ERRORS } = require('./utils/auth');
+const { getCallerInfo, requireTeacherOrModule, AUTH_ERRORS } = require('./utils/auth');
 
 /**
  * 积分规则引擎验证云函数
@@ -20,7 +20,7 @@ exports.main = async (event, context) => {
   try {
     const classId = data && data.class_id
     const caller = await getCallerInfo(event, classId)
-    requireTeacher(caller)
+    await requireTeacherOrModule(caller, 'score')
 
     switch (action) {
     case 'validateRuleConstraints':

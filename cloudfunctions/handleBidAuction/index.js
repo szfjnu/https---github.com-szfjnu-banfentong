@@ -8,10 +8,15 @@ cloud.init({
 const db = cloud.database()
 const _ = db.command
 
-const { getCallerInfo, requireClassAccess, requireTeacher, AUTH_ERRORS } = require('./utils/auth')
+const { getCallerInfo, requireClassAccess, AUTH_ERRORS } = require('./utils/auth')
 
 exports.main = async (event, context) => {
-  const { action, item_id, student_id, bid_score, class_id } = event
+  const { action } = event
+  const eventData = event.data || {}
+  const item_id = eventData.item_id || event.item_id || ''
+  const student_id = eventData.student_id || event.student_id || ''
+  const bid_score = eventData.bid_score || event.bid_score || 0
+  const class_id = eventData.class_id || event.class_id || ''
 
   try {
     const caller = await getCallerInfo(event, class_id)
@@ -37,7 +42,7 @@ exports.main = async (event, context) => {
 
 async function submitBid(item_id, student_id, bid_score, class_id, caller) {
   try {
-    const itemQuery = { _id: item_id };
+    const itemQuery = { item_id: item_id };
     if (class_id) itemQuery.class_id = class_id;
     const itemRes = await db.collection('redemption_items').where(itemQuery).limit(1).get()
     if (!itemRes.data || itemRes.data.length === 0) {
@@ -64,8 +69,23 @@ async function submitBid(item_id, student_id, bid_score, class_id, caller) {
     }
 
     const student = studentRes.data[0]
-    if (student.current_score < bid_score) {
-      return { success: false, message: '积分不足' }
+    const initialScore = student.initial_score || 100
+    const totalScore = student.current_score || 100
+
+    let redeemedTotal = 0
+    try {
+      const redeemedRes = await db.collection('redemption_requests')
+        .where({
+          student_id: student_id,
+          status: _.in(['待审批', '待班主任审批', '已通过', '已批准', '已中标', '已发货', '已收货'])
+        })
+        .get()
+      redeemedTotal = (redeemedRes.data || []).reduce((sum, r) => sum + (r.bid_score || r.required_score || 0), 0)
+    } catch (e) {}
+
+    const redeemableScore = Math.max(0, totalScore - initialScore - redeemedTotal)
+    if (redeemableScore < bid_score) {
+      return { success: false, message: '可兑换积分不足' }
     }
 
     const existingBidRes = await db.collection('redemption_requests').where({
@@ -106,7 +126,7 @@ async function submitBid(item_id, student_id, bid_score, class_id, caller) {
 
 async function cancelBid(item_id, student_id, class_id, caller) {
   try {
-    const itemQuery = { _id: item_id };
+    const itemQuery = { item_id: item_id };
     if (class_id) itemQuery.class_id = class_id;
     const itemRes = await db.collection('redemption_items').where(itemQuery).limit(1).get()
     if (!itemRes.data || itemRes.data.length === 0) {
@@ -151,7 +171,7 @@ async function cancelBid(item_id, student_id, class_id, caller) {
 
 async function determineWinner(item_id, class_id, caller) {
   try {
-    const itemQuery = { _id: item_id };
+    const itemQuery = { item_id: item_id };
     if (class_id) itemQuery.class_id = class_id;
     const itemRes = await db.collection('redemption_items').where(itemQuery).limit(1).get()
     if (!itemRes.data || itemRes.data.length === 0) {
