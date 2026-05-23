@@ -9,7 +9,7 @@
 /* 顶部 Banner */
 .discover-header {
   position: relative;
-  height: 240rpx;
+  height: 180rpx;
   overflow: hidden;
 }
 
@@ -45,7 +45,7 @@
 /* 功能分组 */
 .feature-groups {
   padding: 0 24rpx;
-  margin-top: -20rpx;
+  margin-top: 20rpx;
   position: relative;
   z-index: 2;
 }

@@ -68,6 +68,49 @@ Page({
     this.setData({ classId, className });
   },
 
+  // 下载模板
+  onDownloadTemplate: async function () {
+    wx.showLoading({ title: '下载中...', mask: true })
+    try {
+      const TEMPLATE_FILE_ID = 'cloud://cloud1-8gu6objx6e491c6e.636c-cloud1-8gu6objx6e491c6e-1406900466/import_template/student_import_template.xlsx'
+      let downloadSucceeded = false
+
+      try {
+        const res = await wx.cloud.downloadFile({ fileID: TEMPLATE_FILE_ID })
+        if (res.tempFilePath) {
+          await wx.openDocument({
+            filePath: res.tempFilePath,
+            fileType: 'xlsx',
+            showMenu: true
+          })
+          downloadSucceeded = true
+        }
+      } catch (cloudErr) {
+        console.warn('云存储模板下载失败，回退生成CSV:', cloudErr)
+      }
+
+      if (!downloadSucceeded) {
+        const header = '学号,姓名,性别,住宿,班干部,联系电话,家长姓名,家长电话,家庭住址,初始积分,出生日期,民族,政治面貌,入学日期'
+        const csvContent = header + '\n'
+        const fs = wx.getFileSystemManager()
+        const tempPath = `${wx.env.USER_DATA_PATH}/student_import_template.csv`
+        fs.writeFileSync(tempPath, '\uFEFF' + csvContent, 'utf8')
+        await wx.openDocument({
+          filePath: tempPath,
+          fileType: 'csv',
+          showMenu: true
+        })
+      }
+
+      wx.hideLoading()
+      util.showSuccess('模板已打开，可另存后填写')
+    } catch (err) {
+      wx.hideLoading()
+      console.error('下载模板失败:', err)
+      util.showError('下载模板失败')
+    }
+  },
+
   // 切换导入方式
   onMethodChange: function (e) {
     const method = e.currentTarget.dataset.method;

@@ -64,6 +64,9 @@
       <view class="tab-item {{importMethod === 'excel' ? 'active' : ''}}" data-method="excel" bindtap="onMethodChange">
         Excel导入
       </view>
+      <view class="tab-item" bindtap="onDownloadTemplate">
+        下载模板
+      </view>
       <view class="tab-item {{importMethod === 'template' ? 'active' : ''}}" data-method="template" bindtap="onMethodChange">
         查看模板
       </view>
