@@ -74,7 +74,7 @@ Component({
       const padding = 30
       const cols = this.data.layout.cols || 8
       const size = Math.floor((screenWidth - padding) / cols)
-      this.setData({ cellSize: Math.min(size, 60), cols: cols })
+      this.setData({ cellSize: Math.min(size, 80), cols: cols })
     },
 
     buildGrid: function () {
@@ -132,7 +132,8 @@ Component({
             cell.isEmpty = false
 
             if (cell.studentId && extraInfo[cell.studentId]) {
-              cell.score = extraInfo[cell.studentId].score
+              const rawScore = extraInfo[cell.studentId].score
+              cell.score = (rawScore !== null && rawScore !== undefined) ? Number(rawScore).toFixed(2) : null
               cell.groupName = extraInfo[cell.studentId].groupName || ''
             }
           }
@@ -440,7 +441,7 @@ Component({
       const cellSize = this.data.cellSize
       if (cellSize <= 0) return null
       const col = Math.floor(relX / cellSize) + 1
-      const row = Math.floor(relY / (cellSize * 0.85)) + 1
+      const row = Math.floor(relY / (cellSize * 1.15)) + 1
       const { rows, cols } = this.data.layout
       if (row < 1 || row > rows || col < 1 || col > cols) return null
       return { row, col, key: row + '_' + col }

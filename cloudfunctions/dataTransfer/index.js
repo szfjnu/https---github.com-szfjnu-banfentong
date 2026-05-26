@@ -18,8 +18,8 @@ const DATA_TRANSFER_ACTIONS = ['importStudent', 'importStudents', 'importSchedul
 const DEFAULT_TRANSFER_PERMISSIONS = {
   importStudent: false,
   importStudents: false,
-  importSchedule: true,
-  importGrade: true,
+  importSchedule: false,
+  importGrade: false,
   exportStudent: false,
   exportScoreRecords: false,
   exportAttendance: false
@@ -31,7 +31,10 @@ async function getTransferPermissions() {
       .doc('transfer_permissions')
       .get()
     if (res.data && res.data.permissions) {
-      return { ...DEFAULT_TRANSFER_PERMISSIONS, ...res.data.permissions }
+      const perms = { ...DEFAULT_TRANSFER_PERMISSIONS, ...res.data.permissions }
+      perms.importSchedule = false
+      perms.importGrade = false
+      return perms
     }
   } catch (err) {
     console.log('[dataTransfer] transfer_permissions config not found, using defaults')

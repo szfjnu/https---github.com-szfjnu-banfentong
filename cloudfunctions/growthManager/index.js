@@ -71,6 +71,64 @@ exports.main = async (event, context) => {
       case 'deleteSkillCertRecord': await requireTeacherOrModule(caller, 'skill_cert'); return await deleteSkillCertRecord(data, OPENID)
       case 'getSkillCertScoreRules': return await getSkillCertScoreRules(data, OPENID)
       case 'saveSkillCertScoreRules': await requireTeacherOrModule(caller, 'skill_cert'); return await saveSkillCertScoreRules(data, OPENID)
+
+      // === 班级成长管理模块 新增action ===
+      case 'getClassDashboard': {
+        const dashActions = require('./actions/growth-dashboard')
+        return await dashActions.getClassDashboard(data, caller)
+      }
+      case 'getDimensionTrend': {
+        const dashActions2 = require('./actions/growth-dashboard')
+        return await dashActions2.getDimensionTrend(data, caller)
+      }
+      case 'getPersonalGrowth': {
+        const dashActions3 = require('./actions/growth-dashboard')
+        return await dashActions3.getPersonalGrowth(data, caller)
+      }
+      case 'getGrowthWarnings': {
+        const warnActions = require('./actions/growth-warning')
+        return await warnActions.getWarnings(data, caller)
+      }
+      case 'updateGrowthWarningStatus': {
+        await requireTeacherOrModule(caller, 'growth')
+        const warnActions2 = require('./actions/growth-warning')
+        return await warnActions2.updateWarningStatus(data, caller)
+      }
+      case 'detectGrowthWarnings': {
+        await requireTeacherOrModule(caller, 'growth')
+        const warnActions3 = require('./actions/growth-warning')
+        return await warnActions3.detectWarnings(data, caller)
+      }
+      case 'getGrowthWarningRules': {
+        const warnActions4 = require('./actions/growth-warning')
+        return await warnActions4.getWarningRules(data, caller)
+      }
+      case 'generateManagementAdvice': {
+        await requireTeacherOrModule(caller, 'growth')
+        const aiActions = require('./actions/growth-ai')
+        return await aiActions.generateManagementAdvice(data, caller)
+      }
+      case 'getGrowthReviews': {
+        const aiActions2 = require('./actions/growth-ai')
+        return await aiActions2.getReviews(data, caller)
+      }
+      case 'confirmGrowthReview': {
+        await requireTeacherOrModule(caller, 'growth')
+        const aiActions3 = require('./actions/growth-ai')
+        return await aiActions3.confirmReview(data, caller)
+      }
+      case 'updateGrowthReview': {
+        await requireTeacherOrModule(caller, 'growth')
+        const aiActions4 = require('./actions/growth-ai')
+        return await aiActions4.updateReview(data, caller)
+      }
+      case 'batchGenerateReviews': {
+        await requireTeacherOrModule(caller, 'growth')
+        const aiActions5 = require('./actions/growth-ai')
+        return await aiActions5.batchGenerateReviews(data, caller)
+      }
+      case 'initGrowthCollections': return await initGrowthCollections()
+
       default: return { success: false, message: '未知操作' }
     }
   } catch (err) {
@@ -2133,4 +2191,55 @@ async function saveSkillCertScoreRules(data, OPENID) {
   }
 
   return { success: true, data: { class_id } }
+}
+
+async function initGrowthCollections() {
+  const { COLLECTIONS, DEFAULT_DIMENSIONS, DEFAULT_WARNING_RULES } = require('../../scripts/init-growth-collections')
+  const results = {}
+
+  for (const col of COLLECTIONS) {
+    try {
+      await db.collection(col.name).limit(1).get()
+      results[col.name] = 'exists'
+    } catch (err) {
+      if (err.message && err.message.includes('not exist')) {
+        try {
+          await db.createCollection(col.name)
+          results[col.name] = 'created'
+        } catch (e) {
+          results[col.name] = 'failed: ' + e.message
+        }
+      }
+    }
+  }
+
+  try {
+    const existingDims = await db.collection('growth_dimension_registry').count()
+    if (existingDims.total === 0) {
+      for (const dim of DEFAULT_DIMENSIONS) {
+        await db.collection('growth_dimension_registry').add({ data: { ...dim, created_at: Date.now() } })
+      }
+      results['dimension_init'] = `${DEFAULT_DIMENSIONS.length} dimensions initialized`
+    } else {
+      results['dimension_init'] = `${existingDims.total} dimensions already exist`
+    }
+  } catch (e) {
+    results['dimension_init'] = 'failed: ' + e.message
+  }
+
+  try {
+    const existingRules = await db.collection('growth_warning_rules').count()
+    if (existingRules.total === 0) {
+      for (const rule of DEFAULT_WARNING_RULES) {
+        await db.collection('growth_warning_rules').add({ data: { ...rule, created_at: Date.now() } })
+      }
+      results['rules_init'] = `${DEFAULT_WARNING_RULES.length} rules initialized`
+    } else {
+      results['rules_init'] = `${existingRules.total} rules already exist`
+    }
+  } catch (e) {
+    results['rules_init'] = 'failed: ' + e.message
+  }
+
+  return { success: true, data: results }
 }

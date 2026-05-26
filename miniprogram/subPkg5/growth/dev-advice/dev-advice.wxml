@@ -1,0 +1,14 @@
+<view class="dev-advice-page">
+  <view class="page-header"><text class="page-title">个性化发展建议</text></view>
+  <view wx:if="{{loading}}" class="loading-wrap"><text>生成中...</text></view>
+  <block wx:else>
+    <view class="advice-card" wx:if="{{suggestion}}">
+      <view class="advice-meta">
+        <text class="ai-tag {{generatedByAI ? 'ai' : 'fallback'}}">{{generatedByAI ? 'AI生成' : '模板生成'}}</text>
+      </view>
+      <text class="advice-content">{{suggestion.content}}</text>
+    </view>
+    <view wx:else class="empty-text"><text>点击下方按钮获取发展建议</text></view>
+    <view class="generate-btn" bindtap="onGenerate"><text>获取发展建议</text></view>
+  </block>
+</view>

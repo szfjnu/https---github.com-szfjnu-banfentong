@@ -1,0 +1,33 @@
+.dashboard-page { padding: 20rpx; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20rpx; }
+.page-title { font-size: 36rpx; font-weight: 700; }
+.header-actions { display: flex; }
+.action-link { color: #4CAF50; font-size: 28rpx; }
+.loading-wrap { text-align: center; padding: 100rpx 0; color: #999; }
+.kpi-section { display: flex; flex-wrap: wrap; gap: 16rpx; margin-bottom: 24rpx; }
+.kpi-card { flex: 1; min-width: 45%; background: #f8f9fa; border-radius: 16rpx; padding: 20rpx; text-align: center; }
+.kpi-label { font-size: 24rpx; color: #666; display: block; margin-bottom: 8rpx; }
+.kpi-value { font-size: 40rpx; font-weight: 700; color: #333; display: block; }
+.kpi-value.warning { color: #F44336; }
+.warning-summary { background: #fff3e0; border-radius: 16rpx; padding: 20rpx; margin-bottom: 24rpx; }
+.section-title { font-size: 30rpx; font-weight: 600; margin-bottom: 12rpx; display: block; }
+.warning-badges { display: flex; gap: 16rpx; align-items: center; }
+.badge { padding: 6rpx 16rpx; border-radius: 8rpx; font-size: 24rpx; }
+.badge.red { background: #ffebee; color: #F44336; }
+.badge.yellow { background: #fff8e1; color: #FF9800; }
+.badge.green { background: #e8f5e9; color: #4CAF50; }
+.no-warning { color: #999; font-size: 24rpx; }
+.dimension-tabs { display: flex; flex-wrap: wrap; gap: 12rpx; margin-bottom: 24rpx; }
+.dim-tab { padding: 10rpx 24rpx; border-radius: 24rpx; background: #f0f0f0; font-size: 24rpx; }
+.dim-tab.active { background: #4CAF50; color: #fff; }
+.trend-section { background: #fff; border-radius: 16rpx; padding: 20rpx; margin-bottom: 24rpx; box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05); }
+.trend-info { display: flex; gap: 24rpx; align-items: center; }
+.trend-direction { font-size: 32rpx; font-weight: 700; }
+.trend-direction.up { color: #4CAF50; }
+.trend-direction.down { color: #F44336; }
+.trend-direction.stable { color: #FF9800; }
+.trend-rate { font-size: 28rpx; color: #666; }
+.quick-actions { display: flex; flex-wrap: wrap; gap: 16rpx; }
+.action-card { flex: 1; min-width: 45%; background: #fff; border-radius: 16rpx; padding: 24rpx; text-align: center; box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05); }
+.action-icon { font-size: 48rpx; display: block; margin-bottom: 8rpx; }
+.action-name { font-size: 26rpx; color: #333; }

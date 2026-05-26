@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>班分通Logo预览</title>
+<style>
+body { font-family: Arial, sans-serif; background: #f0f0f0; padding: 20px; }
+.logo-container { display: inline-block; margin: 20px; text-align: center; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+.logo-container img, .logo-container svg { width: 200px; height: 200px; }
+.logo-title { margin-top: 10px; font-weight: bold; color: #333; }
+</style>
+</head>
+<body>
+<h1>班分通Logo v2版本预览（文字已转路径）</h1>
+<p>这些SVG文件中的文字已转换为路径，可以正确转换为PNG而不会丢失文字。</p>
+<div class="logo-container"><svg width="200" height="200" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a1628"/>
+      <stop offset="50%" style="stop-color:#1a237e"/>
+      <stop offset="100%" style="stop-color:#311b92"/>
+    </linearGradient>
+    <linearGradient id="neonBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00d4ff"/>
+      <stop offset="50%" style="stop-color:#0091ea"/>
+      <stop offset="100%" style="stop-color:#667eea"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(0,212,255,0.08)" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="16" y="16" width="480" height="480" rx="120" fill="url(#bgGradient)"/>
+  <rect x="16" y="16" width="480" height="480" rx="120" fill="url(#grid)"/>
+  <circle cx="256" cy="256" r="200" fill="none" stroke="url(#neonBlue)" stroke-width="2" opacity="0.3"/>
+  <circle cx="256" cy="256" r="190" fill="none" stroke="url(#neonBlue)" stroke-width="1" opacity="0.2"/>
+  <path d="M 56 200 L 80 200 L 90 180 L 110 180" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.4"/>
+  <path d="M 456 312 L 432 312 L 422 332 L 402 332" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.4"/>
+  <circle cx="56" cy="200" r="3" fill="#00d4ff" opacity="0.6"/>
+  <circle cx="456" cy="312" r="3" fill="#00d4ff" opacity="0.6"/>
+  <g filter="url(#glow)">
+    <path d="M 180 140 L 180 372 L 260 372 C 310 372 340 342 340 302 C 340 272 320 252 290 246 C 315 240 330 215 330 190 C 330 155 300 140 260 140 Z" fill="none" stroke="url(#neonBlue)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 180 246 L 280 246" fill="none" stroke="url(#neonBlue)" stroke-width="6" stroke-linecap="round"/>
+    <path d="M 180 140 L 180 372" fill="none" stroke="url(#neonBlue)" stroke-width="8" stroke-linecap="round"/>
+  </g>
+  <circle cx="200" cy="180" r="4" fill="#00d4ff" filter="url(#glow)">
+    <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="280" cy="280" r="4" fill="#00d4ff" filter="url(#glow)">
+    <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="220" cy="340" r="4" fill="#00d4ff" filter="url(#glow)">
+    <animate attributeName="opacity" values="1;0.3;1" dur="2.5s" repeatCount="indefinite"/>
+  </circle>
+  <path d="M 200 180 L 240 180" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.5" stroke-dasharray="4 4">
+    <animate attributeName="stroke-dashoffset" values="0;8" dur="1s" repeatCount="indefinite"/>
+  </path>
+  <path d="M 260 280 L 300 280" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.5" stroke-dasharray="4 4">
+    <animate attributeName="stroke-dashoffset" values="0;8" dur="1.2s" repeatCount="indefinite"/>
+  </path>
+
+  <!-- 班分通 - 文字转为路径 -->
+  <g transform="translate(256, 420)" fill="url(#neonBlue)" filter="url(#glow)">
+    <!-- 班 -->
+    <path d="M-88,-12 L-88,-4 L-78,-4 L-78,12 L-70,12 L-70,-4 L-60,-4 L-60,-12 L-70,-12 L-70,-16 L-60,-16 L-60,-24 L-88,-24 L-88,-16 L-78,-16 L-78,-12 Z M-82,-20 L-66,-20 L-66,-18 L-82,-18 Z"/>
+    <!-- 分 -->
+    <path d="M-50,-24 L-50,12 L-42,12 L-42,-2 L-34,-2 L-34,12 L-26,12 L-26,-24 L-34,-24 L-34,-10 L-42,-10 L-42,-24 Z M-42,-6 L-34,-6 L-34,-4 L-42,-4 Z"/>
+    <!-- 通 -->
+    <path d="M-14,-24 L-14,-16 L-6,-16 L-6,-24 Z M-18,-12 L-18,-4 L-2,-4 L-2,12 L6,12 L6,-4 L14,-4 L14,12 L22,12 L22,-12 Z M-10,0 L-2,0 L-2,2 L-10,2 Z M-10,6 L-2,6 L-2,8 L-10,8 Z"/>
+  </g>
+
+  <!-- CLASS SCORE LINK - 文字转为路径 -->
+  <g transform="translate(256, 450)" fill="#00d4ff" opacity="0.7">
+    <!-- C -->
+    <path d="M-68,-5 Q-72,-5 -74,-2 Q-76,0 -76,3 Q-76,6 -74,8 Q-72,11 -68,11 L-64,11 L-64,7 L-68,7 Q-70,7 -71,5 Q-72,4 -72,3 Q-72,2 -71,1 Q-70,-1 -68,-1 L-64,-1 L-64,-5 Z" transform="scale(0.7)"/>
+    <!-- L -->
+    <path d="M-58,-5 L-58,11 L-50,11 L-50,7 L-54,7 L-54,-5 Z" transform="scale(0.7)"/>
+    <!-- A -->
+    <path d="M-42,-5 L-48,11 L-44,11 L-42,6 L-36,6 L-34,11 L-30,11 L-36,-5 Z M-41,2 L-39,2 L-38,4 L-40,4 Z" transform="scale(0.7)"/>
+    <!-- S -->
+    <path d="M-22,-5 Q-26,-5 -28,-2 Q-29,0 -26,1 Q-24,2 -22,2 Q-20,3 -19,4 Q-18,5 -18,6 Q-18,8 -20,9 Q-22,11 -26,11 L-26,7 Q-23,7 -22,6 Q-22,6 -22,5 Q-22,5 -23,4 Q-24,4 -26,3 Q-28,2 -30,1 Q-32,-1 -32,-3 Q-32,-5 -30,-7 Q-28,-9 -22,-9 Z" transform="scale(0.7)"/>
+    <!-- S -->
+    <path d="M-12,-5 Q-16,-5 -18,-2 Q-19,0 -16,1 Q-14,2 -12,2 Q-10,3 -9,4 Q-8,5 -8,6 Q-8,8 -10,9 Q-12,11 -16,11 L-16,7 Q-13,7 -12,6 Q-12,6 -12,5 Q-12,5 -13,4 Q-14,4 -16,3 Q-18,2 -20,1 Q-22,-1 -22,-3 Q-22,-5 -20,-7 Q-18,-9 -12,-9 Z" transform="scale(0.7)"/>
+    <!-- 空格 -->
+    <!-- S -->
+    <path d="M8,-5 Q4,-5 2,-2 Q1,0 4,1 Q6,2 8,2 Q10,3 11,4 Q12,5 12,6 Q12,8 10,9 Q8,11 4,11 L4,7 Q7,7 8,6 Q8,6 8,5 Q8,5 7,4 Q6,4 4,3 Q2,2 0,1 Q-2,-1 -2,-3 Q-2,-5 0,-7 Q2,-9 8,-9 Z" transform="scale(0.7)"/>
+    <!-- C -->
+    <path d="M18,-5 Q14,-5 12,-2 Q10,0 10,3 Q10,6 12,8 Q14,11 18,11 L22,11 L22,7 L18,7 Q16,7 15,5 Q14,4 14,3 Q14,2 15,1 Q16,-1 18,-1 L22,-1 L22,-5 Z" transform="scale(0.7)"/>
+    <!-- O -->
+    <path d="M30,-5 Q26,-5 24,-2 Q22,0 22,3 Q22,6 24,8 Q26,11 30,11 Q34,11 36,8 Q38,6 38,3 Q38,0 36,-2 Q34,-5 30,-5 Z M30,-1 Q32,-1 33,1 Q34,2 34,3 Q34,4 33,5 Q32,7 30,7 Q28,7 27,5 Q26,4 26,3 Q26,2 27,1 Q28,-1 30,-1 Z" transform="scale(0.7)"/>
+    <!-- R -->
+    <path d="M42,-5 L42,11 L46,11 L46,4 L48,4 L52,11 L56,11 L52,3 Q54,2 55,0 Q56,-1 56,-3 Q56,-5 54,-7 Q52,-9 48,-9 Z M46,-1 L48,-1 Q50,-1 51,0 Q52,-1 52,-3 Q52,-4 51,-5 Q50,-5 48,-5 L46,-5 Z" transform="scale(0.7)"/>
+    <!-- E -->
+    <path d="M60,-5 L60,11 L72,11 L72,7 L64,7 L64,4 L70,4 L70,0 L64,0 L64,-1 L72,-1 L72,-5 Z" transform="scale(0.7)"/>
+    <!-- 空格 -->
+    <!-- L -->
+    <path d="M82,-5 L82,11 L90,11 L90,7 L86,7 L86,-5 Z" transform="scale(0.7)"/>
+    <!-- I -->
+    <path d="M94,-5 L94,11 L98,11 L98,-5 Z" transform="scale(0.7)"/>
+    <!-- N -->
+    <path d="M102,-5 L102,11 L106,11 L106,-1 L112,11 L116,11 L116,-5 L112,-5 L112,7 L106,-5 Z" transform="scale(0.7)"/>
+    <!-- K -->
+    <path d="M120,-5 L120,11 L124,11 L124,2 L128,11 L132,11 L128,0 L132,-5 L128,-5 L124,0 L124,-5 Z" transform="scale(0.7)"/>
+  </g>
+
+  <path d="M 40 80 L 40 40 L 80 40" fill="none" stroke="#00d4ff" stroke-width="2" opacity="0.5"/>
+  <path d="M 472 80 L 472 40 L 432 40" fill="none" stroke="#00d4ff" stroke-width="2" opacity="0.5"/>
+  <path d="M 40 432 L 40 472 L 80 472" fill="none" stroke="#00d4ff" stroke-width="2" opacity="0.5"/>
+  <path d="M 472 432 L 472 472 L 432 472" fill="none" stroke="#00d4ff" stroke-width="2" opacity="0.5"/>
+</svg><div class="logo-title">banfentong-logo-tech-v2.svg</div></div>
+<div class="logo-container"><svg width="200" height="200" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="minimalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea"/>
+      <stop offset="100%" style="stop-color:#764ba2"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00d4ff"/>
+      <stop offset="100%" style="stop-color:#667eea"/>
+    </linearGradient>
+  </defs>
+  <rect x="16" y="16" width="480" height="480" rx="120" fill="#ffffff"/>
+  <g transform="translate(256, 220)">
+    <path d="M 0 -100 L 86.6 -50 L 86.6 50 L 0 100 L -86.6 50 L -86.6 -50 Z" fill="none" stroke="url(#minimalGrad)" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M -30 -50 L -30 50 L 10 50 C 35 50 50 35 50 15 C 50 0 40 -10 25 -12 C 38 -15 48 -28 48 -45 C 48 -68 28 -80 0 -80 L -30 -80 L -30 -50 Z" fill="url(#minimalGrad)"/>
+    <path d="M -30 -12 L 20 -12 L 20 8 L -30 8 Z" fill="#ffffff"/>
+    <path d="M -30 -65 L 0 -65 L 0 -45 L -30 -45 Z" fill="#ffffff"/>
+    <circle cx="-60" cy="-70" r="5" fill="url(#accentGrad)"/>
+    <circle cx="60" cy="70" r="5" fill="url(#accentGrad)"/>
+    <circle cx="0" cy="85" r="5" fill="url(#accentGrad)"/>
+  </g>
+
+  <!-- 班分通 - 路径文字 -->
+  <g transform="translate(256, 400)" fill="url(#minimalGrad)">
+    <!-- 班 -->
+    <path d="M-88,-12 L-88,-4 L-78,-4 L-78,12 L-70,12 L-70,-4 L-60,-4 L-60,-12 L-70,-12 L-70,-16 L-60,-16 L-60,-24 L-88,-24 L-88,-16 L-78,-16 L-78,-12 Z M-82,-20 L-66,-20 L-66,-18 L-82,-18 Z"/>
+    <!-- 分 -->
+    <path d="M-50,-24 L-50,12 L-42,12 L-42,-2 L-34,-2 L-34,12 L-26,12 L-26,-24 L-34,-24 L-34,-10 L-42,-10 L-42,-24 Z M-42,-6 L-34,-6 L-34,-4 L-42,-4 Z"/>
+    <!-- 通 -->
+    <path d="M-14,-24 L-14,-16 L-6,-16 L-6,-24 Z M-18,-12 L-18,-4 L-2,-4 L-2,12 L6,12 L6,-4 L14,-4 L14,12 L22,12 L22,-12 Z M-10,0 L-2,0 L-2,2 L-10,2 Z M-10,6 L-2,6 L-2,8 L-10,8 Z"/>
+  </g>
+
+  <!-- 智能班级管理 - 路径文字 -->
+  <g transform="translate(256, 435)" fill="#999999">
+    <!-- 智 -->
+    <path d="M-60,-8 L-60,8 L-56,8 L-56,0 L-52,0 L-52,8 L-48,8 L-48,-8 L-52,-8 L-52,-4 L-56,-4 L-56,-8 Z M-56,-2 L-52,-2 L-52,0 L-56,0 Z" transform="scale(0.8)"/>
+    <!-- 能 -->
+    <path d="M-40,-8 L-40,8 L-36,8 L-36,0 L-32,0 L-32,8 L-28,8 L-28,-8 L-32,-8 L-32,-4 L-36,-4 L-36,-8 Z" transform="scale(0.8)"/>
+    <!-- 班 -->
+    <path d="M-20,-8 L-20,8 L-16,8 L-16,0 L-12,0 L-12,8 L-8,8 L-8,-8 L-12,-8 L-12,-4 L-16,-4 L-16,-8 Z M-16,-2 L-12,-2 L-12,0 L-16,0 Z" transform="scale(0.8)"/>
+    <!-- 级 -->
+    <path d="M0,-8 L0,8 L4,8 L4,0 L8,0 L8,8 L12,8 L12,-8 L8,-8 L8,-4 L4,-4 L4,-8 Z M4,-2 L8,-2 L8,0 L4,0 Z" transform="scale(0.8)"/>
+    <!-- 管 -->
+    <path d="M20,-8 L20,8 L24,8 L24,0 L28,0 L28,8 L32,8 L32,-8 L28,-8 L28,-4 L24,-4 L24,-8 Z M24,-2 L28,-2 L28,0 L24,0 Z" transform="scale(0.8)"/>
+    <!-- 理 -->
+    <path d="M40,-8 L40,8 L44,8 L44,0 L48,0 L48,8 L52,8 L52,-8 L48,-8 L48,-4 L44,-4 L44,-8 Z M44,-2 L48,-2 L48,0 L44,0 Z" transform="scale(0.8)"/>
+  </g>
+</svg><div class="logo-title">banfentong-logo-minimal-v2.svg</div></div>
+<div class="logo-container"><svg width="200" height="200" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="darkBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f0f23"/>
+      <stop offset="100%" style="stop-color:#1a1a2e"/>
+    </linearGradient>
+    <linearGradient id="neonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00f5ff"/>
+      <stop offset="50%" style="stop-color:#00d4ff"/>
+      <stop offset="100%" style="stop-color:#667eea"/>
+    </linearGradient>
+    <filter id="neonGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feFlood flood-color="#00d4ff" flood-opacity="0.8"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect x="16" y="16" width="480" height="480" rx="120" fill="url(#darkBg)"/>
+  <circle cx="256" cy="240" r="160" fill="none" stroke="url(#neonGrad)" stroke-width="1" opacity="0.3" filter="url(#neonGlow)"/>
+  <circle cx="256" cy="240" r="150" fill="none" stroke="url(#neonGrad)" stroke-width="2" opacity="0.5"/>
+  <g transform="translate(256, 240)" filter="url(#neonGlow)">
+    <rect x="-40" y="-50" width="80" height="100" rx="8" fill="none" stroke="url(#neonGrad)" stroke-width="3"/>
+    <path d="M -20 -30 L -20 30 L 5 30 C 20 30 28 22 28 10 C 28 2 22 -4 14 -6 C 20 -8 26 -16 26 -26 C 26 -40 12 -48 -5 -48 L -20 -48 L -20 -30 Z" fill="url(#neonGrad)"/>
+    <path d="M -20 -6 L 8 -6 L 8 6 L -20 6 Z" fill="#0f0f23"/>
+    <path d="M -20 -36 L -5 -36 L -5 -24 L -20 -24 Z" fill="#0f0f23"/>
+    <line x1="-50" y1="-30" x2="-40" y2="-30" stroke="#00d4ff" stroke-width="2"/>
+    <line x1="-50" y1="-10" x2="-40" y2="-10" stroke="#00d4ff" stroke-width="2"/>
+    <line x1="-50" y1="10" x2="-40" y2="10" stroke="#00d4ff" stroke-width="2"/>
+    <line x1="-50" y1="30" x2="-40" y2="30" stroke="#00d4ff" stroke-width="2"/>
+    <line x1="40" y1="-30" x2="50" y2="-30" stroke="#00d4ff" stroke-width="2"/>
+    <line x1="40" y1="-10" x2="50" y2="-10" stroke="#00d4ff" stroke-width="2"/>
+    <line x1="40" y1="10" x2="50" y2="10" stroke="#00d4ff" stroke-width="2"/>
+    <line x1="40" y1="30" x2="50" y2="30" stroke="#00d4ff" stroke-width="2"/>
+    <line x1="-20" y1="-60" x2="-20" y2="-50" stroke="#00d4ff" stroke-width="2"/>
+    <line x1="0" y1="-60" x2="0" y2="-50" stroke="#00d4ff" stroke-width="2"/>
+    <line x1="20" y1="-60" x2="20" y2="-50" stroke="#00d4ff" stroke-width="2"/>
+    <line x1="-20" y1="50" x2="-20" y2="60" stroke="#00d4ff" stroke-width="2"/>
+    <line x1="0" y1="50" x2="0" y2="60" stroke="#00d4ff" stroke-width="2"/>
+    <line x1="20" y1="50" x2="20" y2="60" stroke="#00d4ff" stroke-width="2"/>
+    <line x1="-70" y1="-30" x2="-90" y2="-50" stroke="#00d4ff" stroke-width="1.5" opacity="0.6"/>
+    <line x1="-70" y1="30" x2="-90" y2="50" stroke="#00d4ff" stroke-width="1.5" opacity="0.6"/>
+    <line x1="70" y1="-30" x2="90" y2="-50" stroke="#00d4ff" stroke-width="1.5" opacity="0.6"/>
+    <line x1="70" y1="30" x2="90" y2="50" stroke="#00d4ff" stroke-width="1.5" opacity="0.6"/>
+    <circle cx="-90" cy="-50" r="4" fill="#00d4ff"/>
+    <circle cx="-90" cy="50" r="4" fill="#00d4ff"/>
+    <circle cx="90" cy="-50" r="4" fill="#00d4ff"/>
+    <circle cx="90" cy="50" r="4" fill="#00d4ff"/>
+  </g>
+  <!-- 班分通 - 白色路径文字 -->
+  <g transform="translate(256, 400)" fill="#ffffff">
+    <!-- 班 -->
+    <path d="M-88,-12 L-88,-4 L-78,-4 L-78,12 L-70,12 L-70,-4 L-60,-4 L-60,-12 L-70,-12 L-70,-16 L-60,-16 L-60,-24 L-88,-24 L-88,-16 L-78,-16 L-78,-12 Z M-82,-20 L-66,-20 L-66,-18 L-82,-18 Z"/>
+    <!-- 分 -->
+    <path d="M-50,-24 L-50,12 L-42,12 L-42,-2 L-34,-2 L-34,12 L-26,12 L-26,-24 L-34,-24 L-34,-10 L-42,-10 L-42,-24 Z M-42,-6 L-34,-6 L-34,-4 L-42,-4 Z"/>
+    <!-- 通 -->
+    <path d="M-14,-24 L-14,-16 L-6,-16 L-6,-24 Z M-18,-12 L-18,-4 L-2,-4 L-2,12 L6,12 L6,-4 L14,-4 L14,12 L22,12 L22,-12 Z M-10,0 L-2,0 L-2,2 L-10,2 Z M-10,6 L-2,6 L-2,8 L-10,8 Z"/>
+  </g>
+  <!-- AI智能班级管理平台 - 蓝色路径文字 -->
+  <g transform="translate(256, 435)" fill="#00d4ff" opacity="0.8">
+    <!-- A -->
+    <path d="M-80,-5 L-86,11 L-82,11 L-80,6 L-74,6 L-72,11 L-68,11 L-74,-5 Z M-79,2 L-77,2 L-76,4 L-78,4 Z" transform="scale(0.7)"/>
+    <!-- I -->
+    <path d="M-62,-5 L-62,11 L-58,11 L-58,-5 Z" transform="scale(0.7)"/>
+    <!-- 智 -->
+    <path d="M-50,-8 L-50,8 L-46,8 L-46,0 L-42,0 L-42,8 L-38,8 L-38,-8 L-42,-8 L-42,-4 L-46,-4 L-46,-8 Z" transform="scale(0.7)"/>
+    <!-- 能 -->
+    <path d="M-30,-8 L-30,8 L-26,8 L-26,0 L-22,0 L-22,8 L-18,8 L-18,-8 L-22,-8 L-22,-4 L-26,-4 L-26,-8 Z" transform="scale(0.7)"/>
+    <!-- 班 -->
+    <path d="M-10,-8 L-10,8 L-6,8 L-6,0 L-2,0 L-2,8 L2,8 L2,-8 L-2,-8 L-2,-4 L-6,-4 L-6,-8 Z" transform="scale(0.7)"/>
+    <!-- 级 -->
+    <path d="M10,-8 L10,8 L14,8 L14,0 L18,0 L18,8 L22,8 L22,-8 L18,-8 L18,-4 L14,-4 L14,-8 Z" transform="scale(0.7)"/>
+    <!-- 管 -->
+    <path d="M30,-8 L30,8 L34,8 L34,0 L38,0 L38,8 L42,8 L42,-8 L38,-8 L38,-4 L34,-4 L34,-8 Z" transform="scale(0.7)"/>
+    <!-- 理 -->
+    <path d="M50,-8 L50,8 L54,8 L54,0 L58,0 L58,8 L62,8 L62,-8 L58,-8 L58,-4 L54,-4 L54,-8 Z" transform="scale(0.7)"/>
+    <!-- 平 -->
+    <path d="M70,-8 L70,8 L74,8 L74,0 L78,0 L78,8 L82,8 L82,-8 L78,-8 L78,-4 L74,-4 L74,-8 Z" transform="scale(0.7)"/>
+    <!-- 台 -->
+    <path d="M90,-8 L90,8 L94,8 L94,0 L98,0 L98,8 L102,8 L102,-8 L98,-8 L98,-4 L94,-4 L94,-8 Z" transform="scale(0.7)"/>
+  </g>
+</svg><div class="logo-title">banfentong-logo-dark-v2.svg</div></div>
+<div class="logo-container"><svg width="200" height="200" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="appGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea"/>
+      <stop offset="100%" style="stop-color:#764ba2"/>
+    </linearGradient>
+    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#667eea" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect x="0" y="0" width="200" height="200" rx="58" fill="url(#appGrad)"/>
+  <rect x="0" y="0" width="200" height="200" rx="58" fill="url(#appGrad)" opacity="0.9"/>
+  <ellipse cx="128" cy="60" rx="80" ry="40" fill="#ffffff" opacity="0.1"/>
+  <g transform="translate(128, 128)" filter="url(#dropShadow)">
+    <path d="M -35 -50 L -35 50 L 15 50 C 40 50 55 38 55 18 C 55 5 45 -5 30 -8 C 42 -12 52 -25 52 -42 C 52 -62 32 -75 5 -75 L -35 -75 L -35 -50 Z" fill="#ffffff"/>
+    <path d="M -35 -5 L 15 -5 L 15 15 L -35 15 Z" fill="url(#appGrad)"/>
+    <path d="M -35 -55 L 0 -55 L 0 -35 L -35 -35 Z" fill="url(#appGrad)"/>
+    <circle cx="45" cy="-55" r="6" fill="#00d4ff"/>
+    <circle cx="55" cy="-40" r="4" fill="#00d4ff" opacity="0.6"/>
+  </g>
+  <!-- BFT - 路径文字 -->
+  <g transform="translate(128, 210)" fill="#ffffff" opacity="0.9">
+    <!-- B -->
+    <path d="M-18,-7 L-18,7 L-8,7 C-3,7 0,5 0,2 C0,-1 -2,-3 -5,-4 C-2,-5 0,-7 0,-10 C0,-13 -3,-15 -8,-15 Z M-12,-11 L-8,-11 C-6,-11 -5,-10 -5,-9 C-5,-8 -6,-7 -8,-7 L-12,-7 Z M-12,-3 L-6,-3 C-4,-3 -3,-2 -3,-1 C-3,0 -4,1 -6,1 L-12,1 Z" transform="scale(0.9)"/>
+    <!-- F -->
+    <path d="M6,-15 L6,7 L12,7 L12,-2 L18,-2 L18,-6 L12,-6 L12,-9 L20,-9 L20,-15 Z" transform="scale(0.9)"/>
+    <!-- T -->
+    <path d="M24,-15 L24,-9 L30,-9 L30,7 L36,7 L36,-9 L42,-9 L42,-15 Z" transform="scale(0.9)"/>
+  </g>
+</svg><div class="logo-title">banfentong-logo-appicon-v2.svg</div></div>
+
+</body>
+</html>

@@ -22,6 +22,7 @@ exports.main = async (event, context) => {
     case 'deleteSchedule': await requireTeacherOrModule(caller, 'schedule'); requireClassAccess(caller, data?.class_id, ['head_teacher', 'admin']); return await deleteSchedule(data, caller.openid)
     case 'ensureCollection': return await ensureCollection()
     case 'fixMissingIsBase': await requireTeacherOrModule(caller, 'schedule'); return await fixMissingIsBase(data, caller.openid)
+    case 'fixMissingScheduleTypeId': await requireTeacherOrModule(caller, 'schedule'); return await fixMissingScheduleTypeId(data, caller.openid)
     default: return { success: false, message: '未知操作' }
   }
   } catch (err) {
@@ -112,7 +113,7 @@ function mergeSchedule(baseRecords, overrides) {
 }
 
 async function getSchedule(data, openid) {
-  const { class_id, class_name, semester_name, week_day, week_number, course_view_type, is_base } = data || {}
+  const { class_id, class_name, semester_name, week_day, week_number, course_view_type, is_base, schedule_type_id } = data || {}
 
   await ensureCollectionFn()
 
@@ -122,6 +123,16 @@ async function getSchedule(data, openid) {
   if (semester_name) baseQuery.semester_name = semester_name
   if (is_base !== undefined) {
     baseQuery.is_base = is_base
+  }
+  if (schedule_type_id) {
+    if (schedule_type_id === 'class_schedule') {
+      baseQuery.schedule_type_id = _.or([
+        { schedule_type_id: 'class_schedule' },
+        { schedule_type_id: _.exists(false) }
+      ])
+    } else {
+      baseQuery.schedule_type_id = schedule_type_id
+    }
   }
 
   let baseRecords = await getAllRecords('schedules', baseQuery, { field: 'section', order: 'asc' })
@@ -159,9 +170,12 @@ async function getSchedule(data, openid) {
 }
 
 async function importSchedule(data, openid) {
-  const { records, semester_name, is_base, class_id } = data || {}
+  const { records, semester_name, is_base, class_id, semester_id, schedule_type_id } = data || {}
 
   await ensureCollectionFn()
+
+  const VALID_TYPE_IDS = ['class_schedule', 'teacher_schedule']
+  const resolvedTypeId = VALID_TYPE_IDS.includes(schedule_type_id) ? schedule_type_id : 'class_schedule'
 
   if (!records || !Array.isArray(records) || records.length === 0) {
     return { success: false, message: '导入数据为空' }
@@ -207,6 +221,8 @@ async function importSchedule(data, openid) {
       record.status = record.status || 'normal'
       record.schedule_type = record.schedule_type || '课程'
       record.is_base = markIsBase
+      record.schedule_type_id = record.schedule_type_id || resolvedTypeId
+      record.semester_id = record.semester_id || semester_id || ''
       record.semester_name = record.semester_name || semester_name || ''
       if (class_id) record.class_id = class_id
       if (markIsBase && (!record.remark || record.remark === '第2周' || record.remark === '第3周')) {
@@ -353,7 +369,7 @@ async function updateSchedule(data, openid) {
 }
 
 async function deleteSchedule(data, openid) {
-  const { type, schedule_id, override_id, class_name, class_id, semester_name } = data || {}
+  const { type, schedule_id, override_id, class_name, class_id, semester_name, schedule_type_id } = data || {}
 
   await ensureCollectionFn()
 
@@ -361,8 +377,11 @@ async function deleteSchedule(data, openid) {
     if (type === 'base') {
       if (!schedule_id) return { success: false, message: '缺少schedule_id' }
 
+      const deleteQuery = { schedule_id }
+      if (schedule_type_id) deleteQuery.schedule_type_id = schedule_type_id
+
       const res = await db.collection('schedules')
-        .where({ schedule_id })
+        .where(deleteQuery)
         .limit(1)
         .get()
 
@@ -438,6 +457,31 @@ async function fixMissingIsBase(data, openid) {
         }
       } catch (err) {
         console.error(`修复teacher_openid失败:`, err)
+      }
+    }
+  }
+
+  return { success: true, data: { total: allRecords.length, fixed: fixedCount } }
+}
+
+async function fixMissingScheduleTypeId(data, openid) {
+  const { class_id } = data || {}
+  const query = {}
+  if (class_id) query.class_id = class_id
+
+  const allRecords = await getAllRecords('schedules', query)
+  let fixedCount = 0
+  const now = Date.now()
+
+  for (const record of allRecords) {
+    if (!record.schedule_type_id) {
+      try {
+        await db.collection('schedules').doc(record._id).update({
+          data: { schedule_type_id: 'class_schedule', updatedAt: now }
+        })
+        fixedCount++
+      } catch (err) {
+        console.error(`修复schedule_type_id记录${record._id}失败:`, err)
       }
     }
   }

@@ -11,6 +11,7 @@ const { getCallerInfo, requireTeacherOrModule } = require('./utils/auth');
 
 exports.main = async (event, context) => {
   const { action, data } = event;
+  const { OPENID } = cloud.getWXContext();
 
   try {
     const caller = await getCallerInfo(event, data?.class_id || data?.classId);
@@ -629,8 +630,8 @@ async function importGradeExcel(data, openId) {
         } else if (Number(item.score) < 0 || Number(item.score) > 150) {
           errors.push('分数超出范围(0-150)');
         }
-        if (item.subject && !subjectList.includes(item.subject)) {
-          errors.push('科目不在配置中');
+        if (!item.subject || !item.subject.trim()) {
+          errors.push('缺少科目名称');
         }
         return {
           ...item,
@@ -661,6 +662,38 @@ async function importGradeExcel(data, openId) {
     const validRows = previewData.filter(r => r.valid);
     if (validRows.length === 0) {
       return { success: false, message: '没有有效数据可录入' };
+    }
+
+    // 冲突检测：检查已有成绩记录中是否存在相同 student_id + subject + term + exam_type
+    const conflictChecks = validRows.map(r => ({
+      student_id: r.student_id,
+      subject: r.subject,
+      term: term,
+      exam_type: exam_type
+    }));
+    const conflictErrors = [];
+    for (const c of conflictChecks) {
+      const existRes = await db.collection('grade_records')
+        .where({
+          student_id: c.student_id,
+          subject: c.subject,
+          term: c.term,
+          exam_type: c.exam_type,
+          class_id: class_id
+        })
+        .limit(1)
+        .get();
+      if (existRes.data && existRes.data.length > 0) {
+        conflictErrors.push(`${c.student_id}的${c.subject}(${c.term}/${c.exam_type})已有成绩记录`);
+      }
+    }
+
+    if (conflictErrors.length > 0) {
+      return {
+        success: false,
+        message: '检测到数据冲突，请修改后再导入',
+        conflicts: conflictErrors
+      };
     }
 
     const grades = validRows.map(r => ({

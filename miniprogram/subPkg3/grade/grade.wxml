@@ -213,21 +213,21 @@
         </view>
       </view>
 
-      <!-- 科目选择 - 可编辑输入框 -->
-      <view class="import-field">
-        <text class="import-label">录入科目：</text>
-        <view class="subject-input-wrap">
-          <input class="subject-input" value="{{importSubjectInput}}" bindinput="onImportSubjectInput" bindfocus="onImportSubjectInput" placeholder="选择或输入科目" />
-          <view class="subject-suggestions" wx:if="{{showSubjectSuggestions && importSubjectSuggestions.length > 0}}">
-            <view class="suggestion-item" wx:for="{{importSubjectSuggestions}}" wx:key="*this" bindtap="onSubjectSuggestionSelect" data-name="{{item}}">
-              {{item}}
+      <!-- 文本录入Tab -->
+      <block wx:if="{{importTab === 'text'}}">
+        <!-- 科目选择 - 仅文本录入需要 -->
+        <view class="import-field">
+          <text class="import-label">录入科目：</text>
+          <view class="subject-input-wrap">
+            <input class="subject-input" value="{{importSubjectInput}}" bindinput="onImportSubjectInput" bindfocus="onImportSubjectInput" placeholder="选择或输入科目" />
+            <view class="subject-suggestions" wx:if="{{showSubjectSuggestions && importSubjectSuggestions.length > 0}}">
+              <view class="suggestion-item" wx:for="{{importSubjectSuggestions}}" wx:key="*this" bindtap="onSubjectSuggestionSelect" data-name="{{item}}">
+                {{item}}
+              </view>
             </view>
           </view>
         </view>
-      </view>
 
-      <!-- 文本录入Tab -->
-      <block wx:if="{{importTab === 'text'}}">
         <view class="import-field">
           <text class="import-label">成绩数据：</text>
           <text class="import-hint">每行一条，格式：学号 分数（空格/逗号/Tab分隔）</text>

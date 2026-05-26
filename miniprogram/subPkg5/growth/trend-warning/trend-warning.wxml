@@ -1,0 +1,27 @@
+<view class="trend-warning-page">
+  <view class="page-header"><text class="page-title">趋势与预警</text></view>
+  <view wx:if="{{loading}}" class="loading-wrap"><text>加载中...</text></view>
+  <block wx:else>
+    <view class="stats-bar">
+      <text class="stat">红色: {{stats.red || 0}}</text>
+      <text class="stat yellow">黄色: {{stats.yellow || 0}}</text>
+      <text class="stat green">绿色: {{stats.green || 0}}</text>
+    </view>
+    <view class="warning-list">
+      <view class="warning-item {{item.warning_level}}" wx:for="{{warnings}}" wx:key="_id">
+        <view class="warning-header">
+          <text class="warning-type">{{item.warning_type}}</text>
+          <text class="warning-level {{item.warning_level}}">{{item.warning_level === 'red' ? '红色' : (item.warning_level === 'yellow' ? '黄色' : '绿色')}}</text>
+        </view>
+        <text class="warning-label">{{item.label}}</text>
+        <text class="warning-student">{{item.student_name}}</text>
+        <view class="warning-actions" wx:if="{{canHandle && item.status === 'pending'}}">
+          <text class="action-btn" data-id="{{item._id}}" data-status="confirmed" bindtap="onHandleWarning">确认</text>
+          <text class="action-btn ignore" data-id="{{item._id}}" data-status="ignored" bindtap="onHandleWarning">忽略</text>
+        </view>
+      </view>
+      <text wx:if="{{warnings.length === 0}}" class="empty-text">暂无预警</text>
+    </view>
+    <view class="detect-btn" wx:if="{{canHandle}}" bindtap="onDetect"><text>手动检测预警</text></view>
+  </block>
+</view>

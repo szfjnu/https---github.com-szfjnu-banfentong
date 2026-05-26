@@ -22,33 +22,94 @@ Page({
     canSwitchView: false,
 
     isEditing: false,
-    editChanges: []
+    editChanges: [],
+    scheduleTypeId: 'class_schedule'
   },
 
   onLoad: function (options) {
     const role = app.globalData.role
-    const classId = app.globalData.class_id
-    const className = app.globalData.class_name || ''
+    const classId = options.class_id || app.globalData.class_id || app.globalData.classId || ''
+    const className = options.class_name ? decodeURIComponent(options.class_name) : (app.globalData.class_name || app.globalData.className || app.globalData.currentClassName || '')
     const semesterName = app.globalData.currentSemesterName || ''
 
     const canEdit = role === 'admin' || role === 'head_teacher'
     const canSwitchView = role === 'admin' || role === 'head_teacher' || role === 'subject_teacher'
 
-    if (options.class_id) this.setData({ classId: options.class_id })
-    else this.setData({ classId: classId })
-
-    if (options.class_name) this.setData({ className: options.class_name })
-    else this.setData({ className: className })
-
     this.setData({
+      classId: classId,
+      className: className,
       semesterName: semesterName,
       canEdit: canEdit,
       canSwitchView: canSwitchView,
-      courseViewType: canSwitchView ? 'class' : 'class'
+      courseViewType: 'class'
     })
 
-    this.calculateCurrentWeek()
-    this.loadSchedule()
+    if (!classId) {
+      this.tryLoadClassFromUser().then(() => {
+        this.calculateCurrentWeek()
+        this.loadSchedule()
+      })
+    } else {
+      this.calculateCurrentWeek()
+      this.loadSchedule()
+    }
+  },
+
+  tryLoadClassFromUser: async function () {
+    try {
+      const openid = app.globalData.openid
+      if (!openid) return
+
+      const res = await wx.cloud.callFunction({
+        name: 'joinClass',
+        data: { action: 'getUserClasses', data: {} }
+      })
+
+      if (res.result && res.result.success && res.result.data) {
+        const joinedClasses = res.result.data.joined || res.result.data || []
+        if (joinedClasses.length > 0) {
+          const cls = joinedClasses[0]
+          const classId = cls._id || cls.class_id || ''
+          if (classId) {
+            this.setData({
+              classId,
+              className: this.data.className || cls.class_name || ''
+            })
+            app.globalData.class_id = classId
+            app.globalData.currentClassName = cls.class_name || ''
+            wx.setStorageSync('class_id', classId)
+            if (cls.role) {
+              app.globalData.role = cls.role
+              wx.setStorageSync('role', cls.role)
+            }
+            return
+          }
+        }
+      }
+      wx.showToast({ title: '请先加入班级', icon: 'none' })
+    } catch (e) {
+      console.error('从云函数获取班级失败:', e)
+      wx.showToast({ title: '获取班级信息失败', icon: 'none' })
+    }
+  },
+
+  loadClassInfo: async function (classId) {
+    if (!classId) return
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'manageUserCenter',
+        data: { action: 'getClassInfo', data: { class_id: classId, classId: classId } }
+      })
+      if (res.result && res.result.success && res.result.data) {
+        const info = res.result.data
+        this.setData({
+          className: this.data.className || info.class_name || '',
+          semesterName: this.data.semesterName || info.current_semester_name || ''
+        })
+      }
+    } catch (e) {
+      console.error('获取班级信息失败:', e)
+    }
   },
 
   calculateCurrentWeek: function () {
@@ -89,6 +150,7 @@ Page({
             class_id: this.data.classId,
             class_name: this.data.className,
             semester_name: this.data.semesterName,
+            schedule_type_id: this.data.scheduleTypeId,
             week_number: this.data.currentWeek,
             course_view_type: this.data.courseViewType
           }
@@ -349,9 +411,16 @@ Page({
     })
   },
 
+  onScheduleTypeSwitch: function (e) {
+    const typeId = e.currentTarget.dataset.type
+    if (typeId === this.data.scheduleTypeId) return
+    this.setData({ scheduleTypeId: typeId })
+    this.loadSchedule()
+  },
+
   goToImport: function () {
     wx.navigateTo({
-      url: `/subPkg4/schedule/import/import?class_id=${this.data.classId}&class_name=${encodeURIComponent(this.data.className)}&semester_name=${encodeURIComponent(this.data.semesterName)}`
+      url: `/subPkg4/schedule/import/import?class_id=${this.data.classId}&class_name=${encodeURIComponent(this.data.className)}&semester_name=${encodeURIComponent(this.data.semesterName)}&semester_id=${this.data.semesterId || app.globalData.currentSemesterId || ''}`
     })
   }
 })

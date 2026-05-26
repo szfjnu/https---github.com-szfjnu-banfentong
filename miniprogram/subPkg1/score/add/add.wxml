@@ -72,25 +72,30 @@
     <!-- 原因说明 -->
     <view class="section">
       <view class="section-title">原因说明</view>
-      <input 
-        class="reason-input"
-        placeholder="请输入积分变动原因（必填）"
-        value="{{reason}}"
-        bindinput="onReasonInput"
-        maxlength="100"
-      />
-    </view>
+      <view class="input-wrap"> 
+        <input 
+          class="reason-input"
+          placeholder="请输入积分变动原因（必填）"
+          value="{{reason}}"
+          bindinput="onReasonInput"
+          maxlength="100"
+          adjust-position="{{false}}" 
+        />
+      </view>
+    </view>  
 
     <!-- 备注 -->
     <view class="section">
       <view class="section-title">备注（选填）</view>
-      <textarea 
-        class="remark-input"
-        placeholder="可填写详细说明"
-        value="{{remark}}"
-        bindinput="onRemarkInput"
-        maxlength="200"
-      />
+      <view class="input-wrap">
+        <textarea 
+          class="remark-input"
+          placeholder="可填写详细说明"
+          value="{{remark}}"
+          bindinput="onRemarkInput"
+          maxlength="200"
+        />
+      </view>
     </view>
 
     <!-- 学生选择 -->

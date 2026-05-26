@@ -1,0 +1,31 @@
+<view class="deep-analysis-page">
+  <view class="page-header">
+    <text class="page-title">深度分析</text>
+    <text class="refresh-btn" bindtap="onForceRefresh">刷新</text>
+  </view>
+  <view wx:if="{{loading}}" class="loading-wrap"><text>分析中...</text></view>
+  <block wx:else>
+    <!-- 趋势分析 -->
+    <view class="analysis-section" wx:if="{{analysis.trend}}">
+      <text class="section-title">趋势分析</text>
+      <view class="trend-item" wx:for="{{analysis.trend}}" wx:key="index" wx:for-item="t" wx:for-index="dimKey">
+        <text class="trend-dim">{{dimKey}}</text>
+        <text class="trend-dir {{t.direction}}">{{t.direction === 'up' ? '上升' : (t.direction === 'down' ? '下降' : '稳定')}}</text>
+        <text class="trend-rate" wx:if="{{t.rate}}">速率: {{t.rate}}</text>
+      </view>
+    </view>
+    <!-- 关联分析 -->
+    <view class="analysis-section" wx:if="{{analysis.correlation}}">
+      <text class="section-title">关联分析</text>
+      <view class="corr-item" wx:for="{{analysis.correlation.significant_pairs}}" wx:key="index">
+        <text>{{item.dimension_pair[0]}} ↔ {{item.dimension_pair[1]}}: r={{item.correlation}} ({{item.direction}})</text>
+      </view>
+      <text wx:if="{{!analysis.correlation.significant_pairs || analysis.correlation.significant_pairs.length === 0}}" class="empty-sm">无显著关联</text>
+    </view>
+    <!-- 聚类归属 -->
+    <view class="analysis-section" wx:if="{{analysis.cluster}}">
+      <text class="section-title">聚类归属</text>
+      <text class="cluster-desc">{{analysis.cluster.description}}</text>
+    </view>
+  </block>
+</view>

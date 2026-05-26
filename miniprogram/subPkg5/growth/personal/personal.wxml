@@ -1,0 +1,34 @@
+<view class="personal-page">
+  <view class="page-header"><text class="page-title">我的成长</text></view>
+  <view wx:if="{{loading}}" class="loading-wrap"><text>加载中...</text></view>
+  <block wx:else>
+    <!-- 雷达图占位 -->
+    <view class="radar-placeholder">
+      <text class="placeholder-text">多维度雷达图</text>
+      <view class="radar-values">
+        <view class="radar-item" wx:for="{{radar}}" wx:key="dimension">
+          <text class="radar-dim">{{item.name}}</text>
+          <text class="radar-val">{{item.value}}</text>
+        </view>
+      </view>
+    </view>
+    <!-- 维度卡片 -->
+    <view class="dimension-cards">
+      <view class="dim-card" wx:for="{{dimensionList}}" wx:key="key" style="border-left: 6rpx solid {{item.color}};">
+        <view class="dim-header">
+          <text class="dim-name">{{item.name}}</text>
+          <text class="dim-trend {{item.trend.direction}}" wx:if="{{item.trend}}">{{item.trend.direction === 'up' ? '↑' : (item.trend.direction === 'down' ? '↓' : '→')}}</text>
+        </view>
+        <view class="dim-kpi" wx:if="{{item.kpi}}">
+          <text class="kpi-item" wx:for="{{item.kpi}}" wx:for-item="val" wx:for-index="k" wx:key="k">{{k}}: {{val}}</text>
+        </view>
+        <text class="dim-count">共{{item.recordCount}}条记录</text>
+      </view>
+    </view>
+    <!-- 快捷入口 -->
+    <view class="action-row">
+      <view class="action-btn" bindtap="onGoDeepAnalysis"><text>深度分析</text></view>
+      <view class="action-btn outline" bindtap="onGoDevAdvice"><text>发展建议</text></view>
+    </view>
+  </block>
+</view>

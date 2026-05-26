@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+body { margin: 0; padding: 0; background: transparent; }
+svg { display: block; }
+</style>
+</head>
+<body>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 科技感渐变 - 深蓝到紫色 -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a1628"/>
+      <stop offset="50%" style="stop-color:#1a237e"/>
+      <stop offset="100%" style="stop-color:#311b92"/>
+    </linearGradient>
+    
+    <!-- 霓虹蓝渐变 -->
+    <linearGradient id="neonBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00d4ff"/>
+      <stop offset="50%" style="stop-color:#0091ea"/>
+      <stop offset="100%" style="stop-color:#667eea"/>
+    </linearGradient>
+    
+    <!-- 发光效果 -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- 强发光 -->
+    <filter id="glowStrong" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- 网格图案 -->
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(0,212,255,0.08)" stroke-width="1"/>
+    </pattern>
+  </defs>
+  
+  <!-- 背景圆角矩形 -->
+  <rect x="16" y="16" width="480" height="480" rx="120" fill="url(#bgGradient)"/>
+  
+  <!-- 背景网格 -->
+  <rect x="16" y="16" width="480" height="480" rx="120" fill="url(#grid)"/>
+  
+  <!-- 外圈光环 -->
+  <circle cx="256" cy="256" r="200" fill="none" stroke="url(#neonBlue)" stroke-width="2" opacity="0.3"/>
+  <circle cx="256" cy="256" r="190" fill="none" stroke="url(#neonBlue)" stroke-width="1" opacity="0.2"/>
+  
+  <!-- 装饰性电路线条 -->
+  <path d="M 56 200 L 80 200 L 90 180 L 110 180" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.4"/>
+  <path d="M 456 312 L 432 312 L 422 332 L 402 332" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.4"/>
+  <circle cx="56" cy="200" r="3" fill="#00d4ff" opacity="0.6"/>
+  <circle cx="456" cy="312" r="3" fill="#00d4ff" opacity="0.6"/>
+  
+  <!-- 核心图形：B字母 + 班级元素融合 -->
+  <g filter="url(#glow)">
+    <!-- B字母外轮廓 - 科技感 -->
+    <path d="M 180 140 
+             L 180 372 
+             L 260 372 
+             C 310 372 340 342 340 302 
+             C 340 272 320 252 290 246 
+             C 315 240 330 215 330 190 
+             C 330 155 300 140 260 140 
+             Z" 
+          fill="none" 
+          stroke="url(#neonBlue)" 
+          stroke-width="6"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+    
+    <!-- B字母内部横线 -->
+    <path d="M 180 246 L 280 246" 
+          fill="none" 
+          stroke="url(#neonBlue)" 
+          stroke-width="6"
+          stroke-linecap="round"/>
+    
+    <!-- 左侧竖线加粗 -->
+    <path d="M 180 140 L 180 372" 
+          fill="none" 
+          stroke="url(#neonBlue)" 
+          stroke-width="8"
+          stroke-linecap="round"/>
+  </g>
+  
+  <!-- 数据流动效果 - 小圆点 -->
+  <circle cx="200" cy="180" r="4" fill="#00d4ff" filter="url(#glow)">
+    <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="280" cy="280" r="4" fill="#00d4ff" filter="url(#glow)">
+    <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="220" cy="340" r="4" fill="#00d4ff" filter="url(#glow)">
+    <animate attributeName="opacity" values="1;0.3;1" dur="2.5s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- 连接线条 - 象征数据联通 -->
+  <path d="M 200 180 L 240 180" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.5" stroke-dasharray="4 4">
+    <animate attributeName="stroke-dashoffset" values="0;8" dur="1s" repeatCount="indefinite"/>
+  </path>
+  <path d="M 260 280 L 300 280" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.5" stroke-dasharray="4 4">
+    <animate attributeName="stroke-dashoffset" values="0;8" dur="1.2s" repeatCount="indefinite"/>
+  </path>
+  
+  <!-- 底部文字标识 -->
+  <text x="256" y="420" 
+        font-family="Arial, Helvetica, sans-serif" 
+        font-size="32" 
+        font-weight="bold"
+        fill="url(#neonBlue)" 
+        text-anchor="middle"
+        letter-spacing="6"
+        filter="url(#glow)">班分通</text>
+  
+  <!-- 英文副标题 -->
+  <text x="256" y="450" 
+        font-family="Arial, Helvetica, sans-serif" 
+        font-size="14" 
+        fill="#00d4ff" 
+        text-anchor="middle"
+        letter-spacing="4"
+        opacity="0.7">CLASS SCORE LINK</text>
+  
+  <!-- 四角装饰 - 科技括号 -->
+  <path d="M 40 80 L 40 40 L 80 40" fill="none" stroke="#00d4ff" stroke-width="2" opacity="0.5"/>
+  <path d="M 472 80 L 472 40 L 432 40" fill="none" stroke="#00d4ff" stroke-width="2" opacity="0.5"/>
+  <path d="M 40 432 L 40 472 L 80 472" fill="none" stroke="#00d4ff" stroke-width="2" opacity="0.5"/>
+  <path d="M 472 432 L 472 472 L 432 472" fill="none" stroke="#00d4ff" stroke-width="2" opacity="0.5"/>
+</svg>
+</body>
+</html>

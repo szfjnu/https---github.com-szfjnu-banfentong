@@ -1,7 +1,8 @@
 {
   "schedule_id": { "label": "课表编号", "aliases": ["schedule_id", "课表编号", "课程编号", "排课ID", "Schedule ID"] },
   "class_name": { "label": "班级名称", "aliases": ["class_name", "班级名称", "班级", "班级名", "Class"] },
-  "course_name": { "label": "课程名称", "aliases": ["course_name", "课程名称", "课程", "科目名称", "科目", "Course"] },
+  "course_name": { "label": "课程名称", "aliases": ["course_name", "课程名称", "课程", "Course"] },
+  "subject_name": { "label": "科目名称", "aliases": ["subject_name", "科目名称", "科目", "Subject"] },
   "week_day": { "label": "星期", "aliases": ["week_day", "星期", "周几", "星期几", "Week Day"] },
   "section": { "label": "节次", "aliases": ["section", "节次", "第几节", "课时", "Section"] },
   "start_time": { "label": "开始时间", "aliases": ["start_time", "开始时间", "上课时间", "Start Time"] },
@@ -11,5 +12,12 @@
   "campus": { "label": "校区", "aliases": ["campus", "校区", "Campus"] },
   "teacher_name": { "label": "教师", "aliases": ["teacher_name", "教师", "教师姓名", "授课教师", "Teacher"] },
   "schedule_type": { "label": "类型", "aliases": ["schedule_type", "类型", "课程类型", "排课类型", "Type"] },
-  "remark": { "label": "备注", "aliases": ["remark", "备注", "说明", "Remark"] }
+  "schedule_type_id": { "label": "课表类型", "aliases": ["schedule_type_id", "课表类型", "Schedule Type ID"] },
+  "remark": { "label": "备注", "aliases": ["remark", "备注", "说明", "Remark"] },
+  "_matrixSubRowAliases": {
+    "course_name": { "aliases": ["课程名称", "课程", "科目", "科目名称", "course_name", "Course"] },
+    "class_name": { "aliases": ["班级名称", "班级", "班", "class_name", "Class"] },
+    "room": { "aliases": ["教室", "教室名称", "课室", "room", "Room"] },
+    "campus": { "aliases": ["校区", "校区名称", "campus", "Campus"] }
+  }
 }

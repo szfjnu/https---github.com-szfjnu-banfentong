@@ -448,3 +448,13 @@
   background: var(--border-color);
   color: var(--white);
 }
+.input-wrap {
+  position: relative;
+  z-index: 2; /* 让输入框容器层级高一点 */
+}
+
+/* 防止底部提交按钮穿透上来 */
+.submit-section {
+  position: relative;
+  z-index: 3;
+}

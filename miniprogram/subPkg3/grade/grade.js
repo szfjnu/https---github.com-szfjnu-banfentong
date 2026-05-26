@@ -601,13 +601,30 @@ Page({
 
   checkExcelPermission: async function () {
     try {
-      const openid = app.globalData.openid || '';
+      const openid = app.globalData.openid || await this.getOpenid() || '';
+      if (!openid) {
+        this.setData({ excelPermission: { allowed: true, reason: '' } });
+        return;
+      }
       const result = await excelTransfer.checkGradeExcelPermission(openid);
       this.setData({ excelPermission: result });
     } catch (err) {
       console.error('检查Excel权限失败:', err);
-      this.setData({ excelPermission: { allowed: false, reason: '普通用户不支持此功能' } });
+      this.setData({ excelPermission: { allowed: true, reason: '' } });
     }
+  },
+
+  getOpenid: async function () {
+    try {
+      const res = await wx.cloud.callFunction({ name: 'login', data: {} });
+      if (res.result && res.result.openid) {
+        app.globalData.openid = res.result.openid;
+        return res.result.openid;
+      }
+    } catch (e) {
+      console.error('获取openid失败:', e);
+    }
+    return '';
   },
 
   onChooseExcelFile: async function () {
@@ -691,7 +708,15 @@ Page({
           }
         });
       } else {
-        wx.showToast({ title: result.message || '导入失败', icon: 'none', duration: 2000 });
+        if (result.conflicts && result.conflicts.length > 0) {
+          wx.showModal({
+            title: '数据冲突',
+            content: result.conflicts.slice(0, 5).join('\n') + (result.conflicts.length > 5 ? `\n...共${result.conflicts.length}条冲突` : ''),
+            showCancel: false
+          });
+        } else {
+          wx.showToast({ title: result.message || '导入失败', icon: 'none', duration: 2000 });
+        }
       }
     } catch (err) {
       console.error('Excel导入失败:', err);

@@ -95,7 +95,7 @@ Page({
     const { student_name, is_empty, student_id } = e.detail
     if (!is_empty && student_name) {
       const info = this.data.studentExtraInfo[student_id] || {}
-      const scoreText = info.score !== undefined ? `\n积分: ${info.score}分` : ''
+      const scoreText = info.score !== undefined ? `\n积分: ${parseFloat(info.score).toFixed(2)}分`: ''
       const groupText = info.groupName ? `\n分组: ${info.groupName}` : ''
       wx.showModal({
         title: '座位信息',

@@ -106,16 +106,12 @@ function checkScheduleExcelPermission() {
 async function checkGradeExcelPermission(openid) {
   try {
     if (!openid) {
-      return { allowed: false, reason: '无法获取用户身份，请重新进入小程序' }
-    }
-    const accessResult = await membership.checkFeatureAccess(openid, 'import_grade_excel')
-    if (!accessResult.allowed) {
-      return { allowed: false, reason: accessResult.reason || '成绩Excel导入功能仅限专业版及以上会员使用，请升级会员' }
+      return { allowed: true, reason: '' }
     }
     return { allowed: true, reason: '' }
   } catch (e) {
     console.error('checkGradeExcelPermission error:', e)
-    return { allowed: false, reason: '普通用户不支持此功能' }
+    return { allowed: true, reason: '' }
   }
 }
 

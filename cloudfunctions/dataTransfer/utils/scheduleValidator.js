@@ -1,5 +1,5 @@
-const WEEK_DAY_NAMES = ['', '星期一', '星期二', '星期三', '星期四', '星期五']
-const SECTION_NAMES = ['', '第一节课', '第二节课', '第三节课', '第四节课', '第五节课', '第六节课', '第七节课']
+const WEEK_DAY_NAMES = ['', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日']
+const SECTION_NAMES = ['', '第一节课', '第二节课', '第三节课', '第四节课', '第五节课', '第六节课', '第七节课', '第八节课', '第九节课']
 
 function validateSchedule(schedule) {
   const errors = []
@@ -21,13 +21,13 @@ function validateSchedule(schedule) {
   if (!courseName || String(courseName).trim() === '') {
     errors.push('课程名称不能为空')
   } else {
-    result.course_name = String(courseName).trim()
-    result.subject_name = String(courseName).trim()
+    result.course_name = String(schedule.course_name || courseName).trim()
+    result.subject_name = String(schedule.subject_name || courseName).trim()
   }
 
   const weekDay = parseWeekDay(schedule.week_day)
   if (weekDay === null) {
-    errors.push('星期格式不正确(1-5或周一-周五)')
+    errors.push('星期格式不正确(1-7或周一-周日)')
   } else {
     result.week_day = weekDay
     result.week_day_name = WEEK_DAY_NAMES[weekDay] || ''
@@ -35,7 +35,7 @@ function validateSchedule(schedule) {
 
   const section = parseSection(schedule.section)
   if (section === null) {
-    errors.push('节次格式不正确(1-7)')
+    errors.push('节次格式不正确(1-9)')
   } else {
     result.section = section
     result.section_name = SECTION_NAMES[section] || ''
@@ -55,6 +55,17 @@ function validateSchedule(schedule) {
   const typeVal = String(schedule.schedule_type || '').trim()
   result.schedule_type = typeVal || '课程'
 
+  const SCHEDULE_TYPE_ID_MAP = {
+    '班级课表': 'class_schedule',
+    '班主任课表': 'teacher_schedule',
+    'class_schedule': 'class_schedule',
+    'teacher_schedule': 'teacher_schedule'
+  }
+  const typeIdInput = String(schedule.schedule_type_id || '').trim()
+  if (typeIdInput && SCHEDULE_TYPE_ID_MAP[typeIdInput]) {
+    result.schedule_type_id = SCHEDULE_TYPE_ID_MAP[typeIdInput]
+  }
+
   result.status = 'normal'
   result.is_base = true
   if (schedule.remark) result.remark = String(schedule.remark).trim()
@@ -69,8 +80,8 @@ function validateSchedule(schedule) {
 function parseWeekDay(val) {
   if (val === undefined || val === null || val === '') return null
   const num = Number(val)
-  if (!isNaN(num) && num >= 1 && num <= 5) return num
-  const strMap = { '周一': 1, '星期一': 1, '周二': 2, '星期二': 2, '周三': 3, '星期三': 3, '周四': 4, '星期四': 4, '周五': 5, '星期五': 5, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5 }
+  if (!isNaN(num) && num >= 1 && num <= 7) return num
+  const strMap = { '周一': 1, '星期一': 1, '周二': 2, '星期二': 2, '周三': 3, '星期三': 3, '周四': 4, '星期四': 4, '周五': 5, '星期五': 5, '周六': 6, '星期六': 6, '周日': 7, '星期日': 7, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 7 }
   const mapped = strMap[String(val).trim()]
   return mapped !== undefined ? mapped : null
 }
@@ -78,7 +89,9 @@ function parseWeekDay(val) {
 function parseSection(val) {
   if (val === undefined || val === null || val === '') return null
   const num = Number(val)
-  if (!isNaN(num) && num >= 1 && num <= 7) return num
+  if (!isNaN(num) && num >= 1 && num <= 9) return num
+  const match = String(val).trim().match(/第(\d+)节/)
+  if (match && Number(match[1]) >= 1 && Number(match[1]) <= 9) return Number(match[1])
   return null
 }
 

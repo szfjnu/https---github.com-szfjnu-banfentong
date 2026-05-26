@@ -1,0 +1,13 @@
+{
+  "name": "growthAnalysis",
+  "version": "1.0.0",
+  "description": "成长数据分析云函数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~3.0.4"
+  },
+  "cloudfunction-config": {
+    "memorySize": 512,
+    "timeout": 30
+  }
+}

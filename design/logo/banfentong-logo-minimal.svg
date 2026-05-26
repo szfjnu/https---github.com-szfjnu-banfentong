@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 极简蓝渐变 -->
+    <linearGradient id="minimalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea"/>
+      <stop offset="100%" style="stop-color:#764ba2"/>
+    </linearGradient>
+    
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00d4ff"/>
+      <stop offset="100%" style="stop-color:#667eea"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- 纯白背景圆角 -->
+  <rect x="16" y="16" width="480" height="480" rx="120" fill="#ffffff"/>
+  
+  <!-- 主图形：六边形蜂巢 + B字母 -->
+  <g transform="translate(256, 220)">
+    <!-- 六边形外框 -->
+    <path d="M 0 -100 L 86.6 -50 L 86.6 50 L 0 100 L -86.6 50 L -86.6 -50 Z" 
+          fill="none" 
+          stroke="url(#minimalGrad)" 
+          stroke-width="4"
+          stroke-linejoin="round"/>
+    
+    <!-- 内部B字母 -->
+    <path d="M -30 -50 L -30 50 L 10 50 C 35 50 50 35 50 15 C 50 0 40 -10 25 -12 C 38 -15 48 -28 48 -45 C 48 -68 28 -80 0 -80 L -30 -80 L -30 -50 Z" 
+          fill="url(#minimalGrad)"/>
+    
+    <!-- B字母横线镂空 -->
+    <path d="M -30 -12 L 20 -12 L 20 8 L -30 8 Z" fill="#ffffff"/>
+    <path d="M -30 -65 L 0 -65 L 0 -45 L -30 -45 Z" fill="#ffffff"/>
+    
+    <!-- 数据节点 -->
+    <circle cx="-60" cy="-70" r="5" fill="url(#accentGrad)"/>
+    <circle cx="60" cy="70" r="5" fill="url(#accentGrad)"/>
+    <circle cx="0" cy="85" r="5" fill="url(#accentGrad)"/>
+  </g>
+  
+  <!-- 底部文字 -->
+  <text x="256" y="400" 
+        font-family="Arial, Helvetica, sans-serif" 
+        font-size="42" 
+        font-weight="bold"
+        fill="url(#minimalGrad)" 
+        text-anchor="middle"
+        letter-spacing="8">班分通</text>
+  
+  <text x="256" y="435" 
+        font-family="Arial, Helvetica, sans-serif" 
+        font-size="16" 
+        fill="#999" 
+        text-anchor="middle"
+        letter-spacing="3">智能班级管理</text>
+</svg>

@@ -407,7 +407,7 @@
 }
 
 .modal-content {
-  width: 640rpx;
+  width: 700rpx;
   background: var(--white);
   border-radius: 24rpx;
   padding: 40rpx;
@@ -424,14 +424,19 @@
 
 .import-field {
   margin-bottom: 24rpx;
+  display: flex;
+  align-items: flex-start;
+  gap: 12rpx;
 }
 
 .import-label {
   font-size: 28rpx;
   font-weight: 600;
   color: var(--text-color);
-  display: block;
-  margin-bottom: 12rpx;
+  display: inline-block;
+  margin-bottom: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .import-hint {
@@ -450,9 +455,10 @@
   border: 2rpx solid var(--border-color);
 }
 
+/* 成绩文本输入框 - 修复被遮挡/被裁剪 */
 .import-textarea {
   width: 100%;
-  min-height: 240rpx;
+  min-height: 280rpx;
   background: var(--background-color);
   border-radius: 12rpx;
   padding: 20rpx;
@@ -461,6 +467,9 @@
   border: 2rpx solid var(--border-color);
   box-sizing: border-box;
   line-height: 1.6;
+  /* 新增：提升层级，确保不被建议框覆盖 */
+  position: relative;
+  z-index: 1;
 }
 
 .modal-actions {
@@ -597,6 +606,8 @@
 .import-modal-content {
   max-height: 85vh;
   overflow-y: auto;
+  /* 新增：内边距，防止内容贴边 */
+  padding-bottom: 20rpx;
 }
 
 .import-tabs {
@@ -643,6 +654,9 @@
 /* 科目输入框+下拉建议 */
 .subject-input-wrap {
   position: relative;
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 24rpx;
 }
 
 .subject-input {
@@ -654,6 +668,9 @@
   color: var(--text-color);
   border: 2rpx solid var(--border-color);
   box-sizing: border-box;
+  /* 新增：提升层级，保证输入框在最上层 */
+  position: relative;
+  z-index: 11;
 }
 
 .subject-suggestions {
@@ -667,7 +684,8 @@
   border-top: none;
   max-height: 300rpx;
   overflow-y: auto;
-  z-index: 10;
+  z-index: 100;
+  box-shadow: 0 8rpx 24rpx rgba(0,0,0,0.15);
 }
 
 .suggestion-item {

@@ -1,14 +1,44 @@
 const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
+const _ = db.command
 
-async function checkPermission(openid, classId) {
-  console.log('[permission] checkPermission called, openid:', openid, 'classId:', classId)
+async function checkPermission(openid, classIdOrRoles) {
+  console.log('[permission] checkPermission called, openid:', openid, 'classIdOrRoles:', classIdOrRoles)
 
   if (!openid) {
     throw new Error('未获取到用户身份，请重新进入小程序')
   }
 
+  if (Array.isArray(classIdOrRoles)) {
+    const allowedRoles = classIdOrRoles
+    const userRes = await db.collection('users')
+      .where(_.or([
+        { _openid: openid },
+        { user_openid: openid },
+        { openid: openid }
+      ]))
+      .limit(1)
+      .get()
+
+    if (!userRes.data || userRes.data.length === 0) {
+      throw new Error('用户信息不存在')
+    }
+
+    const user = userRes.data[0]
+    const role = user.role || ''
+    if (!allowedRoles.includes(role)) {
+      throw new Error('该操作需要高级会员权限')
+    }
+
+    return {
+      hasPermission: true,
+      role,
+      _openid: openid
+    }
+  }
+
+  const classId = classIdOrRoles
   if (!classId) {
     throw new Error('缺少班级ID，请指定classId')
   }

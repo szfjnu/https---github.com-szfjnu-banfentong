@@ -4,6 +4,19 @@
     <text class="info-text">学期: {{semesterName || '请先选择学期'}}</text>
   </view>
 
+  <!-- 课表类型选择 -->
+  <view class="type-selector">
+    <text class="type-label">课表类型:</text>
+    <view class="type-options">
+      <view class="type-option {{scheduleTypeId === 'class_schedule' ? 'active' : ''}}" data-type="class_schedule" bindtap="onScheduleTypeChange">
+        <text>班级课表</text>
+      </view>
+      <view class="type-option {{scheduleTypeId === 'teacher_schedule' ? 'active' : ''}}" data-type="teacher_schedule" bindtap="onScheduleTypeChange">
+        <text>班主任课表</text>
+      </view>
+    </view>
+  </view>
+
   <!-- 导入方式切换 -->
   <view class="method-tabs">
     <view class="method-tab {{importMethod === 'json' ? 'active' : ''}}" data-method="json" bindtap="onMethodChange">

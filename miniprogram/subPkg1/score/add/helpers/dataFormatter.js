@@ -3,10 +3,13 @@ var dataFormatter = {};
 dataFormatter.processStudentsData = function (studentsData) {
   var util = require('../../../../utils/util.js');
   return studentsData.map(function (student) {
+    const score = student.current_score || 100;
+    
     return {
       ...student,
       selected: false,
-      scoreLevel: util.getScoreLevel(student.current_score || 100)
+      current_score: parseFloat(score).toFixed(2),
+      scoreLevel: util.getScoreLevel(score || 100)
     };
   });
 };

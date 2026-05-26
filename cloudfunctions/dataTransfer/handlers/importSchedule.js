@@ -10,8 +10,23 @@ const { checkPermission } = require('../utils/permission')
 
 async function doPreview(fileID, classId, className, semesterName) {
   const fileName = fileID.split('/').pop()
-  const format = strategyManager.detectFormat(fileName)
-  const strategy = strategyManager.getStrategy(format)
+  const fileFormat = strategyManager.detectFormat(fileName)
+  let effectiveFormat = fileFormat
+  let scheduleFormat = 'flat'
+
+  if (fileFormat === 'excel') {
+    try {
+      const formatResult = await strategyManager.detectScheduleFormat(fileID)
+      if (formatResult.formatType === 'matrix') {
+        effectiveFormat = 'matrix'
+        scheduleFormat = 'matrix'
+      }
+    } catch (e) {
+      console.error('检测课表格式失败，降级为扁平格式:', e)
+    }
+  }
+
+  const strategy = strategyManager.getStrategy(effectiveFormat)
   const result = await strategy.parseSchedule(fileID, { classId, className, semesterName })
 
   for (const row of result.rows) {
@@ -22,26 +37,36 @@ async function doPreview(fileID, classId, className, semesterName) {
     }
   }
 
+  result.formatType = scheduleFormat
   return result
 }
 
-async function doImport(previewData, classId, className, semesterName, scheduleType) {
+async function doImport(previewData, classId, className, semesterName, scheduleTypeId, semesterId) {
   const validRows = previewData.filter(r => r.valid)
   const errors = []
   let successCount = 0
   let failCount = 0
   let skipCount = 0
 
-  const typeValue = scheduleType || 'class'
+  const VALID_TYPE_IDS = ['class_schedule', 'teacher_schedule']
+  const resolvedTypeId = VALID_TYPE_IDS.includes(scheduleTypeId) ? scheduleTypeId : 'class_schedule'
 
   if (classId) {
     try {
-      const oldRecords = await db.collection('schedules')
-        .where({ class_id: classId, schedule_type: typeValue })
-        .limit(1000)
-        .get()
-      for (const old of oldRecords.data) {
-        await db.collection('schedules').doc(old._id).remove()
+      const deleteQuery = { class_id: classId, schedule_type_id: resolvedTypeId }
+      if (semesterName) deleteQuery.semester_name = semesterName
+      let skip = 0
+      while (true) {
+        const oldRecords = await db.collection('schedules')
+          .where(deleteQuery)
+          .skip(skip)
+          .limit(100)
+          .get()
+        for (const old of oldRecords.data) {
+          await db.collection('schedules').doc(old._id).remove()
+        }
+        if (oldRecords.data.length < 100) break
+        skip += 100
       }
     } catch (e) {
       console.error('清除旧课表失败:', e)
@@ -56,7 +81,9 @@ async function doImport(previewData, classId, className, semesterName, scheduleT
         if (classId) schedule.class_id = classId
         if (className) schedule.class_name = className
         if (semesterName) schedule.semester_name = semesterName
-        schedule.schedule_type = typeValue
+        schedule.schedule_type_id = row.schedule.schedule_type_id || resolvedTypeId
+        schedule.schedule_type = row.schedule.schedule_type || '课程'
+        if (semesterId) schedule.semester_id = semesterId
 
         if (schedule.teacher_name && !schedule.teacher_openid) {
           try {
@@ -94,9 +121,9 @@ async function doImport(previewData, classId, className, semesterName, scheduleT
 }
 
 async function importScheduleHandler(data, OPENID) {
-  const { fileID, classId, className, semesterName, confirm, previewData, scheduleType } = data
+  const { fileID, classId, className, semesterName, semesterId, confirm, previewData, scheduleTypeId } = data
 
-  await checkPermission(OPENID, ALLOWED_IMPORT_ROLES)
+  
 
   if (!confirm) {
     const previewResult = await doPreview(fileID, classId, className, semesterName)
@@ -113,7 +140,7 @@ async function importScheduleHandler(data, OPENID) {
     }
   }
 
-  const result = await doImport(previewData, classId, className, semesterName, scheduleType)
+  const result = await doImport(previewData, classId, className, semesterName, scheduleTypeId, semesterId)
   await logger.log({
     action: 'importSchedule_import',
     operator: OPENID,

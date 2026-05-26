@@ -108,8 +108,18 @@
   background: #f8bbd0;
 }
 
+.cell-seat-no {
+  font-size: 18rpx;
+  color: #999;
+}
+
+.cell-seat-no-empty {
+  font-size: 18rpx;
+  color: #ccc;
+}
+
 .cell-name {
-  font-size: 20rpx;
+  font-size: 22rpx;
   color: #333;
   font-weight: bold;
   text-overflow: ellipsis;
@@ -118,34 +128,13 @@
   max-width: 100%;
 }
 
-.cell-seat-no {
-  font-size: 16rpx;
-  color: #999;
-}
-
-.cell-seat-no-empty {
-  font-size: 16rpx;
-  color: #ccc;
-}
-
-.cell-info {
-  display: flex;
-  align-items: center;
-  gap: 4rpx;
-}
-
-.cell-height {
-  font-size: 16rpx;
-  color: #888;
-}
-
 .cell-score {
-  font-size: 16rpx;
+  font-size: 18rpx;
   color: #1890ff;
 }
 
 .cell-group {
-  font-size: 14rpx;
+  font-size: 16rpx;
   color: #52c41a;
   max-width: 100%;
   text-overflow: ellipsis;

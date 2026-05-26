@@ -166,6 +166,23 @@ const PERMISSIONS = {
     view: ['admin', 'head_teacher', 'subject_teacher', 'class_cadre', 'student', 'parent'],
     send: ['admin', 'head_teacher'],              // 发送通知
     self: ['subject_teacher', 'class_cadre', 'student', 'parent']  // 只看自己的
+  },
+
+  // 班级成长管理
+  growth: {
+    dashboard: ['admin', 'head_teacher', 'subject_teacher', 'class_cadre'],
+    trend: ['admin', 'head_teacher', 'subject_teacher'],
+    warning_view: ['admin', 'head_teacher', 'subject_teacher', 'class_cadre', 'student', 'parent'],
+    warning_handle: ['admin', 'head_teacher'],
+    ai_advice: ['admin', 'head_teacher'],
+    ai_review: ['admin', 'head_teacher'],
+    review_confirm: ['admin', 'head_teacher'],
+    review_edit: ['admin', 'head_teacher'],
+    review_batch: ['admin', 'head_teacher'],
+    personal: ['admin', 'head_teacher', 'subject_teacher', 'class_cadre', 'student', 'parent'],
+    deep_analysis: ['admin', 'head_teacher', 'subject_teacher', 'class_cadre', 'student', 'parent'],
+    dev_advice: ['admin', 'head_teacher', 'subject_teacher', 'class_cadre', 'student', 'parent'],
+    summary: ['admin', 'head_teacher', 'subject_teacher', 'class_cadre']
   }
 };
 

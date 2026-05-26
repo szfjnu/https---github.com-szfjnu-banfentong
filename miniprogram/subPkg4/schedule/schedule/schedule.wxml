@@ -12,12 +12,12 @@
     </view>
   </view>
 
-  <view class="view-switch" wx:if="{{canSwitchView}}">
+  <view class="view-switch">
     <view class="switch-item {{courseViewType === 'class' ? 'active' : ''}}" bindtap="switchCourseView" data-type="class">
-      <text>班级课程</text>
+      <text>班级课表</text>
     </view>
     <view class="switch-item {{courseViewType === 'teacher' ? 'active' : ''}}" bindtap="switchCourseView" data-type="teacher">
-      <text>我的课程</text>
+      <text>我的课表</text>
     </view>
   </view>
 
@@ -38,9 +38,9 @@
           {{item}}
         </view>
       </view>
-      <view class="grid-row" wx:for="{{scheduleGrid}}" wx:key="index" wx:for-index="rowIdx">
+      <view class="grid-row" wx:for="{{scheduleGrid}}" wx:key="rowIdx" wx:for-index="rowIdx">
         <view class="grid-section-label">{{sections[rowIdx]}}</view>
-        <view class="grid-cell-wrap" wx:for="{{item}}" wx:key="index" wx:for-index="colIdx">
+        <view class="grid-cell-wrap" wx:for="{{item}}" wx:key="colIdx" wx:for-index="colIdx">
           <view
             class="grid-cell {{item.status === 'cancelled' ? 'cancelled' : ''}} {{item.schedule_type === '活动' ? 'activity' : ''}} {{item.is_override ? 'override' : ''}} {{item.status === 'empty' ? 'empty' : ''}}"
             bindtap="onCellTap"

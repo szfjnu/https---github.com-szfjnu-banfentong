@@ -1,0 +1,15 @@
+<view class="ai-advice-page">
+  <view class="page-header"><text class="page-title">AI管理建议</text></view>
+  <view wx:if="{{loading}}" class="loading-wrap"><text>生成中...</text></view>
+  <block wx:else>
+    <view class="advice-card" wx:if="{{advice}}">
+      <view class="advice-meta">
+        <text class="ai-tag {{generatedByAI ? 'ai' : 'fallback'}}">{{generatedByAI ? 'AI生成' : '模板生成'}}</text>
+        <text class="cache-tag" wx:if="{{fromCache}}">缓存</text>
+      </view>
+      <text class="advice-content">{{advice.content}}</text>
+    </view>
+    <view wx:else class="empty-text"><text>暂无建议，点击下方按钮生成</text></view>
+    <view class="generate-btn" bindtap="onRefresh"><text>重新生成</text></view>
+  </block>
+</view>

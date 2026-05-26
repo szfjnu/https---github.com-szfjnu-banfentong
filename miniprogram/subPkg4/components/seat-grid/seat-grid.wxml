@@ -20,7 +20,7 @@
       <view
         class="grid-cell {{item.genderClass}} {{item.isEmpty ? 'empty' : ''}} {{item.isLocked ? 'locked' : ''}} {{item.isHighlight ? 'highlight' : ''}} {{isDragging && dragSourceKey === item.key ? 'drag-source-ghost' : ''}} {{isDragging && dragTargetKey === item.key && isTargetValid ? 'drag-target-valid' : ''}} {{isDragging && dragTargetKey === item.key && !isTargetValid ? 'drag-target-invalid' : ''}}"
         wx:for="{{rowArr}}" wx:key="col"
-        style="width:{{cellSize}}px; height:{{cellSize * 0.85}}px;"
+        style="width:{{cellSize}}px; height:{{cellSize * 1.15}}px;"
         bindtap="onSeatTap"
         bindlongpress="{{enableDrag ? '' : 'onSeatLongPress'}}"
         bindtouchstart="onDragTouchStart"
@@ -31,12 +31,9 @@
         data-col="{{item.col}}"
       >
         <block wx:if="{{item.studentName}}">
-          <text class="cell-name">{{item.studentName}}</text>
           <text class="cell-seat-no">{{item.seatNo}}</text>
-          <view class="cell-info">
-            <text class="cell-score" wx:if="{{item.score !== undefined && item.score !== null}}">{{item.score}}分</text>
-            <text class="cell-height" wx:if="{{item.height}}">{{item.height}}cm</text>
-          </view>
+          <text class="cell-name">{{item.studentName}}</text>
+          <text class="cell-score" wx:if="{{item.score !== undefined && item.score !== null}}">{{item.score}}分</text>
           <text class="cell-group" wx:if="{{item.groupName}}">{{item.groupName}}</text>
           <text class="cell-lock" wx:if="{{item.isLocked}}">🔒</text>
         </block>

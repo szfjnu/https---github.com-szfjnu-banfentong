@@ -16,7 +16,9 @@ const COMMON_DIR = path.join(ROOT, 'cloudfunctions', 'common');
 const CF_DIR = path.join(ROOT, 'cloudfunctions');
 
 const SYNC_MAP = {
-  'auth/index.js': 'utils/auth.js'
+  'auth/index.js': 'utils/auth.js',
+  'growth-utils/index.js': 'utils/growth-utils.js',
+  'growth-utils/format.js': 'utils/growth-format.js'
 };
 
 function getCloudFunctions() {

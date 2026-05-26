@@ -18,6 +18,7 @@ Page({
     validateErrors: [],
     importResult: null,
     importMethod: 'json',
+    scheduleTypeId: 'class_schedule',
     canUseExcel: false,
     excelPreviewData: null,
     excelPreviewCount: 0,
@@ -26,22 +27,62 @@ Page({
   },
 
   onLoad: function (options) {
-    const classId = options.class_id || app.globalData.class_id || ''
-    const className = options.class_name ? decodeURIComponent(options.class_name) : (app.globalData.currentClassName || app.globalData.className || '')
-    const semesterId = options.semester_id || app.globalData.currentSemesterId || ''
+    const classId = options.class_id || app.globalData.class_id || app.globalData.classId || ''
+    const className = options.class_name ? decodeURIComponent(options.class_name) : (app.globalData.currentClassName || app.globalData.className || app.globalData.class_name || '')
+    const semesterId = options.semester_id || app.globalData.currentSemesterId || app.globalData.semester_id || ''
     const semesterName = options.semester_name ? decodeURIComponent(options.semester_name) : (app.globalData.currentSemesterName || '')
 
     this.setData({ classId, className, semesterId, semesterName })
 
-    if (!className || !semesterName) {
+    if (!classId) {
+      this.tryLoadClassFromUser().then(() => {
+        if (!this.data.className || !this.data.semesterName) {
+          this.loadClassInfo(this.data.classId)
+        }
+      })
+    } else if (!className || !semesterName) {
       this.loadClassInfo(classId)
     }
 
-    if (!classId) {
-      wx.showToast({ title: '请先选择班级和学期', icon: 'none', duration: 3000 })
-    }
-
     this.checkExcelPermission()
+  },
+
+  tryLoadClassFromUser: async function () {
+    try {
+      const openid = app.globalData.openid
+      if (!openid) return
+
+      const res = await wx.cloud.callFunction({
+        name: 'joinClass',
+        data: { action: 'getUserClasses', data: {} }
+      })
+
+      if (res.result && res.result.success && res.result.data) {
+        const joinedClasses = res.result.data.joined || res.result.data || []
+        if (joinedClasses.length > 0) {
+          const cls = joinedClasses[0]
+          const classId = cls._id || cls.class_id || ''
+          if (classId) {
+            this.setData({
+              classId,
+              className: this.data.className || cls.class_name || ''
+            })
+            app.globalData.class_id = classId
+            app.globalData.currentClassName = cls.class_name || ''
+            wx.setStorageSync('class_id', classId)
+            if (cls.role) {
+              app.globalData.role = cls.role
+              wx.setStorageSync('role', cls.role)
+            }
+            return
+          }
+        }
+      }
+      wx.showToast({ title: '请先加入班级', icon: 'none' })
+    } catch (e) {
+      console.error('从云函数获取班级失败:', e)
+      wx.showToast({ title: '获取班级信息失败', icon: 'none' })
+    }
   },
 
   loadClassInfo: async function (classId) {
@@ -49,7 +90,7 @@ Page({
     try {
       const res = await wx.cloud.callFunction({
         name: 'manageUserCenter',
-        data: { action: 'getClassInfo', data: { class_id: classId } }
+        data: { action: 'getClassInfo', data: { class_id: classId, classId: classId } }
       })
       if (res.result && res.result.success && res.result.data) {
         const info = res.result.data
@@ -79,6 +120,7 @@ Page({
       const perm = await excelTransfer.checkScheduleExcelPermission()
       this.setData({ canUseExcel: perm.allowed })
     } catch (e) {
+      console.error('checkExcelPermission failed:', e)
       this.setData({ canUseExcel: false })
     }
   },
@@ -86,6 +128,11 @@ Page({
   onMethodChange: function (e) {
     const method = e.currentTarget.dataset.method
     this.setData({ importMethod: method })
+  },
+
+  onScheduleTypeChange: function (e) {
+    const typeId = e.currentTarget.dataset.type
+    this.setData({ scheduleTypeId: typeId })
   },
 
   onChooseExcel: async function () {
@@ -109,7 +156,8 @@ Page({
         classId: this.data.classId,
         className: this.data.className,
         semesterName: this.data.semesterName,
-        scheduleType: this.data.importMethod === 'excel' ? 'class' : 'teacher',
+        semesterId: this.data.semesterId,
+        scheduleTypeId: this.data.scheduleTypeId,
         confirm: false
       })
       wx.hideLoading()
@@ -148,6 +196,8 @@ Page({
         classId: this.data.classId,
         className: this.data.className,
         semesterName: this.data.semesterName,
+        semesterId: this.data.semesterId,
+        scheduleTypeId: this.data.scheduleTypeId,
         confirm: true,
         previewData: this.data.excelPreviewData
       })
@@ -264,6 +314,8 @@ Page({
           data: {
             records: records,
             semester_name: this.data.semesterName,
+            semester_id: this.data.semesterId,
+            schedule_type_id: this.data.scheduleTypeId,
             is_base: true,
             class_id: this.data.classId
           }
