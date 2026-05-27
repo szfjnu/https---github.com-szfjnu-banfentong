@@ -4,12 +4,12 @@ class DormAdapter extends DimensionAdapterBase {
   async fetchClassData(db, classId, semesterId) {
     const query = { class_id: classId }
     if (semesterId) query.semester_id = semesterId
-    return this._getAll(db, 'dorm_scores', query)
+    return this._getAll(db, 'dorm_daily_scores', query)
   }
   async fetchPersonalData(db, studentId, semesterId) {
     const query = { student_id: studentId }
     if (semesterId) query.semester_id = semesterId
-    return this._getAll(db, 'dorm_scores', query)
+    return this._getAll(db, 'dorm_daily_scores', query)
   }
   computeKPI(data) {
     if (!data || data.length === 0) return { hygiene_score: 0, discipline_score: 0, overall_score: 0 }

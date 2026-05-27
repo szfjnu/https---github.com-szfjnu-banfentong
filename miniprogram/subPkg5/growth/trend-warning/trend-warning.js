@@ -17,7 +17,7 @@ Page({
     const { id, status } = e.currentTarget.dataset
     try {
       await growthApi.updateGrowthWarningStatus(id, status)
-      wx.showToast({ title: '处理成功', icon: 'success' })
+      wx.showToast({ title: '处理 成功', icon: 'success' })
       this.loadData()
     } catch (e) { wx.showToast({ title: '处理失败', icon: 'none' }) }
   },

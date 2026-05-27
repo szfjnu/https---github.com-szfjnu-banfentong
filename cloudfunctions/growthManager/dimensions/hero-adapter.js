@@ -4,12 +4,12 @@ class HeroAdapter extends DimensionAdapterBase {
   async fetchClassData(db, classId, semesterId) {
     const query = { class_id: classId }
     if (semesterId) query.semester_id = semesterId
-    return this._getAll(db, 'hero_records', query)
+    return this._getAll(db, 'hero_honors', query)
   }
   async fetchPersonalData(db, studentId, semesterId) {
     const query = { student_id: studentId }
     if (semesterId) query.semester_id = semesterId
-    return this._getAll(db, 'hero_records', query)
+    return this._getAll(db, 'hero_honors', query)
   }
   computeKPI(data) {
     if (!data || data.length === 0) return { hero_count: 0 }

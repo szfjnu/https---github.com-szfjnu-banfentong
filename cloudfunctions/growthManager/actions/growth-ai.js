@@ -107,7 +107,7 @@ async function getReviews(data, caller) {
 
   const skip = (page - 1) * pageSize
   try {
-    const res = await db.collection('ai_reviews').where(query)
+    const res = await db.collection('growth_comments').where(query)
       .orderBy('created_at', 'desc').skip(skip).limit(pageSize).get()
     return { success: true, data: { reviews: res.data || [], page, page_size: pageSize } }
   } catch (e) {
@@ -121,7 +121,7 @@ async function confirmReview(data, caller) {
 
   const now = Date.now()
   try {
-    await db.collection('ai_reviews').doc(review_id).update({
+    await db.collection('growth_comments').doc(review_id).update({
       data: { is_confirmed: true, confirmed_by: caller.openid, confirmed_at: now }
     })
     return { success: true, message: '评语确认成功' }
@@ -135,7 +135,7 @@ async function updateReview(data, caller) {
   if (!review_id || !content) return { success: false, message: '缺少必要参数' }
 
   try {
-    const existing = await db.collection('ai_reviews').doc(review_id).get()
+    const existing = await db.collection('growth_comments').doc(review_id).get()
     const updateData = {
       content,
       is_edited: true,
@@ -145,7 +145,7 @@ async function updateReview(data, caller) {
     if (existing.data && !existing.data.original_ai_content) {
       updateData.original_ai_content = existing.data.content
     }
-    await db.collection('ai_reviews').doc(review_id).update({ data: updateData })
+    await db.collection('growth_comments').doc(review_id).update({ data: updateData })
     return { success: true, message: '评语更新成功' }
   } catch (e) {
     return { success: false, message: e.message || '更新失败' }
@@ -223,7 +223,7 @@ async function batchGenerateReviews(data, caller) {
       }
 
       try {
-        await db.collection('ai_reviews').add({ data: reviewRecord })
+        await db.collection('growth_comments').add({ data: reviewRecord })
       } catch (e) {}
 
       results.push({ student_id: studentId, student_name: studentName, success: true })

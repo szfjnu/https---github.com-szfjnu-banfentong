@@ -92,7 +92,7 @@ const DEFAULT_DIMENSIONS = [
     color: '#2196F3',
     kpi_fields: ['duty_count', 'duty_score', 'completion_rate'],
     status_mapping: { completed: '已完成', pending: '待执行', missed: '缺勤' },
-    adapter_config: { collection: 'duty_records' }
+    adapter_config: { collection: 'duty_task' }
   },
   {
     dimension_key: 'grade',
@@ -103,7 +103,7 @@ const DEFAULT_DIMENSIONS = [
     color: '#9C27B0',
     kpi_fields: ['avg_score', 'max_score', 'min_score', 'pass_rate'],
     status_mapping: { excellent: '优秀', good: '良好', pass: '及格', fail: '不及格' },
-    adapter_config: { collection: 'student_grades' }
+    adapter_config: { collection: 'grades' }
   },
   {
     dimension_key: 'dorm',
@@ -114,7 +114,7 @@ const DEFAULT_DIMENSIONS = [
     color: '#FF9800',
     kpi_fields: ['hygiene_score', 'discipline_score', 'overall_score'],
     status_mapping: { excellent: '优秀', good: '良好', poor: '待改进' },
-    adapter_config: { collection: 'dorm_scores' }
+    adapter_config: { collection: 'dorm_daily_scores' }
   },
   {
     dimension_key: 'discipline',
@@ -158,7 +158,7 @@ const DEFAULT_DIMENSIONS = [
     color: '#FFD700',
     kpi_fields: ['hero_count'],
     status_mapping: {},
-    adapter_config: { collection: 'hero_records' }
+    adapter_config: { collection: 'hero_honors' }
   },
   {
     dimension_key: 'spotlight',
@@ -169,7 +169,7 @@ const DEFAULT_DIMENSIONS = [
     color: '#FF6F00',
     kpi_fields: ['spotlight_count'],
     status_mapping: {},
-    adapter_config: { collection: 'spotlight_records' }
+    adapter_config: { collection: 'campus_activities' }
   }
 ]
 

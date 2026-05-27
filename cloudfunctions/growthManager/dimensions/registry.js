@@ -25,14 +25,14 @@ const ADAPTER_MAP = {
 const DEFAULT_CONFIGS = {
   score: { dimension_key: 'score', dimension_name: '积分', dimension_order: 1, icon: 'star', color: '#FFB800', kpi_fields: ['total_score', 'score_change', 'score_trend'], status_mapping: { up: '上升', down: '下降', stable: '稳定' }, adapter_config: { collection: 'score_records' } },
   attendance: { dimension_key: 'attendance', dimension_name: '考勤', dimension_order: 2, icon: 'calendar', color: '#4CAF50', kpi_fields: ['attendance_rate', 'absent_count', 'late_count'], status_mapping: { normal: '正常', abnormal: '异常' }, adapter_config: { collection: 'attendance_records' } },
-  duty: { dimension_key: 'duty', dimension_name: '值日', dimension_order: 3, icon: 'broom', color: '#2196F3', kpi_fields: ['duty_count', 'duty_score', 'completion_rate'], status_mapping: {}, adapter_config: { collection: 'duty_records' } },
-  grade: { dimension_key: 'grade', dimension_name: '成绩', dimension_order: 4, icon: 'book', color: '#9C27B0', kpi_fields: ['avg_score', 'max_score', 'min_score', 'pass_rate'], status_mapping: { excellent: '优秀', good: '良好', pass: '及格', fail: '不及格' }, adapter_config: { collection: 'student_grades' } },
-  dorm: { dimension_key: 'dorm', dimension_name: '宿舍', dimension_order: 5, icon: 'home', color: '#FF9800', kpi_fields: ['hygiene_score', 'discipline_score', 'overall_score'], status_mapping: {}, adapter_config: { collection: 'dorm_scores' } },
+  duty: { dimension_key: 'duty', dimension_name: '值日', dimension_order: 3, icon: 'broom', color: '#2196F3', kpi_fields: ['duty_count', 'duty_score', 'completion_rate'], status_mapping: {}, adapter_config: { collection: 'duty_task' } },
+  grade: { dimension_key: 'grade', dimension_name: '成绩', dimension_order: 4, icon: 'book', color: '#9C27B0', kpi_fields: ['avg_score', 'max_score', 'min_score', 'pass_rate'], status_mapping: { excellent: '优秀', good: '良好', pass: '及格', fail: '不及格' }, adapter_config: { collection: 'grades' } },
+  dorm: { dimension_key: 'dorm', dimension_name: '宿舍', dimension_order: 5, icon: 'home', color: '#FF9800', kpi_fields: ['hygiene_score', 'discipline_score', 'overall_score'], status_mapping: {}, adapter_config: { collection: 'dorm_daily_scores' } },
   discipline: { dimension_key: 'discipline', dimension_name: '处分', dimension_order: 6, icon: 'alert', color: '#F44336', kpi_fields: ['warning_count', 'serious_count', 'revoked_count'], status_mapping: { active: '生效中', revoked: '已撤销' }, adapter_config: { collection: 'discipline_records' } },
   volunteer: { dimension_key: 'volunteer', dimension_name: '志愿服务', dimension_order: 7, icon: 'heart', color: '#E91E63', kpi_fields: ['total_hours', 'activity_count', 'verified_count'], status_mapping: {}, adapter_config: { collection: 'volunteer_records' } },
   skill_cert: { dimension_key: 'skill_cert', dimension_name: '技能证书', dimension_order: 8, icon: 'award', color: '#00BCD4', kpi_fields: ['cert_count', 'category_count'], status_mapping: {}, adapter_config: { collection: 'skill_certs' } },
-  hero: { dimension_key: 'hero', dimension_name: '英雄台', dimension_order: 9, icon: 'trophy', color: '#FFD700', kpi_fields: ['hero_count'], status_mapping: {}, adapter_config: { collection: 'hero_records' } },
-  spotlight: { dimension_key: 'spotlight', dimension_name: '聚光点', dimension_order: 10, icon: 'sun', color: '#FF6F00', kpi_fields: ['spotlight_count'], status_mapping: {}, adapter_config: { collection: 'spotlight_records' } }
+  hero: { dimension_key: 'hero', dimension_name: '英雄台', dimension_order: 9, icon: 'trophy', color: '#FFD700', kpi_fields: ['hero_count'], status_mapping: {}, adapter_config: { collection: 'hero_honors' } },
+  spotlight: { dimension_key: 'spotlight', dimension_name: '聚光点', dimension_order: 10, icon: 'sun', color: '#FF6F00', kpi_fields: ['spotlight_count'], status_mapping: {}, adapter_config: { collection: 'campus_activities' } }
 }
 
 let adapterInstances = null

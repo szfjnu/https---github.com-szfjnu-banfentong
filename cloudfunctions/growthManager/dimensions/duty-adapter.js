@@ -4,12 +4,12 @@ class DutyAdapter extends DimensionAdapterBase {
   async fetchClassData(db, classId, semesterId) {
     const query = { class_id: classId }
     if (semesterId) query.semester_id = semesterId
-    return this._getAll(db, 'duty_records', query)
+    return this._getAll(db, 'duty_task', query)
   }
   async fetchPersonalData(db, studentId, semesterId) {
     const query = { student_id: studentId }
     if (semesterId) query.semester_id = semesterId
-    return this._getAll(db, 'duty_records', query)
+    return this._getAll(db, 'duty_task', query)
   }
   computeKPI(data) {
     if (!data || data.length === 0) return { duty_count: 0, duty_score: 0, completion_rate: 0 }
